@@ -1,0 +1,29 @@
+<div #content>
+  <div #banner>
+    <div #logo>
+        <span .logo>
+        <a #espial_name>espial
+        $maybe userName <- musername
+          <span>(<a class="banner_username" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}<a>)</span>
+        <!-- <div #timer>#{pageLoadTime} s -->
+    <div #top_menu>
+
+      $maybe userName <- musername
+        $maybe currentroute <- mcurrentRoute
+          <a .bookmarklet href="javascript:q=location.href;if(document.getSelection){d=document.getSelection();}else{d='';};p=document.title;void(open('@{AddR}?_hasdata&url='+encodeURIComponent(q)+'&description='+encodeURIComponent(d)+'&title='+encodeURIComponent(p),'Espial','toolbar=no,width=700,height=350'));">add url bookmarklet
+          &nbsp;&nbsp;&nbsp;&nbsp;
+
+          <a href="@?{(AddR, [("next",urlrender currentroute)])}">add url
+
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <a onclick="app.logout(event);" href="@{AuthR LogoutR}">
+            log out
+      $nothing
+        <a href="@{AuthR LoginR}">
+          log in
+    <div style="clear:both">
+
+  $maybe msg <- mmsg
+    <div .alert.alert-info #message>#{preEscapedToMarkup msg}
+
+  ^{widget}

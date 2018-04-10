@@ -1,0 +1,12 @@
+database:
+  # NOTE: By design, this setting prevents the SQLITE_DATABASE environment variable
+  # from affecting test runs, so that we don't accidentally affect the
+  # production database during testing. If you're not concerned about that and
+  # would like to have environment variable overrides, you could instead use
+  # something like:
+  #
+  #   database: "_env:SQLITE_DATABASE:espial_test.sqlite3"
+  # database: espial_test.sqlite3
+  database: ":memory:"
+
+auth-dummy-login: true

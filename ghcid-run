@@ -1,0 +1,1 @@
+ghcid -c="stack ghci espial" 

@@ -1,0 +1,13 @@
+$maybe (Entity bk' Bookmark{..}, tags) <- mexisting
+  $with bk <- fromSqlKey bk'
+   <div .alert>
+     previously saved
+     <span class="js-moment" title="#{TI.formatISO8601Millis bookmarkTime}" data-iso8601="#{TI.formatISO8601Millis bookmarkTime}">
+       &nbsp;
+     <div .edit_links style="display:inline">
+       &nbsp;&nbsp;
+       <div .delete_link style="display:inline">
+         <a .delete onclick="app.bm.delete_ask(event);" href="#" style="display: inline;"> delete
+         <span .confirm style="display: none;">
+           <a href="#" onclick="app.bm.delete_cancel(event)"> cancel /
+           <a .destroy href="#" onclick="app.bm.destroy(event, #{bk}, () => { $('body').html('<p class=\'error\'>you killed this bookmark</p>'); })"> destroy

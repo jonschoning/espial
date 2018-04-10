@@ -1,0 +1,139 @@
+app.bm = {
+    replace_iso_timestamps: function() {
+        $('.js-moment').each(function(i,e) {
+           let $e = $(e);
+           var m = moment($e.data('iso8601'), moment.ISO_8601);
+           $e.text(m.fromNow());
+           $e.attr('title', m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ");
+           $e.css('visibility','visible');
+        });
+    },
+    delete_ask: function(e, id) {
+        app.pd(e);
+        var $el = $(e.target)
+        this._toggle_delete($el, true);
+    },
+    delete_cancel: function(e, id) {
+        app.pd(e);
+        var $el = $(e.target)
+        this._toggle_delete($el, false);
+    },
+    destroy: function(e, id, success) {
+        app.pd(e);
+        this._destroy(id, () => { if (success) { success(); } }, console.log);
+    },
+    _toggle_delete: function($el, active) {
+        $el.closest('.delete_link')
+            .find('.confirm').toggle(active).end()
+            .find('.delete').toggle(!active);
+
+    },
+    _destroy: function(id, onSuccess, onError) {
+        app.fetch_urlenc('DELETE', 'bm/' + id)
+            .then(data => {
+                if (data.ok) {
+                    onSuccess();
+                } else {
+                    onError();
+                }
+            })
+    },
+
+    mark_read: function(e, id) {
+        app.pd(e);
+        app.fetch_urlenc('POST', 'bm/' + id + '/read')
+            .then(data => {
+                if (data.ok) {
+                    $(e.target)
+                        .closest('.bookmark').find('.bookmark_title').removeClass('unread').end().end()
+                        .closest('.read').remove();
+                } else {
+                    console.log(data);
+                }
+            })
+    },
+
+    toggle_star: function(e, id) {
+        app.pd(e);
+        var $el = $(e.target);
+        var $star = $el.closest('.star');
+        var action = $star.hasClass('selected_star') ? "unstar" : "star";
+        app.fetch_urlenc('POST', 'bm/' + id + '/' + action)
+            .then(data => {
+                if (data.ok) {
+                    if (action == 'star') {
+                        $star.addClass('selected_star');
+                    } else {
+                        $star.removeClass('selected_star');
+                    }
+                } else {
+                    console.log(data);
+                }
+            })
+    },
+
+    edit_hide: function(e) {
+        app.pd(e);
+        $('.display').show();
+        $('.edit_bookmark_form.active').detach();
+    },
+
+    edit: function(e, id) {
+        this.edit_hide(e);
+        var $el = $(e.target);
+        var $bm = $el.closest('.bookmark');
+        $('.display').show();
+        $('.edit_bookmark_form.active').detach();
+
+        var $f = $('#edit_bookmark_form_template').clone();
+        $f.removeAttr('id').addClass('active');
+        $f.find('input[name=bid]').val(id);
+        $f.find('.url').val($bm.find('.url_display').text().trim());
+        $f.find('.title').val($bm.find('.bookmark_title').text().trim());
+        $f.find('.description').val($bm.find('.description').html().replace(/<br>/g, '\n').trim());
+        $f.find('.tags').val($bm.find('.tag').map((i, el) => el.innerText).get().join(' '));
+        $f.find('input[name=private]').prop('checked', $bm.hasClass('private'));
+        $f.find('input[name=toread]').prop('checked', $bm.find('.read .mark_read').length > 0);
+        $f.insertBefore($bm.find('.display').hide())
+          .show();
+    },
+
+    edit_submit: function (e) {
+        app.pd(e);
+        $f = $(e.target);
+        var data = {};
+        $f.serializeArray().forEach(f => data[f.name] = f.value);
+        var that = this;
+        app.fetch_urlenc('POST', 'add?inline=true', data).then(function () {
+            var $bm = $f.closest('.bookmark');
+            var toread = $f.find('input[name=toread]').prop('checked');
+            var private = $f.find('input[name=private]').prop('checked');
+            var username = $('.banner_username').data('username');
+
+            $bm.find('.url_display') .text($f.find('.url').val().trim());
+            $bm.find('.bookmark_title')
+              .text($f.find('.title').val().trim())
+              .toggleClass("unread", toread);
+            $bm.find('.description').html($f.find('.description').val().replace(/\n/g, '<br>'));
+            $bm.toggleClass('private', private);
+
+            $bm.find('.tags').empty().append(
+                $f.find('.tags').val().split(' ').filter(_ => _.length > 0).map(v =>
+                    $(`<a class="tag ${v.indexOf(".") === 0 ? "private" : ""}" href="/u:${username}/t:${v}">${v}</a>`)
+                )
+            );
+
+            $bm.find('.read').empty();
+            if (toread) {
+                $bm.find('.read').append(
+                    $(`<a class="mark_read" href="#" onclick="app.bm.mark_read(event, ${$bm.data('bid')});">mark as read</a>`)
+                );
+            }
+
+            that.edit_hide(e);
+        });
+    }
+
+};
+app.bm.replace_iso_timestamps();
+

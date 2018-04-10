@@ -1,0 +1,14 @@
+# This is the implicit global project's config file, which is only used when
+# 'stack' is run outside of a real project.  Settings here do _not_ act as
+# defaults for all projects.  To change stack's default settings, edit
+# '/home/jon/.stack/config.yaml' instead.
+#
+# For more information about stack's configuration, see
+# http://docs.haskellstack.org/en/stable/yaml_configuration/
+#
+flags: {}
+extra-package-dbs: []
+packages: []
+packages: ['.']
+extra-deps: []
+resolver: lts-10.0

@@ -1,0 +1,118 @@
+<div #main_column>
+  <div .user_navbar>
+    <div .small_username>
+      <b>
+        <a href="@{UserR unamep}">#{uname}
+        $forall tag <- pathtags
+          \  + #
+          <a href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
+    <div .bookmark_count_box>
+      <span .bookmark_count>#{bcount}</span>
+    $if isowner
+      <div .filters >
+        <a href="@{UserR unamep}" class="filter ">all
+        ‧  
+        <a href="@{UserSharedR unamep SharedPrivate}" class="filter ">private
+        ‧  
+        <a href="@{UserSharedR unamep SharedPublic}" .filter >public
+        ‧  
+        <a href="@{UserFilterR unamep FilterUnread}" .filter >unread
+        ‧  
+        <a href="@{UserFilterR unamep FilterUntagged}" .filter >untagged
+        ‧  
+        <a href="@{UserFilterR unamep FilterStarred}" .filter >starred
+    <div style="clear:both">
+  
+  ^{pager}
+
+  <div style="clear:both">
+      
+  <div #bulk_links>
+
+  <div #bookmarks>
+    $forall (Entity bk' Bookmark{..}) <- bmarks
+      $with bk <- fromSqlKey bk'
+        <div>
+          $if isowner
+            <div .edit_checkbox name="edit_checkbox">
+              <input #checkbox_#{bk} autocomplete="off" type="checkbox">
+  
+          <div ##{bk} .bookmark :not bookmarkShared:.private data-bid=#{bk}>
+  
+            $if isowner
+              <div .star :bookmarkSelected:.selected_star><span onclick="app.bm.toggle_star(event, #{bk})">✭</span>
+  
+            <div .display>    
+              <a .bookmark_title :isowner && bookmarkToRead:.unread target="_blank" href="#{bookmarkHref}"> #{toTitle bookmarkDescription}
+              <br>
+  
+              <a .url_display href="#{bookmarkHref}"> #{bookmarkHref}
+              <br>
+  
+              <div .description> #{Textarea bookmarkExtended}
+              <div .tags>
+                $with btags <- filter ((==) bk' . (bookmarkTagBookmarkId . E.entityVal)) alltags
+                  $forall (Entity bt BookmarkTag{..}) <- btags
+                    $with private <- isPrefixOf "." bookmarkTagTag
+                      $if (private && isowner) || (not private)
+                        <a .tag :private:.private href="@{UserTagsR unamep (TagsP [bookmarkTagTag])}">#{bookmarkTagTag}</a>
+  
+              <a .when.js-moment title="#{TI.formatISO8601Millis bookmarkTime}" data-iso8601="#{TI.formatISO8601Millis bookmarkTime}" href="@{UserFilterR unamep (FilterSingle bk)}" title="">
+                &nbsp;
+                
+              $if isowner
+                <div .edit_links style="display:inline">
+                  <a .edit onclick="app.bm.edit(event, #{bk});" href="#"> edit&nbsp;&nbsp;
+                  <div .delete_link>
+                    <a .delete onclick="app.bm.delete_ask(event);" href="#" style="display: inline;"> delete
+                    <span .confirm style="display: none;">
+                      <a href="#" onclick="app.bm.delete_cancel(event)"> cancel /
+                      <a .destroy href="#" onclick="app.bm.destroy(event, #{bk}, () => {$(event.target).closest('.bookmark').remove();});"> destroy
+
+                <div .read style="display:inline">
+                  $if bookmarkToRead
+                    &nbsp;&nbsp;
+                    <a .mark_read href="#" onclick="app.bm.mark_read(event, #{bk});">mark as read</a>
+  
+            <div style="clear:both">
+  
+          <div style="clear:both">
+
+  <div style="clear:both">
+
+  ^{pager}
+
+  $if (fromIntegral bcount >= limit) || (page > 1)
+    $maybe route <- mroute
+      <div #per_page_picker>
+        per page: &nbsp;&nbsp; 
+        <a :limit == 20:.per_page_selected href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
+        <a :limit == 40:.per_page_selected href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
+        <a :limit == 80:.per_page_selected href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
+        <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
+        <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
+        
+  <div #edit_bookmark_form_template .edit_bookmark_form style="display: none">   
+    <form onsubmit="app.bm.edit_submit(event)">
+      $maybe tokenValue <- reqToken req
+        <input type="hidden" name="#{defaultCsrfParamName}" value="#{tokenValue}">
+      <input type="hidden" name="bid" value="">
+      <input required name="url" type="text" .url.edit_form_input>
+      <br>
+      <input name="title" .edit_form_input.title type="text" value="">
+      <br>
+      <p style="margin-top:10px;margin-bottom:5px;"> description:
+      <textarea name="description" .edit_form_input.description rows="5">
+      <br>
+      <div #tags_input_box>
+        <p style="margin-top:10px;"> tags:
+          <input name="tags" #tags_input .tags.edit_form_input autocorrect="off" autocapitalize="off" type="text">
+          <br>
+      <div #edit_form_checkboxes>
+        <input name="private" #edit_private .private type="checkbox">
+        <label style="display:inline" for="edit_private"> private
+        <input name="toread" #edit_toread .toread type="checkbox">
+        <label style="display:inline" for="edit_toread">to read
+        <br>
+      <input class="edit-button" type="submit" .submit value="save">
+      <input class="edit-button" type="reset" .reset value="cancel" onclick="app.bm.edit_hide(event)">

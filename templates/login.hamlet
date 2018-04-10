@@ -1,0 +1,20 @@
+<div #login style="text-align:left; margin-top:30px;">
+  <form method="post" action="@{toParent dbLoginR}">
+    $maybe token <- reqToken req
+      <input type="hidden" name="#{defaultCsrfParamName}" value="#{token}">
+    <table width="380" border="0">
+      <tbody>
+        <tr>
+          <td width="99">
+            <span style="color:#999">username :</span>
+          <td>
+            <input name="username" type="text" value="" size="20">
+        <tr>
+          <td>
+            <span style="color:#999">password :</span>
+          <td>
+            <input name="password" type="password" size="20">
+        <tr>
+          <td>
+          <td>
+            <input type="submit" value="log in"> 
