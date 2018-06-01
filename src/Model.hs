@@ -194,12 +194,10 @@ postToBookmark user Post {..} =
 
 insertFileBookmarks :: Key User -> FilePath -> DB ()
 insertFileBookmarks userId bookmarkFile = do
-  -- $logDebug $ "Reading bookmark file: " <> pack bookmarkFile
   posts' <- liftIO $ readBookmarkFileJson bookmarkFile
   case posts' of
       Left e -> print e
       Right posts -> do
-        -- $logDebug $ (pack . show . length) posts <> " bookmarks read"
         void $ do
             let bookmarks = fmap (postToBookmark userId) posts
             bookmarkIds <- insertMany bookmarks
