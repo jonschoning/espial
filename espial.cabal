@@ -1,13 +1,33 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2c9f6ef169c2e54f300562d44615151f6c76e7c835d1a4fc9d502e2a80133d3b
+-- hash: ff25235092634e69f772d5ca291191962a221d4a5a24272fe0eed62041fd9794
 
 name:           espial
 version:        0.0.1
+synopsis:       Espial is an open-source, web-based bookmarking server.
+description:    .
+                Espial is an open-source, web-based bookmarking server.
+                - Yesod + sqlite3
+                - multi-user (w/ privacy scopes)
+                - tags, stars, editing, deleting 
+category:       Web
+homepage:       https://github.com/jonschoning/espial
+bug-reports:    https://github.com/jonschoning/espial/issues
+author:         Jon Schoning
+maintainer:     jonschoning@gmail.com
+copyright:      Copyright (c) 2018 Jon Schoning
+license:        MIT
 build-type:     Simple
 cabal-version:  >= 1.10
+extra-source-files:
+    changelog.md
+    README.md
+
+source-repository head
+  type: git
+  location: git://github.com/jonschoning/espial.git
 
 flag dev
   description: Turn on development settings, like auto-reload templates.

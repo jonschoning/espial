@@ -1,5 +1,27 @@
 name:    espial
+synopsis: Espial is an open-source, web-based bookmarking server.
 version: "0.0.1"
+description: ! '
+
+  Espial is an open-source, web-based bookmarking server.
+
+  - Yesod + sqlite3
+
+  - multi-user (w/ privacy scopes)
+  
+  - tags, stars, editing, deleting
+'
+category: Web
+author: Jon Schoning
+maintainer: jonschoning@gmail.com
+copyright: Copyright (c) 2018 Jon Schoning
+license: MIT
+homepage: https://github.com/jonschoning/espial
+git: git://github.com/jonschoning/espial.git
+bug-reports: https://github.com/jonschoning/espial/issues
+extra-source-files:
+- README.md
+- changelog.md
 
 default-extensions:
 - BangPatterns
