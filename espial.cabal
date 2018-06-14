@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ff25235092634e69f772d5ca291191962a221d4a5a24272fe0eed62041fd9794
+-- hash: e0e5aacd95d53f3ac1291af2e82ab2fed9754f6e72799b1fe333c226dec26c8a
 
 name:           espial
-version:        0.0.1
+version:        0.0.2
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -44,9 +44,9 @@ library
       src
   default-extensions: BangPatterns CPP ConstraintKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings QuasiQuotes RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators ViewPatterns
   build-depends:
-      aeson >=0.6 && <1.3
+      aeson >=0.11.1 && <2.0
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
-    , bcrypt >=0.0.8 && <0.0.11
+    , bcrypt >=0.0.8 && <0.0.12
     , bytestring >=0.9 && <0.11
     , case-insensitive
     , classy-prelude >=0.10.2
@@ -62,13 +62,13 @@ library
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
-    , http-conduit >=2.1 && <2.3
+    , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
     , mtl
-    , persistent >=2.0 && <2.8
-    , persistent-sqlite >=2.6.2 && <2.8
+    , persistent >=2.0 && <2.8.3
+    , persistent-sqlite >=2.6.2 && <2.8.2
     , persistent-template >=2.0 && <2.8
     , pretty-show
     , safe
@@ -84,11 +84,11 @@ library
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
-    , yesod >=1.4.3 && <1.5
-    , yesod-auth >=1.4.0 && <1.5
-    , yesod-core >=1.4.30 && <1.5
-    , yesod-form >=1.4.0 && <1.5
-    , yesod-static >=1.4.0.3 && <1.6
+    , yesod >=1.4.3 && <1.7
+    , yesod-auth >=1.4.0 && <1.7
+    , yesod-core >=1.4.30 && <1.7
+    , yesod-form >=1.4.0 && <1.7
+    , yesod-static >=1.4.0.3 && <1.7
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs -O0
     cpp-options: -DDEVELOPMENT
@@ -122,9 +122,9 @@ executable espial
   default-extensions: BangPatterns CPP ConstraintKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings QuasiQuotes RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson >=0.6 && <1.3
+      aeson >=0.11.1 && <2.0
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
-    , bcrypt >=0.0.8 && <0.0.11
+    , bcrypt >=0.0.8 && <0.0.12
     , bytestring >=0.9 && <0.11
     , case-insensitive
     , classy-prelude >=0.10.2
@@ -141,13 +141,13 @@ executable espial
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
-    , http-conduit >=2.1 && <2.3
+    , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
     , mtl
-    , persistent >=2.0 && <2.8
-    , persistent-sqlite >=2.6.2 && <2.8
+    , persistent >=2.0 && <2.8.3
+    , persistent-sqlite >=2.6.2 && <2.8.2
     , persistent-template >=2.0 && <2.8
     , pretty-show
     , safe
@@ -163,11 +163,11 @@ executable espial
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
-    , yesod >=1.4.3 && <1.5
-    , yesod-auth >=1.4.0 && <1.5
-    , yesod-core >=1.4.30 && <1.5
-    , yesod-form >=1.4.0 && <1.5
-    , yesod-static >=1.4.0.3 && <1.6
+    , yesod >=1.4.3 && <1.7
+    , yesod-auth >=1.4.0 && <1.7
+    , yesod-core >=1.4.30 && <1.7
+    , yesod-form >=1.4.0 && <1.7
+    , yesod-static >=1.4.0.3 && <1.7
   if flag(library-only)
     buildable: False
   other-modules:
@@ -182,9 +182,9 @@ executable migration
   default-extensions: BangPatterns CPP ConstraintKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings QuasiQuotes RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson >=0.6 && <1.3
+      aeson >=0.11.1 && <2.0
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
-    , bcrypt >=0.0.8 && <0.0.11
+    , bcrypt >=0.0.8 && <0.0.12
     , bytestring >=0.9 && <0.11
     , case-insensitive
     , classy-prelude >=0.10.2
@@ -201,14 +201,14 @@ executable migration
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
-    , http-conduit >=2.1 && <2.3
+    , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
     , mtl
     , optparse-generic >=1.2.3
-    , persistent >=2.0 && <2.8
-    , persistent-sqlite >=2.6.2 && <2.8
+    , persistent >=2.0 && <2.8.3
+    , persistent-sqlite >=2.6.2 && <2.8.2
     , persistent-template >=2.0 && <2.8
     , pretty-show
     , safe
@@ -224,11 +224,11 @@ executable migration
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
-    , yesod >=1.4.3 && <1.5
-    , yesod-auth >=1.4.0 && <1.5
-    , yesod-core >=1.4.30 && <1.5
-    , yesod-form >=1.4.0 && <1.5
-    , yesod-static >=1.4.0.3 && <1.6
+    , yesod >=1.4.3 && <1.7
+    , yesod-auth >=1.4.0 && <1.7
+    , yesod-core >=1.4.30 && <1.7
+    , yesod-form >=1.4.0 && <1.7
+    , yesod-static >=1.4.0.3 && <1.7
   if flag(library-only)
     buildable: False
   other-modules:
@@ -243,9 +243,9 @@ test-suite test
   default-extensions: BangPatterns CPP ConstraintKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings QuasiQuotes RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeFamilies TypeOperators ViewPatterns
   ghc-options: -Wall
   build-depends:
-      aeson >=0.6 && <1.3
+      aeson >=0.11.1 && <2.0
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
-    , bcrypt >=0.0.8 && <0.0.11
+    , bcrypt >=0.0.8 && <0.0.12
     , bytestring >=0.9 && <0.11
     , case-insensitive
     , classy-prelude >=0.10.2
@@ -263,14 +263,14 @@ test-suite test
     , hjsmin >=0.1 && <0.3
     , hscolour
     , hspec >=2.0.0
-    , http-conduit >=2.1 && <2.3
+    , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
     , microlens
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
     , mtl
-    , persistent >=2.0 && <2.8
-    , persistent-sqlite >=2.6.2 && <2.8
+    , persistent >=2.0 && <2.8.3
+    , persistent-sqlite >=2.6.2 && <2.8.2
     , persistent-template >=2.0 && <2.8
     , pretty-show
     , safe
@@ -286,11 +286,11 @@ test-suite test
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
-    , yesod >=1.4.3 && <1.5
-    , yesod-auth >=1.4.0 && <1.5
-    , yesod-core >=1.4.30 && <1.5
-    , yesod-form >=1.4.0 && <1.5
-    , yesod-static >=1.4.0.3 && <1.6
+    , yesod >=1.4.3 && <1.7
+    , yesod-auth >=1.4.0 && <1.7
+    , yesod-core >=1.4.30 && <1.7
+    , yesod-form >=1.4.0 && <1.7
+    , yesod-static >=1.4.0.3 && <1.7
     , yesod-test
   other-modules:
       Handler.CommonSpec

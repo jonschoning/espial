@@ -15,7 +15,9 @@ body
 }
 
 
-
+label {
+    cursor: pointer;
+}
 blockquote 
 { 
     margin-left:20px;
