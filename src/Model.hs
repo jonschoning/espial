@@ -198,11 +198,17 @@ insertFileBookmarks userId bookmarkFile = do
   case posts' of
       Left e -> print e
       Right posts -> do
-        void $ do
-            let bookmarks = fmap (postToBookmark userId) posts
-            bookmarkIds <- insertMany bookmarks
-            insertMany_ $ concatMap (uncurry bookmarkEntityToTags)
-                (zipWith3 (\k v p -> (Entity k v, postTags p)) bookmarkIds bookmarks posts)
+        let bookmarks = fmap (postToBookmark userId) posts
+        mbookmarkIds <- mapM insertUnique bookmarks 
+
+        let bookmarkTags =
+              concatMap (uncurry bookmarkEntityToTags) $
+              catMaybes $
+              zipWith3 (\mk v p -> map (\k -> (Entity k v, postTags p)) mk)
+                mbookmarkIds
+                bookmarks
+                posts
+        void $ mapM insertUnique bookmarkTags
   where
     readBookmarkFileJson :: MonadIO m => FilePath -> m (Either String [Post])
     readBookmarkFileJson fpath = pure . A.eitherDecode' . fromStrict =<< readFile fpath
