@@ -1,7 +1,7 @@
 <div #popup_header>
   <div #logout>
     $maybe userName <- musername
-      <a onclick="app.logout(event);" href="@{AuthR LogoutR}">
+      <a onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">
         [log out]
     $nothing
       <a href="@{AuthR LoginR}">

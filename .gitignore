@@ -21,3 +21,6 @@ cabal.sandbox.config
 test-project.cabal
 bookmarks-*.json
 TAGS
+purs/dist
+purs/output
+purs/generated-docs

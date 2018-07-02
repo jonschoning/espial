@@ -1,0 +1,20 @@
+{
+  "name": "purs",
+  "set": "psc-0.12.0",
+  "source": "https://github.com/purescript/package-sets.git",
+  "depends": [
+    "transformers",
+    "web-html",
+    "debug",
+    "strings",
+    "arrays",
+    "functions",
+    "either",
+    "affjax",
+    "aff",
+    "psci-support",
+    "console",
+    "effect",
+    "prelude"
+  ]
+}

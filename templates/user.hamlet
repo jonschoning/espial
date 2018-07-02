@@ -40,7 +40,7 @@
           <div ##{bk} .bookmark :not bookmarkShared:.private data-bid=#{bk}>
   
             $if isowner
-              <div .star :bookmarkSelected:.selected_star><span onclick="app.bm.toggle_star(event, #{bk})">✭</span>
+              <div .star :bookmarkSelected:.selected_star><span onclick="PS['BMark'].toggleStarE(event)(#{bk})()">✭</span>
   
             <div .display>    
               <a .bookmark_title :isowner && bookmarkToRead:.unread target="_blank" href="#{bookmarkHref}"> #{toTitle bookmarkDescription}
@@ -64,15 +64,15 @@
                 <div .edit_links style="display:inline">
                   <a .edit onclick="app.bm.edit(event, #{bk});" href="#"> edit&nbsp;&nbsp;
                   <div .delete_link>
-                    <a .delete onclick="app.bm.delete_ask(event);" href="#" style="display: inline;"> delete
-                    <span .confirm style="display: none;">
-                      <a href="#" onclick="app.bm.delete_cancel(event)"> cancel /
-                      <a .destroy href="#" onclick="app.bm.destroy(event, #{bk}, () => {$(event.target).closest('.bookmark').remove();});"> destroy
+                    <a .delete onclick="PS['BMark'].deleteAskE(event)()" href="#" style="display: inline;"> delete
+                    <span .confirm hidden>
+                      <a href="#" onclick="PS['BMark'].deleteCancelE(event)()"> cancel /
+                      <a .destroy href="#" onclick="PS['BMark'].destroyE(event)(#{bk})(false)()"> destroy
 
                 <div .read style="display:inline">
                   $if bookmarkToRead
                     &nbsp;&nbsp;
-                    <a .mark_read href="#" onclick="app.bm.mark_read(event, #{bk});">mark as read</a>
+                    <a .mark_read href="#" onclick="PS['BMark'].markReadE(event)(#{bk})()">mark as read</a>
   
             <div style="clear:both">
   

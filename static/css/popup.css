@@ -4,6 +4,9 @@ html {
 *, *:before, *:after {
   box-sizing: inherit;
 }
+[hidden] {
+    display: none !important
+}
 #popup_header
 	{
 	  color:#aaa;

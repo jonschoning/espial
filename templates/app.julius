@@ -4,7 +4,8 @@ var app = {
     csrfCookieName: "#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}",
     csrfToken: Cookies.get("#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}"),
 
-    root: "@{HomeR}",
+    homeR: "@{HomeR}",
+    authRlogoutR: "@{AuthR LogoutR}",
 
     pd: function(e) { return e.preventDefault(); },
 
@@ -17,24 +18,13 @@ var app = {
         return str.join("&");
     },
 
-    logout: function(e) {
-        app.pd(e);
-        app._fetch_url('POST', '@{AuthR LogoutR}')
-            .then(() => window.location.reload());
-    },
-
     fetch_urlenc: function(method, path, data) {
         var headers = { 'content-type': 'application/x-www-form-urlencoded' };
         return app._fetch(method, path, headers, app.serialize(data));
     },
 
-    fetch_json: function(method, path, data) {
-        var headers = { 'content-type': 'application/json' };
-        return app._fetch(method, path, headers, JSON.stringify(data));
-    },
-
     _fetch: function(method, path, headers, body) {
-        var url = app.root + path;
+        var url = app.homeR + path;
         return app._fetch_url(method, url, headers, body)
     },
     _fetch_url: function(method, url, headers, body) {

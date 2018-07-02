@@ -15,6 +15,10 @@ body
 }
 
 
+[hidden] {
+    display: none !important
+}
+
 label {
     cursor: pointer;
 }
@@ -103,7 +107,6 @@ a.fetch_err
 .confirm 
 { 
     color:red;
-    display:none; 
 }
 .delete_link { display:inline; }
 .when {

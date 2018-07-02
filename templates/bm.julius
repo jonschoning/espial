@@ -1,77 +1,4 @@
 app.bm = {
-    replace_iso_timestamps: function() {
-        $('.js-moment').each(function(i,e) {
-           let $e = $(e);
-           var m = moment($e.data('iso8601'), moment.ISO_8601);
-           $e.text(m.fromNow());
-           $e.attr('title', m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ");
-           $e.css('visibility','visible');
-        });
-    },
-    delete_ask: function(e, id) {
-        app.pd(e);
-        var $el = $(e.target)
-        this._toggle_delete($el, true);
-    },
-    delete_cancel: function(e, id) {
-        app.pd(e);
-        var $el = $(e.target)
-        this._toggle_delete($el, false);
-    },
-    destroy: function(e, id, success) {
-        app.pd(e);
-        this._destroy(id, () => { if (success) { success(); } }, console.log);
-    },
-    _toggle_delete: function($el, active) {
-        $el.closest('.delete_link')
-            .find('.confirm').toggle(active).end()
-            .find('.delete').toggle(!active);
-
-    },
-    _destroy: function(id, onSuccess, onError) {
-        app.fetch_urlenc('DELETE', 'bm/' + id)
-            .then(data => {
-                if (data.ok) {
-                    onSuccess();
-                } else {
-                    onError();
-                }
-            })
-    },
-
-    mark_read: function(e, id) {
-        app.pd(e);
-        app.fetch_urlenc('POST', 'bm/' + id + '/read')
-            .then(data => {
-                if (data.ok) {
-                    $(e.target)
-                        .closest('.bookmark').find('.bookmark_title').removeClass('unread').end().end()
-                        .closest('.read').remove();
-                } else {
-                    console.log(data);
-                }
-            })
-    },
-
-    toggle_star: function(e, id) {
-        app.pd(e);
-        var $el = $(e.target);
-        var $star = $el.closest('.star');
-        var action = $star.hasClass('selected_star') ? "unstar" : "star";
-        app.fetch_urlenc('POST', 'bm/' + id + '/' + action)
-            .then(data => {
-                if (data.ok) {
-                    if (action == 'star') {
-                        $star.addClass('selected_star');
-                    } else {
-                        $star.removeClass('selected_star');
-                    }
-                } else {
-                    console.log(data);
-                }
-            })
-    },
-
     edit_hide: function(e) {
         app.pd(e);
         $('.display').show();
@@ -126,7 +53,7 @@ app.bm = {
             $bm.find('.read').empty();
             if (toread) {
                 $bm.find('.read').append(
-                    $(`<a class="mark_read" href="#" onclick="app.bm.mark_read(event, ${$bm.data('bid')});">mark as read</a>`)
+                    $(`<a class="mark_read" href="#" onclick="PS['BMark'].markReadE(event)(${$bm.data('bid')})();">mark as read</a>`)
                 );
             }
 
@@ -135,5 +62,4 @@ app.bm = {
     }
 
 };
-app.bm.replace_iso_timestamps();
-
+PS['Globals'].replaceIsoTimestamps()();
