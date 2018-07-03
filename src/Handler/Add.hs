@@ -98,7 +98,6 @@ viewAddWidget :: Widget -> Maybe Widget -> Text -> Handler Html
 viewAddWidget formWidget mexists focusEl = do
   let submitText = (maybe "add bookmark" (const "update bookmark") mexists) :: Text
   popupLayout mexists $ do
-    $(widgetFile "bm")
     $(widgetFile "add")
 
 -- AddForm

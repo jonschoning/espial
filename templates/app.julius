@@ -1,51 +1,10 @@
-
 var app = {
     csrfHeaderName: "#{rawJS $ TE.decodeUtf8 $ CI.foldedCase defaultCsrfHeaderName}",
     csrfCookieName: "#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}",
     csrfToken: Cookies.get("#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}"),
-
     homeR: "@{HomeR}",
     authRlogoutR: "@{AuthR LogoutR}",
-
-    pd: function(e) { return e.preventDefault(); },
-
-    serialize: function(obj) {
-        var str = [];
-        for (var p in obj)
-            if (obj.hasOwnProperty(p)) {
-                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-            }
-        return str.join("&");
-    },
-
-    fetch_urlenc: function(method, path, data) {
-        var headers = { 'content-type': 'application/x-www-form-urlencoded' };
-        return app._fetch(method, path, headers, app.serialize(data));
-    },
-
-    _fetch: function(method, path, headers, body) {
-        var url = app.homeR + path;
-        return app._fetch_url(method, url, headers, body)
-    },
-    _fetch_url: function(method, url, headers, body) {
-        headers = headers || {};
-        if (app.csrfToken) {
-            headers[app.csrfHeaderName] = app.csrfToken;
-        }
-        var opts = {
-            method: method,
-            headers: headers,
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            mode: 'same-origin',
-            redirect: 'manual'
-        }
-        if (!!body) {
-            opts.body = body
-        }
-        return fetch(url, opts)
-    }
 }
-
 document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/, 'js');
 
+PS['BMark'].replaceIsoTimestamps()();

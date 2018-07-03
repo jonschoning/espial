@@ -53,7 +53,6 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   let toTitle x = if null x then "[no title]" else x
   req <- getRequest
   defaultLayout $ do
-    $(widgetFile "bm")
     $(widgetFile "user")
 
 _lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)

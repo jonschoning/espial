@@ -62,7 +62,7 @@
                 
               $if isowner
                 <div .edit_links style="display:inline">
-                  <a .edit onclick="app.bm.edit(event, #{bk});" href="#"> edit&nbsp;&nbsp;
+                  <a .edit onclick="PS['BMark'].editE(event)(#{bk})()" href="#"> edit&nbsp;&nbsp;
                   <div .delete_link>
                     <a .delete onclick="PS['BMark'].deleteAskE(event)()" href="#" style="display: inline;"> delete
                     <span .confirm hidden>
@@ -92,8 +92,8 @@
         <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
         <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
         
-  <div #edit_bookmark_form_template .edit_bookmark_form style="display: none">   
-    <form onsubmit="app.bm.edit_submit(event)">
+  <div #edit_bookmark_form_template .edit_bookmark_form hidden>   
+    <form onsubmit="PS['BMark'].editSubmitE(event)()">
       $maybe tokenValue <- reqToken req
         <input type="hidden" name="#{defaultCsrfParamName}" value="#{tokenValue}">
       <input type="hidden" name="bid" value="">
@@ -115,4 +115,4 @@
         <label style="display:inline" for="edit_toread">to read
         <br>
       <input class="edit-button" type="submit" .submit value="save">
-      <input class="edit-button" type="reset" .reset value="cancel" onclick="app.bm.edit_hide(event)">
+      <input class="edit-button" type="reset" .reset value="cancel" onclick="PS['BMark'].editHideE(event)()">
