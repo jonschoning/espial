@@ -21,6 +21,10 @@ import Import
 import Yesod.Auth (getAuth)
 import Language.Haskell.TH.Syntax (qLocation)
 import Network.Wai (Middleware)
+import Network.Wai.Middleware.Autohead
+import Network.Wai.Middleware.AcceptOverride
+import Network.Wai.Middleware.Gzip
+import Network.Wai.Middleware.MethodOverride
 import Network.Wai.Handler.Warp
        (Settings, defaultSettings, defaultShouldDisplayException,
         runSettings, setHost, setOnException, setPort, getPort)
@@ -66,7 +70,14 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
   logWare <- makeLogWare foundation
   appPlain <- toWaiAppPlain foundation
-  return (logWare (defaultMiddlewaresNoLogging appPlain))
+  return (logWare (makeMiddleware appPlain))
+
+makeMiddleware :: Middleware
+makeMiddleware =
+  acceptOverride . autohead . gzip def
+    { gzipFiles = GzipPreCompressed GzipIgnore
+    } .
+  methodOverride
 
 makeLogWare :: App -> IO Middleware
 makeLogWare foundation =
