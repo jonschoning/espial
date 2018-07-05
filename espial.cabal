@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e0e5aacd95d53f3ac1291af2e82ab2fed9754f6e72799b1fe333c226dec26c8a
+-- hash: a5845d0e6b4dfb4ad7bb9439764c343bcf020725b3f10c09cad05ccb0664fbff
 
 name:           espial
-version:        0.0.2
+version:        0.0.3
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -23,7 +23,44 @@ build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
     changelog.md
+    config/favicon.ico
+    config/keter.yml
+    config/robots.txt
+    config/routes
+    config/settings.yml
+    config/test-settings.yml
+    purs/Makefile
+    purs/psc-package.json
+    purs/src/App.purs
+    purs/src/BMark.purs
+    purs/src/Globals.js
+    purs/src/Globals.purs
+    purs/src/Util.purs
+    purs/test/Main.purs
     README.md
+    static/css/bootstrap.css
+    static/css/main.css
+    static/css/popup.css
+    static/images/bluepin.gif
+    static/js/app.js
+    static/js/app.js.gz
+    static/js/html5shiv.min.js
+    static/js/html5shiv.min.js.gz
+    static/js/js.cookie-2.2.0.min.js
+    static/js/js.cookie-2.2.0.min.js.gz
+    static/js/moment.min.js
+    static/js/moment.min.js.gz
+    templates/add-exists-alert.hamlet
+    templates/add.hamlet
+    templates/add.julius
+    templates/app.julius
+    templates/default-layout-wrapper.hamlet
+    templates/default-layout.hamlet
+    templates/homepage.hamlet
+    templates/login.hamlet
+    templates/pager.hamlet
+    templates/popup-layout.hamlet
+    templates/user.hamlet
 
 source-repository head
   type: git
