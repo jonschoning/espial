@@ -63,6 +63,7 @@ instance Yesod App where
         pc <- widgetToPageContent $ do
             setTitle "Espial"
             addAppScripts
+            addStylesheet (StaticR css_tachyons_min_css)
             addStylesheet (StaticR css_main_css)
             $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
@@ -114,6 +115,7 @@ popupLayout malert widget = do
     mcurrentRoute <- getCurrentRoute
     pc <- widgetToPageContent $ do
       addAppScripts
+      addStylesheet (StaticR css_tachyons_min_css)
       addStylesheet (StaticR css_popup_css)
       $(widgetFile "popup-layout")
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
