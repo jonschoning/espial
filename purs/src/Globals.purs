@@ -6,22 +6,30 @@ import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
+import Model (Bookmark, Tag)
 import Prelude (Unit, pure, ($))
 import Web.DOM (Element, Node)
 import Web.HTML (HTMLElement, HTMLFormElement)
 import Web.XHR.FormData (FormData)
 
-type AppData =
+type App =
     { csrfHeaderName :: String
     , csrfCookieName :: String
     , csrfToken :: String
     , homeR :: String
     , authRlogoutR :: String
+    , dat :: AppData
     }
 
-foreign import _app :: Fn0 AppData
+type AppData =
+  { bmarks :: Array Bookmark
+  , alltags :: Array Tag
+  , isowner :: Boolean
+  }
 
-app' :: Unit -> AppData
+foreign import _app :: Fn0 App
+
+app' :: Unit -> App
 app' _ = runFn0 _app
 
 foreign import _closest :: forall a. Fn4 (a -> Maybe a) (Maybe a) String Node (Maybe Node)

@@ -2,14 +2,14 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 220dc0af331ef77c4800f751330bae9af9547bfd5a84837abc1e3e5d9299e6a8
+-- hash: a2f0385f95557fd33a110b6328659dc15c10bebb9d4d05ca1ace2967b253b550
 
 name:           espial
 version:        0.0.4
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
-                - Yesod + sqlite3
+                - Yesod + PureScript + sqlite3
                 - multi-user (w/ privacy scopes)
                 - tags, stars, editing, deleting 
 category:       Web
@@ -32,9 +32,10 @@ extra-source-files:
     purs/Makefile
     purs/psc-package.json
     purs/src/App.purs
-    purs/src/BMark.purs
     purs/src/Globals.js
     purs/src/Globals.purs
+    purs/src/Model.purs
+    purs/src/User.purs
     purs/src/Util.purs
     purs/test/Main.purs
     README.md

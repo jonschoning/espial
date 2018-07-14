@@ -1,8 +1,9 @@
-module BMark where
+module User where
 
 import Prelude
 
 import App (fetchUrlEnc)
+import Component.BList (blist)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Trans.Class (lift)
 import Data.Array (mapMaybe, filter)
@@ -18,6 +19,9 @@ import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Globals (closest, createFormArray, getDataAttribute, innerHtml, moment8601, setInnerHtml)
+import Halogen.Aff as HA
+import Halogen.VDom.Driver (runUI)
+import Model (Bookmark)
 import Network.HTTP.Affjax (AffjaxResponse)
 import Network.HTTP.Affjax.Response as AXRes
 import Util (_body, _doc, _fromElement, _fromNode, _getElementById, _mt, _mt_pure, _queryBoth, _queryBoth', _querySelector, _querySelectorAll)
@@ -27,6 +31,7 @@ import Web.DOM.DOMTokenList (contains, toggle, toggleForce, remove, add) as DTL
 import Web.DOM.Document (createElement)
 import Web.DOM.Element (removeAttribute, setAttribute, setClassName, toChildNode, toNode)
 import Web.DOM.Node (appendChild, deepClone, fromEventTarget, insertBefore, setTextContent, textContent)
+import Web.DOM.ParentNode (QuerySelector(..))
 import Web.Event.Event (Event, preventDefault, target)
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.HTMLElement (classList, fromNode, toElement) as HE
@@ -274,7 +279,7 @@ editSubmitE e = do
               el <- createElement "a" (toDocument doc)
               setClassName "mark_read" el
               setAttribute "href" "#" el
-              setAttribute "onclick" ("PS['BMark'].markReadE(event)(" <> bid <> ")();") el
+              setAttribute "onclick" ("PS['User'].markReadE(event)(" <> bid <> ")();") el
               setTextContent "mark as read" (toNode el)
               void $ appendChild (toNode el) (toNode m)
 
@@ -284,3 +289,9 @@ editSubmitE e = do
     _mpair = case _ of
       [k, v] -> Just $ Tuple k (Just v)
       _ -> Nothing
+
+renderBookmarks :: Array Bookmark -> Effect Unit
+renderBookmarks bmarks = do
+  HA.runHalogenAff do
+    HA.selectElement (QuerySelector "#bookmarks") >>= traverse_ \el ->
+      runUI (blist bmarks) unit el

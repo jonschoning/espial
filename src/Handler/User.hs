@@ -13,7 +13,8 @@ import Text.Read
 import Database.Persist.Sql
 import qualified Database.Esqueleto as E
 import qualified Data.Time.ISO8601 as TI
-
+import qualified Data.Aeson as A
+import qualified Data.Text.Encoding as TE
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -54,6 +55,16 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   req <- getRequest
   defaultLayout $ do
     $(widgetFile "user")
+    toWidget [julius|
+      app.dat.bmarks = #{toJson bmarks} || [];
+      app.dat.alltags = #{toJson alltags} || [];
+      app.dat.isowner = #{ isowner };
+      PS['User'].renderBookmarks(app.dat.bmarks)();
+    |]
+  where
+    toJson :: ToJSON a => a -> RawJavascript
+    toJson = rawJS . TE.decodeUtf8 . toStrict . A.encode
+  
 
 _lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
 _lookupPagingParams = do

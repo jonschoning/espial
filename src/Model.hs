@@ -18,14 +18,14 @@ import qualified Database.Esqueleto as E
 -- Physical model
 
 share [mkPersist sqlSettings, mkDeleteCascade sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase| 
-User
+User json
   name Text
   passwordHash BCrypt
   apiToken Text Maybe
   UniqueUserName name
   deriving Show Eq Typeable Ord
 
-Bookmark
+Bookmark json
   userId UserId
   href Text
   description Text
@@ -37,7 +37,7 @@ Bookmark
   UniqueUserHref userId href
   deriving Show Eq Typeable Ord
 
-BookmarkTag
+BookmarkTag json
   userId UserId
   tag Text
   bookmarkId BookmarkId

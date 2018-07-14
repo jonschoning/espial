@@ -4,7 +4,13 @@ var app = {
     csrfToken: Cookies.get("#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}"),
     homeR: "@{HomeR}",
     authRlogoutR: "@{AuthR LogoutR}",
+    dat: {
+      bmarks : [],
+      alltags: [],
+      isowner: false
+    }
 }
 document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/, 'js');
 
-PS['BMark'].replaceIsoTimestamps()();
+PS['User'].replaceIsoTimestamps()();
+

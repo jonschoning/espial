@@ -48,13 +48,3 @@ exports._moment8601 = function(tuple, s) {
   var s2 = m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ";
   return tuple(s1)(s2);
 }
-
-exports._replace_iso_timestamps = function() {
-  $('.js-moment').each(function(i, e) {
-    var $e = $(e);
-    var m = moment($e.data('iso8601'), moment.ISO_8601);
-    $e.text(m.fromNow());
-    $e.attr('title', m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ");
-    $e.css('visibility','visible');
-  });
-}

@@ -3,6 +3,7 @@
   "set": "psc-0.12.0",
   "source": "https://github.com/purescript/package-sets.git",
   "depends": [
+    "halogen",
     "aff",
     "affjax",
     "arrays",

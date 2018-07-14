@@ -4,7 +4,7 @@ m_name = app.min.js
 y_name = app.js
 y_static = ../static/js
 pulp = pulp --psc-package
-modules = --modules App,BMark,Globals,Util
+modules = --modules App,User,Globals,Util
 skip = --skip-entry-point 
 
 minify = uglifyjs
