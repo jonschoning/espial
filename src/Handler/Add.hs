@@ -17,41 +17,43 @@ getAddR = do
     btags <- MaybeT $ Just <$> withTags (entityKey bmark)
     pure (bmark, btags)
 
-  mgetdefs <- aFormToMaybeGetSuccess (mkAddAForm Nothing)
+  mgetdefs <- aFormToMaybeGetSuccess (mkBookmarkAForm Nothing)
 
   (formWidget, _) <- generateFormPost $ renderTable $
-    mkAddAForm (maybe mgetdefs (Just . toAddDefs) mexisting)
+    mkBookmarkAForm (maybe mgetdefs (Just . toBookmarkDefs) mexisting)
 
   viewAddWidget
     formWidget
     (mexisting $> $(widgetFile "add-exists-alert"))
     (maybe "url" (const "tags") murl :: Text)
   where
-    toAddDefs :: (Entity Bookmark, [Entity BookmarkTag]) -> AddForm
-    toAddDefs (Entity bid Bookmark {..}, tags) =
-      AddForm
-      { url = bookmarkHref
-      , title = Just bookmarkDescription
-      , description = Just $ Textarea $ bookmarkExtended
-      , tags = Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags
-      , private = Just $ not bookmarkShared
-      , toread = Just $ bookmarkToRead
-      , bid = Nothing
+    toBookmarkDefs :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
+    toBookmarkDefs (Entity bid Bookmark {..}, tags) =
+      BookmarkForm
+      { _url = bookmarkHref
+      , _title = Just bookmarkDescription
+      , _description = Just $ Textarea $ bookmarkExtended
+      , _tags = Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags
+      , _private = Just $ not bookmarkShared
+      , _toread = Just $ bookmarkToRead
+      , _bid = Nothing
+      , _selected = Just $ bookmarkSelected
+      , _time = Just $ UTCTimeStr $ bookmarkTime
       }
 
 postAddR :: Handler Html
 postAddR = do
   userId <- requireAuthId
 
-  ((formResult, formWidget), _) <- runFormPost $ renderTable $ mkAddAForm Nothing
+  ((formResult, formWidget), _) <- runFormPost $ renderTable $ mkBookmarkAForm Nothing
 
   case formResult of
-    FormSuccess addForm -> do
+    FormSuccess bookmarkForm -> do
       time <- liftIO getCurrentTime
       newBid <- runDB $ upsertDB
-        (toSqlKey <$> bid addForm)
-        (toBookmark userId time addForm)
-        (maybe [] (nub . words) (tags addForm))
+        (toSqlKey <$> _bid bookmarkForm)
+        (toBookmark userId time bookmarkForm)
+        (maybe [] (nub . words) (_tags bookmarkForm))
       lookupGetParam "next" >>= \case
         Just next -> redirect next
         Nothing -> popupLayout Nothing [whamlet| <div .alert> Add Successful </div> <script> window.close() </script> |]
@@ -61,15 +63,15 @@ postAddR = do
         Nothing -> viewAddWidget formWidget Nothing "Tags"
 
   where
-    toBookmark :: UserId -> UTCTime -> AddForm -> Bookmark
-    toBookmark userId time AddForm {..} =
-      Bookmark userId url
-        (fromMaybe "" title)
-        (maybe "" unTextarea description)
+    toBookmark :: UserId -> UTCTime -> BookmarkForm -> Bookmark
+    toBookmark userId time BookmarkForm {..} =
+      Bookmark userId _url
+        (fromMaybe "" _title)
+        (maybe "" unTextarea _description)
         time
-        (maybe True not private)
-        (fromMaybe False toread)
-        False
+        (maybe True not _private)
+        (fromMaybe False _toread)
+        (fromMaybe False _selected)
     upsertDB :: Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (Key Bookmark)
     upsertDB mbid bookmark tags = do
       let userId = bookmarkUserId bookmark
@@ -100,28 +102,20 @@ viewAddWidget formWidget mexists focusEl = do
   popupLayout mexists $ do
     $(widgetFile "add")
 
--- AddForm
+-- BookmarkForm
 
-data AddForm = AddForm
-  { url :: Text
-  , title :: Maybe Text
-  , description :: Maybe Textarea
-  , tags :: Maybe Text
-  , private :: Maybe Bool
-  , toread :: Maybe Bool
-  , bid :: Maybe Int64
-  } deriving (Show, Eq, Read, Generic)
-
-mkAddAForm :: MonadHandlerForm m => Maybe AddForm -> AForm m AddForm
-mkAddAForm defs = do
-    AddForm
-      <$> areq urlField (textAttrs $ named "url" "URL") (url <$> defs)
-      <*> aopt textField (textAttrs $ named "title" "title") (title <$> defs)
-      <*> aopt textareaField (textAreaAttrs $ named "description" "description") (description <$> defs)
-      <*> aopt textField (textAttrs $ named "tags" "tags") (tags <$> defs)
-      <*> aopt checkBoxField (named "private" "private") (private <$> defs)
-      <*> aopt checkBoxField (named "toread" "read later") (toread <$> defs)
-      <*> aopt hiddenField (named "bid" "") (bid <$> defs)
+mkBookmarkAForm :: MonadHandlerForm m => Maybe BookmarkForm -> AForm m BookmarkForm
+mkBookmarkAForm defs = do
+    BookmarkForm
+      <$> areq urlField (textAttrs $ named "url" "URL") (_url <$> defs)
+      <*> aopt textField (textAttrs $ named "title" "title") (_title <$> defs)
+      <*> aopt textareaField (textAreaAttrs $ named "description" "description") (_description <$> defs)
+      <*> aopt textField (textAttrs $ named "tags" "tags") (_tags <$> defs)
+      <*> aopt checkBoxField (named "private" "private") (_private <$> defs)
+      <*> aopt checkBoxField (named "toread" "read later") (_toread <$> defs)
+      <*> aopt hiddenField (named "bid" "") (_bid <$> defs)
+      <*> aopt hiddenField (named "selected" "") (_selected <$> defs)
+      <*> aopt hiddenField (named "time" "") (_time <$> defs)
   where
     textAttrs = attr ("size", "70")
     textAreaAttrs = attrs [("cols", "70"), ("rows", "4")]

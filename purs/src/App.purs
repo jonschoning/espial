@@ -22,7 +22,24 @@ import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
 
--- import Data.Argonaut.Core as J
+data StarAction = Star | UnStar
+instance showStar :: Show StarAction where
+  show Star = "star"
+  show UnStar = "unstar"
+
+toggleStar :: Int -> StarAction -> Aff Unit
+toggleStar bid action = do
+  let path = "bm/" <> show bid <> "/" <> show action
+  void $ fetchUrlEnc POST path Nothing AXRes.ignore
+
+destroy :: Int -> Aff (AffjaxResponse Unit)
+destroy bid =
+  fetchUrlEnc DELETE ("bm/" <> show bid) Nothing AXRes.ignore
+
+markRead :: Int -> Aff (AffjaxResponse Unit)
+markRead bid = do
+  let path = "bm/" <> show bid <> "/read"
+  fetchUrlEnc POST path Nothing AXRes.ignore
 
 logoutE :: Event -> Effect Unit
 logoutE e = void <<< launchAff <<< logout =<< preventDefault e

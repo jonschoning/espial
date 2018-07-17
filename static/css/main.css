@@ -14,6 +14,16 @@ body
   text-align:center;
 }
 
+button {
+    background:none;
+    border:none; 
+    padding:0;
+    cursor:pointer;
+}
+button:focus {
+    outline: none;
+}
+
 
 [hidden] {
     display: none !important
@@ -51,7 +61,7 @@ a
     color:#11a;
 }
 a:visited { color:#51a }
-a.edit { font-size:1em; }
+.edit { font-size:1em; }
 
 h1 
 { 
@@ -77,7 +87,7 @@ code
 
 
 /* BOOKMARK STYLING */
-a.fetch_err
+.fetch_err
 { 
     font-size:80%;
     color:red;
@@ -103,7 +113,9 @@ a.fetch_err
   cursor:pointer;
   float:left; 
 }
+.star button { color: #ccc } 
 .selected_star { color:#22a; }
+.selected_star button { color:#22a; }
 .confirm 
 { 
     color:red;
@@ -118,15 +130,15 @@ a.fetch_err
 .js-moment {
     width: 105px;
 }
-a.url_display:hover { color:#44d; }
+.url_display:hover { color:#44d; }
 
-a.source { color:#77c;}
-a.tag {color:#a51;line-height:190%;}
-a.bundle { color:#b40;font-weight:bold }
-a.bundle { color:#a21;font-weight:bold }
+.source { color:#77c;}
+.tag {color:#a51;line-height:190%;}
+.bundle { color:#b40;font-weight:bold }
+.bundle { color:#a21;font-weight:bold }
 
 .tags { display: block; }
-.tags a.tag {
+.tags .tag {
     margin-right: 5px;
 }
 
@@ -140,24 +152,26 @@ a.bundle { color:#a21;font-weight:bold }
     margin-top:20px;
 }
 
-a.delete { color:#aaa }
-a.delete:visited { color:#aaa }
-a.delete:hover { color:#44d; }
+.delete { color:#aaa; display: inline; }
+.delete:visited { color:#aaa }
+.delete:hover { color:#44d; }
 
-a.edit { color: #aaa }
-a.edit:hover { color:#44d; }
-a.edit:visited { color:#ccc }
+.edit { color: #aaa }
+.edit:hover { color:#44d; }
+.edit:visited { color:#ccc }
 
-a.destroy { color:red; }
-a.destroy:visited { color:red; }
+.destroy { color:red; }
+.destroy:visited { color:red; }
 
-a.copy_link { color: #bbb }
-a.copy_link:hover { color:#44d; }
+.copy_link { color: #bbb }
+.copy_link:hover { color:#44d; }
 .copy_confirm { color:#aaa; }
 .faint {color:#aaa}
 
-.edit_links
-{
+.edit_links {
+    display:inline;
+}
+.read {
     display:inline;
 }
 
@@ -179,7 +193,7 @@ a.copy_link:hover { color:#44d; }
   float:left;
  }
 .bookmark_title { line-height:130%;font-size:110%; }
-a.url_display
+.url_display
 {
     color:#888;
     font-size:0.9em;
@@ -187,11 +201,11 @@ a.url_display
 .private a { padding:1px;border:0px;}
 .private { background:#ddd;border:1px solid #d1d1d1; }
 .unread { color:#b41 }
-a.unread { color:#b41 }
-a.has_bmark { color:#aaa }
+.unread { color:#b41 }
+.has_bmark { color:#aaa }
 
 /* BOOKMARK LISTS */
-a.list { color:#163; }
+.list { color:#163; }
 .lists { color:#163; }
 
 /* ?? */
@@ -212,8 +226,8 @@ a.list { color:#163; }
 
 
 #banner a { color:#aaa; }
-#banner a.admin { color:#e00 }
-#banner a.banner_username { color:blue; }
+#banner .admin { color:#e00 }
+#banner .banner_username { color:blue; }
 #espial_name { font-size:18px; }
 
 
@@ -278,7 +292,7 @@ a.list { color:#163; }
     margin-right:30px;
 }
 
-a.rss_link
+.rss_link
 {
     color:#ee9922;
     font-size:0.8em;
@@ -334,7 +348,7 @@ a.rss_link
 
 
 /* howto page */
-a.bookmarklet
+.bookmarklet
 { 
     background:#ffe; 
     border:1px dotted #aaa;
@@ -353,8 +367,8 @@ a.bookmarklet
 
 .error { color:red }
 
-a.systag { color:#c41 }
-a.next_prev { color:#777 }
+.systag { color:#c41 }
+.next_prev { color:#777 }
 
 #bottom_next_prev { float:left; }
 
@@ -424,6 +438,12 @@ a.next_prev { color:#777 }
     margin-top:10px;
     margin-bottom:10px;
 }
+#edit_form_checkboxes label {
+    display: inline;
+}
+#edit_form_checkboxes input {
+    cursor: pointer;
+}
 #edit_form_suggested_tags
 {
     margin-top:10px;
@@ -433,6 +453,7 @@ a.next_prev { color:#777 }
 .edit_bookmark_form .edit-button
 {
     background-color: #eee;
+    cursor: pointer;
 }
 
 #tag_cloud
@@ -468,7 +489,7 @@ a.next_prev { color:#777 }
 {
   margin-bottom:20px;
 }
- a.mark_read { color:#a81}
+ .mark_read { color:#a81}
  
 
 
@@ -493,7 +514,7 @@ a.next_prev { color:#777 }
   margin-top:3em;color:#888;
  }
  
-a.help
+.help
 {
   color:#2a2;background:#ffc}
   
@@ -506,7 +527,7 @@ a.help
 }
 
 
-a.filter { color:#999}
+.filter { color:#999}
 
 
 .disabled { color:#888;background:#ccc}
@@ -520,25 +541,25 @@ a.filter { color:#999}
     
 
 
-a.twitter_user { color:#000099; }
+.twitter_user { color:#000099; }
 #em { font-weight:bold;color:#555;font-style:normal}
 
 
 
 .tweet_date { color:#aaa;font-size:90%;}
 .twitter_name { font-weight:bold; }
-a.twitter_account { color:#66c}
-a.outside_resource { color:blue;text-decoration:underline; }
+.twitter_account { color:#66c}
+.outside_resource { color:blue;text-decoration:underline; }
 
  
-a.selected {color:blue}
+.selected {color:blue}
 
 .selected { background:#fafafa; }
 
 /* pagination and sort order links */
 #per_page_picker {color:#888;float:left;margin-left:90px;text-align:center; }
 #per_page_picker a {color:#aaa; }
-#per_page_picker a.per_page_selected { background:#ff8;color:blue; }
+#per_page_picker .per_page_selected { background:#ff8;color:blue; }
 
 .pagination_select
 {
@@ -546,7 +567,7 @@ a.selected {color:blue}
    /* margin-right:30px; */
 }
 #sort_order_picker { display:inline; }
-#sort_order_picker a.sort_order_selected { color:#888;}
+#sort_order_picker .sort_order_selected { color:#888;}
 #sort_order_picker a { color:#ccc; }
 #sort_order_picker { color:#aaa; }
 .sort_arrow { font-size:15px;font-family:monaco }
@@ -555,7 +576,7 @@ a.selected {color:blue}
 }
 
 
-#tag_cloud a.tag_heading_selected { font-weight:bold;color:#333 }
+#tag_cloud .tag_heading_selected { font-weight:bold;color:#333 }
 #tag_cloud table{ line-height:100%;}
 #tag_cloud_header a { color:#aaa; }
 
@@ -573,7 +594,7 @@ ul.clean { list-style-type:none;padding-left:0px;}
     font-size:1.3em;color:#59d
 }
 
-a.twitter_account_title /* used on settings page */
+.twitter_account_title /* used on settings page */
 {
     color:#59d
 }
@@ -743,7 +764,7 @@ h2.settings_heading
 }
 
 
-a.upgrade_link
+.upgrade_link
 {
     text-decoration:underline;
     font-weight:bold;
@@ -846,7 +867,7 @@ textarea.profile_input
 {
     margin-top:10px;
 }
-#public_profile_left_column a.username
+#public_profile_left_column .username
 {
     color:blue;
 }

@@ -4,13 +4,13 @@ type BookmarkId = Int
 type TagId = Int
 
 type Bookmark =
-  { id :: BookmarkId
-  , userId :: Int
-  , href :: String
+  { url :: String
+  , title :: String
   , description :: String
-  , extended :: String
-  , time :: String
-  , shared :: Boolean
-  , toRead :: Boolean
+  , tags :: String
+  , private :: Boolean
+  , toread :: Boolean
+  , bid :: BookmarkId
   , selected :: Boolean
+  , time :: String
   }

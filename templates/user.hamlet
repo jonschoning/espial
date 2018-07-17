@@ -63,7 +63,7 @@
                 &nbsp;
                 
               $if isowner
-                <div .edit_links style="display:inline">
+                <div .edit_links>
                   <a .edit onclick="PS['User].editE(event)(#{bid})()" href="#"> edit&nbsp;&nbsp;
                   <div .delete_link>
                     <a .delete onclick="PS['User].deleteAskE(event)()" href="#" style="display: inline;"> delete
@@ -71,7 +71,7 @@
                       <a href="#" onclick="PS['User].deleteCancelE(event)()"> cancel /
                       <a .destroy href="#" onclick="PS['User].destroyE(event)(#{bid})(false)()"> destroy
 
-                <div .read style="display:inline">
+                <div .read>
                   $if bookmarkToRead
                     &nbsp;&nbsp;
                     <a .mark_read href="#" onclick="PS['User].markReadE(event)(#{bid})()">mark as read</a>

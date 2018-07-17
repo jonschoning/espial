@@ -2,7 +2,7 @@ module User where
 
 import Prelude
 
-import App (fetchUrlEnc)
+import App (fetchUrlEnc, StarAction(..), toggleStar, destroy, markRead)
 import Component.BList (blist)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Trans.Class (lift)
@@ -15,14 +15,13 @@ import Data.String (Pattern(..), Replacement(..), joinWith, length, replaceAll, 
 import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Aff (Aff, launchAff)
+import Effect.Aff (launchAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Globals (closest, createFormArray, getDataAttribute, innerHtml, moment8601, setInnerHtml)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Model (Bookmark)
-import Network.HTTP.Affjax (AffjaxResponse)
 import Network.HTTP.Affjax.Response as AXRes
 import Util (_body, _doc, _fromElement, _fromNode, _getElementById, _mt, _mt_pure, _queryBoth, _queryBoth', _querySelector, _querySelectorAll)
 import Web.DOM (Node)
@@ -97,10 +96,6 @@ destroyE e bid isPopup = do
         bm <- _mt $ closest ".bookmark" eNode
         lift $ DCN.remove (toChildNode (_fromNode bm))
 
-destroy :: Int -> Aff (AffjaxResponse Unit)
-destroy bid =
-  fetchUrlEnc DELETE ("bm/" <> show bid) Nothing AXRes.ignore
-
 -- markReadE
 
 markReadE :: Event -> Int -> Effect Unit
@@ -121,18 +116,8 @@ markReadE e bid = do
       rd <- _mt $ closest ".mark_read" eNode 
       lift $ DCN.remove (toChildNode (_fromNode rd))
 
-markRead :: Int -> Aff (AffjaxResponse Unit)
-markRead bid = do
-  let path = "bm/" <> show bid <> "/read"
-  fetchUrlEnc POST path Nothing AXRes.ignore
-
 -- toggleStarE
   
-data StarAction = Star | UnStar
-instance showStar :: Show StarAction where
-  show Star = "star"
-  show UnStar = "unstar"
-
 toggleStarE :: Event -> Int -> Effect Unit
 toggleStarE e bid = do
   preventDefault e
@@ -146,11 +131,6 @@ toggleStarE e bid = do
     hasSelectedStar <- starClassList `DTL.contains` selected_star
     void $ launchAff $ toggleStar bid (if hasSelectedStar then UnStar else Star)
     void $ DTL.toggle starClassList selected_star
-
-toggleStar :: Int -> StarAction -> Aff Unit
-toggleStar bid action = do
-  let path = "bm/" <> show bid <> "/" <> show action
-  void $ fetchUrlEnc POST path Nothing AXRes.ignore
 
 -- editHideE
 

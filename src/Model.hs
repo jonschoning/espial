@@ -14,6 +14,7 @@ import ClassyPrelude.Yesod
 import Control.Monad.Trans.Maybe
 import Database.Esqueleto hiding ((==.))
 import qualified Database.Esqueleto as E
+import qualified Data.Time.ISO8601 as TI
 
 -- Physical model
 
@@ -47,6 +48,35 @@ BookmarkTag json
   deriving Show Eq Typeable Ord
 |]
 
+-- UTCTimeStr
+  
+newtype UTCTimeStr =
+  UTCTimeStr { unUTCTimeStr :: UTCTime }
+  deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
+
+instance PathPiece UTCTimeStr where
+  toPathPiece (UTCTimeStr u) = pack (TI.formatISO8601Millis u)
+  fromPathPiece s = UTCTimeStr <$> TI.parseISO8601 (unpack s)
+
+-- BookmarkForm
+
+data BookmarkForm = BookmarkForm
+  { _url :: Text
+  , _title :: Maybe Text
+  , _description :: Maybe Textarea
+  , _tags :: Maybe Text
+  , _private :: Maybe Bool
+  , _toread :: Maybe Bool
+  , _bid :: Maybe Int64
+  , _selected :: Maybe Bool
+  , _time :: Maybe UTCTimeStr
+  } deriving (Show, Eq, Read, Generic)
+
+instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gBookmarkFormOptions
+instance ToJSON BookmarkForm where toJSON = A.genericToJSON gBookmarkFormOptions
+
+gBookmarkFormOptions :: A.Options
+gBookmarkFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 } 
 
 -- newtypes
 

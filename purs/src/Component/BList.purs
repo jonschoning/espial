@@ -5,6 +5,7 @@ import Prelude
 import Component.BMark (BMessage(..), BQuery, bmark)
 import Data.Array (filter)
 import Data.Maybe (Maybe(..))
+import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -15,7 +16,7 @@ type BSlot = BookmarkId
 data LQuery a =
   HandleBMessage BSlot BMessage a
 
-blist :: forall m. Array Bookmark -> H.Component HH.HTML LQuery Unit Void m
+blist :: Array Bookmark -> H.Component HH.HTML LQuery Unit Void Aff
 blist st =
   H.parentComponent
     { initialState: const st
@@ -25,20 +26,20 @@ blist st =
     }
   where
 
-  render :: Array Bookmark -> H.ParentHTML LQuery BQuery BSlot m
+  render :: Array Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
   render bms =
     HH.div_ $
       map renderBookmark bms
 
-  renderBookmark :: Bookmark -> H.ParentHTML LQuery BQuery BSlot m
+  renderBookmark :: Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
   renderBookmark b =
     HH.slot
-      b.id
+      b.bid
       (bmark b)
       unit
-      (HE.input (HandleBMessage b.id))
+      (HE.input (HandleBMessage b.bid))
 
-  eval :: LQuery ~> H.ParentDSL (Array Bookmark) LQuery BQuery BSlot Void m
+  eval :: LQuery ~> H.ParentDSL (Array Bookmark) LQuery BQuery BSlot Void Aff
   eval (HandleBMessage p msg next) = do
     case msg of
       BNotifyRemove -> do
@@ -46,4 +47,4 @@ blist st =
     pure next
 
 removeBookmark :: BookmarkId -> Array Bookmark -> Array Bookmark
-removeBookmark bookmarkId st = filter (\b -> b.id /= bookmarkId) st
+removeBookmark bookmarkId st = filter (\b -> b.bid /= bookmarkId) st
