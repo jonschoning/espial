@@ -14,10 +14,3 @@ type Bookmark =
   , toRead :: Boolean
   , selected :: Boolean
   }
-
-type Tag =
-  { id :: TagId
-  , bookmarkId :: BookmarkId
-  , seq :: Int
-  , tag :: String
-  }

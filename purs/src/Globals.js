@@ -48,3 +48,14 @@ exports._moment8601 = function(tuple, s) {
   var s2 = m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ";
   return tuple(s1)(s2);
 }
+
+exports._mmoment8601 = function(just, nothing, tuple, s) {
+  try {
+    var m = moment(s, moment.ISO_8601);
+    var s1 = m.fromNow();
+    var s2 = m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ";
+    return just(tuple(s1)(s2));
+  } catch (error) {
+    return nothing
+  }
+}

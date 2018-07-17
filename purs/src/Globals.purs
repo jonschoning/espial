@@ -6,7 +6,7 @@ import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Model (Bookmark, Tag)
+import Model (Bookmark)
 import Prelude (Unit, pure, ($))
 import Web.DOM (Element, Node)
 import Web.HTML (HTMLElement, HTMLFormElement)
@@ -18,12 +18,12 @@ type App =
     , csrfToken :: String
     , homeR :: String
     , authRlogoutR :: String
+    , userR :: String
     , dat :: AppData
     }
 
 type AppData =
   { bmarks :: Array Bookmark
-  , alltags :: Array Tag
   , isowner :: Boolean
   }
 
@@ -41,6 +41,11 @@ foreign import _moment8601 :: Fn2 (String -> String -> Tuple String String) Stri
 
 moment8601 :: String -> Effect (Tuple String String)
 moment8601 s = pure $ runFn2 _moment8601 Tuple s
+
+foreign import _mmoment8601 :: forall a. Fn4 (a -> Maybe a) (Maybe a) (String -> String -> Tuple String String) String (Maybe (Tuple String String))
+
+mmoment8601 :: String -> Maybe (Tuple String String)
+mmoment8601 s = runFn4 _mmoment8601 Just Nothing Tuple s
 
 foreign import _innerHtml :: Fn1 HTMLElement String
 

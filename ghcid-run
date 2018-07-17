@@ -1,1 +1,1 @@
-ghcid -c="stack ghci espial" 
+ghcid -c "stack ghci --main-is espial:exe:espial"

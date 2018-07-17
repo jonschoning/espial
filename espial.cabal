@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a2f0385f95557fd33a110b6328659dc15c10bebb9d4d05ca1ace2967b253b550
+-- hash: e5c8d196a8bbc7efece0b67f5e404201e010255dc3d4d4832c533f6fb69a9c29
 
 name:           espial
 version:        0.0.4
@@ -34,6 +34,7 @@ extra-source-files:
     purs/src/App.purs
     purs/src/Globals.js
     purs/src/Globals.purs
+    purs/src/Main.purs
     purs/src/Model.purs
     purs/src/User.purs
     purs/src/Util.purs

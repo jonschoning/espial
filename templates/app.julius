@@ -4,6 +4,7 @@ var app = {
     csrfToken: Cookies.get("#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}"),
     homeR: "@{HomeR}",
     authRlogoutR: "@{AuthR LogoutR}",
+    userFilterRFilterSingle: "",
     dat: {
       bmarks : [],
       alltags: [],

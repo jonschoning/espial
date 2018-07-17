@@ -15,6 +15,7 @@ import qualified Database.Esqueleto as E
 import qualified Data.Time.ISO8601 as TI
 import qualified Data.Aeson as A
 import qualified Data.Text.Encoding as TE
+import qualified Data.Map.Lazy as M
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -56,12 +57,18 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   defaultLayout $ do
     $(widgetFile "user")
     toWidget [julius|
-      app.dat.bmarks = #{toJson bmarks} || [];
-      app.dat.alltags = #{toJson alltags} || [];
+      app.dat.bmarks = #{ toJson bmarks } || [];
+      app.dat.alltags = #{ toJson (toTagMap bmarks alltags) } || [];
       app.dat.isowner = #{ isowner };
+      app.userR = "@{UserR unamep}";
       PS['User'].renderBookmarks(app.dat.bmarks)();
     |]
   where
+    toTagMap bs as =
+      M.fromList $ do
+        b@(Entity bid' bmark) <- bs
+        let btags = fmap bookmarkTagTag $ filter ((==) bid' . bookmarkTagBookmarkId) (fmap E.entityVal as)
+        pure (fromSqlKey bid', btags)
     toJson :: ToJSON a => a -> RawJavascript
     toJson = rawJS . TE.decodeUtf8 . toStrict . A.encode
   
