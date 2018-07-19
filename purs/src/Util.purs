@@ -1,11 +1,14 @@
 module Util where
 
 import Prelude
+
 import Control.Monad.Maybe.Trans (MaybeT(..))
 import Data.Foldable (for_)
 import Data.Maybe (Maybe, fromJust)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
+import Halogen.HTML as HH
+import Halogen.HTML.Properties as HP
 import Partial.Unsafe (unsafePartial)
 import Web.DOM (Element, Node)
 import Web.DOM.Document (toNonElementParentNode)
@@ -20,6 +23,14 @@ import Web.HTML.HTMLElement (HTMLElement)
 import Web.HTML.HTMLElement (fromElement) as HE
 import Web.HTML.Window (document)
   
+-- Halogen
+
+class_ :: forall r i. String -> HP.IProp ( "class" :: String | r) i
+class_ = HP.class_ <<< HH.ClassName
+
+attr :: forall r i. String -> String -> HP.IProp r i
+attr a = HP.attr (HH.AttrName a)
+
 -- Util
 
 _queryBoth :: forall a. Tuple String Element -> Tuple String Element -> (Element -> Element -> Effect a) -> Effect Unit

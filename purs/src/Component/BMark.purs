@@ -1,22 +1,24 @@
 module Component.BMark where
 
-import Prelude
+import Prelude hiding (div)
 
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
-import Model (Bookmark)
 import Globals (app', mmoment8601)
+import Model (Bookmark)
+import Util (class_, attr)
 
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
+import Data.Monoid (guard)
 import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
-import Halogen (AttrName(..), ClassName(..))
 import Halogen as H
-import Halogen.HTML as HH
+import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, p, span, text, textarea)
+import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
+import Halogen.HTML.Properties (InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
 import Web.Event.Event (Event, preventDefault)
 
 -- | The bookmark component query algebra.
@@ -48,7 +50,7 @@ type BState =
   }
 
 -- | The bookmark component definition.
-bmark :: Bookmark -> H.Component HH.HTML BQuery Unit BMessage Aff
+bmark :: Bookmark -> H.Component HTML BQuery Unit BMessage Aff
 bmark b' =
   H.component
     { initialState: const (mkState b')
@@ -68,123 +70,119 @@ bmark b' =
 
   render :: BState -> H.ComponentHTML BQuery
   render s@{ bm, edit_bm } =
-    HH.div_ ([ bookmark ] <> clearBoth)
+    div_ ([ bookmark ] <> clearBoth)
    where
      bookmark =
-       HH.div
-          [ HP.id_ (show bm.bid)
-          , HP.class_ $ ClassName ("bookmark" <> (if bm.private then " private" else ""))
+       div
+          [ id_ (show bm.bid)
+          , class_ ("bookmark" <> guard bm.private " private")
           ]
           $  star
           <> if s.edit then display_edit else display
           <> clearBoth
 
      star =
-       if app.dat.isowner then
-         [ HH.div [ HP.class_ $ ClassName ("star" <> if bm.selected then " selected_star" else "")]
-           [ HH.button [ HE.onClick $ HE.input_ $ BStar $ not bm.selected ] [ HH.text "✭" ] ]
+       guard app.dat.isowner
+         [ div [ class_ ("star" <> guard bm.selected " selected_star") ]
+           [ button [ onClick (HE.input_ (BStar (not bm.selected))) ] [ text "✭" ] ]
          ]
-       else
-         []
 
      display =
-       [ HH.div [ HP.class_ (ClassName "display") ] $
-         [ HH.a [ HP.href bm.url, HP.target "_blank", HP.class_ $ ClassName ("bookmark_title" <> if bm.toread then " unread" else "")]
-           [ HH.text $ if S.null bm.title then "[no title]" else bm.title ]
-         , HH.br_
-         , HH.a [ HP.href bm.url , HP.class_ (ClassName "url_display") ] [ HH.text bm.url ]
-         , HH.br_
-         , HH.div [ HP.class_ (ClassName "description") ] (toTextarea bm.description)
-         , HH.div [ HP.class_ (ClassName "tags") ] $
-             if S.null bm.tags
-             then []
-             else 
-               map (\tag -> HH.a [ HP.class_ $ ClassName $ "tag" <> if (S.take 1 tag == ".") then " private" else ""
-                            , HP.href (linkToFilterTag tag) ]
-                            [ HH.text tag ])
+       [ div [ class_ "display" ] $
+         [ a [ href bm.url, target "_blank", class_ ("bookmark_title" <> guard bm.toread " unread")]
+           [ text $ if S.null bm.title then "[no title]" else bm.title ]
+         , br_
+         , a [ href bm.url , class_ "url_display" ] [ text bm.url ]
+         , br_
+         , div [ class_ "description" ] (toTextarea bm.description)
+         , div [ class_ "tags" ] $
+             guard (not (S.null bm.tags))
+               map (\tag -> a [ class_ ("tag" <> guard (S.take 1 tag == ".") " private")
+                            , href (linkToFilterTag tag) ]
+                            [ text tag ])
                (S.split (Pattern " ") bm.tags)
-         , HH.a [ HP.class_ (ClassName "when js-moment")
-           , HP.title (maybe bm.time snd mmoment)
-           , HP.attr (HH.AttrName "data-iso8601") bm.time
-           , HP.href (linkToFilterSingle bm.bid) ]
-           [ HH.text (maybe " " fst mmoment) ]
+         , a [ class_ "when js-moment"
+           , title (maybe bm.time snd mmoment)
+           , attr "data-iso8601" bm.time
+           , href (linkToFilterSingle bm.bid) ]
+           [ text (maybe " " fst mmoment) ]
          ]
          <> links
        ]
 
      display_edit =
-       [ HH.div [ HP.class_ (ClassName "edit_bookmark_form active") ] $
-         [ HH.form [ HE.onSubmit (HE.input BEditSubmit) ]
-           [ HH.input [ HP.type_ HP.InputUrl , HP.class_ (ClassName "url edit_form_input") , HP.required true , HP.name "url"
-             , HP.value (edit_bm.url) , HE.onValueChange (HE.input BEditField <<< Eurl)
+       [ div [ class_ "edit_bookmark_form active" ] $
+         [ form [ onSubmit (HE.input BEditSubmit) ]
+           [ input [ type_ InputUrl , class_ "url edit_form_input" , required true , name "url"
+             , value (edit_bm.url) , onValueChange (HE.input BEditField <<< Eurl)
              ]
-           , HH.br_
-           , HH.input [ HP.type_ HP.InputText , HP.class_ (ClassName "title edit_form_input") , HP.name "title"
-             , HP.value (edit_bm.title) , HE.onValueChange (HE.input BEditField <<< Etitle)
+           , br_
+           , input [ type_ InputText , class_ "title edit_form_input" , name "title"
+             , value (edit_bm.title) , onValueChange (HE.input BEditField <<< Etitle)
              ]
-           , HH.br_
-           , HH.p [ HP.attr (AttrName "style") "margin-top:10px;margin-bottom:5px;" ] [ HH.text " description:" ]
-           , HH.textarea [ HP.class_ (ClassName "description edit_form_input") , HP.name "description", HP.rows 5
-             , HP.value (edit_bm.description) , HE.onValueChange (HE.input BEditField <<< Edescription)
+           , br_
+           , p [ attr "style" "margin-top:10px;margin-bottom:5px;" ] [ text " description:" ]
+           , textarea [ class_ "description edit_form_input" , name "description", rows 5
+             , value (edit_bm.description) , onValueChange (HE.input BEditField <<< Edescription)
              ]
-           , HH.br_
-           , HH.div [ HP.id_ "tags_input_box"]
-             [ HH.p [ HP.attr (AttrName "style") "margin-top:10px" ]
-               [ HH.text " tags:"
-               , HH.input [ HP.type_ HP.InputText , HP.class_ (ClassName "tags edit_form_input") , HP.name "tags"
-                 , HP.autocomplete false, HP.attr (AttrName "autocapitalize") "off"
-                 , HP.value (edit_bm.tags) , HE.onValueChange (HE.input BEditField <<< Etags)
+           , br_
+           , div [ id_ "tags_input_box"]
+             [ p [ attr "style" "margin-top:10px" ]
+               [ text " tags:"
+               , input [ type_ InputText , class_ "tags edit_form_input" , name "tags"
+                 , autocomplete false, attr "autocapitalize" "off"
+                 , value (edit_bm.tags) , onValueChange (HE.input BEditField <<< Etags)
                  ]
-               , HH.br_
+               , br_
                ]
              ]
-           , HH.div [ HP.id_ "edit_form_checkboxes"]
-             [ HH.input [ HP.type_ HP.InputCheckbox , HP.class_ (ClassName "private") , HP.id_ "edit_private", HP.name "private"
-               , HP.checked (edit_bm.private) , HE.onChecked (HE.input BEditField <<< Eprivate) ]
-             , HH.text " "
-             , HH.label [ HP.for "edit_private" ] [ HH.text "private" ]
-             , HH.text " "
-             , HH.input [ HP.type_ HP.InputCheckbox , HP.class_ (ClassName "toread") , HP.id_ "edit_toread", HP.name "toread"
-               , HP.checked (edit_bm.toread) , HE.onChecked (HE.input BEditField <<< Etoread) ]
-             , HH.text " "
-             , HH.label [ HP.for "edit_toread" ] [ HH.text "toread" ]
-             , HH.br_
+           , div [ id_ "edit_form_checkboxes"]
+             [ input [ type_ InputCheckbox , class_ "private" , id_ "edit_private", name "private"
+               , checked (edit_bm.private) , onChecked (HE.input BEditField <<< Eprivate) ]
+             , text " "
+             , label [ for "edit_private" ] [ text "private" ]
+             , text " "
+             , input [ type_ InputCheckbox , class_ "toread" , id_ "edit_toread", name "toread"
+               , checked (edit_bm.toread) , onChecked (HE.input BEditField <<< Etoread) ]
+             , text " "
+             , label [ for "edit_toread" ] [ text "toread" ]
+             , br_
              ]
-           , HH.input [ HP.type_ HP.InputSubmit , HP.class_ (ClassName "submit edit-button") , HP.value "save" ]
-           , HH.text " "
-           , HH.input [ HP.type_ HP.InputReset , HP.class_ (ClassName "reset edit-button") , HP.value "cancel"
-             , HE.onClick (HE.input_ (BEdit false))
+           , input [ type_ InputSubmit , class_ "submit edit-button" , value "save" ]
+           , text " "
+           , input [ type_ InputReset , class_ "reset edit-button" , value "cancel"
+             , onClick (HE.input_ (BEdit false))
              ]
            ]
          ]
        ]
 
      links =
-       if not app.dat.isowner then [] else
-         [ HH.div [ HP.class_ (ClassName "edit_links") ]
-           [ HH.button [ HE.onClick (HE.input_ (BEdit true)), HP.class_ (ClassName "edit") ] [ HH.text "edit  " ]
-           , HH.div [ HP.class_ (ClassName "delete_link") ]
-             [ HH.button ([ HE.onClick (HE.input_ (BDeleteAsk true)), HP.class_ (ClassName "delete") ] <> if s.deleteAsk then [ HP.attr (AttrName "hidden") "hidden" ] else []) [ HH.text "delete" ]
-             , HH.span ([ HP.class_ (ClassName "confirm") ] <> if not s.deleteAsk then [ HP.attr (AttrName "hidden") "hidden" ] else [])
-               [ HH.button [ HE.onClick (HE.input_ (BDeleteAsk false))] [ HH.text "cancel / " ]
-               , HH.button [ HE.onClick (HE.input_ BDestroy), HP.class_ (ClassName "destroy") ] [ HH.text "destroy" ]
+       guard app.dat.isowner
+         [ div [ class_ ("edit_links") ]
+           [ button [ onClick (HE.input_ (BEdit true)), class_ "edit" ] [ text "edit  " ]
+           , div [ class_ "delete_link" ]
+             [ button ([ onClick (HE.input_ (BDeleteAsk true)), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
+             , span ([ class_ "confirm" ] <> guard (not s.deleteAsk) [ attr "hidden" "hidden" ])
+               [ button [ onClick (HE.input_ (BDeleteAsk false))] [ text "cancel / " ]
+               , button [ onClick (HE.input_ BDestroy), class_ "destroy" ] [ text "destroy" ]
                ] 
              ]
            ]
-         , HH.div [ HP.class_ (ClassName "read") ]
-             if not bm.toread then [] else
-             [ HH.text "  "
-             , HH.button [ HE.onClick (HE.input_ BMarkRead), HP.class_ (ClassName "mark_read") ] [ HH.text "mark as read"]
+         , div [ class_ "read" ] $
+             guard bm.toread
+             [ text "  "
+             , button [ onClick (HE.input_ BMarkRead), class_ "mark_read" ] [ text "mark as read"]
              ]
          ]
 
      linkToFilterSingle bid = app.userR <> "/b:" <> show bid
      linkToFilterTag tag = app.userR <> "/t:" <> tag
      mmoment = mmoment8601 bm.time
-     clearBoth = [ HH.div [ HP.attr (AttrName "style") "clear:both" ] [] ]
+     clearBoth = [ div [ attr "style" "clear:both" ] [] ]
      toTextarea =
        drop 1
-         <<< foldMap (\x -> [HH.br_, HH.text x])
+         <<< foldMap (\x -> [br_, text x])
          <<< S.split (Pattern "\n")
 
   eval :: BQuery ~> H.ComponentDSL BState BQuery BMessage Aff
@@ -198,12 +196,12 @@ bmark b' =
     pure next
   eval (BDestroy next) = do
     bid <- H.gets _.bm.bid
-    void $ H.liftAff $ destroy bid
+    void $ H.liftAff (destroy bid)
     H.raise BNotifyRemove
     pure next
   eval (BMarkRead next) = do
     s <- H.get
-    void $ H.liftAff $ markRead s.bm.bid
+    void $ H.liftAff (markRead s.bm.bid)
     H.put $ s { bm = s.bm { toread = false } }
     pure next
   eval (BEdit e next) = do
@@ -221,8 +219,8 @@ bmark b' =
       Etoread e -> H.put $ s { edit_bm = s.edit_bm { toread = e } }
     pure next
   eval (BEditSubmit e next) = do
-    H.liftEffect $ preventDefault e
+    H.liftEffect (preventDefault e)
     s <- H.get
-    void $ H.liftAff $ editBookmark s.edit_bm
+    void $ H.liftAff (editBookmark s.edit_bm)
     H.put $ s { edit = false, bm = s.edit_bm }
     pure next
