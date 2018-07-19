@@ -12,7 +12,6 @@ import Import
 import Text.Read
 import Database.Persist.Sql
 import qualified Database.Esqueleto as E
-import qualified Data.Time.ISO8601 as TI
 import qualified Data.Aeson as A
 import qualified Data.Text.Encoding as TE
 
@@ -51,7 +50,6 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        pure (cnt, bm, tg)
   mroute <- getCurrentRoute 
   let pager = $(widgetFile "pager")
-  let toTitle x = if null x then "[no title]" else x
   req <- getRequest
   defaultLayout $ do
     $(widgetFile "user")

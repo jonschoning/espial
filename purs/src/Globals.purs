@@ -15,6 +15,7 @@ import Web.XHR.FormData (FormData)
 type App =
     { csrfHeaderName :: String
     , csrfCookieName :: String
+    , csrfParamName :: String
     , csrfToken :: String
     , homeR :: String
     , authRlogoutR :: String

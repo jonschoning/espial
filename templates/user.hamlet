@@ -31,55 +31,6 @@
 
   <div #bookmarks>
 
-  <div #bookmarks_old style="opacity:0.5">
-    $forall (Entity bid' Bookmark{..}) <- bmarks
-      $with bid <- fromSqlKey bid'
-        <div>
-          $if isowner
-            <div .edit_checkbox name="edit_checkbox">
-              <input #checkbox_#{bid} autocomplete="off" type="checkbox">
-  
-          <div ##{bid} .bookmark :not bookmarkShared:.private data-bid=#{bid}>
-  
-            $if isowner
-              <div .star :bookmarkSelected:.selected_star><span onclick="PS['User].toggleStarE(event)(#{bid})()">✭</span>
-  
-            <div .display>    
-              <a .bookmark_title :isowner && bookmarkToRead:.unread target="_blank" href="#{bookmarkHref}"> #{toTitle bookmarkDescription}
-              <br>
-  
-              <a .url_display href="#{bookmarkHref}"> #{bookmarkHref}
-              <br>
-  
-              <div .description> #{Textarea bookmarkExtended}
-              <div .tags>
-                $with btags <- filter ((==) bid' . (bookmarkTagBookmarkId . E.entityVal)) alltags
-                  $forall (Entity bt BookmarkTag{..}) <- btags
-                    $with private <- isPrefixOf "." bookmarkTagTag
-                      $if (private && isowner) || (not private)
-                        <a .tag :private:.private href="@{UserTagsR unamep (TagsP [bookmarkTagTag])}">#{bookmarkTagTag}</a>
-  
-              <a .when.js-moment title="#{TI.formatISO8601Millis bookmarkTime}" data-iso8601="#{TI.formatISO8601Millis bookmarkTime}" href="@{UserFilterR unamep (FilterSingle bid)}" title="">
-                &nbsp;
-                
-              $if isowner
-                <div .edit_links>
-                  <a .edit onclick="PS['User].editE(event)(#{bid})()" href="#"> edit&nbsp;&nbsp;
-                  <div .delete_link>
-                    <a .delete onclick="PS['User].deleteAskE(event)()" href="#" style="display: inline;"> delete
-                    <span .confirm hidden>
-                      <a href="#" onclick="PS['User].deleteCancelE(event)()"> cancel /
-                      <a .destroy href="#" onclick="PS['User].destroyE(event)(#{bid})(false)()"> destroy
-
-                <div .read>
-                  $if bookmarkToRead
-                    &nbsp;&nbsp;
-                    <a .mark_read href="#" onclick="PS['User].markReadE(event)(#{bid})()">mark as read</a>
-  
-            <div style="clear:both">
-  
-          <div style="clear:both">
-
   <div style="clear:both">
 
   ^{pager}
@@ -93,28 +44,3 @@
         <a :limit == 80:.per_page_selected href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
         <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
         <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
-        
-  <div #edit_bookmark_form_template .edit_bookmark_form hidden>   
-    <form onsubmit="PS['User].editSubmitE(event)()">
-      $maybe tokenValue <- reqToken req
-        <input type="hidden" name="#{defaultCsrfParamName}" value="#{tokenValue}">
-      <input type="hidden" name="bid" value="">
-      <input required name="url" type="text" .url.edit_form_input>
-      <br>
-      <input name="title" .edit_form_input.title type="text" value="">
-      <br>
-      <p style="margin-top:10px;margin-bottom:5px;"> description:
-      <textarea name="description" .edit_form_input.description rows="5">
-      <br>
-      <div #tags_input_box>
-        <p style="margin-top:10px;"> tags:
-          <input name="tags" #tags_input .tags.edit_form_input autocorrect="off" autocapitalize="off" type="text">
-          <br>
-      <div #edit_form_checkboxes>
-        <input name="private" #edit_private .private type="checkbox">
-        <label style="display:inline" for="edit_private"> private
-        <input name="toread" #edit_toread .toread type="checkbox">
-        <label style="display:inline" for="edit_toread">to read
-        <br>
-      <input class="edit-button" type="submit" .submit value="save">
-      <input class="edit-button" type="reset" .reset value="cancel" onclick="PS['User].editHideE(event)()">

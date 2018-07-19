@@ -1,5 +1,6 @@
 var app = {
     csrfHeaderName: "#{rawJS $ TE.decodeUtf8 $ CI.foldedCase defaultCsrfHeaderName}",
+    csrfParamName: "#{rawJS $ defaultCsrfParamName}",
     csrfCookieName: "#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}",
     csrfToken: Cookies.get("#{rawJS $ TE.decodeUtf8 defaultCsrfCookieName}"),
     homeR: "@{HomeR}",
@@ -7,7 +8,6 @@ var app = {
     userFilterRFilterSingle: "",
     dat: {
       bmarks : [],
-      alltags: [],
       isowner: false
     }
 }

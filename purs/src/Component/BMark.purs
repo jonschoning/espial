@@ -2,9 +2,8 @@ module Component.BMark where
 
 import Prelude
 
-import App (StarAction(..), destroy, fetchUrlEnc, markRead, toggleStar)
+import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
 import Data.Array (drop, foldMap)
-import Data.FormURLEncoded (FormURLEncoded(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
@@ -18,8 +17,6 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Model (Bookmark)
 import Web.Event.Event (Event, preventDefault)
-import Data.HTTP.Method (Method(..))
-import Network.HTTP.Affjax.Response as AXRes
 
 -- | The bookmark component query algebra.
 data BQuery a
@@ -228,7 +225,6 @@ bmark b' =
   eval (BEditSubmit e next) = do
     H.liftEffect $ preventDefault e
     s <- H.get
-    let dat = Just $ FormURLEncoded $ []
-    void $ H.liftAff $ fetchUrlEnc POST "add?inline=true" dat AXRes.ignore
+    void $ H.liftAff $ editBookmark s.edit_bm
     H.put $ s { edit = false, bm = s.edit_bm }
     pure next

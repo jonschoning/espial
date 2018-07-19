@@ -1,17 +1,19 @@
 module App where
 
 import Prelude
-import Globals (app')
 
 import Data.Array ((:))
 import Data.Either (Either(..))
-import Data.FormURLEncoded (FormURLEncoded)
+import Data.FormURLEncoded (FormURLEncoded, fromArray)
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
 import Data.MediaType.Common (applicationFormURLEncoded)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
+import Globals (app')
+import Model (Bookmark)
 import Network.HTTP.Affjax (affjax, AffjaxResponse)
 import Network.HTTP.Affjax (defaultRequest) as AX
 import Network.HTTP.Affjax.Request as AXReq
@@ -40,6 +42,24 @@ markRead :: Int -> Aff (AffjaxResponse Unit)
 markRead bid = do
   let path = "bm/" <> show bid <> "/read"
   fetchUrlEnc POST path Nothing AXRes.ignore
+
+editBookmark :: Bookmark -> Aff (AffjaxResponse Unit)
+editBookmark bm =  do
+    let dat = fromArray
+              [ Tuple "url" (Just bm.url)
+              , Tuple "title" (Just bm.title)
+              , Tuple "description" (Just bm.description)
+              , Tuple "tags" (Just bm.tags)
+              , Tuple "private" (Just if bm.private then "yes" else "no")
+              , Tuple "toread" (Just if bm.toread then "yes" else "no")
+              , Tuple "selected" (Just if bm.selected then "yes" else "no")
+              , Tuple "time" (Just bm.time)
+              , Tuple "bid" (Just (show bm.bid))
+              , Tuple app.csrfParamName (Just app.csrfToken)
+              ]
+    fetchUrlEnc POST "add?inline=true" (Just dat) AXRes.ignore
+  where
+    app = app' unit
 
 logoutE :: Event -> Effect Unit
 logoutE e = void <<< launchAff <<< logout =<< preventDefault e
