@@ -47,6 +47,8 @@ postAddR = do
 
   ((formResult, formWidget), _) <- runFormPost $ renderTable $ mkBookmarkAForm Nothing
 
+  cpprint formResult
+
   case formResult of
     FormSuccess bookmarkForm -> do
       time <- liftIO getCurrentTime

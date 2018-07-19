@@ -60,7 +60,7 @@ a
     text-decoration:none;
     color:#11a;
 }
-a:visited { color:#51a }
+/* a:visited { color:inherit } */
 .edit { font-size:1em; }
 
 h1 

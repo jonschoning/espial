@@ -52,7 +52,7 @@ editBookmark bm =  do
               , Tuple "tags" (Just bm.tags)
               , Tuple "private" (Just if bm.private then "yes" else "no")
               , Tuple "toread" (Just if bm.toread then "yes" else "no")
-              , Tuple "selected" (Just if bm.selected then "yes" else "no")
+              -- , Tuple "selected" (Just if bm.selected then "yes" else "no")
               , Tuple "time" (Just bm.time)
               , Tuple "bid" (Just (show bm.bid))
               , Tuple app.csrfParamName (Just app.csrfToken)
