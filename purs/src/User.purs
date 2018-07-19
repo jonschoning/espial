@@ -4,6 +4,10 @@ import Prelude
 
 import App (destroy)
 import Component.BList (blist)
+import Globals (closest, getDataAttribute, moment8601, setInnerHtml)
+import Model (Bookmark)
+import Util (_body, _fromNode, _mt, _mt_pure, _querySelector, _querySelectorAll)
+
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable (for_, traverse_)
@@ -11,11 +15,8 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (launchAff)
 import Effect.Class (liftEffect)
-import Globals (closest, getDataAttribute, moment8601, setInnerHtml)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
-import Model (Bookmark)
-import Util (_body, _fromNode, _mt, _mt_pure, _querySelector, _querySelectorAll)
 import Web.DOM (Node)
 import Web.DOM.ChildNode (remove) as DCN
 import Web.DOM.Element (removeAttribute, setAttribute, toChildNode)

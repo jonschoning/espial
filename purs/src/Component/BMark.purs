@@ -3,19 +3,20 @@ module Component.BMark where
 import Prelude
 
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
+import Model (Bookmark)
+import Globals (app', mmoment8601)
+
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
 import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
-import Globals (app', mmoment8601)
 import Halogen (AttrName(..), ClassName(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Model (Bookmark)
 import Web.Event.Event (Event, preventDefault)
 
 -- | The bookmark component query algebra.
@@ -98,17 +99,14 @@ bmark b' =
              if S.null bm.tags
              then []
              else 
-               map (\tag -> HH.a
-                            [ HP.class_ $ ClassName $ "tag" <> if (S.take 1 tag == ".") then " private" else ""
-                            , HP.href (linkToFilterTag tag)
-                            ]
+               map (\tag -> HH.a [ HP.class_ $ ClassName $ "tag" <> if (S.take 1 tag == ".") then " private" else ""
+                            , HP.href (linkToFilterTag tag) ]
                             [ HH.text tag ])
                (S.split (Pattern " ") bm.tags)
          , HH.a [ HP.class_ (ClassName "when js-moment")
-                , HP.title (maybe bm.time snd mmoment)
-                , HP.attr (HH.AttrName "data-iso8601") bm.time
-                , HP.href (linkToFilterSingle bm.bid)
-                ]
+           , HP.title (maybe bm.time snd mmoment)
+           , HP.attr (HH.AttrName "data-iso8601") bm.time
+           , HP.href (linkToFilterSingle bm.bid) ]
            [ HH.text (maybe " " fst mmoment) ]
          ]
          <> links
@@ -193,7 +191,7 @@ bmark b' =
   eval (BStar e next) = do
     s <- H.get
     H.liftAff $ toggleStar s.bm.bid (if e then Star else UnStar)
-    H.put $ s { bm = s.bm { selected = e } }
+    H.put $ s { bm = s.bm { selected = e }, edit_bm = s.edit_bm { selected = e } }
     pure next
   eval (BDeleteAsk e next) = do
     H.modify_ (_ { deleteAsk = e })

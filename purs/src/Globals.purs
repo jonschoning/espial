@@ -2,11 +2,12 @@ module Globals where
 
 import Data.Function.Uncurried
 
+import Model (Bookmark)
+
 import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Model (Bookmark)
 import Prelude (Unit, pure, ($))
 import Web.DOM (Element, Node)
 import Web.HTML (HTMLElement, HTMLFormElement)

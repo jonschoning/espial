@@ -2,6 +2,9 @@ module App where
 
 import Prelude
 
+import Globals (app')
+import Model (Bookmark)
+
 import Data.Array ((:))
 import Data.Either (Either(..))
 import Data.FormURLEncoded (FormURLEncoded, fromArray)
@@ -12,8 +15,6 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
-import Globals (app')
-import Model (Bookmark)
 import Network.HTTP.Affjax (affjax, AffjaxResponse)
 import Network.HTTP.Affjax (defaultRequest) as AX
 import Network.HTTP.Affjax.Request as AXReq
