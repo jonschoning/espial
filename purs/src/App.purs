@@ -2,24 +2,24 @@ module App where
 
 import Prelude
 
-import Globals (app')
-import Model (Bookmark)
-
 import Data.Array ((:))
 import Data.Either (Either(..))
 import Data.FormURLEncoded (FormURLEncoded, fromArray)
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
-import Data.MediaType.Common (applicationFormURLEncoded)
+import Data.MediaType.Common (applicationFormURLEncoded, applicationJSON)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
+import Globals (app')
+import Model (Bookmark, Bookmark'(..))
 import Network.HTTP.Affjax (affjax, AffjaxResponse)
 import Network.HTTP.Affjax (defaultRequest) as AX
 import Network.HTTP.Affjax.Request as AXReq
 import Network.HTTP.Affjax.Response as AXRes
 import Network.HTTP.RequestHeader (RequestHeader(..))
+import Simple.JSON as J
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
@@ -43,6 +43,10 @@ markRead :: Int -> Aff (AffjaxResponse Unit)
 markRead bid = do
   let path = "bm/" <> show bid <> "/read"
   fetchUrlEnc POST path Nothing AXRes.ignore
+
+editBookmark' :: Bookmark -> Aff (AffjaxResponse Unit)
+editBookmark' bm =  do
+    fetchJson POST "add?inline=true" (Just $ Bookmark' bm) AXRes.ignore
 
 editBookmark :: Bookmark -> Aff (AffjaxResponse Unit)
 editBookmark bm =  do
@@ -71,6 +75,17 @@ logout u = do
   liftEffect $ window >>= location >>= reload
   where
     app = app' u
+
+fetchJson
+  :: forall a b.
+     J.WriteForeign b
+  => Method
+  -> String
+  -> Maybe b
+  -> AXRes.Response a
+  -> Aff (AffjaxResponse a)
+fetchJson method path content rt =
+    fetchPath method path [ContentType applicationJSON] (AXReq.string <<< J.writeJSON <$> content) rt
 
 fetchUrlEnc
   :: forall a.

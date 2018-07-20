@@ -2,11 +2,7 @@ module Component.BMark where
 
 import Prelude hiding (div)
 
-import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
-import Globals (app', mmoment8601)
-import Model (Bookmark)
-import Util (class_, attr)
-
+import App (StarAction(..), destroy, editBookmark, editBookmark', markRead, toggleStar)
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
@@ -14,11 +10,14 @@ import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
+import Globals (app', mmoment8601)
 import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, p, span, text, textarea)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
+import Model (Bookmark)
+import Util (class_, attr)
 import Web.Event.Event (Event, preventDefault)
 
 -- | The bookmark component query algebra.

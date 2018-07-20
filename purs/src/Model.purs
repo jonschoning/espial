@@ -1,5 +1,7 @@
 module Model where
 
+import Simple.JSON as J
+
 type BookmarkId = Int
 type TagId = Int
 
@@ -14,3 +16,7 @@ type Bookmark =
   , selected :: Boolean
   , time :: String
   }
+
+newtype Bookmark' = Bookmark' Bookmark
+derive newtype instance rfI :: J.ReadForeign Bookmark'
+derive newtype instance wfI :: J.WriteForeign Bookmark'

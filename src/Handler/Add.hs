@@ -5,6 +5,7 @@ module Handler.Add where
 import Import
 import Database.Persist.Sql
 import Data.List (nub)
+import qualified Data.Aeson as A
 import qualified Data.Time.ISO8601 as TI
 
 getAddR :: Handler Html
@@ -45,24 +46,27 @@ postAddR :: Handler Html
 postAddR = do
   userId <- requireAuthId
 
-  ((formResult, formWidget), _) <- runFormPost $ renderTable $ mkBookmarkAForm Nothing
+  parseCheckJsonBody >>= \case
+    A.Success (bookmarkForm :: BookmarkForm) -> fail "ok"
+    _ -> do
+      ((formResult, formWidget), _) <- runFormPost $ renderTable $ mkBookmarkAForm Nothing
 
-  cpprint formResult
+      cpprint formResult
 
-  case formResult of
-    FormSuccess bookmarkForm -> do
-      time <- liftIO getCurrentTime
-      newBid <- runDB $ upsertDB
-        (toSqlKey <$> _bid bookmarkForm)
-        (toBookmark userId time bookmarkForm)
-        (maybe [] (nub . words) (_tags bookmarkForm))
-      lookupGetParam "next" >>= \case
-        Just next -> redirect next
-        Nothing -> popupLayout Nothing [whamlet| <div .alert> Add Successful </div> <script> window.close() </script> |]
-    _ ->
-      lookupGetParam "inline" >>= \case
-        Just _ -> fail "invalid form"
-        Nothing -> viewAddWidget formWidget Nothing "Tags"
+      case formResult of
+        FormSuccess bookmarkForm -> do
+          time <- liftIO getCurrentTime
+          newBid <- runDB $ upsertDB
+            (toSqlKey <$> _bid bookmarkForm)
+            (toBookmark userId time bookmarkForm)
+            (maybe [] (nub . words) (_tags bookmarkForm))
+          lookupGetParam "next" >>= \case
+            Just next -> redirect next
+            Nothing -> popupLayout Nothing [whamlet| <div .alert> Add Successful </div> <script> window.close() </script> |]
+        _ ->
+          lookupGetParam "inline" >>= \case
+            Just _ -> fail "invalid form"
+            Nothing -> viewAddWidget formWidget Nothing "Tags"
 
   where
     toBookmark :: UserId -> UTCTime -> BookmarkForm -> Bookmark
