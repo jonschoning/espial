@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e5c8d196a8bbc7efece0b67f5e404201e010255dc3d4d4832c533f6fb69a9c29
+-- hash: 986e6814f8f022971322c56e8eaf3aa4526e7691a622c88449485047621ae2f6
 
 name:           espial
 version:        0.0.4
@@ -55,8 +55,6 @@ extra-source-files:
     static/js/moment.min.js.gz
     templates/add-exists-alert.hamlet
     templates/add.hamlet
-    templates/add.julius
-    templates/app.julius
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
     templates/homepage.hamlet

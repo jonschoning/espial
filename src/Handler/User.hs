@@ -54,14 +54,13 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   defaultLayout $ do
     $(widgetFile "user")
     toWidget [julius|
-      app.dat.bmarks = #{ toJson (toBookmarkJson bmarks alltags) } || [];
       app.dat.isowner = #{ isowner };
       app.userR = "@{UserR unamep}";
       PS['User'].renderBookmarks(app.dat.bmarks)();
     |]
   where
-    toJson :: ToJSON a => a -> RawJavascript
-    toJson = rawJS . TE.decodeUtf8 . toStrict . A.encode
+    toJson :: ToJSON a => a -> Text
+    toJson = TE.decodeUtf8 . toStrict . A.encode
 
     toBookmarkJson bs as = do
       b@(Entity bid' bmark) <- bs

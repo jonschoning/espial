@@ -98,9 +98,7 @@ isAuthenticated = maybe AuthenticationRequired (const Authorized) <$> maybeAuthI
 
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 addAppScripts = do
-  addScript (StaticR js_js_cookie_2_2_0_min_js)
   addScript (StaticR js_moment_min_js)
-  toWidget $(juliusFile "templates/app.julius")
   addScript (StaticR js_app_js) 
 
 

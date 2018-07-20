@@ -103,6 +103,10 @@ viewAddWidget formWidget mexists focusEl = do
   let submitText = (maybe "add bookmark" (const "update bookmark") mexists) :: Text
   popupLayout mexists $ do
     $(widgetFile "add")
+    toWidget [julius|
+      document.getElementById('#{rawJS focusEl}').focus();
+      PS['User'].replaceIsoTimestamps()();
+    |]
 
 -- BookmarkForm
 

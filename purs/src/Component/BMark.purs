@@ -159,7 +159,7 @@ bmark b' =
 
      links =
        guard app.dat.isowner
-         [ div [ class_ ("edit_links") ]
+         [ div [ class_ "edit_links" ]
            [ button [ onClick (HE.input_ (BEdit true)), class_ "edit" ] [ text "edit  " ]
            , div [ class_ "delete_link" ]
              [ button ([ onClick (HE.input_ (BDeleteAsk true)), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]

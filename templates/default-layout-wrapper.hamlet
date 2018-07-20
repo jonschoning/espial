@@ -19,5 +19,19 @@ $newline never
     \<!--[if lt IE 9]>
     \<script src="@{StaticR js_html5shiv_min_js}"></script>
     \<![endif]-->
+
+    <script>document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/, 'js');
+    <script src="@{StaticR js_js_cookie_2_2_0_min_js}">
+    <script>
+      var app =
+        { csrfHeaderName: "#{ TE.decodeUtf8 $ CI.foldedCase defaultCsrfHeaderName }"
+        , csrfParamName: "#{defaultCsrfParamName}"
+        , csrfCookieName: "#{TE.decodeUtf8 defaultCsrfCookieName}"
+        , csrfToken: Cookies.get("#{TE.decodeUtf8 defaultCsrfCookieName}")
+        , homeR: "@{HomeR}"
+        , authRlogoutR: "@{AuthR LogoutR}"
+        , userFilterRFilterSingle: ""
+        , dat: {bmarks : [], isowner: false}
+        };
   <body>
     ^{pageBody pc}
