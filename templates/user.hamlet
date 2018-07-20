@@ -45,4 +45,4 @@
         <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
         <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
 
-<script>app.dat.bmarks = #{ preEscapedToMarkup $ toJson (toBookmarkJson bmarks alltags) } || []; 
+<script>app.dat.bmarks = #{ preEscapedToMarkup $ toJson (toBookmarkFormList bmarks alltags) } || []; 

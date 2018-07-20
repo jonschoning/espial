@@ -62,7 +62,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toJson :: ToJSON a => a -> Text
     toJson = TE.decodeUtf8 . toStrict . A.encode
 
-    toBookmarkJson bs as = do
+    toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm]
+    toBookmarkFormList bs as = do
       b@(Entity bid' bmark) <- bs
       let btags = fmap bookmarkTagTag $ filter ((==) bid' . bookmarkTagBookmarkId) (fmap E.entityVal as)
       pure $ toBookmarkForm b btags
