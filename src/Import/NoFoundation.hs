@@ -3,6 +3,10 @@
 
 module Import.NoFoundation
     ( module Import
+#if MIN_VERSION_base(4, 11, 0)
+#else
+    , (<&>)
+#endif
     ) where
 
 import ClassyPrelude.Yesod as Import
@@ -18,4 +22,12 @@ import Model as Import
 import ModelCrypto as Import
 import Types as Import
 import Pretty as Import
+import Data.Functor as Import
 
+
+#if MIN_VERSION_base(4, 11, 0)
+#else
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
+infixl 1 <&>
+#endif

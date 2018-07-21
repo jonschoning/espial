@@ -2,15 +2,14 @@ module Globals where
 
 import Data.Function.Uncurried
 
-import Model (Bookmark)
-
 import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
+import Model (Bookmark)
 import Prelude (Unit, pure, ($))
 import Web.DOM (Element, Node)
-import Web.HTML (HTMLElement, HTMLFormElement)
+import Web.HTML (HTMLElement, HTMLFormElement, Window)
 import Web.XHR.FormData (FormData)
 
 type App =
@@ -26,6 +25,7 @@ type App =
 
 type AppData =
   { bmarks :: Array Bookmark
+  , bmark :: Bookmark
   , isowner :: Boolean
   }
 
@@ -84,3 +84,8 @@ foreign import _setDataAttribute :: Fn3 String String Element Unit
 
 setDataAttribute :: String -> String -> Element -> Effect Unit
 setDataAttribute k v n = pure $ runFn3 _setDataAttribute k v n
+
+foreign import _closeWindow :: Fn1 Window Unit
+
+closeWindow :: Window -> Effect Unit
+closeWindow win = pure $ runFn1 _closeWindow win

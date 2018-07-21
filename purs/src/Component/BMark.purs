@@ -2,7 +2,7 @@ module Component.BMark where
 
 import Prelude hiding (div)
 
-import App (StarAction(..), destroy, editBookmark, editBookmark', markRead, toggleStar)
+import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
@@ -15,7 +15,7 @@ import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, p, span, text, textarea)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
 import Util (class_, attr)
 import Web.Event.Event (Event, preventDefault)
@@ -159,12 +159,12 @@ bmark b' =
      links =
        guard app.dat.isowner
          [ div [ class_ "edit_links" ]
-           [ button [ onClick (HE.input_ (BEdit true)), class_ "edit" ] [ text "edit  " ]
+           [ button [ type_ ButtonButton, onClick (HE.input_ (BEdit true)), class_ "edit" ] [ text "edit  " ]
            , div [ class_ "delete_link" ]
-             [ button ([ onClick (HE.input_ (BDeleteAsk true)), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
+             [ button ([ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk true)), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
              , span ([ class_ "confirm" ] <> guard (not s.deleteAsk) [ attr "hidden" "hidden" ])
-               [ button [ onClick (HE.input_ (BDeleteAsk false))] [ text "cancel / " ]
-               , button [ onClick (HE.input_ BDestroy), class_ "destroy" ] [ text "destroy" ]
+               [ button [ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk false))] [ text "cancel / " ]
+               , button [ type_ ButtonButton, onClick (HE.input_ BDestroy), class_ "destroy" ] [ text "destroy" ]
                ] 
              ]
            ]

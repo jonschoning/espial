@@ -29,20 +29,21 @@
       
   <div #bulk_links>
 
-  <div #bookmarks>
+  <div ##{renderEl}>
 
   <div style="clear:both">
 
-  ^{pager}
+  <div .user_footer hidden>
+    ^{pager}
 
-  $if (fromIntegral bcount >= limit) || (page > 1)
-    $maybe route <- mroute
-      <div #per_page_picker>
-        per page: &nbsp;&nbsp; 
-        <a :limit == 20:.per_page_selected href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
-        <a :limit == 40:.per_page_selected href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
-        <a :limit == 80:.per_page_selected href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
-        <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
-        <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
+    $if (fromIntegral bcount >= limit) || (page > 1)
+      $maybe route <- mroute
+        <div #per_page_picker>
+          per page: &nbsp;&nbsp; 
+          <a :limit == 20:.per_page_selected href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
+          <a :limit == 40:.per_page_selected href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
+          <a :limit == 80:.per_page_selected href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
+          <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
+          <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
 
-<script>app.dat.bmarks = #{ preEscapedToMarkup $ toJson (toBookmarkFormList bmarks alltags) } || []; 
+<script>app.dat.bmarks = #{ preEscapedToMarkup $ toJsonText (toBookmarkFormList bmarks alltags) } || []; 

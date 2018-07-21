@@ -1,19 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 module Handler.User where
 
 import Import
 import Text.Read
-import Database.Persist.Sql
-import qualified Database.Esqueleto as E
-import qualified Data.Aeson as A
-import qualified Data.Text.Encoding as TE
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -50,38 +39,16 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        pure (cnt, bm, tg)
   mroute <- getCurrentRoute 
   let pager = $(widgetFile "pager")
+  let renderEl = "bookmarks" :: Text
   req <- getRequest
   defaultLayout $ do
     $(widgetFile "user")
     toWidget [julius|
       app.dat.isowner = #{ isowner };
       app.userR = "@{UserR unamep}";
-      PS['User'].renderBookmarks(app.dat.bmarks)();
+      PS['User'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
   where
-    toJson :: ToJSON a => a -> Text
-    toJson = TE.decodeUtf8 . toStrict . A.encode
-
-    toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm]
-    toBookmarkFormList bs as = do
-      b@(Entity bid' bmark) <- bs
-      let btags = fmap bookmarkTagTag $ filter ((==) bid' . bookmarkTagBookmarkId) (fmap E.entityVal as)
-      pure $ toBookmarkForm b btags
-
-    toBookmarkForm :: Entity Bookmark -> [Text] -> BookmarkForm
-    toBookmarkForm (Entity bid Bookmark {..}) tags =
-      BookmarkForm
-      { _url = bookmarkHref
-      , _title = Just bookmarkDescription
-      , _description = Just $ Textarea $ bookmarkExtended
-      , _tags = Just $ unwords $ tags
-      , _private = Just $ not bookmarkShared
-      , _toread = Just $ bookmarkToRead
-      , _bid = Just $ fromSqlKey bid
-      , _selected = Just bookmarkSelected
-      , _time = Just $ UTCTimeStr $ bookmarkTime
-      }
-  
 
 _lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
 _lookupPagingParams = do

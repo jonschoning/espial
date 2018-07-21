@@ -59,3 +59,7 @@ exports._mmoment8601 = function(just, nothing, tuple, s) {
     return nothing
   }
 }
+
+exports._closeWindow = function (window) {
+  window.close();
+};

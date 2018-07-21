@@ -1,23 +1,7 @@
 html {
   box-sizing: border-box;
 }
-*, *:before, *:after {
-  box-sizing: inherit;
-}
-[hidden] {
-    display: none !important
-}
-#popup_header
-	{
-	  color:#aaa;
-	  height:25px;
-	}
-	.error { color:red}
-	.login { color:blue }
-	#logout { float:right; }
-	.alert { margin-left:20px;color:#333;background:#ced;float:left;padding:3px;padding-top:1px;width:300px;border:1px solid #acc; }
-#title { float:left ;padding-top:2px; }
-	body
+body
 {
   color:#333;
   font-family:helvetica;
@@ -25,6 +9,30 @@ html {
   margin-left:20px;
 }
 
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+[hidden] {
+    display: none !important
+}
+button {
+    background:none;
+    border:none; 
+    padding:0;
+    cursor:pointer;
+}
+button:focus {
+    outline: none;
+}
+#popup_header {
+  color:#aaa;
+  height:25px;
+}
+.error { color:red}
+.login { color:blue }
+#logout { float:right; }
+.alert { color:#333;background:#ced;float:left;padding:3px;padding-top:1px;width:433px;border:1px solid #acc; }
+#title { float:left ;padding-top:2px; }
 form label { display: block; margin-bottom: 10px; }
 li { list-style-type: none; margin: 0; padding: 0; display: block;} 
 section,footer,header { display: block; }
@@ -59,3 +67,6 @@ input[type='checkbox'] {
 label {
     cursor: pointer;
 }
+
+.destroy { color:red; }
+.destroy:visited { color:red; }

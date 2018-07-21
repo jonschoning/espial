@@ -13,7 +13,8 @@
 !/#UserNameP/#TagsP UserTagsR GET
 
 -- add
-/add AddR GET POST
+/add AddViewR GET
+api/add AddR POST
 
 -- edit
 /bm/#Int64 DeleteR DELETE

@@ -4,7 +4,7 @@ module Model where
 
 import qualified Data.Aeson as A
 
-import Control.Monad.Writer hiding ((<>), mapM_)
+import Control.Monad.Writer (tell, appEndo, Endo(..))
 
 import Types
 import ModelCrypto
@@ -58,25 +58,6 @@ instance PathPiece UTCTimeStr where
   toPathPiece (UTCTimeStr u) = pack (TI.formatISO8601Millis u)
   fromPathPiece s = UTCTimeStr <$> TI.parseISO8601 (unpack s)
 
--- BookmarkForm
-
-data BookmarkForm = BookmarkForm
-  { _url :: Text
-  , _title :: Maybe Text
-  , _description :: Maybe Textarea
-  , _tags :: Maybe Text
-  , _private :: Maybe Bool
-  , _toread :: Maybe Bool
-  , _bid :: Maybe Int64
-  , _selected :: Maybe Bool
-  , _time :: Maybe UTCTimeStr
-  } deriving (Show, Eq, Read, Generic)
-
-instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gBookmarkFormOptions
-instance ToJSON BookmarkForm where toJSON = A.genericToJSON gBookmarkFormOptions
-
-gBookmarkFormOptions :: A.Options
-gBookmarkFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 } 
 
 -- newtypes
 
@@ -284,3 +265,100 @@ boolToYesNo :: Bool -> Text
 boolToYesNo True = "yes"
 boolToYesNo _ = "no"
 
+
+-- BookmarkForm
+
+data BookmarkForm = BookmarkForm
+  { _url :: Text
+  , _title :: Maybe Text
+  , _description :: Maybe Textarea
+  , _tags :: Maybe Text
+  , _private :: Maybe Bool
+  , _toread :: Maybe Bool
+  , _bid :: Maybe Int64
+  , _selected :: Maybe Bool
+  , _time :: Maybe UTCTimeStr
+  } deriving (Show, Eq, Read, Generic)
+
+instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gBookmarkFormOptions
+instance ToJSON BookmarkForm where toJSON = A.genericToJSON gBookmarkFormOptions
+
+gBookmarkFormOptions :: A.Options
+gBookmarkFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 } 
+
+toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm]
+toBookmarkFormList bs as = do
+  b <- bs
+  let bid = E.entityKey b
+  let btags = fmap bookmarkTagTag $ filter ((==) bid . bookmarkTagBookmarkId) (fmap E.entityVal as)
+  pure $ toBookmarkForm b btags
+
+toBookmarkForm :: Entity Bookmark -> [Text] -> BookmarkForm
+toBookmarkForm (Entity bid Bookmark {..}) tags =
+  BookmarkForm
+  { _url = bookmarkHref
+  , _title = Just bookmarkDescription
+  , _description = Just $ Textarea $ bookmarkExtended
+  , _tags = Just $ unwords $ tags
+  , _private = Just $ not bookmarkShared
+  , _toread = Just $ bookmarkToRead
+  , _bid = Just $ fromSqlKey bid
+  , _selected = Just bookmarkSelected
+  , _time = Just $ UTCTimeStr $ bookmarkTime
+  }
+  
+_toBookmarkDefs :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
+_toBookmarkDefs (Entity bid Bookmark {..}, tags) =
+  BookmarkForm
+  { _url = bookmarkHref
+  , _title = Just bookmarkDescription
+  , _description = Just $ Textarea $ bookmarkExtended
+  , _tags = Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags
+  , _private = Just $ not bookmarkShared
+  , _toread = Just $ bookmarkToRead
+  , _bid = Just $ fromSqlKey $ bid
+  , _selected = Just $ bookmarkSelected
+  , _time = Just $ UTCTimeStr $ bookmarkTime
+  }
+
+_toBookmark :: UserId -> UTCTime -> BookmarkForm -> Bookmark
+_toBookmark userId time BookmarkForm {..} =
+  Bookmark userId _url
+    (fromMaybe "" _title)
+    (maybe "" unTextarea _description)
+    (fromMaybe time (fmap unUTCTimeStr _time))
+    (maybe True not _private)
+    (fromMaybe False _toread)
+    (fromMaybe False _selected)
+
+fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
+fetchBookmarkByUrl userId murl = runMaybeT $ do
+  bmark <- MaybeT . getBy . UniqueUserHref userId =<< (MaybeT $ pure murl)
+  btags <- lift $ withTags (entityKey bmark)
+  pure (bmark, btags)
+
+data UpsertResult = Created | Updated
+
+upsertBookmark:: Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult, Key Bookmark)
+upsertBookmark mbid bmark@Bookmark{..} tags = do
+  res <- case mbid of
+    Just bid -> do
+      get bid >>= \case 
+        Just _ -> replaceBookmark bid
+        _ -> fail "not found"
+    Nothing -> do
+      getBy (UniqueUserHref bookmarkUserId bookmarkHref) >>= \case
+        Just (Entity bid _) -> replaceBookmark bid
+        _ -> (Created,) <$> insert bmark
+  insertTags bookmarkUserId (snd res)
+  pure res
+  where 
+    replaceBookmark bid = do
+      replace bid bmark
+      deleteTags bid
+      pure (Updated, bid)
+    deleteTags bid =
+      deleteWhere [BookmarkTagBookmarkId ==. bid]
+    insertTags userId bid' =
+      forM_ (zip [1 ..] tags) $
+      \(i, tag) -> void $ insert $ BookmarkTag userId tag bid' i

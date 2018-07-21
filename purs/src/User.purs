@@ -3,26 +3,27 @@ module User where
 import Prelude
 
 import App (destroy)
+import Component.Add (addbmark)
 import Component.BList (blist)
-import Globals (closest, getDataAttribute, moment8601, setInnerHtml)
-import Model (Bookmark)
-import Util (_body, _fromNode, _mt, _mt_pure, _querySelector, _querySelectorAll)
-
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable (for_, traverse_)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Aff (launchAff)
+import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
+import Globals (closest, getDataAttribute, moment8601, setInnerHtml)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
+import Model (Bookmark)
+import Util (_body, _fromNode, _mt, _mt_pure, _querySelector, _querySelectorAll)
 import Web.DOM (Node)
 import Web.DOM.ChildNode (remove) as DCN
 import Web.DOM.Element (removeAttribute, setAttribute, toChildNode)
 import Web.DOM.Node (fromEventTarget, setTextContent)
 import Web.DOM.ParentNode (QuerySelector(..))
 import Web.Event.Event (Event, preventDefault, target)
+import Web.HTML.HTMLElement (toElement)
 import Web.HTML.HTMLElement (toElement) as HE
 
 -- replaceIsoTimestamps
@@ -84,8 +85,19 @@ destroyE e bid isPopup = do
         lift $ DCN.remove (toChildNode (_fromNode bm))
 
 
-renderBookmarks :: Array Bookmark -> Effect Unit
-renderBookmarks bmarks = do
+renderBookmarks :: String -> Array Bookmark -> Effect Unit
+renderBookmarks renderElSelector bmarks = do
   HA.runHalogenAff do
-    HA.selectElement (QuerySelector "#bookmarks") >>= traverse_ \el ->
-      runUI (blist bmarks) unit el
+    HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
+      void $ runUI (blist bmarks) unit el
+      showFooter
+
+renderAddForm :: String -> Bookmark -> Effect Unit
+renderAddForm renderElSelector bmark = do
+  HA.runHalogenAff do
+    HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
+      runUI (addbmark bmark) unit el
+
+showFooter :: Aff Unit
+showFooter = HA.selectElement (QuerySelector ".user_footer") >>= traverse_ \el ->
+  liftEffect $ removeAttribute "hidden" (toElement el)

@@ -10,6 +10,4 @@
     <a href="@{HomeR}">Espial
     $maybe userName <- musername
       - (#{userName})
-  $maybe alert <- malert
-    ^{alert}
 ^{widget}

@@ -94,18 +94,20 @@ instance Yesod App where
     isAuthorized _ _ = pure Authorized
 
 isAuthenticated :: Handler AuthResult
-isAuthenticated = maybe AuthenticationRequired (const Authorized) <$> maybeAuthId
+isAuthenticated = maybeAuthId >>= \case
+                    Just authId -> pure Authorized
+                    _ -> pure $ AuthenticationRequired
 
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 addAppScripts = do
   addScript (StaticR js_moment_min_js)
-  addScript (StaticR js_app_js) 
+  addScript (StaticR js_app_min_js) 
 
 
 -- popupLayout
 
-popupLayout :: Maybe Widget -> Widget -> Handler Html
-popupLayout malert widget = do
+popupLayout :: Widget -> Handler Html
+popupLayout widget = do
     req <- getRequest
     master <- getYesod
     mmsg <- getMessage

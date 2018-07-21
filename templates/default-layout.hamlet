@@ -10,10 +10,10 @@
 
       $maybe userName <- musername
         $maybe currentroute <- mcurrentRoute
-          <a .bookmarklet href="javascript:q=location.href;if(document.getSelection){d=document.getSelection();}else{d='';};p=document.title;void(open('@{AddR}?_hasdata&url='+encodeURIComponent(q)+'&description='+encodeURIComponent(d)+'&title='+encodeURIComponent(p),'Espial','toolbar=no,width=700,height=350'));">add url bookmarklet
+          <a .bookmarklet href="javascript:q=location.href;if(document.getSelection){d=document.getSelection();}else{d='';};p=document.title;void(open('@{AddViewR}?_hasdata&url='+encodeURIComponent(q)+'&description='+encodeURIComponent(d)+'&title='+encodeURIComponent(p),'Espial','toolbar=no,width=700,height=350'));">add url bookmarklet
           &nbsp;&nbsp;&nbsp;&nbsp;
 
-          <a href="@?{(AddR, [("next",urlrender currentroute)])}">add url
+          <a href="@?{(AddViewR, [("next",urlrender currentroute)])}">add url
 
           &nbsp;&nbsp;&nbsp;&nbsp;
           <a onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">

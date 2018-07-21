@@ -1,7 +1,0 @@
-<form method="post">
-  <table>
-    ^{formWidget}
-    <tr> 
-      <td>
-      <td>
-        <input type="submit" value="#{submitText}" />

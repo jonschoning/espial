@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 986e6814f8f022971322c56e8eaf3aa4526e7691a622c88449485047621ae2f6
+-- hash: 8ef5bfe0c483801f3c3100cffc7bf1dbacace5b94ff965f13cef227a59e290c5
 
 name:           espial
 version:        0.0.4
@@ -47,14 +47,14 @@ extra-source-files:
     static/images/bluepin.gif
     static/js/app.js
     static/js/app.js.gz
+    static/js/app.min.js
+    static/js/app.min.js.gz
     static/js/html5shiv.min.js
     static/js/html5shiv.min.js.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/moment.min.js
     static/js/moment.min.js.gz
-    templates/add-exists-alert.hamlet
-    templates/add.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
     templates/homepage.hamlet
