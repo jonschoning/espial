@@ -13,7 +13,7 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
-import Halogen.HTML (HTML, br_, button, div, div_, form, input, label, span, table_, tbody_, td_, text, textarea, tr_)
+import Halogen.HTML (HTML, br_, button, div, div_, form, input, label, p, span, table_, tbody_, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
@@ -41,7 +41,8 @@ data EditField
 type BState =
   { bm :: Bookmark
   , edit_bm :: Bookmark
-  , deleteAsk:: Boolean
+  , deleteAsk :: Boolean
+  , destroyed :: Boolean
   }
 
 -- | The bookmark component definition.
@@ -60,11 +61,12 @@ addbmark b' =
     { bm: b
     , edit_bm: b
     , deleteAsk: false
+    , destroyed: false
     }
 
   render :: BState -> H.ComponentHTML BQuery
   render s@{ bm, edit_bm } =
-    div_ [ display_edit ]
+    div_ [ if not s.destroyed then display_edit else display_destroyed ]
    where
      display_edit =
        form [ onSubmit (HE.input BEditSubmit) ]
@@ -72,7 +74,7 @@ addbmark b' =
          [ tbody_
            [ tr_
              [ td_ [ ]
-             , td_ $ guard (bm.bid > 0) [ exists ]
+             , td_ $ guard (bm.bid > 0) [ display_exists ]
              ]
            , tr_
              [ td_ [ label [ for "url" ] [ text "URL" ] ]
@@ -113,7 +115,7 @@ addbmark b' =
          ]
        ]
 
-     exists = 
+     display_exists = 
        div [ class_ "alert" ]
        [ text "previously saved "
        , span [ class_ "when js-moment" , title (maybe bm.time snd mmoment) , attr "data-iso8601" bm.time]
@@ -129,13 +131,7 @@ addbmark b' =
          ]
        ]
 
-
--- handleViewSuccess = do
---   lookupGetParam "next" >>= \case
---     Just next -> redirect next
---     Nothing -> popupLayout Nothing [whamlet|
---       <div .alert> Add Successful </div> <script> window.close() </script>
---       |]
+     display_destroyed = p [ class_ "error"] [text "you killed this bookmark"]
 
      mmoment = mmoment8601 bm.time
      toTextarea =
@@ -150,8 +146,7 @@ addbmark b' =
   eval (BDestroy next) = do
     bid <- H.gets _.bm.bid
     void $ H.liftAff (destroy bid)
-    loc <- liftEffect _loc
-    qs <- liftEffect _curQuerystring
+    H.modify_ (_ { destroyed = true })
     pure next
   eval (BEditField f next) = do
     s <- H.get
