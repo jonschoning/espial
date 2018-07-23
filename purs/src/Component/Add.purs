@@ -3,9 +3,11 @@ module Component.Add where
 import Prelude hiding (div)
 
 import App (destroy, editBookmark)
+import Control.Monad.State.Class (class MonadState)
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
+import Data.String (null)
 import Data.String (split) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (fst, snd)
@@ -16,7 +18,7 @@ import Halogen as H
 import Halogen.HTML (HTML, br_, button, div, div_, form, input, label, p, span, table_, tbody_, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
+import Halogen.HTML.Properties (autofocus, ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
 import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_)
 import Web.Event.Event (Event, preventDefault)
@@ -78,7 +80,7 @@ addbmark b' =
              ]
            , tr_
              [ td_ [ label [ for "url" ] [ text "URL" ] ]
-             , td_ [ input [ type_ InputUrl , id_ "url", class_ "url" , required true, name "url", attr "size" "70"
+             , td_ [ input [ type_ InputUrl , id_ "url", class_ "url" , required true, name "url", attr "size" "70", autofocus (null bm.url)
                            , value (edit_bm.url) , onValueChange (HE.input BEditField <<< Eurl)] ]
              ]
            , tr_
@@ -93,7 +95,7 @@ addbmark b' =
              ]
            , tr_
              [ td_ [ label [ for "tags" ] [ text "tags" ] ]
-             , td_ [ input [ type_ InputText , id_ "tags", class_ "tags" , name "tags", attr "size" "70", autocomplete false, attr "autocapitalize" "off"
+             , td_ [ input [ type_ InputText , id_ "tags", class_ "tags" , name "tags", attr "size" "70", autocomplete false, attr "autocapitalize" "off", autofocus (not $ null bm.url)
                            , value (edit_bm.tags) , onValueChange (HE.input BEditField <<< Etags)] ]
              ]
            , tr_
@@ -149,15 +151,17 @@ addbmark b' =
     H.modify_ (_ { destroyed = true })
     pure next
   eval (BEditField f next) = do
-    s <- H.get
-    case f of
-      Eurl e -> H.put $ s { edit_bm = s.edit_bm { url = e } }
-      Etitle e -> H.put $ s { edit_bm = s.edit_bm { title = e } }
-      Edescription e -> H.put $ s { edit_bm = s.edit_bm { description = e } }
-      Etags e -> H.put $ s { edit_bm = s.edit_bm { tags = e } }
-      Eprivate e -> H.put $ s { edit_bm = s.edit_bm { private = e } }
-      Etoread e -> H.put $ s { edit_bm = s.edit_bm { toread = e } }
+    modifyEdit $ case f of
+      Eurl x -> _ { url = x }
+      Etitle x -> _ { title = x }
+      Edescription x -> _ { description = x }
+      Etags x -> _ { tags = x }
+      Eprivate x -> _ { private = x }
+      Etoread x -> _ { toread = x }
     pure next
+    where
+      modifyEdit :: forall m. MonadState BState m => (Bookmark -> Bookmark) -> m Unit
+      modifyEdit g = H.modify_ \s -> s { edit_bm = g s.edit_bm  }
   eval (BEditSubmit e next) = do
     H.liftEffect (preventDefault e)
     s <- H.get

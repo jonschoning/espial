@@ -3,6 +3,7 @@ module Component.BMark where
 import Prelude hiding (div)
 
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
+import Control.Monad.State.Class (class MonadState)
 import Data.Array (drop, foldMap)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
@@ -208,15 +209,17 @@ bmark b' =
     H.put $ s { edit = e, edit_bm = s.bm }
     pure next
   eval (BEditField f next) = do
-    s <- H.get
-    case f of
-      Eurl e -> H.put $ s { edit_bm = s.edit_bm { url = e } }
-      Etitle e -> H.put $ s { edit_bm = s.edit_bm { title = e } }
-      Edescription e -> H.put $ s { edit_bm = s.edit_bm { description = e } }
-      Etags e -> H.put $ s { edit_bm = s.edit_bm { tags = e } }
-      Eprivate e -> H.put $ s { edit_bm = s.edit_bm { private = e } }
-      Etoread e -> H.put $ s { edit_bm = s.edit_bm { toread = e } }
+    modifyEdit $ case f of
+      Eurl x -> _ { url = x }
+      Etitle x -> _ { title = x }
+      Edescription x -> _ { description = x }
+      Etags x -> _ { tags = x }
+      Eprivate x -> _ { private = x }
+      Etoread x -> _ { toread = x }
     pure next
+    where
+      modifyEdit :: forall m. MonadState BState m => (Bookmark -> Bookmark) -> m Unit
+      modifyEdit g = H.modify_ \s -> s { edit_bm = g s.edit_bm  }
   eval (BEditSubmit e next) = do
     H.liftEffect (preventDefault e)
     s <- H.get
