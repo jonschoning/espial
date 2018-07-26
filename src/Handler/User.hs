@@ -43,9 +43,12 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   req <- getRequest
   defaultLayout $ do
     $(widgetFile "user")
+    toWidgetBody [julius|
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormList bmarks alltags } || []; 
+        app.dat.isowner = #{ isowner };
+        app.userR = "@{UserR unamep}";
+    |]
     toWidget [julius|
-      app.dat.isowner = #{ isowner };
-      app.userR = "@{UserR unamep}";
       PS['User'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
   where

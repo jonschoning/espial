@@ -17,14 +17,14 @@ getAddViewR = do
   let mexisting' = fmap _toBookmarkDefs mexisting
   mgetdefs <- mGetBookmarkForm
 
-  let bmarkJson = preEscapedToMarkup (toJsonText (fromMaybe mgetdefs mexisting'))
-
   let renderEl = "addForm" :: Text
 
   popupLayout $ do
     toWidget [whamlet|
       <div id="#{ renderEl }">
-      <script>app.dat.bmark = #{ bmarkJson }; 
+    |]
+    toWidgetBody [julius|
+      app.dat.bmark = #{ toJSON (fromMaybe mgetdefs mexisting') }; 
     |]
     toWidget [julius|
       PS['User'].renderAddForm('##{rawJS renderEl}')(app.dat.bmark)();
