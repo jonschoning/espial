@@ -29,23 +29,20 @@ blist st =
 
   render :: Array Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
   render bms =
-    HH.div_ $
-      map renderBookmark bms
-
-  renderBookmark :: Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
-  renderBookmark b =
-    HH.slot
-      b.bid
-      (bmark b)
-      unit
-      (HE.input (HandleBMessage b.bid))
+    HH.div_ (map renderBookmark bms)
+    where 
+      renderBookmark :: Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
+      renderBookmark b =
+        HH.slot
+          b.bid
+          (bmark b)
+          unit
+          (HE.input (HandleBMessage b.bid))
 
   eval :: LQuery ~> H.ParentDSL (Array Bookmark) LQuery BQuery BSlot Void Aff
-  eval (HandleBMessage p msg next) = do
-    case msg of
-      BNotifyRemove -> do
-        H.modify_ (removeBookmark p)
+  eval (HandleBMessage p BNotifyRemove next) = do
+    H.modify_ (removeBookmark p)
     pure next
-
-removeBookmark :: BookmarkId -> Array Bookmark -> Array Bookmark
-removeBookmark bookmarkId st = filter (\b -> b.bid /= bookmarkId) st
+    where
+      removeBookmark :: BookmarkId -> Array Bookmark -> Array Bookmark
+      removeBookmark bookmarkId = filter (\b -> b.bid /= bookmarkId)

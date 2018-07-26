@@ -70,16 +70,17 @@ bmark b' =
 
   render :: BState -> H.ComponentHTML BQuery
   render s@{ bm, edit_bm } =
-    div_ ([ bookmark ] <> clearBoth)
+    div_ (bookmark <> clearBoth)
    where
      bookmark =
-       div
-          [ id_ (show bm.bid)
-          , class_ ("bookmark" <> guard bm.private " private")
-          ]
-          $  star
-          <> if s.edit then display_edit else display
-          <> clearBoth
+       [ div
+         [ id_ (show bm.bid)
+         , class_ ("bookmark" <> guard bm.private " private")
+         ]
+         $  star
+         <> if s.edit then display_edit else display
+         <> clearBoth
+       ]
 
      star =
        guard app.dat.isowner
@@ -101,10 +102,7 @@ bmark b' =
                             , href (linkToFilterTag tag) ]
                             [ text tag ])
                (S.split (Pattern " ") bm.tags)
-         , a [ class_ "when js-moment"
-           , title (maybe bm.time snd mmoment)
-           , attr "data-iso8601" bm.time
-           , href (linkToFilterSingle bm.bid) ]
+         , a [ class_ "when", title (maybe bm.time snd mmoment) , href (linkToFilterSingle bm.bid) ]
            [ text (maybe " " fst mmoment) ]
          ]
          <> links

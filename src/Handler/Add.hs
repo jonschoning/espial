@@ -13,9 +13,8 @@ getAddViewR = do
   userId <- requireAuthId
 
   murl <- lookupGetParam "url"
-  mexisting <- runDB (fetchBookmarkByUrl userId murl)
-  let mexisting' = fmap _toBookmarkDefs mexisting
-  mgetdefs <- mGetBookmarkForm
+  mformdb <- runDB (pure . fmap _toBookmarkForm =<< fetchBookmarkByUrl userId murl)
+  formurl <- bookmarkFormUrl
 
   let renderEl = "addForm" :: Text
 
@@ -24,14 +23,14 @@ getAddViewR = do
       <div id="#{ renderEl }">
     |]
     toWidgetBody [julius|
-      app.dat.bmark = #{ toJSON (fromMaybe mgetdefs mexisting') }; 
+      app.dat.bmark = #{ toJSON (fromMaybe formurl mformdb) }; 
     |]
     toWidget [julius|
       PS['User'].renderAddForm('##{rawJS renderEl}')(app.dat.bmark)();
     |]
 
-mGetBookmarkForm :: Handler BookmarkForm
-mGetBookmarkForm =
+bookmarkFormUrl :: Handler BookmarkForm
+bookmarkFormUrl =
   BookmarkForm
     <$> (lookupGetParam "url" >>= pure . fromMaybe "")
     <*> (lookupGetParam "title")

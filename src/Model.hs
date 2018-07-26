@@ -290,25 +290,11 @@ toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm
 toBookmarkFormList bs as = do
   b <- bs
   let bid = E.entityKey b
-  let btags = fmap bookmarkTagTag $ filter ((==) bid . bookmarkTagBookmarkId) (fmap E.entityVal as)
-  pure $ toBookmarkForm b btags
+  let btags = filter ((==) bid . bookmarkTagBookmarkId . E.entityVal) as
+  pure $ _toBookmarkForm (b, btags)
 
-toBookmarkForm :: Entity Bookmark -> [Text] -> BookmarkForm
-toBookmarkForm (Entity bid Bookmark {..}) tags =
-  BookmarkForm
-  { _url = bookmarkHref
-  , _title = Just bookmarkDescription
-  , _description = Just $ Textarea $ bookmarkExtended
-  , _tags = Just $ unwords $ tags
-  , _private = Just $ not bookmarkShared
-  , _toread = Just $ bookmarkToRead
-  , _bid = Just $ fromSqlKey bid
-  , _selected = Just bookmarkSelected
-  , _time = Just $ UTCTimeStr $ bookmarkTime
-  }
-  
-_toBookmarkDefs :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
-_toBookmarkDefs (Entity bid Bookmark {..}, tags) =
+_toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
+_toBookmarkForm (Entity bid Bookmark {..}, tags) =
   BookmarkForm
   { _url = bookmarkHref
   , _title = Just bookmarkDescription

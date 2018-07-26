@@ -120,7 +120,7 @@ addbmark b' =
      display_exists = 
        div [ class_ "alert" ]
        [ text "previously saved "
-       , span [ class_ "when js-moment" , title (maybe bm.time snd mmoment) , attr "data-iso8601" bm.time]
+       , span [ class_ "when" , title (maybe bm.time snd mmoment) ]
          [ text (maybe " " fst mmoment) ]
        , div [ class_ "edit_links", attr "style" "display: inline-block; margin-left: 5px;"]
          [ div [ class_ "delete_link" ]
