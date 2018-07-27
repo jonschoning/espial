@@ -1,29 +1,33 @@
 <div #content>
-  <div #banner>
-    <div #logo>
-        <span .logo>
-        <a #espial_name>espial
+  <header #banner .pv2.ph3.mh1>
+    <div .mw8.center.pb2.bb.br-0.bl-0.bt-0.b--dotted.b--light-silver>
+      <div #logo .fl.light-silver>
+          <a #espial_name .link.f4>espial
+          $maybe userName <- musername
+            <span>
+               (<a class="link" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}</a>)
+               
+          <!-- <div #timer>#{pageLoadTime} s -->
+      <div .top_menu.fr>
+
         $maybe userName <- musername
-          <span>(<a class="banner_username" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}<a>)</span>
-        <!-- <div #timer>#{pageLoadTime} s -->
-    <div #top_menu>
+          $maybe currentroute <- mcurrentRoute
+            <a .bookmarklet.link.f7.ba.b--dotted.b--light-silver href="javascript:q=location.href;if(document.getSelection){d=document.getSelection();}else{d='';};p=document.title;void(open('@{AddViewR}?_hasdata&url='+encodeURIComponent(q)+'&description='+encodeURIComponent(d)+'&title='+encodeURIComponent(p),'Espial','toolbar=no,width=700,height=350'));">add url bookmarklet
+            &nbsp;&nbsp;&nbsp;&nbsp;
 
-      $maybe userName <- musername
-        $maybe currentroute <- mcurrentRoute
-          <a .bookmarklet href="javascript:q=location.href;if(document.getSelection){d=document.getSelection();}else{d='';};p=document.title;void(open('@{AddViewR}?_hasdata&url='+encodeURIComponent(q)+'&description='+encodeURIComponent(d)+'&title='+encodeURIComponent(p),'Espial','toolbar=no,width=700,height=350'));">add url bookmarklet
-          &nbsp;&nbsp;&nbsp;&nbsp;
+            <a .link href="@?{(AddViewR, [("next",urlrender currentroute)])}">add url
 
-          <a href="@?{(AddViewR, [("next",urlrender currentroute)])}">add url
-
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          <a onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">
-            log out
-      $nothing
-        <a href="@{AuthR LoginR}">
-          log in
-    <div style="clear:both">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <a .link onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">
+              log out
+        $nothing
+          <a .link href="@{AuthR LoginR}">
+            log in
+      <div .cf>
 
   $maybe msg <- mmsg
-    <div .alert.alert-info #message>#{preEscapedToMarkup msg}
+    <div .pv2.ph3.mh1>
+      <div .pa2.mw8.center.flex.items-center.justify-center.navy.bg-washed-blue.ba.b--navy>
+        #{preEscapedToMarkup msg}
 
   ^{widget}

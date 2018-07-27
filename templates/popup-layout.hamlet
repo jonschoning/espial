@@ -1,13 +1,16 @@
-<div #popup_header>
-  <div #logout>
-    $maybe userName <- musername
-      <a onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">
-        [log out]
-    $nothing
-      <a href="@{AuthR LoginR}">
-        [log in]
-  <div #title>
-    <a href="@{HomeR}">Espial
+<div #popup_header .pa2>
+  <div .fl>
+    <a .link href="@{HomeR}">Espial
     $maybe userName <- musername
       - (#{userName})
-^{widget}
+  <div .fr>
+    $maybe userName <- musername
+      <a .link onclick="PS['App'].logoutE(event)()" href="@{AuthR LogoutR}">
+        [log out]
+    $nothing
+      <a .link href="@{AuthR LoginR}">
+        [log in]
+  <div .cf>
+
+<div .ph2.mw7>
+  ^{widget}

@@ -1,20 +1,18 @@
-<div #login style="text-align:left; margin-top:30px;">
-  <form method="post" action="@{toParent dbLoginR}">
-    $maybe token <- reqToken req
-      <input type="hidden" name="#{defaultCsrfParamName}" value="#{token}">
-    <table width="380" border="0">
-      <tbody>
-        <tr>
-          <td width="99">
-            <span style="color:#999">username :</span>
-          <td>
-            <input name="username" type="text" value="" size="20">
-        <tr>
-          <td>
-            <span style="color:#999">password :</span>
-          <td>
-            <input name="password" type="password" size="20">
-        <tr>
-          <td>
-          <td>
-            <input type="submit" value="log in"> 
+<main #main_column .pv2.ph3.mh1>
+  <div .w-100.mw8.center>
+
+    <div .measure.center>
+
+      <form method="post" action="@{toParent dbLoginR}">
+        $maybe token <- reqToken req
+          <input type="hidden" name="#{defaultCsrfParamName}" value="#{token}">
+
+        <div>
+          <label .db.fw6.lh-copy.f6 for="username">Username
+          <input #username .w-100.pa1.mb2.ba.b--black-20 name="username" type="text" value="">
+
+        <div>
+          <label .db.fw6.lh-copy.f6 for="password">Password
+          <input #password .w-100.pa1.mb2.ba.b--black-20 name="password" type="password">
+        
+        <input class="ph3 pv2 input-reset ba b--navy bg-transparent pointer f6 dib mt3 dim" type="submit" value="Log In">

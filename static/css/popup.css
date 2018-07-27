@@ -1,17 +1,6 @@
 html {
   box-sizing: border-box;
 }
-body
-{
-  color:#333;
-  font-family:helvetica;
-  font-size:12px;
-  margin-left:20px;
-}
-
-*, *:before, *:after {
-  box-sizing: inherit;
-}
 [hidden] {
     display: none !important
 }
@@ -24,49 +13,23 @@ button {
 button:focus {
     outline: none;
 }
-#popup_header {
-  color:#aaa;
-  height:25px;
+.alert { 
+    background:#ced;
+    border:1px solid #acc; 
 }
-.error { color:red}
-.login { color:blue }
-#logout { float:right; }
-.alert { color:#333;background:#ced;float:left;padding:3px;padding-top:1px;width:433px;border:1px solid #acc; }
-#title { float:left ;padding-top:2px; }
-form label { display: block; margin-bottom: 10px; }
+form label { 
+    margin: 0;
+    vertical-align: middle;
+    display: table-cell;
+    padding: 2px 0;
+}
 li { list-style-type: none; margin: 0; padding: 0; display: block;} 
-section,footer,header { display: block; }
-fieldset { border: none; }
-legend { display: none; }
 
-
-a { text-decoration:none; }
-
-a.suggested_tag { 
-    text-decoration:none;
-}
-
-a.navlink 
-{
-    text-decoration:none;
-}
-
-.count { color:#aaa }
 .when { color:#999}
-
 .unread { color:#b41 }
 a.unread { color:#b41 }
 a.bookmark_title { font-size:120%;}
-.disabled { color:#bbb }
-
-input[type='checkbox'] {
-    margin: 0;
-    margin-bottom: 8px;
-}
 
 label {
     cursor: pointer;
 }
-
-.destroy { color:red; }
-.destroy:visited { color:red; }

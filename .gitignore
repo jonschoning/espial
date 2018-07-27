@@ -18,6 +18,7 @@ cabal.sandbox.config
 *.keter
 *~
 \#*
+\.#*
 test-project.cabal
 bookmarks-*.json
 TAGS

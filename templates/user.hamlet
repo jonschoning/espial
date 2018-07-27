@@ -1,48 +1,47 @@
-<div #main_column>
-  <div .user_navbar>
-    <div .small_username>
-      <b>
-        <a href="@{UserR unamep}">#{uname}
-        $forall tag <- pathtags
-          \  + #
-          <a href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
-    <div .bookmark_count_box>
-      <span .bookmark_count>#{bcount}</span>
-    $if isowner
-      <div .filters >
-        <a href="@{UserR unamep}" class="filter ">all
-        ‧  
-        <a href="@{UserSharedR unamep SharedPrivate}" class="filter ">private
-        ‧  
-        <a href="@{UserSharedR unamep SharedPublic}" .filter >public
-        ‧  
-        <a href="@{UserFilterR unamep FilterUnread}" .filter >unread
-        ‧  
-        <a href="@{UserFilterR unamep FilterUntagged}" .filter >untagged
-        ‧  
-        <a href="@{UserFilterR unamep FilterStarred}" .filter >starred
-    <div style="clear:both">
-  
-  ^{pager}
-
-  <div style="clear:both">
-      
-  <div #bulk_links>
-
-  <div ##{renderEl}>
-
-  <div style="clear:both">
-
-  <div .user_footer hidden>
+<main #main_column .pv2.ph3.mh1>
+  <div .w-100.mw8.center>
+    <div .mb2>
+      <div .fl.pr3.dib.mb2>
+        <b>
+          <a .link href="@{UserR unamep}">#{uname}
+          $forall tag <- pathtags
+            \  + #
+            <a .link href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
+      <div .fl.pr3.dib.mb2>
+        <span .f7.silver>#{bcount}</span>
+      $if isowner
+        <div .filters.dib.mb2>
+          <a .link.silver href="@{UserR unamep}">all
+          ‧  
+          <a .link.silver href="@{UserSharedR unamep SharedPrivate}">private
+          ‧  
+          <a .link.silver href="@{UserSharedR unamep SharedPublic}">public
+          ‧  
+          <a .link.silver href="@{UserFilterR unamep FilterUnread}">unread
+          ‧  
+          <a .link.silver href="@{UserFilterR unamep FilterUntagged}">untagged
+          ‧  
+          <a .link.silver href="@{UserFilterR unamep FilterStarred}">starred
+      <div .cf>
+    
     ^{pager}
 
-    $if (fromIntegral bcount >= limit) || (page > 1)
-      $maybe route <- mroute
-        <div #per_page_picker>
-          per page: &nbsp;&nbsp; 
-          <a :limit == 20:.per_page_selected href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
-          <a :limit == 40:.per_page_selected href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
-          <a :limit == 80:.per_page_selected href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
-          <a :limit == 120:.per_page_selected href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
-          <a :limit == 160:.per_page_selected href="@?{(route, [("count", "160")])}"‧>160</a>
+    <div .cf>
+
+    <div ##{renderEl} .mt3>
+
+    <div .cf>
+
+    <div .user_footer hidden>
+      ^{pager}
+
+      $if (fromIntegral bcount >= limit) || (page > 1)
+        $maybe route <- mroute
+          <div .dib.ml5>
+            <span .silver.mr1>per page:
+            <a .link.light-silver :limit == 20:.nav-active href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
+            <a .link.light-silver :limit == 40:.nav-active href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
+            <a .link.light-silver :limit == 80:.nav-active href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
+            <a .link.light-silver :limit == 120:.nav-active href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
+            <a .link.light-silver :limit == 160:.nav-active href="@?{(route, [("count", "160")])}"‧>160</a>
 
