@@ -93,6 +93,16 @@ instance Yesod App where
     isAuthorized (AuthR _) _ = pure Authorized
     isAuthorized _ _ = pure Authorized
 
+    defaultMessageWidget title body = do
+      setTitle title
+      toWidget [hamlet|
+        <main .pv2.ph3.mh1>
+          <div .w-100.mw8.center>
+            <div .pa3.bg-near-white>
+              <h1>#{title}
+              ^{body}
+      |]
+
 isAuthenticated :: Handler AuthResult
 isAuthenticated = maybeAuthId >>= \case
                     Just authId -> pure Authorized

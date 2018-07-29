@@ -23,9 +23,10 @@ newtype BCrypt = BCrypt
 
 hashPassword :: T.Text -> IO BCrypt
 hashPassword rawPassword = do
-  mPassword <- hashPasswordUsingPolicy policy $ TE.encodeUtf8 rawPassword
-  return $ BCrypt $ TE.decodeUtf8 $ fromJustNote "Invalid hashing policy" mPassword
+  mPassword <- hashPasswordUsingPolicy policy (TE.encodeUtf8 rawPassword)
+  return
+    (BCrypt (TE.decodeUtf8 (fromJustNote "Invalid hashing policy" mPassword)))
 
 passwordMatches :: BCrypt -> T.Text -> Bool
 passwordMatches hash' pass =
-  validatePassword (TE.encodeUtf8 $ unBCrypt hash') (TE.encodeUtf8 pass)
+  validatePassword (TE.encodeUtf8 (unBCrypt hash')) (TE.encodeUtf8 pass)

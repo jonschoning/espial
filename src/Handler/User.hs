@@ -31,6 +31,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       filterp = case filterp' of
         FilterSingle _ -> filterp'
         _ -> if isowner then filterp' else FilterAll
+      isAll = filterp == FilterAll && sharedp == SharedAll && pathtags == []
   (bcount, bmarks, alltags) <-
     runDB $
     do Entity userId _ <- getBy404 (UniqueUserName uname)
@@ -38,6 +39,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        tg <- tagsQuery bm
        pure (cnt, bm, tg)
   mroute <- getCurrentRoute 
+  cpprint mroute
   let pager = $(widgetFile "pager")
   let renderEl = "bookmarks" :: Text
   req <- getRequest

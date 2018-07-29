@@ -27,7 +27,7 @@
 
   $maybe msg <- mmsg
     <div .pv2.ph3.mh1>
-      <div .pa2.mw8.center.flex.items-center.justify-center.navy.bg-washed-blue.ba.b--navy>
+      <div .pa2.mw8.center.flex.items-center.justify-center.navy.bg-washed-yellow.ba.b--navy>
         #{preEscapedToMarkup msg}
 
   ^{widget}

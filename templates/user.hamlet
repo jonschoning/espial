@@ -11,17 +11,24 @@
         <span .f7.silver>#{bcount}</span>
       $if isowner
         <div .filters.dib.mb2>
-          <a .link.silver href="@{UserR unamep}">all
+          <a .link.silver.hover-blue :isAll:.nav-active 
+             href="@{UserR unamep}">all
           ‧  
-          <a .link.silver href="@{UserSharedR unamep SharedPrivate}">private
+          <a .link.silver.hover-blue :sharedp == SharedPrivate:.nav-active 
+             href="@{UserSharedR unamep SharedPrivate}">private
           ‧  
-          <a .link.silver href="@{UserSharedR unamep SharedPublic}">public
+          <a .link.silver.hover-blue :sharedp == SharedPublic:.nav-active 
+             href="@{UserSharedR unamep SharedPublic}">public
           ‧  
-          <a .link.silver href="@{UserFilterR unamep FilterUnread}">unread
+          <a .link.silver.hover-blue :filterp == FilterUnread:.nav-active 
+             href="@{UserFilterR unamep FilterUnread}">unread
           ‧  
-          <a .link.silver href="@{UserFilterR unamep FilterUntagged}">untagged
+          <a .link.silver.hover-blue :filterp == FilterUntagged:.nav-active 
+             href="@{UserFilterR unamep FilterUntagged}">untagged
           ‧  
-          <a .link.silver href="@{UserFilterR unamep FilterStarred}">starred
+          <a .link.silver.hover-blue :filterp == FilterStarred:.nav-active 
+             href="@{UserFilterR unamep FilterStarred}">starred
+
       <div .cf>
     
     ^{pager}
