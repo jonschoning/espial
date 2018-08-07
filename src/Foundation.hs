@@ -187,7 +187,7 @@ dbPostLoginR = do
                     <$> ireq textField "username"
                     <*> ireq textField "password")
   case mresult of
-    FormSuccess creds -> lift $ setCredsRedirect creds
+    FormSuccess creds -> lift (setCredsRedirect creds)
     _ -> loginErrorMessageI LoginR InvalidUsernamePass
 
 
@@ -201,13 +201,13 @@ dbLoginCreds username password =
 
 authenticateCreds
   :: (AuthId master ~ UserId)
-  => Creds master -> Handler (AuthenticationResult App)
-authenticateCreds creds =
-  runDB $
-  authenticatePW
-    (credsIdent creds)
-    (fromMaybe "" (lookup "password" (credsExtra creds))) >>=
-  \case
+  => Creds master
+  -> Handler (AuthenticationResult App)
+authenticateCreds creds = do
+  muser <- runDB (authenticatePassword
+                   (credsIdent creds)
+                   (fromMaybe "" (lookup "password" (credsExtra creds))))
+  case muser of
     Nothing -> pure (UserError InvalidUsernamePass)
     Just (Entity uid _) -> pure (Authenticated uid)
 

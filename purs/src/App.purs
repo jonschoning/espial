@@ -32,7 +32,7 @@ instance showStar :: Show StarAction where
 toggleStar :: Int -> StarAction -> Aff Unit
 toggleStar bid action = do
   let path = "bm/" <> show bid <> "/" <> show action
-  void $ fetchUrlEnc POST path Nothing AXRes.ignore
+  void (fetchUrlEnc POST path Nothing AXRes.ignore)
 
 destroy :: Int -> Aff (AffjaxResponse Unit)
 destroy bid =
@@ -45,15 +45,15 @@ markRead bid = do
 
 editBookmark :: Bookmark -> Aff (AffjaxResponse Unit)
 editBookmark bm =  do
-    fetchJson POST "api/add" (Just $ Bookmark' bm) AXRes.ignore
+    fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.ignore
 
 logoutE :: Event -> Effect Unit
 logoutE e = void <<< launchAff <<< logout =<< preventDefault e
 
 logout :: Unit -> Aff Unit
 logout u = do
-  void $ fetchUrl POST app.authRlogoutR [] Nothing AXRes.ignore
-  liftEffect $ window >>= location >>= reload
+  void (fetchUrl POST app.authRlogoutR [] Nothing AXRes.ignore)
+  liftEffect (window >>= location >>= reload)
   where
     app = app' u
 

@@ -39,7 +39,6 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        tg <- tagsQuery bm
        pure (cnt, bm, tg)
   mroute <- getCurrentRoute 
-  cpprint mroute
   let pager = $(widgetFile "pager")
   let renderEl = "bookmarks" :: Text
   req <- getRequest

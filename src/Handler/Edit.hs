@@ -13,18 +13,18 @@ deleteDeleteR bid = do
   userId <- requireAuthId
   runDB $ do
     let k_bid = toSqlKey bid
-    void $ requireResource userId k_bid
+    _ <- requireResource userId k_bid
     deleteCascade k_bid
-  pure ""
+  return ""
 
 postReadR :: Int64 -> Handler Html
 postReadR bid = do
   userId <- requireAuthId
   runDB $ do
     let k_bid = toSqlKey bid
-    bm <- requireResource userId k_bid
+    _ <- requireResource userId k_bid
     update k_bid [BookmarkToRead =. False]
-  pure ""
+  return ""
 
 postStarR :: Int64 -> Handler Html
 postStarR bid = _setSelected bid True
@@ -44,19 +44,8 @@ _setSelected bid selected = do
   pure ""
 
 requireResource :: UserId -> Key Bookmark -> DBM Handler Bookmark
-requireResource userId k_bid =
-  get404 k_bid >>= \case
-    bmark | bookmarkUserId bmark == userId -> pure bmark
-    _ -> notFound
-
--- EditForm
-
-data EditForm = EditForm {} deriving (Show, Eq, Read, Generic)
-
-instance FromJSON EditForm
-
-mkEditIForm
-  :: MonadHandlerForm m
-  => FormInput m EditForm
-mkEditIForm = do
-  pure EditForm
+requireResource userId k_bid = do
+  bmark <- get404 k_bid
+  if userId == bookmarkUserId bmark
+    then return bmark
+    else notFound

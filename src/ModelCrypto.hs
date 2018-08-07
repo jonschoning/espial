@@ -27,6 +27,6 @@ hashPassword rawPassword = do
   return
     (BCrypt (TE.decodeUtf8 (fromJustNote "Invalid hashing policy" mPassword)))
 
-passwordMatches :: BCrypt -> T.Text -> Bool
-passwordMatches hash' pass =
+validatePasswordHash :: BCrypt -> T.Text -> Bool
+validatePasswordHash hash' pass = do
   validatePassword (TE.encodeUtf8 (unBCrypt hash')) (TE.encodeUtf8 pass)

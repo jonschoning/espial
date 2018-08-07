@@ -112,25 +112,28 @@ migrateIndexes =
     ]
 
 
+
+  
+
 -- User
 
-authenticatePW :: Text -> Text -> DB (Maybe (Entity User))
-authenticatePW username password = do
-   muser <- getBy (UniqueUserName username)
-   case muser of
-     Nothing -> pure Nothing
-     Just e@(Entity _ user) -> 
-        if passwordMatches (userPasswordHash user) (password)
-          then pure $ Just e
-          else pure $ Nothing
+authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
+authenticatePassword username password = do
+  muser <- getBy (UniqueUserName username)
+  case muser of
+    Nothing -> return Nothing
+    Just dbuser ->
+      if validatePasswordHash (userPasswordHash (entityVal dbuser)) password
+        then return (Just dbuser)
+        else return Nothing
 
+
+
+
+  
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
-getUserByName (UserNameP uname) =
-  return . headMay =<<
-  (select $
-   from $ \u -> do
-   where_ (u ^. UserName E.==. val uname)
-   pure u)
+getUserByName (UserNameP uname) = do
+  selectFirst [UserName ==. uname] []
 
 -- bookmarks
 
@@ -147,18 +150,18 @@ bookmarksQuery userId sharedp filterp tags limit' page =
   <$> fmap (sum . fmap E.unValue)
       (select $
       from $ \b -> do
-      _inner b
+      _whereClause b
       pure $ E.countRows)
       -- paged data
   <*> (select $
        from $ \b -> do
-       _inner b
+       _whereClause b
        orderBy [desc (b ^. BookmarkTime)]
        limit limit'
        offset ((page - 1) * limit')
        pure b)
   where
-    _inner b = do
+    _whereClause b = do
       where_ $
         foldMap (\tag -> Endo $ (&&.) 
           (exists $   -- each tag becomes an exists constraint
@@ -238,11 +241,14 @@ data Post = Post
 
 instance FromJSON Post where
   parseJSON (Object o) =
-    Post <$> o .: "href" <*> o .: "description" <*> o .: "extended" <*>
-    o .: "time" <*>
-    (boolFromYesNo <$> o .: "shared") <*>
-    (boolFromYesNo <$> o .: "toread") <*>
-    (words <$> o .: "tags")
+    Post
+      <$> o .: "href"
+      <*> o .: "description"
+      <*> o .: "extended"
+      <*> o .: "time"
+      <*> (boolFromYesNo <$> o .: "shared")
+      <*> (boolFromYesNo <$> o .: "toread")
+      <*> (words <$> o .: "tags")
   parseJSON _ = fail "bad parse"
 
 instance ToJSON Post where

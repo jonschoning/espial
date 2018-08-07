@@ -58,7 +58,7 @@ _handleFormSuccess bookmarkForm = do
   cpprint bookmarkForm
   userId <- requireAuthId
   time <- liftIO getCurrentTime
-  runDB $ upsertBookmark kbid (_toBookmark userId time bookmarkForm) tags
+  runDB (upsertBookmark kbid (_toBookmark userId time bookmarkForm) tags)
   where
     kbid = toSqlKey <$> _bid bookmarkForm
     tags = maybe [] (nub . words) (_tags bookmarkForm)

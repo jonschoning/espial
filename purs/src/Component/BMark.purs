@@ -21,7 +21,7 @@ import Model (Bookmark)
 import Util (class_, attr)
 import Web.Event.Event (Event, preventDefault)
 
--- | The bookmark component query algebra.
+-- | Bookmark UI Events
 data BQuery a
   = BStar Boolean a
   | BDeleteAsk Boolean a
@@ -31,6 +31,7 @@ data BQuery a
   | BEditSubmit Event a
   | BMarkRead a
 
+-- | FormField Edits
 data EditField
   = Eurl String
   | Etitle String
@@ -39,9 +40,11 @@ data EditField
   | Eprivate Boolean
   | Etoread Boolean
 
+-- | Messages to parent component
 data BMessage
   = BNotifyRemove
 
+-- | Component State
 type BState =
   { bm :: Bookmark
   , edit_bm :: Bookmark
@@ -49,18 +52,18 @@ type BState =
   , edit :: Boolean
   }
 
--- | The bookmark component definition.
 bmark :: Bookmark -> H.Component HTML BQuery Unit BMessage Aff
 bmark b' =
   H.component
     { initialState: const (mkState b')
     , render
-    , eval
+    , eval: onEvent
     , receiver: const Nothing
     }
   where
   app = app' unit
 
+  -- | Initialize Component State
   mkState b =
     { bm: b
     , edit_bm: b
@@ -68,6 +71,7 @@ bmark b' =
     , edit: false
     }
 
+  -- | render HTML for the current State
   render :: BState -> H.ComponentHTML BQuery
   render s@{ bm, edit_bm } =
     div [ id_ (show bm.bid) , class_ ("bookmark w-100 mw7 pa1 mb3" <> guard bm.private " private")] $
@@ -77,15 +81,17 @@ bmark b' =
         else display
     where
 
+     -- | Render Star
      star =
        guard app.dat.isowner
          [ div [ class_ ("star fl pointer" <> guard bm.selected " selected") ]
            [ button [ class_ "moon-gray", onClick (HE.input_ (BStar (not bm.selected))) ] [ text "✭" ] ]
          ]
 
+     -- | Render a single Bookmark
      display =
        [ div [ class_ "display" ] $
-         [ a [ href bm.url, target "_blank", class_ ("link f6 lh-title" <> guard bm.toread " unread")]
+         [ a [ href bm.url, target "_blank", class_ ("link f5 lh-title" <> guard bm.toread " unread")]
            [ text $ if S.null bm.title then "[no title]" else bm.title ]
          , br_
          , a [ href bm.url , class_ "link f7 gray hover-blue" ] [ text bm.url ]
@@ -103,6 +109,7 @@ bmark b' =
          <> links
        ]
 
+     -- | Render Edit Form
      display_edit =
        [ div [ class_ "edit_bookmark_form pa2 bg-white" ] $
          [ form [ onSubmit (HE.input BEditSubmit) ]
@@ -150,6 +157,7 @@ bmark b' =
          ]
        ]
 
+     -- | Render Action Links
      links =
        guard app.dat.isowner
          [ div [ class_ "edit_links di" ]
@@ -179,30 +187,45 @@ bmark b' =
        # foldMap (\x -> [br_, text x])
        # drop 1
 
-  eval :: BQuery ~> H.ComponentDSL BState BQuery BMessage Aff
-  eval (BStar e next) = do
-    s <- H.get
-    H.liftAff $ toggleStar s.bm.bid (if e then Star else UnStar)
-    H.put $ s { bm = s.bm { selected = e }, edit_bm = s.edit_bm { selected = e } }
+  -- | Handle UI Events
+  onEvent :: BQuery ~> H.ComponentDSL BState BQuery BMessage Aff
+
+  -- | Star
+  onEvent (BStar e next) = do
+    state <- H.get
+    H.liftAff (toggleStar state.bm.bid (if e then Star else UnStar))
+    H.put (state { bm = state.bm { selected = e }, edit_bm = state.edit_bm { selected = e } })
     pure next
-  eval (BDeleteAsk e next) = do
+
+  -- | Delete
+  onEvent (BDeleteAsk e next) = do
     H.modify_ (_ { deleteAsk = e })
     pure next
-  eval (BDestroy next) = do
-    bid <- H.gets _.bm.bid
-    void $ H.liftAff (destroy bid)
+
+  -- | Destroy
+  onEvent (BDestroy next) = do
+    bookmarkId <- H.gets _.bm.bid
+    void $ H.liftAff (destroy bookmarkId)
     H.raise BNotifyRemove
     pure next
-  eval (BMarkRead next) = do
-    s <- H.get
-    void $ H.liftAff (markRead s.bm.bid)
-    H.put $ s { bm = s.bm { toread = false } }
+
+  -- | Mark Read
+  onEvent (BMarkRead next) = do
+    state <- H.get
+    void (H.liftAff (markRead state.bm.bid))
+    let newState = state { bm = state.bm { toread = false } }
+    H.put newState
     pure next
-  eval (BEdit e next) = do
-    s <- H.get
-    H.put $ s { edit = e, edit_bm = s.bm }
+
+  -- | Start/Stop Editing
+  onEvent (BEdit e next) = do
+    state <- H.get
+    let newState = state { edit = e, edit_bm = state.bm }
+    H.put newState
     pure next
-  eval (BEditField f next) = do
+
+  -- | Update Form Field 
+  onEvent (BEditField f next) = do
     modifyEdit $ case f of
       Eurl e -> _ { url = e }
       Etitle e -> _ { title = e }
@@ -214,9 +237,11 @@ bmark b' =
     where
       modifyEdit :: forall m. MonadState BState m => (Bookmark -> Bookmark) -> m Unit
       modifyEdit g = H.modify_ \s -> s { edit_bm = g s.edit_bm  }
-  eval (BEditSubmit e next) = do
+
+  -- | Submit
+  onEvent (BEditSubmit e next) = do
     H.liftEffect (preventDefault e)
-    s <- H.get
-    void $ H.liftAff (editBookmark s.edit_bm)
-    H.put $ s { edit = false, bm = s.edit_bm }
+    state <- H.get
+    void $ H.liftAff (editBookmark state.edit_bm)
+    H.put $ state { edit = false, bm = state.edit_bm }
     pure next
