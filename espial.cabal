@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8ef5bfe0c483801f3c3100cffc7bf1dbacace5b94ff965f13cef227a59e290c5
+-- hash: 3be9a1fd550e83ea7998174b2122d3280473fe6cdc4f662b65c15b491a2617b7
 
 name:           espial
-version:        0.0.4
+version:        0.0.5
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -94,6 +94,8 @@ library
     , containers
     , data-default
     , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
     , esqueleto
     , fast-logger >=2.2 && <2.5
     , file-embed
@@ -102,8 +104,10 @@ library
     , hscolour
     , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
+    , microlens
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
+    , monad-metrics
     , mtl
     , persistent >=2.0 && <2.8.3
     , persistent-sqlite >=2.6.2 && <2.8.2
@@ -120,6 +124,7 @@ library
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
     , yesod >=1.4.3 && <1.7
@@ -172,6 +177,8 @@ executable espial
     , containers
     , data-default
     , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
     , espial
     , esqueleto
     , fast-logger >=2.2 && <2.5
@@ -181,8 +188,10 @@ executable espial
     , hscolour
     , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
+    , microlens
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
+    , monad-metrics
     , mtl
     , persistent >=2.0 && <2.8.3
     , persistent-sqlite >=2.6.2 && <2.8.2
@@ -199,6 +208,7 @@ executable espial
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
     , yesod >=1.4.3 && <1.7
@@ -232,6 +242,8 @@ executable migration
     , containers
     , data-default
     , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
     , espial
     , esqueleto
     , fast-logger >=2.2 && <2.5
@@ -241,8 +253,10 @@ executable migration
     , hscolour
     , http-conduit >=2.1 && <2.3.2
     , iso8601-time >=0.1.3 && <0.2.0
+    , microlens
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
+    , monad-metrics
     , mtl
     , optparse-generic >=1.2.3
     , persistent >=2.0 && <2.8.3
@@ -260,6 +274,7 @@ executable migration
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
     , yesod >=1.4.3 && <1.7
@@ -293,6 +308,8 @@ test-suite test
     , containers
     , data-default
     , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
     , espial
     , esqueleto
     , fast-logger >=2.2 && <2.5
@@ -306,6 +323,7 @@ test-suite test
     , microlens
     , monad-control >=0.3 && <1.1
     , monad-logger >=0.3 && <0.4
+    , monad-metrics
     , mtl
     , persistent >=2.0 && <2.8.3
     , persistent-sqlite >=2.6.2 && <2.8.2
@@ -322,6 +340,7 @@ test-suite test
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
     , warp >=3.0 && <3.3
     , yaml >=0.8 && <0.9
     , yesod >=1.4.3 && <1.7

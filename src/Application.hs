@@ -34,6 +34,12 @@ import Network.Wai.Middleware.RequestLogger
 import System.Log.FastLogger
        (defaultBufSize, newStdoutLoggerSet, toLogStr)
 
+import qualified Control.Monad.Metrics as Metrics
+import qualified System.Metrics        as EKG
+import qualified System.Remote.Monitoring as EKG
+import qualified Network.Wai.Metrics   as WM
+import Lens.Micro
+
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 import Handler.Common
@@ -48,6 +54,9 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
   appHttpManager <- newManager
   appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
+  store <- EKG.newStore
+  EKG.registerGcMetrics store
+  appMetrics <- Metrics.initializeWith store
   appStatic <-
     (if appMutableStatic appSettings
        then staticDevel
@@ -70,11 +79,13 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
   logWare <- makeLogWare foundation
   appPlain <- toWaiAppPlain foundation
-  return (logWare (makeMiddleware appPlain))
+  let store = appMetrics foundation ^. Metrics.metricsStore
+  waiMetrics <- WM.registerWaiMetrics store
+  return (logWare (makeMiddleware waiMetrics appPlain))
 
-makeMiddleware :: Middleware
-makeMiddleware =
-  acceptOverride . autohead . gzip def
+makeMiddleware :: WM.WaiMetrics -> Middleware
+makeMiddleware waiMetrics =
+  WM.metrics waiMetrics . acceptOverride . autohead . gzip def
     { gzipFiles = GzipPreCompressed GzipIgnore
     } .
   methodOverride
@@ -117,6 +128,7 @@ getApplicationDev = do
   foundation <- makeFoundation settings
   wsettings <- getDevSettings (warpSettings foundation)
   app <- makeApplication foundation
+  void $ forkEKG foundation
   return (wsettings, app)
 
 getAppSettings :: IO AppSettings
@@ -126,12 +138,20 @@ getAppSettings = loadYamlSettings [configSettingsYml] [] useEnv
 develMain :: IO ()
 develMain = develMainHelper getApplicationDev
 
+forkEKG :: App -> IO EKG.Server
+forkEKG foundation = 
+  EKG.forkServerWith
+    (appMetrics foundation ^. Metrics.metricsStore)
+    "localhost"
+    8000
+
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
 appMain = do
   settings <- loadYamlSettingsArgs [configSettingsYmlValue] useEnv
   foundation <- makeFoundation settings
   app <- makeApplication foundation
+  void $ forkEKG foundation
   runSettings (warpSettings foundation) app
 
 getApplicationRepl :: IO (Int, App, Application)

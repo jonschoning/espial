@@ -17,12 +17,15 @@ import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 
+import           Control.Monad.Metrics (Metrics, MonadMetrics(..))
+
 data App = App
     { appSettings    :: AppSettings
     , appStatic      :: Static -- ^ Settings for static file serving.
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
+    , appMetrics     :: !Metrics
     }
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
@@ -147,6 +150,9 @@ instance YesodAuth App where
   redirectToReferer = const True
 
 instance YesodAuthPersist App
+
+instance MonadMetrics Handler where
+  getMetrics = asks appMetrics
 
 -- session keys
 
