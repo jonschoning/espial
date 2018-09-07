@@ -13,11 +13,13 @@ import PathPiece()
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types
 import Yesod.Auth.Message
-import qualified Yesod.Core.Unsafe as Unsafe
+import qualified Network.Wai as NW
+import qualified Control.Monad.Metrics as MM
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
+import qualified Yesod.Core.Unsafe as Unsafe
 
-import           Control.Monad.Metrics (Metrics, MonadMetrics(..))
+deriving instance Typeable Route 
 
 data App = App
     { appSettings    :: AppSettings
@@ -25,11 +27,10 @@ data App = App
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
-    , appMetrics     :: !Metrics
-    }
+    , appMetrics     :: !MM.Metrics
+    } deriving (Typeable)
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
-
 
 -- YesodPersist
 
@@ -54,7 +55,7 @@ instance Yesod App where
         10080 -- min (7 days)
         "config/client_session_key.aes"
 
-    yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
+    yesodMiddleware = metricsMiddleware . defaultYesodMiddleware . defaultCsrfMiddleware
 
     defaultLayout widget = do
         req <- getRequest
@@ -63,6 +64,7 @@ instance Yesod App where
         mmsg <- getMessage
         musername <- maybeAuthUsername
         mcurrentRoute <- getCurrentRoute
+        void $ mapM (incrementRouteEKG req) mcurrentRoute
         pc <- widgetToPageContent $ do
             setTitle "Espial"
             addAppScripts
@@ -106,6 +108,7 @@ instance Yesod App where
               ^{body}
       |]
 
+
 isAuthenticated :: Handler AuthResult
 isAuthenticated = maybeAuthId >>= \case
                     Just authId -> pure Authorized
@@ -125,13 +128,44 @@ popupLayout widget = do
     master <- getYesod
     mmsg <- getMessage
     musername <- maybeAuthUsername
-    mcurrentRoute <- getCurrentRoute
     pc <- widgetToPageContent $ do
       addAppScripts
       addStylesheet (StaticR css_tachyons_min_css)
       addStylesheet (StaticR css_popup_css)
       $(widgetFile "popup-layout")
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+
+metricsMiddleware :: Handler a -> Handler a
+metricsMiddleware handler = do
+  req <- getRequest
+  mcurrentRoute <- getCurrentRoute
+  void $ mapM (incrementRouteEKG req) mcurrentRoute
+  handler
+
+
+incrementRouteEKG :: YesodRequest -> Route App -> Handler ()
+incrementRouteEKG req = MM.increment . (\r -> "route." <> r <> "." <> method) . routeToConstr
+  where method = decodeUtf8 $ NW.requestMethod $ reqWaiRequest req
+
+routeToConstr :: Route App -> Text
+routeToConstr = \case
+  StaticR _ -> "StaticR"
+  FaviconR -> "FaviconR"
+  RobotsR -> "RobotsR"
+  AuthR _ -> "AuthR"
+  HomeR -> "HomeR"
+  UserR _ -> "UserR"
+  UserSharedR _ _ -> "UserSharedR"
+  UserFilterR _ _ -> "UserFilterR"
+  UserTagsR _ _ -> "UserTagsR"
+  AddViewR -> "AddViewR"
+  AddR -> "AddR"
+  DeleteR _ -> "DeleteR"
+  ReadR _ -> "ReadR"
+  StarR _ -> "StarR"
+  UnstarR _ -> "UnstarR"
+
 
 -- YesodAuth
 
@@ -151,7 +185,7 @@ instance YesodAuth App where
 
 instance YesodAuthPersist App
 
-instance MonadMetrics Handler where
+instance MM.MonadMetrics Handler where
   getMetrics = asks appMetrics
 
 -- session keys

@@ -20,6 +20,7 @@ import Database.Persist.Sqlite
 import Import
 import Yesod.Auth (getAuth)
 import Language.Haskell.TH.Syntax (qLocation)
+import Lens.Micro
 import Network.Wai (Middleware)
 import Network.Wai.Middleware.Autohead
 import Network.Wai.Middleware.AcceptOverride
@@ -34,11 +35,10 @@ import Network.Wai.Middleware.RequestLogger
 import System.Log.FastLogger
        (defaultBufSize, newStdoutLoggerSet, toLogStr)
 
-import qualified Control.Monad.Metrics as Metrics
+import qualified Control.Monad.Metrics as MM
+import qualified Network.Wai.Metrics   as WM
 import qualified System.Metrics        as EKG
 import qualified System.Remote.Monitoring as EKG
-import qualified Network.Wai.Metrics   as WM
-import Lens.Micro
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -56,7 +56,7 @@ makeFoundation appSettings = do
   appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
   store <- EKG.newStore
   EKG.registerGcMetrics store
-  appMetrics <- Metrics.initializeWith store
+  appMetrics <- MM.initializeWith store
   appStatic <-
     (if appMutableStatic appSettings
        then staticDevel
@@ -79,7 +79,7 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
   logWare <- makeLogWare foundation
   appPlain <- toWaiAppPlain foundation
-  let store = appMetrics foundation ^. Metrics.metricsStore
+  let store = appMetrics foundation ^. MM.metricsStore
   waiMetrics <- WM.registerWaiMetrics store
   return (logWare (makeMiddleware waiMetrics appPlain))
 
@@ -141,7 +141,7 @@ develMain = develMainHelper getApplicationDev
 forkEKG :: App -> IO EKG.Server
 forkEKG foundation = 
   EKG.forkServerWith
-    (appMetrics foundation ^. Metrics.metricsStore)
+    (appMetrics foundation ^. MM.metricsStore)
     "localhost"
     8000
 
