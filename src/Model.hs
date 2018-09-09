@@ -10,11 +10,13 @@ import Types
 import ModelCrypto
 import Pretty
 import ClassyPrelude.Yesod
+import System.Directory
 
 import Control.Monad.Trans.Maybe
 import Database.Esqueleto hiding ((==.))
 import qualified Database.Esqueleto as E
 import qualified Data.Time.ISO8601 as TI
+import qualified Pinboard as PB
 
 -- Physical model
 
@@ -45,6 +47,15 @@ BookmarkTag json
   seq Int
   UniqueUserTagBookmarkId userId tag bookmarkId
   UniqueUserBookmarkIdTagSeq userId bookmarkId tag seq
+  deriving Show Eq Typeable Ord
+
+Note json
+  userId UserId
+  length Int
+  title Text
+  text Text
+  created UTCTime
+  updated UTCTime
   deriving Show Eq Typeable Ord
 |]
 
@@ -201,76 +212,54 @@ bookmarkEntityToTags (Entity {entityKey = bookmarkId
     (zip [1 ..] tags)
 
 
-postToBookmark :: UserId -> Post -> Bookmark
-postToBookmark user Post {..} =
+pbPostToBookmark :: UserId -> PB.Post -> Bookmark
+pbPostToBookmark user PB.Post {..} =
   Bookmark user postHref postDescription postExtended postTime postShared postToRead False
 
 
-insertFileBookmarks :: Key User -> FilePath -> DB ()
-insertFileBookmarks userId bookmarkFile = do
-  posts' <- liftIO $ readBookmarkFileJson bookmarkFile
+insertFilePbPosts :: Key User -> FilePath -> DB ()
+insertFilePbPosts userId bookmarkFile = do
+  posts' <- liftIO $ readPbPostFileJson bookmarkFile
   case posts' of
       Left e -> print e
       Right posts -> do
-        let bookmarks = fmap (postToBookmark userId) posts
+        let bookmarks = fmap (pbPostToBookmark userId) posts
         mbookmarkIds <- mapM insertUnique bookmarks 
 
         let bookmarkTags =
               concatMap (uncurry bookmarkEntityToTags) $
               catMaybes $
-              zipWith3 (\mk v p -> map (\k -> (Entity k v, postTags p)) mk)
+              zipWith3 (\mk v p -> map (\k -> (Entity k v, PB.postTags p)) mk)
                 mbookmarkIds
                 bookmarks
                 posts
         void $ mapM insertUnique bookmarkTags
   where
-    readBookmarkFileJson :: MonadIO m => FilePath -> m (Either String [Post])
-    readBookmarkFileJson fpath = pure . A.eitherDecode' . fromStrict =<< readFile fpath
+    readPbPostFileJson :: MonadIO m => FilePath -> m (Either String [PB.Post])
+    readPbPostFileJson fpath = pure . A.eitherDecode' . fromStrict =<< readFile fpath
 
 type Tag = Text
 
-data Post = Post
-  { postHref :: !Text
-  , postDescription :: !Text
-  , postExtended :: !Text
-  , postTime :: !UTCTime
-  , postShared :: !Bool
-  , postToRead :: !Bool
-  , postTags :: [Tag]
-  } deriving (Show, Eq, Ord, Typeable)
+-- Notes
 
-instance FromJSON Post where
-  parseJSON (Object o) =
-    Post
-      <$> o .: "href"
-      <*> o .: "description"
-      <*> o .: "extended"
-      <*> o .: "time"
-      <*> (boolFromYesNo <$> o .: "shared")
-      <*> (boolFromYesNo <$> o .: "toread")
-      <*> (words <$> o .: "tags")
-  parseJSON _ = fail "bad parse"
+pbNoteToNote :: UserId -> PB.Note -> Note
+pbNoteToNote user PB.Note {..} =
+  Note user noteLength noteTitle noteText noteCreatedAt noteUpdatedAt
 
-instance ToJSON Post where
-  toJSON Post {..} =
-    object
-      [ "href" .= toJSON postHref
-      , "description" .= toJSON postDescription
-      , "extended" .= toJSON postExtended
-      , "time" .= toJSON postTime
-      , "shared" .= boolToYesNo postShared
-      , "toread" .= boolToYesNo postToRead
-      , "tags" .= unwords postTags
-      ]
-
-boolFromYesNo :: Text -> Bool
-boolFromYesNo "yes" = True
-boolFromYesNo _ = False
-
-boolToYesNo :: Bool -> Text
-boolToYesNo True = "yes"
-boolToYesNo _ = "no"
-
+insertDirPbNotes :: Key User -> FilePath -> DB ()
+insertDirPbNotes userId noteDirectory = do
+  pbnotes' <- liftIO $ readPbNoteFileJson noteDirectory
+  case pbnotes' of
+      Left e -> print e
+      Right pbnotes -> do
+        let notes = fmap (pbNoteToNote userId) pbnotes
+        void $ mapM insertUnique notes 
+  where
+    readPbNoteFileJson :: MonadIO m => FilePath -> m (Either String [PB.Note])
+    readPbNoteFileJson fdir = do
+      files <- liftIO (listDirectory fdir)
+      noteBSS <- mapM (readFile . (fdir </>)) files 
+      pure (mapM (A.eitherDecode' . fromStrict) noteBSS) 
 
 -- BookmarkForm
 

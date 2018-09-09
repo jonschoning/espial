@@ -24,6 +24,9 @@ data MigrationOpts
   | ImportBookmarks { conn :: Text
                     , userName :: Text
                     , bookmarkFile :: FilePath}
+  | ImportNotes { conn :: Text
+                , userName :: Text
+                , noteDirectory :: FilePath}
   deriving (Generic, Show)
 
 instance ParseRecord MigrationOpts
@@ -58,5 +61,12 @@ main = do
       P.runSqlite conn $ do
         muser <- P.getBy (UniqueUserName uname)
         case muser of
-          Just (P.Entity uid _) -> insertFileBookmarks uid file
+          Just (P.Entity uid _) -> insertFilePbPosts uid file
+          Nothing -> liftIO (print (uname ++ "not found"))
+
+    ImportNotes conn uname dir ->
+      P.runSqlite conn $ do
+        muser <- P.getBy (UniqueUserName uname)
+        case muser of
+          Just (P.Entity uid _) -> insertDirPbNotes uid dir
           Nothing -> liftIO (print (uname ++ "not found"))
