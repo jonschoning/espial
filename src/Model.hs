@@ -120,6 +120,7 @@ migrateIndexes =
   toMigration
     [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time ON bookmark (user_id, time DESC)"
     , "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)"
+    , "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)"
     ]
 
 
@@ -201,6 +202,19 @@ tagsQuery bmarks =
 
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
 withTags key = selectList [BookmarkTagBookmarkId ==. key] [Asc BookmarkTagSeq]
+
+-- Note List Query
+
+  
+getNoteList :: Key User -> Limit -> Page -> DB [Entity Note]
+getNoteList key limit' page =
+  select $
+  from $ \b -> do
+  where_ (b ^. NoteUserId E.==. val key)
+  orderBy [desc (b ^. NoteCreated)]
+  limit limit'
+  offset ((page - 1) * limit')
+  pure b
 
 -- Bookmark Files
 

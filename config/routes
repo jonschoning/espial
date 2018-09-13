@@ -5,12 +5,16 @@
 
 /auth  AuthR  Auth getAuth
 
+-- notes
+!/#UserNameP/notes NotesR GET
+
 -- user
 / HomeR GET
 !/#UserNameP UserR GET
 !/#UserNameP/#SharedP UserSharedR GET
 !/#UserNameP/#FilterP UserFilterR GET
 !/#UserNameP/#TagsP UserTagsR GET
+
 
 -- add
 /add AddViewR GET

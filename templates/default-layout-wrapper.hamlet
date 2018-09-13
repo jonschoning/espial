@@ -31,7 +31,7 @@ $newline never
         , homeR: "@{ HomeR }"
         , authRlogoutR: "@{ AuthR LogoutR }"
         , userFilterRFilterSingle: ""
-        , dat: {bmarks : [], bmark: {}, isowner: false}
+        , dat: {bmarks : [], bmark: {}, isowner: false, notes: []}
         };
   <body .f6.dark-gray.helvetica>
     ^{pageBody pc}

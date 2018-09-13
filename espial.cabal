@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 17a5c2695004ae9565d14b51cb4a4bfc50e8c8c0bbfe28303ae91d25e1769891
+-- hash: 9682e9428c651ed38d738bc3540fa4da4ecb59db76a6c65713250caa188aba53
 
 name:           espial
 version:        0.0.5
@@ -59,6 +59,7 @@ extra-source-files:
     templates/default-layout.hamlet
     templates/homepage.hamlet
     templates/login.hamlet
+    templates/notes.hamlet
     templates/pager.hamlet
     templates/popup-layout.hamlet
     templates/user.hamlet
@@ -145,6 +146,7 @@ library
       Handler.Common
       Handler.Edit
       Handler.Home
+      Handler.Notes
       Handler.User
       Import
       Import.NoFoundation

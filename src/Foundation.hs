@@ -165,6 +165,7 @@ routeToConstr = \case
   ReadR _ -> "ReadR"
   StarR _ -> "StarR"
   UnstarR _ -> "UnstarR"
+  NotesR _ -> "NotesR"
 
 
 -- YesodAuth

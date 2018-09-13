@@ -47,6 +47,7 @@ import Handler.Home
 import Handler.User
 import Handler.Add
 import Handler.Edit
+import Handler.Notes
 
 mkYesodDispatch "App" resourcesApp
 
