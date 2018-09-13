@@ -206,15 +206,25 @@ withTags key = selectList [BookmarkTagBookmarkId ==. key] [Asc BookmarkTagSeq]
 -- Note List Query
 
   
-getNoteList :: Key User -> Limit -> Page -> DB [Entity Note]
+getNote :: Key User -> Int64 -> DB (Maybe (Entity Note))
+getNote userKey nid =
+  selectFirst [NoteUserId ==. userKey, NoteId ==. toSqlKey nid] []
+
+getNoteList :: Key User -> Limit -> Page -> DB (Int, [Entity Note])
 getNoteList key limit' page =
-  select $
-  from $ \b -> do
-  where_ (b ^. NoteUserId E.==. val key)
-  orderBy [desc (b ^. NoteCreated)]
-  limit limit'
-  offset ((page - 1) * limit')
-  pure b
+  (,) -- total count
+  <$> fmap (sum . fmap E.unValue)
+      (select $
+      from $ \b -> do
+      where_ (b ^. NoteUserId E.==. val key)
+      pure $ E.countRows)
+  <*> (select $
+       from $ \b -> do
+       where_ (b ^. NoteUserId E.==. val key)
+       orderBy [desc (b ^. NoteCreated)]
+       limit limit'
+       offset ((page - 1) * limit')
+       pure b)
 
 -- Bookmark Files
 

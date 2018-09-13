@@ -1,8 +1,10 @@
 -- | Common handler functions.
 module Handler.Common where
 
-import Data.FileEmbed (embedFile)
 import Import
+
+import Data.FileEmbed (embedFile)
+import Text.Read
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
@@ -16,3 +18,14 @@ getFaviconR = do cacheSeconds $ 60 * 5
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
+
+
+lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
+lookupPagingParams = do
+  cq <- fmap parseMaybe (lookupGetParam "count")
+  cs <- fmap parseMaybe (lookupSession "count")
+  mapM_ (setSession "count" . (pack . show)) cq
+  pq <- fmap parseMaybe (lookupGetParam "page")
+  pure (cq <|> cs, pq)
+  where
+    parseMaybe x = readMaybe . unpack =<< x

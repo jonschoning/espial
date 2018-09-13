@@ -2,22 +2,21 @@
 module Handler.Notes where
 
 import Import
-import Text.Read
+import Handler.Common (lookupPagingParams)
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
   void requireAuthId
-  (limit', page') <- _lookupPagingParams
+  (limit', page') <- lookupPagingParams
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       renderEl = "notes" :: Text
-  notes <- 
+  (bcount, notes) <- 
     runDB $
     do Entity userId _ <- getBy404 (UniqueUserName uname)
        getNoteList userId limit page
   req <- getRequest
   mroute <- getCurrentRoute 
-  let bcount = length notes
   let pager = $(widgetFile "pager")
   defaultLayout $ do
     $(widgetFile "notes")
@@ -29,15 +28,22 @@ getNotesR unamep@(UserNameP uname) = do
       PS['User'].renderNotes('##{rawJS renderEl}')(app.dat.notes)();
     |]
 
-      
+getNoteR :: UserNameP -> Int64 -> Handler Html
+getNoteR unamep@(UserNameP uname) nid = do
+  void requireAuthId
+  let renderEl = "note" :: Text
+  note <-
+    runDB $
+    do Entity userId _ <- getBy404 (UniqueUserName uname)
+       mnote <- getNote userId nid
+       maybe notFound pure mnote
+  defaultLayout $ do
+    $(widgetFile "note")
+    toWidgetBody [julius|
+        app.userR = "@{UserR unamep}";
+        app.dat.note = #{ toJSON note } || []; 
+    |]
+    toWidget [julius|
+      PS['User'].renderNote('##{rawJS renderEl}')(app.dat.note)();
+    |]
 
-
-_lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
-_lookupPagingParams = do
-  cq <- fmap parseMaybe (lookupGetParam "count")
-  cs <- fmap parseMaybe (lookupSession "count")
-  mapM_ (setSession "count" . (pack . show)) cq
-  pq <- fmap parseMaybe (lookupGetParam "page")
-  pure (cq <|> cs, pq)
-  where
-    parseMaybe x = readMaybe . unpack =<< x

@@ -2,7 +2,7 @@
 module Handler.User where
 
 import Import
-import Text.Read
+import Handler.Common (lookupPagingParams)
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -23,7 +23,7 @@ getUserTagsR uname pathtags =
 _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mauthuname <- maybeAuthUsername
-  (limit', page') <- _lookupPagingParams
+  (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       isowner = maybe False (== uname) mauthuname
@@ -53,13 +53,3 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       PS['User'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
   where
-
-_lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
-_lookupPagingParams = do
-  cq <- fmap parseMaybe (lookupGetParam "count")
-  cs <- fmap parseMaybe (lookupSession "count")
-  mapM_ (setSession "count" . (pack . show)) cq
-  pq <- fmap parseMaybe (lookupGetParam "page")
-  pure (cq <|> cs, pq)
-  where
-    parseMaybe x = readMaybe . unpack =<< x
