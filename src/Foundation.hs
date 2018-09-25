@@ -167,6 +167,10 @@ routeToConstr = \case
   UnstarR _ -> "UnstarR"
   NotesR _ -> "NotesR"
   NoteR _ _ -> "NoteR"
+  DeleteNoteR _ -> "DeleteNoteR"
+  AddNoteR -> "AddNoteR"
+  AddNoteViewR _ -> "AddNoteViewR"
+  UserSettingsR _ -> "UserSettingsR"
 
 
 -- YesodAuth

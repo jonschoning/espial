@@ -2,6 +2,7 @@ module App where
 
 import Prelude
 
+import Data.Argonaut (Json)
 import Data.Array ((:))
 import Data.Either (Either(..))
 import Data.FormURLEncoded (FormURLEncoded)
@@ -12,10 +13,12 @@ import Effect (Effect)
 import Effect.Aff (Aff, launchAff)
 import Effect.Class (liftEffect)
 import Globals (app')
-import Model (Bookmark, Bookmark'(..))
+import Model (Bookmark, Bookmark'(..), Note, Note'(..))
 import Network.HTTP.Affjax (affjax, AffjaxResponse)
 import Network.HTTP.Affjax (defaultRequest) as AX
+import Network.HTTP.Affjax.Request (Request(..))
 import Network.HTTP.Affjax.Request as AXReq
+import Network.HTTP.Affjax.Response (Response(..))
 import Network.HTTP.Affjax.Response as AXRes
 import Network.HTTP.RequestHeader (RequestHeader(..))
 import Simple.JSON as J
@@ -46,6 +49,14 @@ markRead bid = do
 editBookmark :: Bookmark -> Aff (AffjaxResponse Unit)
 editBookmark bm =  do
     fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.ignore
+
+editNote :: Note -> Aff (AffjaxResponse Json)
+editNote bm =  do
+    fetchJson POST "api/note/add" (Just (Note' bm)) AXRes.json
+
+destroyNote :: Int -> Aff (AffjaxResponse Unit)
+destroyNote nid =  do
+  fetchUrlEnc DELETE ("api/note/" <> show nid) Nothing AXRes.ignore
 
 logoutE :: Event -> Effect Unit
 logoutE e = void <<< launchAff <<< logout =<< preventDefault e

@@ -8,6 +8,9 @@
 -- notes
 !/#UserNameP/notes NotesR GET
 !/#UserNameP/notes/#Int64 NoteR GET
+!/#UserNameP/notes/add AddNoteViewR GET
+!/api/note/#Int64 DeleteNoteR DELETE
+!/api/note/add AddNoteR POST
 
 -- user
 / HomeR GET
@@ -16,6 +19,8 @@
 !/#UserNameP/#FilterP UserFilterR GET
 !/#UserNameP/#TagsP UserTagsR GET
 
+-- settings
+!/#UserNameP/Settings UserSettingsR GET
 
 -- add
 /add AddViewR GET

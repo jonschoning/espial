@@ -4,6 +4,12 @@ module Handler.User where
 import Import
 import Handler.Common (lookupPagingParams)
 
+getUserSettingsR :: UserNameP -> Handler Html
+getUserSettingsR uname@(UserNameP name) = do
+  void requireAuthId
+  defaultLayout $ do
+    $(widgetFile "user-settings")
+
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
   _getUser uname SharedAll FilterAll (TagsP [])

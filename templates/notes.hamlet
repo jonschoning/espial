@@ -1,6 +1,8 @@
 <main #main_column .pv2.ph3.mh1>
   <div .w-100.mw8.center>
 
+    <span .db .mb3>You have #{bcount} notes:
+
     ^{pager}
 
     <div .cf>

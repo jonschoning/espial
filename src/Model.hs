@@ -367,3 +367,16 @@ upsertBookmark mbid bmark@Bookmark{..} tags = do
     insertTags userId bid' =
       forM_ (zip [1 ..] tags) $
       \(i, tag) -> void $ insert $ BookmarkTag userId tag bid' i
+
+
+upsertNote:: Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
+upsertNote mnid bmark@Note{..} = do
+  case mnid of
+    Just nid -> do
+      get nid >>= \case 
+        Just _ -> do
+          replace nid bmark
+          pure (Updated, nid)
+        _ -> fail "not found"
+    Nothing -> do
+      (Created,) <$> insert bmark

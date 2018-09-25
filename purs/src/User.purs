@@ -11,7 +11,7 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
-import Model (Bookmark, NoteId, Note)
+import Model (Bookmark, Note)
 import Web.DOM.Element (removeAttribute)
 import Web.DOM.ParentNode (QuerySelector(..))
 import Web.HTML.HTMLElement (toElement)
