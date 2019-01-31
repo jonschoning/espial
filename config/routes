@@ -1,0 +1,40 @@
+/static StaticR Static appStatic
+
+/favicon.ico FaviconR GET
+/robots.txt RobotsR GET
+
+/auth  AuthR  Auth getAuth
+
+-- notes
+!/#UserNameP/notes NotesR GET
+!/#UserNameP/notes/add AddNoteViewR GET
+!/#UserNameP/notes/#NtSlug NoteR GET
+!/api/note/add AddNoteR POST
+!/api/note/#Int64 DeleteNoteR DELETE
+
+-- user
+/ HomeR GET
+!/#UserNameP UserR GET
+!/#UserNameP/#SharedP UserSharedR GET
+!/#UserNameP/#FilterP UserFilterR GET
+!/#UserNameP/#TagsP UserTagsR GET
+
+-- settings
+/Settings AccountSettingsR GET
+api/accountSettings EditAccountSettingsR POST
+
+-- settings/password
+/Settings/Password ChangePasswordR GET POST
+
+-- add
+/add AddViewR GET
+api/add AddR POST
+
+-- edit
+/bm/#Int64 DeleteR DELETE
+/bm/#Int64/read ReadR POST
+/bm/#Int64/star StarR POST
+/bm/#Int64/unstar UnstarR POST
+
+-- doc
+/docs/search DocsSearchR GET

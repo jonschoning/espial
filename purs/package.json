@@ -1,0 +1,15 @@
+{
+  "name": "espial",
+  "private": true,
+  "scripts": {
+    "make-install": "make install",
+    "make-watch": "inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make; done",
+    "make": "make"
+  },
+  "devDependencies": {
+    "purescript": "^0.12.1",
+    "purescript-spago": "^0.6.2",
+    "terser": "^3.14.1"
+  },
+  "dependencies": {}
+}

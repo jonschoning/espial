@@ -1,0 +1,16 @@
+version: '3'
+services:
+  espial:
+    image: '$HUB_REPO/$APPIMAGE'
+    build:
+      context: dist
+      dockerfile: ../Dockerfile
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    volumes:
+      - '$APPDATA:/app/data'
+    environment:
+      - IP_FROM_HEADER=true
+      - SQLITE_DATABASE=/app/data/espial.sqlite3
+      - ekg_datadir=ekg

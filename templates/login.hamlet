@@ -1,0 +1,20 @@
+<main #main_column .pv2.ph3.mh1>
+  <div .w-100.mw8.center>
+
+    <div .measure.center.pa3.bg-white>
+
+      <form method="post" action="@{toParent dbLoginR}">
+        $maybe token <- reqToken req
+          <input type="hidden" name="#{defaultCsrfParamName}" value="#{token}">
+
+        <div>
+          <label .db.fw6.lh-copy.f6 for="username">Username
+          <input #username .w-100.pa1.mb2.ba.b--black-20 autofocus name="username" type="text" value="">
+
+        <div>
+          <label .db.fw6.lh-copy.f6 for="password">Password
+          <input #password .w-100.pa1.mb2.ba.b--black-20 name="password" type="password">
+        
+        <input class="ph3 pv2 input-reset ba b--navy bg-transparent pointer f6 dib mt3 dim" type="submit" value="Log In">
+
+<script> document.body.classList.add("bg-near-white");

@@ -1,0 +1,11 @@
+resolver: lts-13.0
+# allow-newer: true
+extra-deps: 
+- git: https://github.com/bitemyapp/esqueleto.git
+  commit: 5f98e7b25334ec120125ca84ef647d5c4575a010
+- ekg-0.4.0.15
+- ekg-json-0.1.0.6
+- monad-metrics-0.2.1.2
+- wai-middleware-metrics-0.2.4
+packages:
+- '.'

@@ -1,0 +1,86 @@
+<main .pt2.pb5.mh1>
+  <h1 lh-title.mt0 style="font-size:1.35rem">Understanding the Search Syntax
+    
+  <h3>Page filters
+  <p .ml3>Searches are scoped to the currently selected page filter. 
+    <br>
+    <span>So, given the possible page filters</span>
+    <br><span class="code fw9 bg-light-gray">all ‧ private ‧ public ‧ unread ‧ untagged ‧ starred</span>
+    <br><span>If <span class="code fw9 bg-light-gray">all</span> is currently selected, the search includes <span class="code fw9 bg-light-gray">all</span> bookmarks</span>
+    <br><span>If <span class="code fw9 bg-light-gray">private</span> is currently selected, the search only includes <span class="code fw9 bg-light-gray">private</span> bookmarks, etc..</span>
+  
+  <h3>Combine Searches (AND)
+  <p .ml3>Separate terms by a space.
+    <br>For example, <span class="code fw9 bg-light-gray">marathon race</span>
+  
+  <h3>Combine Searches (OR)
+  <p .ml3>Put <span class="code fw9 bg-light-gray">|</span>&nbsp;between each search query.&nbsp;
+    <br>For example, <span class="code fw9 bg-light-gray">marathon|race</span>
+  
+  <h3>Exclude words from your search
+  <p .ml3>Put <span class="code fw9 bg-light-gray">-</span>&nbsp;in front of a word you want to leave out.&nbsp;
+    <br>For example, <span class="code fw9 bg-light-gray">-car</span>
+  
+  <h3>Search for an exact match
+  <p .ml3>Put a word or phrase inside quotes.&nbsp;
+    <br>For example, <span class="code fw9 bg-light-gray">"tallest building"</span>
+  
+  <h3>Search on a specific field
+  <p .ml3>
+    Put <span class="code fw9 bg-light-gray"><span class="i">field</span>:</span> in front of the term,
+    where <span class="code fw9 bg-light-gray"><span class="i">field</span></span> is one of the options below
+  <div .ml3>
+    <div .f5.fw6.pb3.underline>Bookmark Search
+    <table .collapse.ba.br2.b--black-10.pv2.ph3>
+      <tbody>
+        <tr .striped--light-gray>
+          <td .pv2.ph3>FIELD
+          <td .pv2.ph3>EXAMPLE
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">url
+          <td .pv2.ph3><span class="code fw9">url:youtube.com
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">title
+          <td .pv2.ph3><span class="code fw9">title:"hacker news"
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">description
+          <td .pv2.ph3><span class="code fw9">description:surveys
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">tags
+          <td .pv2.ph3><span class="code fw9">tags:learning
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">after
+          <td .pv2.ph3><span class="code fw9">after:12/31/2018<br>after:2018-12-31
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">before
+          <td .pv2.ph3><span class="code fw9">before:12/31/2019<br>before:2019-12-31
+  
+    <div .f5.fw6.pv3.underline>Note Search
+    <table .collapse.ba.br2.b--black-10.pv2.ph3>
+      <tbody>
+        <tr .striped--light-gray>
+          <td .pv2.ph3>FIELD
+          <td .pv2.ph3>EXAMPLE
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">title
+          <td .pv2.ph3><span class="code fw9">title:"hacker news"
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">description
+          <td .pv2.ph3><span class="code fw9">description:surveys
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">after
+          <td .pv2.ph3><span class="code fw9">after:12/31/2018<br>after:2018-12-31
+        <tr .striped--light-gray>
+          <td .pv2.ph3><span class="code fw9">before
+          <td .pv2.ph3><span class="code fw9">before:12/31/2019<br>before:2019-12-31
+
+  <h3 .mb0>More Complex Examples
+  <div .ml3.pt3>
+    <span>"youtube" in url, and title of "haskell" or title of "python" and after 12/31/2017
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 bg-light-gray">url:youtube title:haskell|title:python after:12/31/2017
+      
+  <div .ml3.pt3>
+    <span>"hacker news" not in title, and "news", "cnn", "npr" anywhere, or "the guardian" in the description
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 bg-light-gray">-title:"hacker news" news|cnn|npr|description:"the guardian"
+
+

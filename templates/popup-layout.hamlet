@@ -1,0 +1,16 @@
+<div #popup_header .pa2>
+  <div .fl>
+    <a .link href="@{HomeR}">Espial
+    $maybe userName <- musername
+      - (#{userName})
+  <div .fr>
+    $maybe userName <- musername
+      <a .link onclick="PS['Main'].logoutE(event)()" href="@{AuthR LogoutR}">
+        [log out]
+    $nothing
+      <a .link href="@{AuthR LoginR}">
+        [log in]
+  <div .cf>
+
+<div .ph2.mw7>
+  ^{widget}

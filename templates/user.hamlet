@@ -1,0 +1,56 @@
+$maybe route <- mroute
+  <main #main_column .pv2.ph3.mh1>
+    <div .w-100.mw8.center>
+      <div .fr.nt1 style="margin-bottom:.7rem">
+        ^{search}
+      <div .di>
+        <div .fl.pr3.dib.mb2>
+          <b>
+            <a .link href="@{UserR unamep}">#{uname}
+            $forall tag <- pathtags
+              \  + #
+              <a .link href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
+        <div .fl.pr3.dib.mb2>
+          <span .f7.silver>#{bcount}</span>
+        $if isowner
+          <div .fl.pr3.dib.mb2>
+            <a .link.silver.hover-blue :isAll:.nav-active 
+               href="@{UserR unamep}">all
+            ‧  
+            <a .link.silver.hover-blue :sharedp == SharedPrivate:.nav-active 
+               href="@{UserSharedR unamep SharedPrivate}">private
+            ‧  
+            <a .link.silver.hover-blue :sharedp == SharedPublic:.nav-active 
+               href="@{UserSharedR unamep SharedPublic}">public
+            ‧  
+            <a .link.silver.hover-blue :filterp == FilterUnread:.nav-active 
+               href="@{UserFilterR unamep FilterUnread}">unread
+            ‧  
+            <a .link.silver.hover-blue :filterp == FilterUntagged:.nav-active 
+               href="@{UserFilterR unamep FilterUntagged}">untagged
+            ‧  
+            <a .link.silver.hover-blue :filterp == FilterStarred:.nav-active 
+               href="@{UserFilterR unamep FilterStarred}">starred
+  
+      <div .cf>
+      
+      ^{pager}
+  
+      <div .cf>
+  
+      <div ##{renderEl} .mt3>
+  
+      <div .cf>
+  
+      <div .user_footer hidden>
+        ^{pager}
+  
+        $if (fromIntegral bcount >= limit) || (page > 1)
+          <div .dib.ml5>
+            <span .silver.mr1>per page:
+            <a .link.light-silver :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
+            <a .link.light-silver :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
+            <a .link.light-silver :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
+            <a .link.light-silver :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
+            <a .link.light-silver :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
+  

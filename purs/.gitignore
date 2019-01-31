@@ -1,0 +1,11 @@
+/.psa*
+/.psc*
+/.psc-package/
+/.pulp-cache/
+/.purs*
+/.spago
+/bower_components/
+/generated-docs/
+/node_modules/
+/output/
+/tmp/

@@ -1,0 +1,161 @@
+html {
+    height: 102%;
+}
+
+body {
+    height: 102%;
+    word-wrap: break-word;
+}
+
+button {
+    background:none;
+    border:none; 
+    padding:0;
+    cursor:pointer;
+}
+
+button:focus {
+    outline: none;
+}
+
+
+[hidden] {
+    display: none !important
+}
+input::placeholder {
+   color: lightgray 
+}
+.queryInput {
+    width: 128px;
+    padding: 0 22px 0 2px;
+    border-radius: 3px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: gray;
+    height: 22px;
+    line-height: 22px;
+    transition: width .1s ease-in-out
+}
+.queryInput.search-inactive {}
+.queryInput:focus {
+    width: 175px;
+}
+.submitting .queryInput,
+.queryInput.search-active {
+    border-color: #990;
+    border-width: 2px;
+    background-color: #FF9;
+    width: 175px;
+}
+.queryIcon {
+    position: absolute;
+    right: 0;
+    top:1px;
+    cursor:pointer;
+    width:20px;
+    height: 20px;
+    fill: currentColor;
+}
+label {
+    cursor: pointer;
+}
+.close-x-wrap {
+  float: left;
+  width: 17px;
+  height: 17px;
+  top: 2px;
+  position: relative;
+  right: 2px; 
+}
+.close-x {
+  stroke: gray;
+  fill: transparent;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+.query-info-icon {
+  position: absolute;
+  top: 0px;
+  right: -18px;
+  text-decoration: none;
+  font-size: 12px;
+  padding: 0 8px 8px 0;
+}
+.star {
+    margin-left:-20px;
+    font-size:1.2em;
+    position:relative;
+    top:-2px;
+}
+
+.star button { 
+    transition: color .1s;
+}
+.star.selected button { 
+    color:#22a; 
+}
+.edit_links button {
+    transition: color .1s ease-in;
+}
+
+.tag {
+    color:#a51;
+    line-height:190%;
+}
+
+.private { background:#ddd;border:1px solid #d1d1d1; }
+.unread { color:#b41 }
+.mark_read {color: #a81;}
+.flash { color:green;background:#efe }
+
+.top_menu { 
+    margin-top:6px;
+}
+.top_menu a {
+    color: blue;
+}
+.bookmarklet { 
+    padding:1px 2px 0px 2px;
+}
+
+.alert { 
+    background:#ced;
+    border:1px solid #acc; 
+}
+
+.edit_bookmark_form {color:#888;}
+.edit_bookmark_form input {border:1px solid #ddd;}
+.edit_bookmark_form textarea {border:1px solid #ddd;}
+
+.nav-active {
+    background:#ff8;
+    color:blue;
+}
+
+/* mobile device */
+@media only screen and (max-width : 750px) {
+    body { 
+        -webkit-text-size-adjust: none; 
+    }
+    .display {
+        float: none
+    }
+}
+
+@media only screen and (max-width : 500px) {
+    .filters {
+        clear: both;
+        position: relative;
+        top: 2px;
+    }
+}
+
+.rdim {
+  opacity: .8;
+  transition: all .15s ease-in;
+}
+.rdim:hover,
+.rdim:focus {
+  opacity: 1;
+  transition: all .15s ease-in;
+}

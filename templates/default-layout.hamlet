@@ -1,0 +1,34 @@
+<div #content>
+  <header #banner .pv2.ph3.mh1>
+    <div .mw8.center.pb2.bb.br-0.bl-0.bt-0.b--dotted.b--light-silver>
+      <div #logo .fl.light-silver>
+          <a #espial_name .link.f4>espial
+          $maybe userName <- musername
+            <span>
+               (<a class="link" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}</a>)
+            $maybe user <- muser
+              $if (userPrivacyLock user)
+                <a .dib.no-underline style="height:10px;width:10px" href="@{AccountSettingsR}" title="private profile enabled">🔒
+               
+          <!-- <div #timer>#{pageLoadTime} s -->
+      <div .top_menu.fr>
+
+        $maybe userName <- musername
+          $maybe currentroute <- mcurrentRoute
+            <a .link href="@?{(AddViewR, [("next",urlrender currentroute)])}">add url&nbsp;&nbsp;
+            <a .link href="@{AddNoteViewR (UserNameP userName)}">add note&nbsp;&nbsp;
+            <a .link href="@{NotesR (UserNameP userName)}">notes&nbsp;&nbsp;
+            <a .link href="@{AccountSettingsR}">settings&nbsp;&nbsp;
+            <a .link onclick="PS['Main'].logoutE(event)()" href="@{AuthR LogoutR}">
+              log out
+        $nothing
+          <a .link href="@{AuthR LoginR}">
+            log in
+      <div .cf>
+
+  $maybe msg <- mmsg
+    <div .pv2.ph3.mh1>
+      <div .pa2.mw8.center.flex.items-center.justify-center.navy.bg-washed-yellow.ba.b--navy>
+        #{preEscapedToMarkup msg}
+
+  ^{widget}

@@ -1,0 +1,406 @@
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 417de4bead54d60a2c091ad91c61dc715571ef7421e702f157a3766daf4f4700
+
+name:           espial
+version:        0.0.7
+synopsis:       Espial is an open-source, web-based bookmarking server.
+description:    .
+                Espial is an open-source, web-based bookmarking server.
+                - Yesod + PureScript + sqlite3
+                - multi-user (w/ privacy scopes)
+                - tags, stars, editing, deleting 
+category:       Web
+homepage:       https://github.com/jonschoning/espial
+bug-reports:    https://github.com/jonschoning/espial/issues
+author:         Jon Schoning
+maintainer:     jonschoning@gmail.com
+copyright:      Copyright (c) 2018 Jon Schoning
+license:        AGPL-3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    changelog.md
+    config/favicon.ico
+    config/keter.yml
+    config/robots.txt
+    config/routes
+    config/settings.yml
+    config/test-settings.yml
+    purs/Makefile
+    purs/packages.dhall
+    purs/spago.dhall
+    purs/src/App.purs
+    purs/src/Component/AccountSettings.purs
+    purs/src/Component/Add.purs
+    purs/src/Component/BList.purs
+    purs/src/Component/BMark.purs
+    purs/src/Component/Markdown.purs
+    purs/src/Component/NList.purs
+    purs/src/Component/NNote.purs
+    purs/src/Component/RawHtml.js
+    purs/src/Component/RawHtml.purs
+    purs/src/Globals.js
+    purs/src/Globals.purs
+    purs/src/Main.purs
+    purs/src/Marked.js
+    purs/src/Marked.purs
+    purs/src/Model.purs
+    purs/src/Util.purs
+    purs/test/Main.purs
+    README.md
+    static/css/main.css
+    static/css/popup.css
+    static/css/tachyons.min.css
+    static/css/tachyons.min.css.gz
+    static/images/bluepin.gif
+    static/js/app.js
+    static/js/app.js.gz
+    static/js/app.min.js
+    static/js/app.min.js.gz
+    static/js/html5shiv.min.js
+    static/js/html5shiv.min.js.gz
+    static/js/js.cookie-2.2.0.min.js
+    static/js/js.cookie-2.2.0.min.js.gz
+    static/js/marked.min.js
+    static/js/marked.min.js.gz
+    static/js/moment.min.js
+    static/js/moment.min.js.gz
+    templates/change-password.hamlet
+    templates/default-layout-wrapper.hamlet
+    templates/default-layout.hamlet
+    templates/docs-search.hamlet
+    templates/homepage.hamlet
+    templates/login.hamlet
+    templates/note.hamlet
+    templates/notes.hamlet
+    templates/pager.hamlet
+    templates/popup-layout.hamlet
+    templates/search.hamlet
+    templates/user-settings.hamlet
+    templates/user.hamlet
+
+source-repository head
+  type: git
+  location: git://github.com/jonschoning/espial.git
+
+flag dev
+  description: Turn on development settings, like auto-reload templates.
+  manual: False
+  default: False
+
+flag library-only
+  description: Build for use with "yesod devel"
+  manual: False
+  default: False
+
+library
+  hs-source-dirs:
+      src
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  build-depends:
+      aeson >=1.4
+    , attoparsec
+    , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , bcrypt >=0.0.8
+    , bytestring >=0.9 && <0.11
+    , case-insensitive
+    , classy-prelude >=1.4 && <1.6
+    , classy-prelude-conduit >=1.4 && <1.6
+    , classy-prelude-yesod >=1.4 && <1.6
+    , conduit >=1.0 && <2.0
+    , containers
+    , data-default
+    , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
+    , entropy
+    , esqueleto
+    , fast-logger >=2.2 && <2.5
+    , file-embed
+    , foreign-store
+    , hjsmin >=0.1 && <0.3
+    , hscolour
+    , http-api-data >=0.3.4
+    , http-client
+    , http-client-tls >=0.3 && <0.4
+    , http-conduit >=2.3 && <2.4
+    , http-types
+    , iso8601-time >=0.1.3
+    , microlens
+    , monad-logger >=0.3 && <0.4
+    , monad-metrics
+    , mtl
+    , parser-combinators
+    , persistent >=2.8 && <2.10
+    , persistent-sqlite >=2.6.2
+    , persistent-template >=2.5 && <2.9
+    , pretty-show
+    , safe
+    , shakespeare >=2.0 && <2.1
+    , template-haskell
+    , text >=0.11 && <2.0
+    , time
+    , transformers >=0.2.2
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra >=3.0 && <3.1
+    , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
+    , warp >=3.0 && <3.3
+    , yaml >=0.8 && <0.12
+    , yesod >=1.6 && <1.7
+    , yesod-auth >=1.6 && <1.7
+    , yesod-core >=1.6 && <1.7
+    , yesod-form >=1.6 && <1.7
+    , yesod-static >=1.6 && <1.7
+  if (flag(dev)) || (flag(library-only))
+    ghc-options: -Wall -fwarn-tabs -O0
+    cpp-options: -DDEVELOPMENT
+  else
+    ghc-options: -Wall -fwarn-tabs -O2
+  exposed-modules:
+      Application
+      Foundation
+      Generic
+      Handler.AccountSettings
+      Handler.Add
+      Handler.Archive
+      Handler.Common
+      Handler.Docs
+      Handler.Edit
+      Handler.Home
+      Handler.Notes
+      Handler.User
+      Import
+      Import.NoFoundation
+      Model
+      ModelCustom
+      PathPiece
+      Pretty
+      Settings
+      Settings.StaticFiles
+      Types
+  other-modules:
+      Paths_espial
+  default-language: Haskell2010
+
+executable espial
+  main-is: main.hs
+  hs-source-dirs:
+      app
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson >=1.4
+    , attoparsec
+    , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , bcrypt >=0.0.8
+    , bytestring >=0.9 && <0.11
+    , case-insensitive
+    , classy-prelude >=1.4 && <1.6
+    , classy-prelude-conduit >=1.4 && <1.6
+    , classy-prelude-yesod >=1.4 && <1.6
+    , conduit >=1.0 && <2.0
+    , containers
+    , data-default
+    , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
+    , entropy
+    , espial
+    , esqueleto
+    , fast-logger >=2.2 && <2.5
+    , file-embed
+    , foreign-store
+    , hjsmin >=0.1 && <0.3
+    , hscolour
+    , http-api-data >=0.3.4
+    , http-client
+    , http-client-tls >=0.3 && <0.4
+    , http-conduit >=2.3 && <2.4
+    , http-types
+    , iso8601-time >=0.1.3
+    , microlens
+    , monad-logger >=0.3 && <0.4
+    , monad-metrics
+    , mtl
+    , parser-combinators
+    , persistent >=2.8 && <2.10
+    , persistent-sqlite >=2.6.2
+    , persistent-template >=2.5 && <2.9
+    , pretty-show
+    , safe
+    , shakespeare >=2.0 && <2.1
+    , template-haskell
+    , text >=0.11 && <2.0
+    , time
+    , transformers >=0.2.2
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra >=3.0 && <3.1
+    , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
+    , warp >=3.0 && <3.3
+    , yaml >=0.8 && <0.12
+    , yesod >=1.6 && <1.7
+    , yesod-auth >=1.6 && <1.7
+    , yesod-core >=1.6 && <1.7
+    , yesod-form >=1.6 && <1.7
+    , yesod-static >=1.6 && <1.7
+  if flag(library-only)
+    buildable: False
+  other-modules:
+      DevelMain
+      Paths_espial
+  default-language: Haskell2010
+
+executable migration
+  main-is: Main.hs
+  hs-source-dirs:
+      app/migration
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson >=1.4
+    , attoparsec
+    , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , bcrypt >=0.0.8
+    , bytestring >=0.9 && <0.11
+    , case-insensitive
+    , classy-prelude >=1.4 && <1.6
+    , classy-prelude-conduit >=1.4 && <1.6
+    , classy-prelude-yesod >=1.4 && <1.6
+    , conduit >=1.0 && <2.0
+    , containers
+    , data-default
+    , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
+    , entropy
+    , espial
+    , esqueleto
+    , fast-logger >=2.2 && <2.5
+    , file-embed
+    , foreign-store
+    , hjsmin >=0.1 && <0.3
+    , hscolour
+    , http-api-data >=0.3.4
+    , http-client
+    , http-client-tls >=0.3 && <0.4
+    , http-conduit >=2.3 && <2.4
+    , http-types
+    , iso8601-time >=0.1.3
+    , microlens
+    , monad-logger >=0.3 && <0.4
+    , monad-metrics
+    , mtl
+    , optparse-generic >=1.2.3
+    , parser-combinators
+    , persistent >=2.8 && <2.10
+    , persistent-sqlite >=2.6.2
+    , persistent-template >=2.5 && <2.9
+    , pretty-show
+    , safe
+    , shakespeare >=2.0 && <2.1
+    , template-haskell
+    , text >=0.11 && <2.0
+    , time
+    , transformers >=0.2.2
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra >=3.0 && <3.1
+    , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
+    , warp >=3.0 && <3.3
+    , yaml >=0.8 && <0.12
+    , yesod >=1.6 && <1.7
+    , yesod-auth >=1.6 && <1.7
+    , yesod-core >=1.6 && <1.7
+    , yesod-form >=1.6 && <1.7
+    , yesod-static >=1.6 && <1.7
+  if flag(library-only)
+    buildable: False
+  other-modules:
+      Paths_espial
+  default-language: Haskell2010
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  ghc-options: -Wall
+  build-depends:
+      aeson >=1.4
+    , attoparsec
+    , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , bcrypt >=0.0.8
+    , bytestring >=0.9 && <0.11
+    , case-insensitive
+    , classy-prelude >=1.4 && <1.6
+    , classy-prelude-conduit >=1.4 && <1.6
+    , classy-prelude-yesod >=1.4 && <1.6
+    , conduit >=1.0 && <2.0
+    , containers
+    , data-default
+    , directory >=1.1 && <1.4
+    , ekg
+    , ekg-core
+    , entropy
+    , espial
+    , esqueleto
+    , fast-logger >=2.2 && <2.5
+    , file-embed
+    , foreign-store
+    , hjsmin >=0.1 && <0.3
+    , hscolour
+    , hspec >=2.0.0
+    , http-api-data >=0.3.4
+    , http-client
+    , http-client-tls >=0.3 && <0.4
+    , http-conduit >=2.3 && <2.4
+    , http-types
+    , iso8601-time >=0.1.3
+    , microlens
+    , monad-logger >=0.3 && <0.4
+    , monad-metrics
+    , mtl
+    , parser-combinators
+    , persistent >=2.8 && <2.10
+    , persistent-sqlite >=2.6.2
+    , persistent-template >=2.5 && <2.9
+    , pretty-show
+    , safe
+    , shakespeare >=2.0 && <2.1
+    , template-haskell
+    , text >=0.11 && <2.0
+    , time
+    , transformers >=0.2.2
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra >=3.0 && <3.1
+    , wai-logger >=2.2 && <2.4
+    , wai-middleware-metrics
+    , warp >=3.0 && <3.3
+    , yaml >=0.8 && <0.12
+    , yesod >=1.6 && <1.7
+    , yesod-auth >=1.6 && <1.7
+    , yesod-core >=1.6 && <1.7
+    , yesod-form >=1.6 && <1.7
+    , yesod-static >=1.6 && <1.7
+    , yesod-test
+  other-modules:
+      Handler.CommonSpec
+      Handler.HomeSpec
+      TestImport
+      Paths_espial
+  default-language: Haskell2010

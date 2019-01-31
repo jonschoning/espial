@@ -1,0 +1,13 @@
+$maybe route <- mroute
+  <div #nextprev style="border:0px solid orange">
+    <table style="float:left" border="0">
+      <tbody>
+        <tr>
+          $if fromIntegral bcount >= (limit * page)
+            <td width="80">
+              <a .link.gray #top_earlier href="@?{(route, catMaybes [Just ("page", pack (show (page + 1))), mqueryp])}">
+                « earlier
+          $if page > 1
+            <td width="80">
+              <a .link.gray #top_later href="@?{(route, catMaybes [Just ("page", pack (show (page - 1))), mqueryp])}">
+                later »

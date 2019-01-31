@@ -1,0 +1,6 @@
+<main #main_column .pv2.ph3.mh1>
+  <div .w-100.mw8.center>
+
+    <div ##{renderEl} .mt3>
+
+    <div .cf>
