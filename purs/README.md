@@ -1,6 +1,6 @@
 ## Development (Posix only)
 
-1. Install `purescript`, `purescript-spago`, `terser`: 
+1. Install `purescript`, `purescript-spago`, `parcel-bundler`: 
 
 ```
 npm install

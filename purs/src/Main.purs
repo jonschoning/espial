@@ -20,8 +20,10 @@ import Web.DOM.ParentNode (QuerySelector(..))
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.HTMLElement (toElement)
 
+foreign import _mainImpl :: Effect Unit
+
 main :: Effect Unit
-main = pure unit
+main = _mainImpl
 
 logoutE :: Event -> Effect Unit
 logoutE e = void <<< launchAff <<< logout =<< preventDefault e

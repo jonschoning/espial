@@ -1,5 +1,7 @@
 "use strict";
 
+var moment = require("moment");
+
 exports._app = function() {
   return app;
 }

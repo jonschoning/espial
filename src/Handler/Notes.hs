@@ -44,7 +44,6 @@ getNoteR unamep@(UserNameP uname) slug = do
        mnote <- getNote userId slug
        maybe notFound pure mnote
   defaultLayout $ do
-    addScript (StaticR js_marked_min_js)
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
@@ -60,7 +59,6 @@ getAddNoteViewR unamep@(UserNameP uname) = do
   let renderEl = "note" :: Text
   note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId (NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
   defaultLayout $ do
-    addScript (StaticR js_marked_min_js)
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";

@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 417de4bead54d60a2c091ad91c61dc715571ef7421e702f157a3766daf4f4700
+-- hash: 7227333703029085a8041c55bcc653a2b000338e12bb43813bf9b349cfab6a11
 
 name:           espial
-version:        0.0.7
+version:        0.0.8
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -45,6 +45,7 @@ extra-source-files:
     purs/src/Component/RawHtml.purs
     purs/src/Globals.js
     purs/src/Globals.purs
+    purs/src/Main.js
     purs/src/Main.purs
     purs/src/Marked.js
     purs/src/Marked.purs
@@ -57,18 +58,14 @@ extra-source-files:
     static/css/tachyons.min.css
     static/css/tachyons.min.css.gz
     static/images/bluepin.gif
-    static/js/app.js
-    static/js/app.js.gz
     static/js/app.min.js
     static/js/app.min.js.gz
+    static/js/app.min.map
+    static/js/app.min.map.gz
     static/js/html5shiv.min.js
     static/js/html5shiv.min.js.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
-    static/js/marked.min.js
-    static/js/marked.min.js.gz
-    static/js/moment.min.js
-    static/js/moment.min.js.gz
     templates/change-password.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet

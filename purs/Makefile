@@ -7,14 +7,14 @@ install:
 
 build: 
 	@spago build
-	@spago bundle --to dist/app.js
-	@(cd dist && terser app.js -m -c -o app.min.js)
+	@spago bundle --to dist/bundle.js
+	@npm run parcel-build
 	@rm -f dist/*.gz
-	@gzip -k dist/app.js
+	@gzip -k dist/app.min.map
 	@gzip -k dist/app.min.js
 	@find dist -type f -printf "%kK\\t%h/%f\\n" | sort -k 2
-	@cp dist/app.js ../static/js/app.js
-	@cp dist/app.js.gz ../static/js/app.js.gz
+	@cp dist/app.min.map ../static/js/app.min.map
+	@cp dist/app.min.map.gz ../static/js/app.min.map.gz
 	@cp dist/app.min.js ../static/js/app.min.js
 	@cp dist/app.min.js.gz ../static/js/app.min.js.gz
 

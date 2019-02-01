@@ -118,7 +118,6 @@ isAuthenticated = maybeAuthId >>= \case
 
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 addAppScripts = do
-  addScript (StaticR js_moment_min_js)
   addScript (StaticR js_app_min_js) 
 
 
