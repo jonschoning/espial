@@ -22,6 +22,8 @@ docs:
 	@rm -Rf generated-docs
 	@purs docs ".spago/*/*/src/**/*.purs" --format html
 
+docset: docs
+	@(cd docset; python3 ./gen-docset.py)
 clean:
 	rm -f dist/*
 
