@@ -28,3 +28,4 @@ purs/generated-docs
 tmp
 .cache
 tags
+purs/docset/purescript-local.docset/
