@@ -1,8 +1,8 @@
 let mkPackage =
-      https://raw.githubusercontent.com/spacchetti/spacchetti/20190131/src/mkPackage.dhall sha256:8e1c6636f8a089f972b21cde0cef4b33fa36a2e503ad4c77928aabf92d2d4ec9
+      https://raw.githubusercontent.com/spacchetti/spacchetti/0.12.2-20190209/src/mkPackage.dhall sha256:0b197efa1d397ace6eb46b243ff2d73a3da5638d8d0ac8473e8e4a8fc528cf57
 
 let upstream =
-      https://raw.githubusercontent.com/spacchetti/spacchetti/20190131/src/packages.dhall sha256:b08ac97c4447bd49d5c5fef40d95ff181def4a84672f84b79035d01e59d53905
+      https://raw.githubusercontent.com/spacchetti/spacchetti/0.12.2-20190209/src/packages.dhall sha256:e330a01c5c503c5dfccda6c38282ef03d10005a67291b3f82ddcfca544ad8bc8
 
 let overrides = {=}
 
