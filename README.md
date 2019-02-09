@@ -14,7 +14,7 @@ log in — username: demo  password: demo
 
 https://esp.ae8.org/u:demo
 
-![jpg](https://i.imgur.com/2viEMQj.png)
+![jpg](https://i.imgur.com/XikHLua.png)
 
 ## Server Setup (from source)
 
