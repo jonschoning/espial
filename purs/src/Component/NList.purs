@@ -16,26 +16,23 @@ import Halogen.HTML.Properties (href, id_, title)
 import Model (Note, NoteSlug)
 import Util (class_, fromNullableStr)
 
-data NLQuery a
-  = NLNop a
-
-type NLSlot = NoteSlug
+data NLAction
+  = NLNop
 
 type NLState =
   { notes :: Array Note
-  , cur :: Maybe NLSlot
+  , cur :: Maybe NoteSlug
   , deleteAsk:: Boolean
   , edit :: Boolean
   }
 
 
-nlist :: Array Note -> H.Component HH.HTML NLQuery Unit Void Aff
+nlist :: forall q i o. Array Note -> H.Component HH.HTML q i o Aff
 nlist st' =
-  H.component
+  H.mkComponent
     { initialState: const (mkState st')
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
   app = app' unit
@@ -47,11 +44,10 @@ nlist st' =
     , edit: false
     }
 
-  render :: NLState -> H.ComponentHTML NLQuery
+  render :: NLState -> H.ComponentHTML NLAction () Aff
   render st@{ notes } =
     HH.div_ (map renderNote notes)
     where
-      renderNote :: Note -> H.ComponentHTML NLQuery
       renderNote bm =
         div [ id_ (show bm.id) , class_ ("note w-100 mw7 pa1 mb2")] $
            [ div [ class_ "display" ] $
@@ -71,5 +67,5 @@ nlist st' =
     # foldMap (\x -> [br_, text x])
     # drop 1
 
-  eval :: NLQuery ~> H.ComponentDSL NLState NLQuery Void Aff
-  eval (NLNop next) = pure next
+  handleAction :: NLAction -> H.HalogenM NLState NLAction () o Aff Unit
+  handleAction NLNop = pure unit

@@ -11,7 +11,6 @@ import Halogen as H
 import Halogen.HTML (HTML, div, input, text)
 import Halogen.HTML.Elements (label)
 import Halogen.HTML.Events (onChecked)
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (InputType(..), checked, for, id_, name, type_)
 import Model (AccountSettings)
 import Util (class_)
@@ -24,9 +23,9 @@ type UState =
 _us :: Lens' UState AccountSettings
 _us = lens _.us (_ { us = _ })
 
-data UQuery a
-  = UEditField EditField a
-  | USubmit Event a
+data UAction
+  = UEditField EditField
+  | USubmit Event
 
 data EditField
   = EarchiveDefault Boolean
@@ -35,13 +34,12 @@ data EditField
 
 
 -- | The bookmark component definition.
-usetting :: AccountSettings -> H.Component HTML UQuery Unit Unit Aff
+usetting :: forall q i o. AccountSettings -> H.Component HTML q i o Aff
 usetting u' =
-  H.component
+  H.mkComponent
     { initialState: const (mkState u')
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
   app = app' unit
@@ -50,7 +48,7 @@ usetting u' =
     { us: u
     }
 
-  render :: UState -> H.ComponentHTML UQuery
+  render :: forall m. UState -> H.ComponentHTML UAction () m
   render { us } =
     div [ class_ "settings-form" ]
     [ div [ class_ "fw7 mb2"] [ text "Account Settings" ]
@@ -74,18 +72,16 @@ usetting u' =
       ]
     ]
     where
-      editField :: forall a. (a -> EditField) -> a -> Maybe (UQuery Unit)
-      editField f = HE.input UEditField <<< f
+      editField :: forall a. (a -> EditField) -> a -> Maybe UAction
+      editField f = Just <<< UEditField <<< f
 
-  eval :: UQuery ~> H.ComponentDSL UState UQuery Unit Aff
-  eval (UEditField f next) = do
+  handleAction :: UAction -> H.HalogenM UState UAction () o Aff Unit
+  handleAction (UEditField f) = do
     _us %= case f of
       EarchiveDefault e -> _ { archiveDefault = e }
       EprivateDefault e -> _ { privateDefault = e }
       EprivacyLock e -> _ { privacyLock = e }
-    pure next
 
-  eval (USubmit e next) = do
+  handleAction (USubmit e) = do
     us <- use _us
     void $ H.liftAff (editAccountSettings us)
-    pure next

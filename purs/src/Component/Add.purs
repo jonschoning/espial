@@ -17,7 +17,6 @@ import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
 import Halogen.HTML (HTML, br_, button, div, div_, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (autofocus, ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
 import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_)
@@ -25,11 +24,11 @@ import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
 import Web.HTML.Location (setHref)
 
-data BQuery a
-  = BEditField EditField a
-  | BEditSubmit Event a
-  | BDeleteAsk Boolean a
-  | BDestroy a
+data BAction
+  = BEditField EditField
+  | BEditSubmit Event
+  | BDeleteAsk Boolean
+  | BDestroy
 
 data EditField
   = Eurl String
@@ -52,13 +51,12 @@ _bm = lens _.bm (_ { bm = _ })
 _edit_bm :: Lens' BState Bookmark
 _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 
-addbmark :: Bookmark -> H.Component HTML BQuery Unit Unit Aff
+addbmark :: forall q i o. Bookmark -> H.Component HTML q i o Aff
 addbmark b' =
-  H.component
+  H.mkComponent
     { initialState: const (mkState b')
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
   app = app' unit
@@ -70,12 +68,12 @@ addbmark b' =
     , destroyed: false
     }
 
-  render :: BState -> H.ComponentHTML BQuery
+  render :: forall m. BState -> H.ComponentHTML BAction () m
   render s@{ bm, edit_bm } =
     div_ [ if not s.destroyed then display_edit else display_destroyed ]
    where
      display_edit =
-       form [ onSubmit (HE.input BEditSubmit) ]
+       form [ onSubmit (Just <<< BEditSubmit) ]
        [ table [ class_ "w-100" ]
          [ tbody_
            [ tr_
@@ -128,10 +126,10 @@ addbmark b' =
          [ text (maybe " " fst mmoment) ]
        , div [ class_ "edit_links dib ml1" ]
          [ div [ class_ "delete_link di" ]
-           [ button ([ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk true)), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
+           [ button ([ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk true), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
            , span ([ class_ "confirm red" ] <> guard (not s.deleteAsk) [ attr "hidden" "hidden" ])
-             [ button [ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk false))] [ text "cancel / " ]
-             , button [ type_ ButtonButton, onClick (HE.input_ BDestroy), class_ "red" ] [ text "destroy" ]
+             [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk false)] [ text "cancel / " ]
+             , button [ type_ ButtonButton, onClick \_ -> Just BDestroy, class_ "red" ] [ text "destroy" ]
              ] 
            ]
          ]
@@ -139,24 +137,22 @@ addbmark b' =
 
      display_destroyed = p [ class_ "red"] [text "you killed this bookmark"]
 
-     editField :: forall a. (a -> EditField) -> a -> Maybe (BQuery Unit)
-     editField f = HE.input BEditField <<< f
+     editField :: forall a. (a -> EditField) -> a -> Maybe BAction
+     editField f = Just <<< BEditField <<< f
      mmoment = mmoment8601 bm.time
      toTextarea =
        drop 1
          <<< foldMap (\x -> [br_, text x])
          <<< S.split (Pattern "\n")
 
-  eval :: BQuery ~> H.ComponentDSL BState BQuery Unit Aff
-  eval (BDeleteAsk e next) = do
+  handleAction :: BAction -> H.HalogenM BState BAction () o Aff Unit
+  handleAction (BDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
-    pure next
-  eval (BDestroy next) = do
+  handleAction (BDestroy) = do
     bid <- H.gets _.bm.bid
     void $ H.liftAff (destroy bid)
     H.modify_ (_ { destroyed = true })
-    pure next
-  eval (BEditField f next) = do
+  handleAction (BEditField f) = do
     _edit_bm %= case f of
       Eurl e -> _ { url = e }
       Etitle e -> _ { title = e }
@@ -164,8 +160,7 @@ addbmark b' =
       Etags e -> _ { tags = e }
       Eprivate e -> _ { private = e }
       Etoread e -> _ { toread = e }
-    pure next
-  eval (BEditSubmit e next) = do
+  handleAction (BEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_bm <- use _edit_bm 
     void $ H.liftAff (editBookmark edit_bm)
@@ -176,4 +171,3 @@ addbmark b' =
     case _lookupQueryStringValue qs "next" of
       Just n -> liftEffect (setHref n loc)
       _ -> liftEffect (closeWindow win)
-    pure next

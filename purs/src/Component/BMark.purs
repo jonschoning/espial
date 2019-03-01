@@ -16,21 +16,21 @@ import Globals (app', mmoment8601)
 import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
 import Util (class_, attr, fromNullableStr)
 import Web.Event.Event (Event, preventDefault)
+import Data.Const (Const)
 
 -- | UI Events
-data BQuery a
-  = BStar Boolean a
-  | BDeleteAsk Boolean a
-  | BDestroy a
-  | BEdit Boolean a
-  | BEditField EditField a
-  | BEditSubmit Event a
-  | BMarkRead a
+data BAction
+  = BStar Boolean
+  | BDeleteAsk Boolean
+  | BDestroy
+  | BEdit Boolean
+  | BEditField EditField
+  | BEditSubmit Event
+  | BMarkRead
 
 -- | FormField Edits
 data EditField
@@ -44,6 +44,8 @@ data EditField
 -- | Messages to parent
 data BMessage
   = BNotifyRemove
+
+type BSlot = H.Slot (Const Void) BMessage
 
 type BState =
   { bm :: Bookmark
@@ -61,13 +63,12 @@ _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 _edit :: Lens' BState Boolean
 _edit = lens _.edit (_ { edit = _ })
 
-bmark :: Bookmark -> H.Component HTML BQuery Unit BMessage Aff
+bmark :: forall q i. Bookmark -> H.Component HTML q i BMessage Aff
 bmark b' =
-  H.component
+  H.mkComponent
     { initialState: const (mkState b')
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
   app = app' unit
@@ -79,7 +80,7 @@ bmark b' =
     , edit: false
     }
 
-  render :: BState -> H.ComponentHTML BQuery
+  render :: forall m. BState -> H.ComponentHTML BAction () m
   render s@{ bm, edit_bm } =
     div [ id_ (show bm.bid) , class_ ("bookmark w-100 mw7 pa1 mb3" <> guard bm.private " private")] $
       star <>
@@ -91,7 +92,7 @@ bmark b' =
      star =
        guard app.dat.isowner
          [ div [ class_ ("star fl pointer" <> guard bm.selected " selected") ]
-           [ button [ class_ "moon-gray", onClick (HE.input_ (BStar (not bm.selected))) ] [ text "✭" ] ]
+           [ button [ class_ "moon-gray", onClick \_ -> Just (BStar (not bm.selected)) ] [ text "✭" ] ]
          ]
 
      display =
@@ -121,7 +122,7 @@ bmark b' =
 
      display_edit =
        [ div [ class_ "edit_bookmark_form pa2 pt0 bg-white" ] $
-         [ form [ onSubmit (HE.input BEditSubmit) ]
+         [ form [ onSubmit (Just <<< BEditSubmit) ]
            [ div_ [ text "url" ]
            , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 f7 edit_form_input" , required true , name "url"
                    , value (edit_bm.url) , onValueChange (editField Eurl) ]
@@ -156,7 +157,7 @@ bmark b' =
            , input [ type_ InputSubmit , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "save" ]
            , text " "
            , input [ type_ InputReset , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "cancel"
-                   , onClick (HE.input_ (BEdit false)) ]
+                   , onClick \_ -> Just (BEdit false) ]
            ]
          ]
        ]
@@ -164,24 +165,24 @@ bmark b' =
      links =
        guard app.dat.isowner
          [ div [ class_ "edit_links di" ]
-           [ button [ type_ ButtonButton, onClick (HE.input_ (BEdit true)), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
+           [ button [ type_ ButtonButton, onClick \_ -> Just (BEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
            , div [ class_ "delete_link di" ]
-             [ button [ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk true)), class_ ("delete light-silver hover-blue" <> guard s.deleteAsk " dn") ] [ text "delete" ]
+             [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard s.deleteAsk " dn") ] [ text "delete" ]
              , span ([ class_ ("confirm red" <> guard (not s.deleteAsk) " dn") ] )
-               [ button [ type_ ButtonButton, onClick (HE.input_ (BDeleteAsk false))] [ text "cancel / " ]
-               , button [ type_ ButtonButton, onClick (HE.input_ BDestroy), class_ "red" ] [ text "destroy" ]
+               [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk false)] [ text "cancel / " ]
+               , button [ type_ ButtonButton, onClick \_ -> Just BDestroy, class_ "red" ] [ text "destroy" ]
                ] 
              ]
            ]
          , div [ class_ "read di" ] $
              guard bm.toread
              [ text "  "
-             , button [ onClick (HE.input_ BMarkRead), class_ "mark_read" ] [ text "mark as read"]
+             , button [ onClick \_ -> Just BMarkRead, class_ "mark_read" ] [ text "mark as read"]
              ]
          ]
 
-     editField :: forall a. (a -> EditField) -> a -> Maybe (BQuery Unit)
-     editField f = HE.input BEditField <<< f
+     editField :: forall a. (a -> EditField) -> a -> Maybe BAction
+     editField f = Just <<< BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
      mmoment = mmoment8601 bm.time
@@ -190,44 +191,39 @@ bmark b' =
        # foldMap (\x -> [br_, text x])
        # drop 1
 
-  eval :: BQuery ~> H.ComponentDSL BState BQuery BMessage Aff
+  handleAction :: BAction -> H.HalogenM BState BAction () BMessage Aff Unit
 
   -- | Star
-  eval (BStar e next) = do
+  handleAction (BStar e) = do
     bm <- use _bm
     H.liftAff (toggleStar bm.bid (if e then Star else UnStar))
     _bm %= _ { selected = e }
     _edit_bm %= _ { selected = e }
-    pure next
 
   -- | Delete
-  eval (BDeleteAsk e next) = do
+  handleAction (BDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
-    pure next
 
   -- | Destroy
-  eval (BDestroy next) = do
+  handleAction (BDestroy) = do
     bm <- use _bm
     void $ H.liftAff (destroy bm.bid)
     H.raise BNotifyRemove
-    pure next
 
   -- | Mark Read
-  eval (BMarkRead next) = do
+  handleAction (BMarkRead) = do
     bm <- use _bm
     void (H.liftAff (markRead bm.bid))
     _bm %= _ { toread = false }
-    pure next
 
   -- | Start/Stop Editing
-  eval (BEdit e next) = do
+  handleAction (BEdit e) = do
     bm <- use _bm
     _edit_bm .= bm
     _edit .= e
-    pure next
 
   -- | Update Form Field 
-  eval (BEditField f next) = do
+  handleAction (BEditField f) = do
     _edit_bm %= case f of
       Eurl e -> _ { url = e }
       Etitle e -> _ { title = e }
@@ -235,13 +231,11 @@ bmark b' =
       Etags e -> _ { tags = e }
       Eprivate e -> _ { private = e }
       Etoread e -> _ { toread = e }
-    pure next
 
   -- | Submit
-  eval (BEditSubmit e next) = do
+  handleAction (BEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_bm <- use _edit_bm
     void $ H.liftAff (editBookmark edit_bm)
     _bm .= edit_bm
     _edit .= false
-    pure next

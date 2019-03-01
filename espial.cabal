@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7227333703029085a8041c55bcc653a2b000338e12bb43813bf9b349cfab6a11
+-- hash: c9ea5f2d822708beca3dc6ea7fdfd09698f9f2df05afb37ac16e204d89a528c2
 
 name:           espial
 version:        0.0.8
@@ -95,6 +95,30 @@ flag library-only
   default: False
 
 library
+  exposed-modules:
+      Application
+      Foundation
+      Generic
+      Handler.AccountSettings
+      Handler.Add
+      Handler.Archive
+      Handler.Common
+      Handler.Docs
+      Handler.Edit
+      Handler.Home
+      Handler.Notes
+      Handler.User
+      Import
+      Import.NoFoundation
+      Model
+      ModelCustom
+      PathPiece
+      Pretty
+      Settings
+      Settings.StaticFiles
+      Types
+  other-modules:
+      Paths_espial
   hs-source-dirs:
       src
   default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
@@ -160,34 +184,13 @@ library
     cpp-options: -DDEVELOPMENT
   else
     ghc-options: -Wall -fwarn-tabs -O2
-  exposed-modules:
-      Application
-      Foundation
-      Generic
-      Handler.AccountSettings
-      Handler.Add
-      Handler.Archive
-      Handler.Common
-      Handler.Docs
-      Handler.Edit
-      Handler.Home
-      Handler.Notes
-      Handler.User
-      Import
-      Import.NoFoundation
-      Model
-      ModelCustom
-      PathPiece
-      Pretty
-      Settings
-      Settings.StaticFiles
-      Types
-  other-modules:
-      Paths_espial
   default-language: Haskell2010
 
 executable espial
   main-is: main.hs
+  other-modules:
+      DevelMain
+      Paths_espial
   hs-source-dirs:
       app
   default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
@@ -252,13 +255,12 @@ executable espial
     , yesod-static >=1.6 && <1.7
   if flag(library-only)
     buildable: False
-  other-modules:
-      DevelMain
-      Paths_espial
   default-language: Haskell2010
 
 executable migration
   main-is: Main.hs
+  other-modules:
+      Paths_espial
   hs-source-dirs:
       app/migration
   default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
@@ -324,13 +326,16 @@ executable migration
     , yesod-static >=1.6 && <1.7
   if flag(library-only)
     buildable: False
-  other-modules:
-      Paths_espial
   default-language: Haskell2010
 
 test-suite test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
+  other-modules:
+      Handler.CommonSpec
+      Handler.HomeSpec
+      TestImport
+      Paths_espial
   hs-source-dirs:
       test
   default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
@@ -395,9 +400,4 @@ test-suite test
     , yesod-form >=1.6 && <1.7
     , yesod-static >=1.6 && <1.7
     , yesod-test
-  other-modules:
-      Handler.CommonSpec
-      Handler.HomeSpec
-      TestImport
-      Paths_espial
   default-language: Haskell2010

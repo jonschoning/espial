@@ -2,7 +2,7 @@ module Component.BList where
 
 import Prelude
 
-import Component.BMark (BMessage(..), BQuery, bmark)
+import Component.BMark (BMessage(..), BSlot, bmark)
 import Model (Bookmark, BookmarkId)
 
 import Data.Array (filter)
@@ -10,39 +10,30 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
+import Data.Symbol (SProxy(..))
 
-type BSlot = BookmarkId
+data LAction =
+  HandleBMessage BookmarkId BMessage
 
-data LQuery a =
-  HandleBMessage BSlot BMessage a
+type ChildSlots =
+  ( bookmark :: BSlot Int
+  )
 
-blist :: Array Bookmark -> H.Component HH.HTML LQuery Unit Void Aff
+_bookmark = SProxy :: SProxy "bookmark"
+
+blist :: forall q i o. Array Bookmark -> H.Component HH.HTML q i o Aff
 blist st =
-  H.parentComponent
+  H.mkComponent
     { initialState: const st
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
 
-  render :: Array Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
+  render :: Array Bookmark -> H.ComponentHTML LAction ChildSlots Aff
   render bms =
-    HH.div_ (map renderBookmark bms)
-    where 
-      renderBookmark :: Bookmark -> H.ParentHTML LQuery BQuery BSlot Aff
-      renderBookmark b =
-        HH.slot
-          b.bid
-          (bmark b)
-          unit
-          (HE.input (HandleBMessage b.bid))
+    HH.div_ $ map (\b -> HH.slot _bookmark b.bid (bmark b) unit (Just <<< HandleBMessage b.bid)) bms
 
-  eval :: LQuery ~> H.ParentDSL (Array Bookmark) LQuery BQuery BSlot Void Aff
-  eval (HandleBMessage p BNotifyRemove next) = do
-    H.modify_ (removeBookmark p)
-    pure next
-    where
-      removeBookmark :: BookmarkId -> Array Bookmark -> Array Bookmark
-      removeBookmark bookmarkId = filter (\b -> b.bid /= bookmarkId)
+  handleAction :: LAction -> H.HalogenM (Array Bookmark) LAction ChildSlots o Aff Unit
+  handleAction (HandleBMessage bid BNotifyRemove) = do
+    H.modify_ (filter (\b -> b.bid /= bid))

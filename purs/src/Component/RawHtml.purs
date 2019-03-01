@@ -9,54 +9,52 @@ import Effect.Aff (Aff)
 import Globals (RawHTML(..))
 import Halogen as H
 import Halogen.HTML as HH
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Web.HTML (HTMLElement)
 
 foreign import unsafeSetInnerHTML :: HTMLElement -> RawHTML -> Effect Unit
 
-data Query i a
-  = SetInnerHTML a
-  | Receive (Input i) a
+data Action i
+  = SetInnerHTML
+  | Receive (Input i)
 
 type Input i = i
-
-type Output = Void
 
 type State i =
   { elRef :: H.RefLabel
   , inputval :: Input i
   }
 
-component :: H.Component HH.HTML (Query String) (Input String) Output Aff
+component :: forall q o. H.Component HH.HTML q (Input String) o Aff
 component = mkComponent RawHTML
 
-mkComponent :: forall i. (Input i -> RawHTML) -> H.Component HH.HTML (Query i) (Input i) Output Aff
-mkComponent toRawHTML = H.lifecycleComponent
-  { initialState: \inputval -> { elRef: H.RefLabel "inputval", inputval } 
-  , render
-  , eval
-  , receiver: HE.input Receive
-  , initializer: Just $ H.action SetInnerHTML
-  , finalizer: Nothing
-  }
+mkComponent :: forall q i o. (Input i -> RawHTML) -> H.Component HH.HTML q (Input i) o Aff
+mkComponent toRawHTML =
+  H.mkComponent
+    { initialState: \inputval -> { elRef: H.RefLabel "inputval", inputval } 
+    , render
+    , eval: H.mkEval (H.defaultEval { handleAction = handleAction
+                                    , initialize = Just SetInnerHTML
+                                    , receive = Just <<< Receive
+                                    })
+    }
   where
-  render :: (State i) -> H.ComponentHTML (Query i)
+  render :: forall m. (State i) -> H.ComponentHTML (Action i) () m
   render state = 
     HH.div 
       [ HP.ref state.elRef ] 
       []
 
-  eval :: (Query i) ~> H.ComponentDSL (State i) (Query i) Output Aff
-  eval = case _ of
-    SetInnerHTML a -> do
+  handleAction :: (Action i) -> H.HalogenM (State i) (Action i) () o Aff Unit
+  handleAction = case _ of
+    SetInnerHTML -> do
       { elRef } <- H.get
       mel <- H.getHTMLElementRef elRef
       for_ mel \el -> do  
         { inputval } <- H.get
         H.liftEffect (unsafeSetInnerHTML el (toRawHTML inputval))
-      pure a
+      pure unit
     
-    Receive inputval a -> do
+    Receive inputval -> do
       H.modify_ _ { inputval = inputval }
-      eval $ SetInnerHTML a
+      handleAction $ SetInnerHTML

@@ -19,20 +19,21 @@ import Halogen as H
 import Halogen.HTML (br_, button, div, form, input, label, p, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
-import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
 import Util (_loc, class_, fromNullableStr)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
+import Data.Symbol (SProxy(..))
+import Data.Const (Const)
 
-data NQuery a
-  = NNop a
-  | NEditField EditField a
-  | NEditSubmit Event a
-  | NEdit Boolean a
-  | NDeleteAsk Boolean a
-  | NDestroy a
+data NAction
+  = NNop
+  | NEditField EditField
+  | NEditSubmit Event
+  | NEdit Boolean
+  | NDeleteAsk Boolean
+  | NDestroy
 
 type NState =
   { note :: Note
@@ -57,15 +58,18 @@ data EditField
   | Etext String
   | EisMarkdown Boolean
 
-type NChildQuery = Markdown.MQuery
+_markdown = SProxy :: SProxy "markdown"
 
-nnote :: Note -> H.Component HH.HTML NQuery Unit Void Aff
+type ChildSlots =
+  ( markdown :: H.Slot (Const Void) Void Unit
+  )
+
+nnote :: forall q i o. Note -> H.Component HH.HTML q i o Aff
 nnote st' =
-  H.parentComponent
+  H.mkComponent
     { initialState: const (mkState st')
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
   app = app' unit
@@ -78,7 +82,7 @@ nnote st' =
     , destroyed: false
     }
 
-  render :: NState -> H.ParentHTML NQuery NChildQuery Unit Aff
+  render :: NState -> H.ComponentHTML NAction ChildSlots Aff
   render st@{ note, edit_note } =
     if st.destroyed
        then display_destroyed
@@ -95,7 +99,7 @@ nnote st' =
                [ text $ if S.null note.title then "[no title]" else note.title ]
              , br_
              , if note.isMarkdown
-               then div [ class_ "description mt1" ] [ HH.slot unit Markdown.component note.text absurd ]
+               then div [ class_ "description mt1" ] [ HH.slot _markdown unit Markdown.component note.text absurd ]
                else div [ class_ "description mt1 mid-gray" ] (toTextarea note.text)
              , div [ class_ "link f7 dib gray w4", title (maybe note.created snd (mmoment note)) ]
                [ text (maybe " " fst (mmoment note)) ]
@@ -103,19 +107,19 @@ nnote st' =
            ]
            <> -- | Render Action Links
            [ div [ class_ "edit_links db mt3" ]
-             [ button [ type_ ButtonButton, onClick (HE.input_ (NEdit true)), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
+             [ button [ type_ ButtonButton, onClick \_ -> Just (NEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
              , div [ class_ "delete_link di" ]
-               [ button [ type_ ButtonButton, onClick (HE.input_ (NDeleteAsk true)), class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
+               [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
                , span ([ class_ ("confirm red" <> guard (not st.deleteAsk) " dn") ] )
-                 [ button [ type_ ButtonButton, onClick (HE.input_ (NDeleteAsk false))] [ text "cancel / " ]
-                 , button [ type_ ButtonButton, onClick (HE.input_ NDestroy), class_ "red" ] [ text "destroy" ]
+                 [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk false)] [ text "cancel / " ]
+                 , button [ type_ ButtonButton, onClick \_ -> Just NDestroy, class_ "red" ] [ text "destroy" ]
                  ] 
                ]
              ]
            ]
 
       renderNote_edit =
-        form [ onSubmit (HE.input NEditSubmit) ]
+        form [ onSubmit (Just <<< NEditSubmit) ]
           [ p [ class_ "mt2 mb1"] [ text "title:" ]
           , input [ type_ InputText , class_ "title w-100 mb1 pt1 f7 edit_form_input" , name "title"
                   , value (edit_note.title) , onValueChange (editField Etitle)
@@ -135,58 +139,54 @@ nnote st' =
           , input [ type_ InputSubmit , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "save" ]
           , text " "
           , input [ type_ InputReset , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "cancel"
-                  , onClick (HE.input_ (NEdit false))
+                  , onClick \_ -> Just (NEdit false)
                   ]
           ]
 
       display_destroyed = p [ class_ "red"] [text "you killed this note"]
 
       mmoment n = mmoment8601 n.created
-      editField :: forall a. (a -> EditField) -> a -> Maybe (NQuery Unit)
-      editField f = HE.input NEditField <<< f
+      editField :: forall a. (a -> EditField) -> a -> Maybe NAction
+      editField f = Just <<< NEditField <<< f
       toTextarea input =
         S.split (Pattern "\n") input
         # foldMap (\x -> [br_, text x])
         # drop 1
 
 
-  eval :: NQuery ~> H.ParentDSL NState NQuery NChildQuery Unit Void Aff
-  eval (NNop next) = pure next
+  handleAction :: NAction -> H.HalogenM NState NAction ChildSlots o Aff Unit
+  handleAction (NNop) = pure unit
 
   -- | EditField
-  eval (NEditField f next) = do
+  handleAction (NEditField f) = do
     _edit_note %= case f of
       Etitle e -> _ { title = e }
       Etext e -> _ { text = e }
       EisMarkdown e -> _ { isMarkdown = e }
-    pure next
 
   -- | Delete
-  eval (NDeleteAsk e next) = do
+  handleAction (NDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
-    pure next
 
   -- | Destroy
-  eval (NDestroy next) = do
+  handleAction (NDestroy) = do
     note <- use _note
     void $ H.liftAff (destroyNote note.id)
     H.modify_ (_ { destroyed = true })
-    pure next
 
   -- | Start/Stop Editing
-  eval (NEdit e next) = do
+  handleAction (NEdit e) = do
     note <- use _note
     _edit_note .= note
     _edit .= e
-    pure next
 
   -- | Submit
-  eval (NEditSubmit e next) = do
+  handleAction (NEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_note <- use _edit_note
     res <- H.liftAff (editNote edit_note)
     case res.body of
-      Left err -> pure next
+      Left err -> pure unit
       Right r -> do
         if (edit_note.id == 0)
           then do
@@ -194,4 +194,3 @@ nnote st' =
           else do
             _note .= edit_note
             _edit .= false
-        pure next
