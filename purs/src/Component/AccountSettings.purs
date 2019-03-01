@@ -81,6 +81,8 @@ usetting u' =
       EarchiveDefault e -> _ { archiveDefault = e }
       EprivateDefault e -> _ { privateDefault = e }
       EprivacyLock e -> _ { privacyLock = e }
+    us <- use _us
+    void $ H.liftAff (editAccountSettings us)
 
   handleAction (USubmit e) = do
     us <- use _us
