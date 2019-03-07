@@ -25,7 +25,6 @@ import Util (_loc, class_, fromNullableStr)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
 import Data.Symbol (SProxy(..))
-import Data.Const (Const)
 
 data NAction
   = NNop
@@ -52,7 +51,7 @@ _edit_note = lens _.edit_note (_ { edit_note = _ })
 _edit :: Lens' NState Boolean
 _edit = lens _.edit (_ { edit = _ })
 
--- | FormField Edits
+-- | FormField Edits 
 data EditField
   = Etitle String
   | Etext String
@@ -61,7 +60,7 @@ data EditField
 _markdown = SProxy :: SProxy "markdown"
 
 type ChildSlots =
-  ( markdown :: H.Slot (Const Void) Void Unit
+  ( markdown :: Markdown.Slot Unit
   )
 
 nnote :: forall q i o. Note -> H.Component HH.HTML q i o Aff

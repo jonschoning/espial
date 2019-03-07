@@ -159,3 +159,32 @@ label {
   opacity: 1;
   transition: all .15s ease-in;
 }
+.display .description > div p,
+.display .description > div pre
+{
+  margin-top: 9px;
+  margin-bottom: 9px;
+}
+.display .description > div > *:first-child {
+  margin-top: 2px;
+}
+.display .description > div > *:last-child {
+  margin-bottom: 2px;
+}
+.display .description > div > ol li p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.display .description > div > ul li p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.display .description > div ol {
+  padding-left: 23px; 
+}
+.display .description > div ul {
+  padding-left: 23px; 
+}
+code, pre {
+    font-size:13px;
+}

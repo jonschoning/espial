@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c9ea5f2d822708beca3dc6ea7fdfd09698f9f2df05afb37ac16e204d89a528c2
+-- hash: ac9856c342ac9d7c05b18be91fb062e098dbf3575b2fbe7293f69df2d5b76cce
 
 name:           espial
 version:        0.0.8
@@ -21,8 +23,8 @@ copyright:      Copyright (c) 2018 Jon Schoning
 license:        AGPL-3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
+    README.md
     changelog.md
     config/favicon.ico
     config/keter.yml
@@ -30,42 +32,6 @@ extra-source-files:
     config/routes
     config/settings.yml
     config/test-settings.yml
-    purs/Makefile
-    purs/packages.dhall
-    purs/spago.dhall
-    purs/src/App.purs
-    purs/src/Component/AccountSettings.purs
-    purs/src/Component/Add.purs
-    purs/src/Component/BList.purs
-    purs/src/Component/BMark.purs
-    purs/src/Component/Markdown.purs
-    purs/src/Component/NList.purs
-    purs/src/Component/NNote.purs
-    purs/src/Component/RawHtml.js
-    purs/src/Component/RawHtml.purs
-    purs/src/Globals.js
-    purs/src/Globals.purs
-    purs/src/Main.js
-    purs/src/Main.purs
-    purs/src/Marked.js
-    purs/src/Marked.purs
-    purs/src/Model.purs
-    purs/src/Util.purs
-    purs/test/Main.purs
-    README.md
-    static/css/main.css
-    static/css/popup.css
-    static/css/tachyons.min.css
-    static/css/tachyons.min.css.gz
-    static/images/bluepin.gif
-    static/js/app.min.js
-    static/js/app.min.js.gz
-    static/js/app.min.map
-    static/js/app.min.map.gz
-    static/js/html5shiv.min.js
-    static/js/html5shiv.min.js.gz
-    static/js/js.cookie-2.2.0.min.js
-    static/js/js.cookie-2.2.0.min.js.gz
     templates/change-password.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
@@ -79,6 +45,41 @@ extra-source-files:
     templates/search.hamlet
     templates/user-settings.hamlet
     templates/user.hamlet
+    static/css/main.css
+    static/css/popup.css
+    static/css/tachyons.min.css
+    static/css/tachyons.min.css.gz
+    static/images/bluepin.gif
+    static/js/app.min.js
+    static/js/app.min.js.gz
+    static/js/app.min.map
+    static/js/app.min.map.gz
+    static/js/html5shiv.min.js
+    static/js/html5shiv.min.js.gz
+    static/js/js.cookie-2.2.0.min.js
+    static/js/js.cookie-2.2.0.min.js.gz
+    purs/Makefile
+    purs/packages.dhall
+    purs/spago.dhall
+    purs/src/App.purs
+    purs/src/Globals.js
+    purs/src/Globals.purs
+    purs/src/Main.js
+    purs/src/Main.purs
+    purs/src/Marked.js
+    purs/src/Marked.purs
+    purs/src/Model.purs
+    purs/src/Util.purs
+    purs/src/Component/AccountSettings.purs
+    purs/src/Component/Add.purs
+    purs/src/Component/BList.purs
+    purs/src/Component/BMark.purs
+    purs/src/Component/Markdown.purs
+    purs/src/Component/NList.purs
+    purs/src/Component/NNote.purs
+    purs/src/Component/RawHtml.js
+    purs/src/Component/RawHtml.purs
+    purs/test/Main.purs
 
 source-repository head
   type: git

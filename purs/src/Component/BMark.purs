@@ -3,6 +3,7 @@ module Component.BMark where
 import Prelude hiding (div)
 
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
+import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
@@ -14,10 +15,12 @@ import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Globals (app', mmoment8601)
 import Halogen as H
+import Halogen.HTML as HH
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
+import Data.Symbol (SProxy(..))
 import Util (class_, attr, fromNullableStr)
 import Web.Event.Event (Event, preventDefault)
 import Data.Const (Const)
@@ -52,6 +55,7 @@ type BState =
   , edit_bm :: Bookmark
   , deleteAsk:: Boolean
   , edit :: Boolean
+  , isMarkdown :: Boolean
   }
 
 _bm :: Lens' BState Bookmark
@@ -62,6 +66,12 @@ _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 
 _edit :: Lens' BState Boolean
 _edit = lens _.edit (_ { edit = _ })
+
+_markdown = SProxy :: SProxy "markdown"
+
+type ChildSlots =
+  ( markdown :: Markdown.Slot Unit
+  )
 
 bmark :: forall q i. Bookmark -> H.Component HTML q i BMessage Aff
 bmark b' =
@@ -78,9 +88,10 @@ bmark b' =
     , edit_bm: b
     , deleteAsk: false
     , edit: false
+    , isMarkdown: true
     }
 
-  render :: forall m. BState -> H.ComponentHTML BAction () m
+  render :: BState -> H.ComponentHTML BAction ChildSlots Aff
   render s@{ bm, edit_bm } =
     div [ id_ (show bm.bid) , class_ ("bookmark w-100 mw7 pa1 mb3" <> guard bm.private " private")] $
       star <>
@@ -107,7 +118,9 @@ bmark b' =
              [ if isJust (toMaybe bm.archiveUrl) then text "☑" else text "☐" ]
          , br_
            -- 
-         , div [ class_ "description mt1 mid-gray" ] (toTextarea bm.description)
+         , if s.isMarkdown
+           then div [ class_ "description mt1 mid-gray" ] [ HH.slot _markdown unit Markdown.component bm.description absurd ]
+           else div [ class_ "description mt1 mid-gray" ] (toTextarea bm.description)
          , div [ class_ "tags" ] $
              guard (not (S.null bm.tags))
                map (\tag -> a [ class_ ("link tag mr1" <> guard (S.take 1 tag == ".") " private")
@@ -191,7 +204,7 @@ bmark b' =
        # foldMap (\x -> [br_, text x])
        # drop 1
 
-  handleAction :: BAction -> H.HalogenM BState BAction () BMessage Aff Unit
+  handleAction :: BAction -> H.HalogenM BState BAction ChildSlots BMessage Aff Unit
 
   -- | Star
   handleAction (BStar e) = do

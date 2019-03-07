@@ -6,7 +6,7 @@ let upstream =
 
 let overrides =
 	  { halogen =
-		  upstream.halogen ⫽ { version = "v5.0.0-rc.1" }
+		  upstream.halogen ⫽ { version = "v5.0.0-rc.2" }
 	  , halogen-vdom =
 		  upstream.halogen-vdom ⫽ { version = "v5.1.0" }
 	  }
