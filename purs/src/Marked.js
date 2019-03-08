@@ -6,5 +6,6 @@ marked.setOptions({
 });
 
 exports.markedImpl = function(str) {
+  if (!str) return "";
   return marked(str);
 };

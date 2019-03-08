@@ -5,7 +5,8 @@ import Prelude
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, forkAff, makeAff)
+import Effect.Class (liftEffect)
 import Globals (RawHTML(..))
 import Halogen as H
 import Halogen.HTML as HH
@@ -52,7 +53,9 @@ mkComponent toRawHTML =
       mel <- H.getHTMLElementRef elRef
       for_ mel \el -> do  
         { inputval } <- H.get
-        H.liftEffect (unsafeSetInnerHTML el (toRawHTML inputval))
+        H.liftAff $ forkAff $ makeAff \cb -> do
+          liftEffect $ unsafeSetInnerHTML el (toRawHTML inputval)
+          mempty
       pure unit
     
     Receive inputval -> do

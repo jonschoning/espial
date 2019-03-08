@@ -7,15 +7,14 @@ import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Const (Const)
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Monoid (guard)
 import Data.Nullable (toMaybe)
 import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Symbol (SProxy(..))
-import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
-import Globals (app', mmoment8601)
+import Globals (app')
 import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
@@ -124,8 +123,8 @@ bmark b' =
                              [ text tag ])
                 (S.split (Pattern " ") bm.tags)
               
-        , a [ class_ "link f7 dib gray w4", title (maybe bm.time snd mmoment) , href (linkToFilterSingle bm.slug) ]
-          [ text (maybe " " fst mmoment) ]
+        , a [ class_ "link f7 dib gray w4", href (linkToFilterSingle bm.slug) ]
+          [ text shtime ]
 
         -- links
         , whenH app.dat.isowner $ \_ ->
@@ -194,7 +193,7 @@ bmark b' =
      editField f = Just <<< BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
-     mmoment = mmoment8601 bm.time
+     shtime = S.take 16 bm.time
      toTextarea input =
        S.split (Pattern "\n") input
        # foldMap (\x -> [br_, text x])
