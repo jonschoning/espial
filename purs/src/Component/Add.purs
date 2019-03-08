@@ -15,11 +15,11 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
-import Halogen.HTML (HTML, br_, button, div, div_, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
+import Halogen.HTML (HTML, br_, button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (autofocus, ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
-import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_)
+import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
 import Web.HTML.Location (setHref)
@@ -70,15 +70,19 @@ addbmark b' =
 
   render :: forall m. BState -> H.ComponentHTML BAction () m
   render s@{ bm, edit_bm } =
-    div_ [ if not s.destroyed then display_edit else display_destroyed ]
+    ifElseH (not s.destroyed)
+      display_edit
+      display_destroyed
    where
-     display_edit =
+     display_edit _ =
        form [ onSubmit (Just <<< BEditSubmit) ]
        [ table [ class_ "w-100" ]
          [ tbody_
            [ tr_
              [ td [ class_ "w1" ] [ ]
-             , td_ $ guard (bm.bid > 0) [ display_exists ]
+             , td_ [ whenH (bm.bid > 0)
+                       display_exists
+                   ]
              ]
            , tr_
              [ td_ [ label [ for "url" ] [ text "URL" ] ]
@@ -119,7 +123,7 @@ addbmark b' =
          ]
        ]
 
-     display_exists = 
+     display_exists _ = 
        div [ class_ "alert" ]
        [ text "previously saved "
        , span [ class_ "link f7 dib gray pr3" , title (maybe bm.time snd mmoment) ]
@@ -135,7 +139,7 @@ addbmark b' =
          ]
        ]
 
-     display_destroyed = p [ class_ "red"] [text "you killed this bookmark"]
+     display_destroyed _ = p [ class_ "red"] [text "you killed this bookmark"]
 
      editField :: forall a. (a -> EditField) -> a -> Maybe BAction
      editField f = Just <<< BEditField <<< f

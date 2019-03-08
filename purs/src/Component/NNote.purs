@@ -21,7 +21,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
-import Util (_loc, class_, fromNullableStr)
+import Util (_loc, class_, fromNullableStr, ifElseH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
 import Data.Symbol (SProxy(..))
@@ -83,15 +83,14 @@ nnote st' =
 
   render :: NState -> H.ComponentHTML NAction ChildSlots Aff
   render st@{ note, edit_note } =
-    if st.destroyed
-       then display_destroyed
-       else
-        if st.edit
-          then renderNote_edit
-          else renderNote
+    ifElseH st.destroyed
+       display_destroyed
+       (const (ifElseH st.edit
+                 renderNote_edit
+                 renderNote))
     where
 
-      renderNote =
+      renderNote _ =
         div [ id_ (show note.id) , class_ ("note w-100 mw7 pa1 mb2")] $
            [ div [ class_ "display" ] $
              [ div [ class_ ("link f5 lh-title")]
@@ -117,7 +116,7 @@ nnote st' =
              ]
            ]
 
-      renderNote_edit =
+      renderNote_edit _ =
         form [ onSubmit (Just <<< NEditSubmit) ]
           [ p [ class_ "mt2 mb1"] [ text "title:" ]
           , input [ type_ InputText , class_ "title w-100 mb1 pt1 f7 edit_form_input" , name "title"
@@ -142,7 +141,7 @@ nnote st' =
                   ]
           ]
 
-      display_destroyed = p [ class_ "red"] [text "you killed this note"]
+      display_destroyed _ = p [ class_ "red"] [text "you killed this note"]
 
       mmoment n = mmoment8601 n.created
       editField :: forall a. (a -> EditField) -> a -> Maybe NAction
