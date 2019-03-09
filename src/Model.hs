@@ -9,6 +9,7 @@ import qualified Control.Monad.Combinators as PC
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Time.ISO8601 as TI
 import qualified Database.Esqueleto as E
+import Database.Esqueleto.Internal.Sql as E
 import qualified Data.Time as TI
 import ClassyPrelude.Yesod hiding ((||.))
 import Control.Monad.Trans.Maybe
@@ -21,6 +22,7 @@ import Database.Esqueleto hiding ((==.))
 import Pretty
 import System.Directory
 import Types
+import qualified Data.Map.Strict as MS
 
 import ModelCustom
 
@@ -107,6 +109,7 @@ data FilterP
 
 newtype UnreadOnly =
   UnreadOnly { unUnreadOnly :: Bool }
+
   deriving (Eq, Show, Read)
 
 type Limit = Int64
@@ -131,6 +134,13 @@ migrateIndexes =
     , "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)"
     , "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)"
     ]
+
+sqlite_group_concat ::
+     PersistField a
+  => SqlExpr (E.Value a)
+  -> SqlExpr (E.Value a)
+  -> SqlExpr (E.Value Text)
+sqlite_group_concat expr sep = E.unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
 
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
@@ -298,12 +308,9 @@ getNoteList key mquery limit' page =
 
 -- Bookmark Files
 
-bookmarkEntityToTags :: Entity Bookmark -> [Tag] -> [BookmarkTag]
-bookmarkEntityToTags (Entity {entityKey = bookmarkId
-                             ,entityVal = Bookmark {..}}) tags =
-  fmap
-    (\(i, tag) -> BookmarkTag bookmarkUserId tag bookmarkId i)
-    (zip [1 ..] tags)
+mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
+mkBookmarkTags userId bookmarkId tags =
+  (\(i, tag) -> BookmarkTag userId tag bookmarkId i) <$> zip [1 ..] tags
 
 
 fileBookmarkToBookmark :: UserId -> FileBookmark -> IO Bookmark
@@ -319,30 +326,79 @@ fileBookmarkToBookmark user (FileBookmark {..}) = do
       fileBookmarkTime
       fileBookmarkShared
       fileBookmarkToRead
-      False
-      Nothing
+      (fromMaybe False fileBookmarkSelected)
+      fileBookmarkArchiveHref
+
+bookmarkTofileBookmark :: Bookmark -> Text -> FileBookmark
+bookmarkTofileBookmark (Bookmark {..}) tags =
+    FileBookmark
+      bookmarkHref
+      bookmarkDescription
+      bookmarkExtended
+      bookmarkTime
+      bookmarkShared
+      bookmarkToRead
+      (Just bookmarkSelected)
+      bookmarkArchiveHref
+      tags
 
 
 insertFileBookmarks :: Key User -> FilePath -> DB ()
 insertFileBookmarks userId bookmarkFile = do
   mfmarks <- liftIO $ readFileBookmarks bookmarkFile
   case mfmarks of
-      Left e -> print e
-      Right fmarks -> do
-        bookmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
-        mbookmarkIds <- mapM insertUnique bookmarks 
-
-        let bookmarkTags =
-              concatMap (uncurry bookmarkEntityToTags) $
-              catMaybes $
-              zipWith3 (\mk v p -> map (\k -> (Entity k v, fileBookmarkTags p)) mk)
-                mbookmarkIds
-                bookmarks
-                fmarks
-        void $ mapM insertUnique bookmarkTags
+    Left e -> print e
+    Right fmarks -> do
+      bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
+      mbids <- mapM insertUnique bmarks
+      void $
+        mapM insertUnique $
+        concatMap (uncurry (mkBookmarkTags userId)) $
+        catMaybes $
+        zipWith
+          (\mbid tags -> ((, tags) <$> mbid))
+          mbids
+          (extractTags <$> fmarks)
   where
-    readFileBookmarks :: MonadIO m => FilePath -> m (Either String [FileBookmark])
-    readFileBookmarks fpath = pure . A.eitherDecode' . fromStrict =<< readFile fpath
+    extractTags = words . fileBookmarkTags
+
+readFileBookmarks :: MonadIO m => FilePath -> m (Either String [FileBookmark])
+readFileBookmarks fpath =
+  pure . A.eitherDecode' . fromStrict =<< readFile fpath
+
+exportFileBookmarks :: Key User -> FilePath -> DB ()
+exportFileBookmarks user fpath = do
+    liftIO . A.encodeFile fpath =<< getFileBookmarks user
+
+getFileBookmarks :: Key User -> DB [FileBookmark]
+getFileBookmarks user = do
+  marks <- allUserBookmarks user
+  pure $ fmap (\(bm, t) -> bookmarkTofileBookmark (entityVal bm) t) marks
+
+-- returns a list of pair of bookmark with tags merged into a string
+allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
+allUserBookmarks user = do
+  bmarks <- bquery
+  tags <- tquery
+  let tagmap = MS.fromList tags
+  pure $ fmap (\bm@(Entity bid _) -> (bm, findWithDefault mempty bid tagmap)) bmarks
+  where
+    bquery :: DB [Entity Bookmark]
+    bquery =
+      select $
+      from $ \b -> do
+        where_ (b ^. BookmarkUserId E.==. val user)
+        orderBy [asc (b ^. BookmarkTime)]
+        pure b
+    tquery :: DB [(Key Bookmark, Text)]
+    tquery =
+      fmap (\(tid, tags) -> (E.unValue tid, E.unValue tags)) <$>
+      (select $
+       from $ \t -> do
+         where_ (t ^. BookmarkTagUserId E.==. val user)
+         E.groupBy (t ^. BookmarkTagBookmarkId)
+         let tags = sqlite_group_concat (t ^. BookmarkTagTag) (E.val " ")
+         pure (t ^. BookmarkTagBookmarkId, tags))
 
 type Tag = Text
 
@@ -528,7 +584,9 @@ data FileBookmark = FileBookmark
   , fileBookmarkTime :: !UTCTime
   , fileBookmarkShared :: !Bool
   , fileBookmarkToRead :: !Bool
-  , fileBookmarkTags :: [Tag]
+  , fileBookmarkSelected :: !(Maybe Bool)
+  , fileBookmarkArchiveHref :: !(Maybe Text)
+  , fileBookmarkTags :: !Text
   } deriving (Show, Eq, Typeable, Ord)
 
 instance FromJSON FileBookmark where
@@ -537,12 +595,32 @@ instance FromJSON FileBookmark where
     o .: "time" <*>
     (boolFromYesNo <$> o .: "shared") <*>
     (boolFromYesNo <$> o .: "toread") <*>
-    (words <$> o .: "tags")
+    (o A..:? "selected") <*>
+    (o A..:? "archive_url") <*>
+    (o .: "tags")
   parseJSON _ = fail "bad parse"
+
+instance ToJSON FileBookmark where
+  toJSON (FileBookmark {..}) =
+    object
+      [ "href" .= toJSON fileBookmarkHref
+      , "description" .= toJSON fileBookmarkDescription
+      , "extended" .= toJSON fileBookmarkExtended
+      , "time" .= toJSON fileBookmarkTime
+      , "shared" .= toJSON (boolToYesNo fileBookmarkShared)
+      , "toread" .= toJSON (boolToYesNo fileBookmarkToRead)
+      , "selected" .= toJSON fileBookmarkSelected
+      , "archive_url" .= toJSON fileBookmarkArchiveHref
+      , "tags" .= toJSON fileBookmarkTags
+      ]
 
 boolFromYesNo :: Text -> Bool
 boolFromYesNo "yes" = True
 boolFromYesNo _ = False
+
+boolToYesNo :: Bool -> Text
+boolToYesNo True = "yes"
+boolToYesNo _ = "no"
 
 -- * FileNotes
 
@@ -563,7 +641,21 @@ instance FromJSON FileNote where
     (readFileNoteTime =<< o .: "updated_at")
   parseJSON _ = fail "bad parse"
 
+instance ToJSON FileNote where
+  toJSON (FileNote {..}) =
+    object
+      [ "id" .= toJSON fileNoteId
+      , "title" .= toJSON fileNoteTitle
+      , "text" .= toJSON fileNoteText
+      , "length" .= toJSON fileNoteLength
+      , "created_at" .= toJSON (showFileNoteTime fileNoteCreatedAt)
+      , "updated_at" .= toJSON (showFileNoteTime fileNoteUpdatedAt)
+      ]
+
 readFileNoteTime
   :: Monad m
   => String -> m UTCTime
 readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
+
+showFileNoteTime :: UTCTime -> String
+showFileNoteTime = formatTime defaultTimeLocale "%F %T"

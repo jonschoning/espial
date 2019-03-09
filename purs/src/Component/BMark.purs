@@ -193,11 +193,7 @@ bmark b' =
      editField f = Just <<< BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
-     shtime = S.take 16 bm.time
-     toTextarea input =
-       S.split (Pattern "\n") input
-       # foldMap (\x -> [br_, text x])
-       # drop 1
+     shtime = S.take 16 bm.time `append` "Z"
 
   handleAction :: BAction -> H.HalogenM BState BAction ChildSlots BMessage Aff Unit
 

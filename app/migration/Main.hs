@@ -8,7 +8,6 @@ import ModelCustom
 
 import qualified Database.Persist as P
 import qualified Database.Persist.Sqlite as P
-
 import ClassyPrelude
 import Lens.Micro
 
@@ -23,6 +22,9 @@ data MigrationOpts
   | DeleteUser { conn :: Text
                , userName :: Text}
   | ImportBookmarks { conn :: Text
+                    , userName :: Text
+                    , bookmarkFile :: FilePath}
+  | ExportBookmarks { conn :: Text
                     , userName :: Text
                     , bookmarkFile :: FilePath}
   | ImportNotes { conn :: Text
@@ -73,6 +75,13 @@ main = do
         muser <- P.getBy (UniqueUserName uname)
         case muser of
           Just (P.Entity uid _) -> insertFileBookmarks uid file
+          Nothing -> liftIO (print (uname ++ "not found"))
+
+    ExportBookmarks conn uname file ->
+      P.runSqlite conn $ do
+        muser <- P.getBy (UniqueUserName uname)
+        case muser of
+          Just (P.Entity uid _) -> exportFileBookmarks uid file
           Nothing -> liftIO (print (uname ++ "not found"))
 
     ImportNotes conn uname dir ->
