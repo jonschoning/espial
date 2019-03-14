@@ -9,10 +9,11 @@ $newline never
     <meta charset="UTF-8">
 
     <title>#{pageTitle pc}
-    <meta name="description" content="">
-    <meta name="author" content="">
-
+    <meta name="description" content="Espial is an open-source, web-based bookmarking server.">
+    <meta name="robots" content="noindex, nofollow, noodp, noydir">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    $maybe sourceCodeUri <- msourceCodeUri
+      <meta name="source" content="#{ sourceCodeUri }">
 
     ^{pageHead pc}
 

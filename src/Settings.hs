@@ -60,6 +60,8 @@ data AppSettings = AppSettings
     -- ^ Host/interface the ekg server should bind to.
     , appEkgPort                :: Maybe Int
     -- ^ Port to listen on
+    , appSourceCodeUri                :: Maybe Text
+    -- ^ Uri to app source code
     }
 
 instance FromJSON AppSettings where
@@ -92,6 +94,7 @@ instance FromJSON AppSettings where
 
         appEkgHost                <- o .:? "ekg-host"
         appEkgPort                <- o .:? "ekg-port"
+        appSourceCodeUri          <- o .:? "source-code-uri"
 
         return AppSettings {..}
 

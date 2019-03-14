@@ -188,3 +188,7 @@ label {
 code, pre {
     font-size:13px;
 }
+
+#content:not([view-rendered]) .view-delay {
+    display: none !important
+}

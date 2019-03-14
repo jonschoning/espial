@@ -381,7 +381,7 @@ allUserBookmarks user = do
   bmarks <- bquery
   tags <- tquery
   let tagmap = MS.fromList tags
-  pure $ fmap (\bm@(Entity bid _) -> (bm, findWithDefault mempty bid tagmap)) bmarks
+  pure $ (\bm@(Entity bid _) -> (bm, findWithDefault mempty bid tagmap)) <$> bmarks
   where
     bquery :: DB [Entity Bookmark]
     bquery =

@@ -15,7 +15,7 @@ import Effect.Class (liftEffect)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Model (Bookmark, Note, AccountSettings)
-import Web.DOM.Element (removeAttribute)
+import Web.DOM.Element (setAttribute)
 import Web.DOM.ParentNode (QuerySelector(..))
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.HTMLElement (toElement)
@@ -33,33 +33,36 @@ renderBookmarks renderElSelector bmarks = do
   HA.runHalogenAff do
     HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
       void $ runUI (blist bmarks) unit el
-      showFooter
+      viewRendered
 
 renderAddForm :: String -> Bookmark -> Effect Unit
 renderAddForm renderElSelector bmark = do
   HA.runHalogenAff do
     HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
-      runUI (addbmark bmark) unit el
+      void $ runUI (addbmark bmark) unit el
+      viewRendered
 
 renderNotes :: String -> Array Note -> Effect Unit
 renderNotes renderElSelector notes = do
   HA.runHalogenAff do
     HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
       void $ runUI (nlist notes) unit el
-      showFooter
+      viewRendered
 
 renderNote :: String -> Note -> Effect Unit
 renderNote renderElSelector note = do
   HA.runHalogenAff do
     HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
       void $ runUI (nnote note) unit el
+      viewRendered
 
 renderAccountSettings :: String -> AccountSettings -> Effect Unit
 renderAccountSettings renderElSelector accountSettings = do
   HA.runHalogenAff do
     HA.selectElement (QuerySelector renderElSelector) >>= traverse_ \el -> do
       void $ runUI (usetting accountSettings) unit el
+      viewRendered
 
-showFooter :: Aff Unit
-showFooter = HA.selectElement (QuerySelector ".user_footer") >>= traverse_ \el ->
-  liftEffect $ removeAttribute "hidden" (toElement el)
+viewRendered :: Aff Unit
+viewRendered = HA.selectElement (QuerySelector "#content") >>= traverse_ \el ->
+  liftEffect $ setAttribute "view-rendered" "" (toElement el) 

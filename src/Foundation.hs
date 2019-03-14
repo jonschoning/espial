@@ -69,6 +69,7 @@ instance Yesod App where
         muser <- (fmap.fmap) snd maybeAuthPair
         mcurrentRoute <- getCurrentRoute
         void $ mapM (incrementRouteEKG req) mcurrentRoute
+        let msourceCodeUri = appSourceCodeUri (appSettings master)
         pc <- widgetToPageContent $ do
             setTitle "Espial"
             addAppScripts
@@ -129,6 +130,7 @@ popupLayout widget = do
     master <- getYesod
     mmsg <- getMessage
     musername <- maybeAuthUsername
+    let msourceCodeUri = appSourceCodeUri (appSettings master)
     pc <- widgetToPageContent $ do
       addAppScripts
       addStylesheet (StaticR css_tachyons_min_css)

@@ -32,3 +32,10 @@
         #{preEscapedToMarkup msg}
 
   ^{widget}
+
+  <footer .view-delay>
+    <div .w-100.mw8.center>
+      <div .footer-links.fr.pv2.ph3.mh1.b>
+        $maybe sourceCodeUri <- msourceCodeUri
+          <a .link title="Source Code" href="#{ sourceCodeUri }" target=_blank>&lt;/&gt;
+    
