@@ -4,7 +4,6 @@ import Prelude hiding (div)
 
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
 import Component.Markdown as Markdown
-import Data.Array (drop, foldMap)
 import Data.Const (Const)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
