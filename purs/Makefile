@@ -7,7 +7,7 @@ install:
 
 build: 
 	@spago build
-	@spago bundle --to dist/bundle.js
+	@spago bundle-app --to dist/bundle.js
 	@npm run parcel-build
 	@rm -f dist/*.gz
 	@gzip -k dist/app.min.map
