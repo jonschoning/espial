@@ -24,7 +24,7 @@ runInputPostJSONResult form = do
   mct <- lookupHeader "content-type"
   case fmap (B8.takeWhile (/= ';')) mct of
     Just "application/json" ->
-      parseJsonBody >>= \case
+      parseCheckJsonBody >>= \case
         A.Success a -> pure $ FormSuccess a
         A.Error e -> pure $ FormFailure [pack e]
     Just "application/x-www-form-urlencoded" ->
