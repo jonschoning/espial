@@ -52,8 +52,8 @@ extra-source-files:
     static/images/bluepin.gif
     static/js/app.min.js
     static/js/app.min.js.gz
-    static/js/app.min.map
-    static/js/app.min.map.gz
+    static/js/app.min.js.map
+    static/js/app.min.js.map.gz
     static/js/html5shiv.min.js
     static/js/html5shiv.min.js.gz
     static/js/js.cookie-2.2.0.min.js
