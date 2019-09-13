@@ -18,6 +18,7 @@
 !/#UserNameP/#SharedP UserSharedR GET
 !/#UserNameP/#FilterP UserFilterR GET
 !/#UserNameP/#TagsP UserTagsR GET
+!/#UserNameP/feed.xml UserFeedR GET
 
 -- settings
 /Settings AccountSettingsR GET

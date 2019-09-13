@@ -1,9 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 module Handler.User where
 
-import Import
 import qualified Data.Text as T
-import Handler.Common (lookupPagingParams)
+import           Handler.Common (lookupPagingParams)
+import           Import
+import           Text.Blaze.Html (toHtml)
+import qualified Text.Blaze.Html5 as H
+import           Yesod.RssFeed
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -35,7 +38,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       isAll = filterp == FilterAll && sharedp == SharedAll && pathtags == []
       queryp = "query" :: Text
   mquery <- lookupGetParam queryp
-  let mqueryp = fmap (\q -> (queryp, q)) mquery 
+  let mqueryp = fmap (\q -> (queryp, q)) mquery
   (bcount, bmarks, alltags) <-
     runDB $
     do Entity userId user <- getBy404 (UniqueUserName uname)
@@ -45,18 +48,58 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        tg <- tagsQuery bm
        pure (cnt, bm, tg)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
-  mroute <- getCurrentRoute 
+  mroute <- getCurrentRoute
   req <- getRequest
   defaultLayout $ do
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
         renderEl = "bookmarks" :: Text
+    rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")
     toWidgetBody [julius|
-        app.dat.bmarks = #{ toJSON $ toBookmarkFormList bmarks alltags } || []; 
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormList bmarks alltags } || [];
         app.dat.isowner = #{ isowner };
         app.userR = "@{UserR unamep}";
     |]
     toWidget [julius|
       PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
+
+bookmarkToRssEntry :: Entity Bookmark -> FeedEntry Text
+bookmarkToRssEntry (Entity entryId entry) =
+  FeedEntry { feedEntryLink = (bookmarkHref entry)
+            , feedEntryUpdated = (bookmarkTime entry)
+            , feedEntryTitle = (bookmarkDescription entry)
+            , feedEntryContent =  (toHtml (bookmarkExtended entry))
+            , feedEntryEnclosure = Nothing
+            }
+
+getUserFeedR :: UserNameP -> Handler RepRss
+getUserFeedR unamep@(UserNameP uname) = do
+  mauthuname <- maybeAuthUsername
+  (limit', page') <- lookupPagingParams
+  let limit = maybe 120 fromIntegral limit'
+      page  = maybe 1   fromIntegral page'
+      queryp = "query" :: Text
+  mquery <- lookupGetParam queryp
+  (bcount, bmarks, alltags) <-
+    runDB $
+    do Entity userId user <- getBy404 (UniqueUserName uname)
+       (cnt, bm) <- bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
+       tg <- tagsQuery bm
+       pure (cnt, bm, tg)
+  let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
+  let entries = map bookmarkToRssEntry bmarks
+  updated <- case maximumMay (map feedEntryUpdated entries) of
+                Nothing -> liftIO $ getCurrentTime
+                Just m ->  return m
+  render <- getUrlRender
+  rssFeedText $ Feed ("espial " <> uname)
+                     (render (UserFeedR unamep))
+                     (render (UserR unamep))
+                     uname
+                     descr
+                     "en"
+                     updated
+                     Nothing
+                     entries
