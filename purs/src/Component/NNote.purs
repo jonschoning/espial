@@ -21,7 +21,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
-import Util (_loc, class_, fromNullableStr, ifElseH)
+import Util (_loc, class_, fromNullableStr, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
 import Data.Symbol (SProxy(..))
@@ -108,18 +108,18 @@ nnote st' =
                    [ text $ if note.shared then "public" else "private" ]
                ]
              ]
-           ]
-           <> -- | Render Action Links
-           [ div [ class_ "edit_links db mt3" ]
-             [ button [ type_ ButtonButton, onClick \_ -> Just (NEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
-             , div [ class_ "delete_link di" ]
-               [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
-               , span ([ class_ ("confirm red" <> guard (not st.deleteAsk) " dn") ] )
-                 [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk false)] [ text "cancel / " ]
-                 , button [ type_ ButtonButton, onClick \_ -> Just NDestroy, class_ "red" ] [ text "destroy" ]
+           , whenH app.dat.isowner $ \_ ->
+               div [ class_ "edit_links db mt3" ]
+                 [ button [ type_ ButtonButton, onClick \_ -> Just (NEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
+                 , div [ class_ "delete_link di" ]
+                   [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
+                   , span ([ class_ ("confirm red" <> guard (not st.deleteAsk) " dn") ] )
+                     [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk false)] [ text "cancel / " ]
+                     , button [ type_ ButtonButton, onClick \_ -> Just NDestroy, class_ "red" ] [ text "destroy" ]
+                     ]
+                   ]
                  ]
-               ]
-             ]
+               
            ]
 
       renderNote_edit _ =
