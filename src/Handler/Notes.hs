@@ -5,30 +5,32 @@ import Import
 import Handler.Common (lookupPagingParams)
 import qualified Data.Aeson as A
 import qualified Data.Text as T
+import           Yesod.RssFeed
+import           Text.Blaze.Html (toHtml)
+import qualified Text.Blaze.Html5 as H
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
-  void requireAuthId
   (limit', page') <- lookupPagingParams
   let queryp = "query" :: Text
   mquery <- lookupGetParam queryp
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
-      mqueryp = fmap (\q -> (queryp, q)) mquery 
-  (bcount, notes) <- 
-    runDB $
-    do Entity userId _ <- getBy404 (UniqueUserName uname)
-       getNoteList userId mquery limit page
+      mqueryp = fmap (\q -> (queryp, q)) mquery
+  (bcount, notes) <- runDB $ do
+    Entity userId _ <- getBy404 (UniqueUserName uname)
+    getNoteList userId mquery limit page
   req <- getRequest
-  mroute <- getCurrentRoute 
+  mroute <- getCurrentRoute
   defaultLayout $ do
+    rssLink (NotesFeedR unamep) "feed"
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
         renderEl = "notes" :: Text
     $(widgetFile "notes")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
-        app.dat.notes = #{ toJSON notes } || []; 
+        app.dat.notes = #{ toJSON notes } || [];
     |]
     toWidget [julius|
       PS['Main'].renderNotes('##{rawJS renderEl}')(app.dat.notes)();
@@ -36,7 +38,6 @@ getNotesR unamep@(UserNameP uname) = do
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
 getNoteR unamep@(UserNameP uname) slug = do
-  void requireAuthId
   let renderEl = "note" :: Text
   note <-
     runDB $
@@ -47,7 +48,7 @@ getNoteR unamep@(UserNameP uname) slug = do
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
-        app.dat.note = #{ toJSON note } || []; 
+        app.dat.note = #{ toJSON note } || [];
     |]
     toWidget [julius|
       PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
@@ -63,7 +64,7 @@ getAddNoteViewR unamep@(UserNameP uname) = do
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
         app.noteR = "@{NoteR unamep (noteSlug (entityVal note))}";
-        app.dat.note = #{ toJSON note } || []; 
+        app.dat.note = #{ toJSON note } || [];
     |]
     toWidget [julius|
       PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
@@ -114,7 +115,7 @@ instance FromJSON NoteForm where parseJSON = A.genericParseJSON gNoteFormOptions
 instance ToJSON NoteForm where toJSON = A.genericToJSON gNoteFormOptions
 
 gNoteFormOptions :: A.Options
-gNoteFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 } 
+gNoteFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
 
 _toNote :: UserId -> NoteForm -> IO Note
 _toNote userId NoteForm {..} = do
@@ -130,3 +131,37 @@ _toNote userId NoteForm {..} = do
       (fromMaybe False _isMarkdown)
       (fromMaybe time (fmap unUTCTimeStr _created))
       (fromMaybe time (fmap unUTCTimeStr _updated))
+
+noteToRssEntry :: UserNameP -> Entity Note -> FeedEntry (Route App)
+noteToRssEntry usernamep (Entity entryId entry) =
+  FeedEntry { feedEntryLink = NoteR usernamep (noteSlug entry)
+            , feedEntryUpdated = (noteUpdated entry)
+            , feedEntryTitle = (noteTitle entry)
+            , feedEntryContent =  (toHtml (noteText entry))
+            , feedEntryEnclosure = Nothing
+            }
+
+getNotesFeedR :: UserNameP -> Handler RepRss
+getNotesFeedR unamep@(UserNameP uname) = do
+  (limit', page') <- lookupPagingParams
+  let queryp = "query" :: Text
+  mquery <- lookupGetParam queryp
+  let limit = maybe 20 fromIntegral limit'
+      page  = maybe 1   fromIntegral page'
+  (bcount, notes) <- runDB $ do
+      Entity userId _ <- getBy404 (UniqueUserName uname)
+      getNoteList userId mquery limit page
+  let (descr :: Html) = toHtml $ H.text (uname <> " notes")
+  let entries = map (noteToRssEntry unamep) notes
+  updated <- case maximumMay (map feedEntryUpdated entries) of
+                Nothing -> liftIO $ getCurrentTime
+                Just m ->  return m
+  rssFeed $ Feed (uname <> " notes")
+    (NotesFeedR unamep)
+    (NotesR unamep)
+    uname
+    descr
+    "en"
+    updated
+    Nothing
+    entries
