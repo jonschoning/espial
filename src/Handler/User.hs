@@ -81,15 +81,16 @@ getUserFeedR unamep@(UserNameP uname) = do
   let limit = maybe 120 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       queryp = "query" :: Text
+      isowner = maybe False (== uname) mauthuname
   mquery <- lookupGetParam queryp
-  (bcount, bmarks, alltags) <-
+  (_, bmarks) <-
     runDB $
     do Entity userId user <- getBy404 (UniqueUserName uname)
-       (cnt, bm) <- bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
-       tg <- tagsQuery bm
-       pure (cnt, bm, tg)
+       when (not isowner && userPrivacyLock user)
+         (redirect (AuthR LoginR))
+       bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
-  let entries = map bookmarkToRssEntry bmarks
+      entries = map bookmarkToRssEntry bmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m

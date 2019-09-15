@@ -11,16 +11,19 @@ import qualified Text.Blaze.Html5 as H
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
-  muserid <- maybeAuthId
+  mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
-  let queryp = "query" :: Text
+  let queryp = "query"
   mquery <- lookupGetParam queryp
   let limit = maybe 20 fromIntegral limit'
-      page  = maybe 1   fromIntegral page'
+      page  = maybe 1  fromIntegral page'
       mqueryp = fmap (\q -> (queryp, q)) mquery
+      isowner = maybe False (== uname) mauthuname
   (bcount, notes) <- runDB $ do
-    Entity userId _ <- getBy404 (UniqueUserName uname)
-    let sharedp = if muserid == Just userId then SharedAll else SharedPublic
+    Entity userId user <- getBy404 (UniqueUserName uname)
+    let sharedp = if isowner then SharedAll else SharedPublic
+    when (not isowner && userPrivacyLock user)
+      (redirect (AuthR LoginR))
     getNoteList userId mquery sharedp limit page
   req <- getRequest
   mroute <- getCurrentRoute
@@ -40,12 +43,17 @@ getNotesR unamep@(UserNameP uname) = do
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
 getNoteR unamep@(UserNameP uname) slug = do
+  mauthuname <- maybeAuthUsername
   let renderEl = "note" :: Text
+      isowner = maybe False (== uname) mauthuname
   note <-
     runDB $
-    do Entity userId _ <- getBy404 (UniqueUserName uname)
+    do Entity userId user <- getBy404 (UniqueUserName uname)
        mnote <- getNote userId slug
-       maybe notFound pure mnote
+       note <- maybe notFound pure mnote
+       when (not isowner && (userPrivacyLock user || (not . noteShared . entityVal) note))
+         (redirect (AuthR LoginR))
+       pure note
   defaultLayout $ do
     $(widgetFile "note")
     toWidgetBody [julius|
@@ -147,16 +155,19 @@ noteToRssEntry usernamep (Entity entryId entry) =
 
 getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
+  mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
-  let queryp = "query" :: Text
-  mquery <- lookupGetParam queryp
+  mquery <- lookupGetParam "query"
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
-  (bcount, notes) <- runDB $ do
-      Entity userId _ <- getBy404 (UniqueUserName uname)
+      isowner = maybe False (== uname) mauthuname
+  (_, notes) <- runDB $ do
+      Entity userId user <- getBy404 (UniqueUserName uname)
+      when (not isowner && userPrivacyLock user)
+        (redirect (AuthR LoginR))
       getNoteList userId mquery SharedPublic limit page
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
-  let entries = map (noteToRssEntry unamep) notes
+      entries = map (noteToRssEntry unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m
