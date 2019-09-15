@@ -26,7 +26,7 @@ import qualified Data.Map.Strict as MS
 
 import ModelCustom
 
-share [mkPersist sqlSettings, mkDeleteCascade sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase| 
+share [mkPersist sqlSettings, mkDeleteCascade sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase|
 User json
   Id Int64
   name Text
@@ -72,6 +72,7 @@ Note json
   title Text
   text Text
   isMarkdown Bool
+  shared Bool default=False
   created UTCTime
   updated UTCTime
   deriving Show Eq Typeable Ord
@@ -151,7 +152,7 @@ authenticatePassword username password = do
       if validatePasswordHash (userPasswordHash (entityVal dbuser)) password
         then return (Just dbuser)
         else return Nothing
-  
+
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
 getUserByName (UserNameP uname) = do
   selectFirst [UserName ==. uname] []
@@ -187,7 +188,7 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
                 expr &&. (exists $   -- each tag becomes an exists constraint
                           from $ \t ->
                           where_ (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId &&.
-                                 (t ^. BookmarkTagTag `E.like` val tag)))) 
+                                 (t ^. BookmarkTagTag `E.like` val tag))))
           (b ^. BookmarkUserId E.==. val userId)
           tags
       case sharedp of
@@ -242,7 +243,7 @@ parseSearchQuery toExpr =
         termE = toExpr <$> (fieldTerm <|> quotedTerm <|> simpleTerm)
         fieldTerm = concat <$> sequence [simpleTerm, P.string ":", quotedTerm <|> simpleTerm]
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
-        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|') 
+        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|')
 
 parseTimeText :: (TI.ParseTime t, Monad m, Alternative m) => Text -> m t
 parseTimeText t =
@@ -267,13 +268,13 @@ withTags key = selectList [BookmarkTagBookmarkId ==. key] [Asc BookmarkTagSeq]
 
 -- Note List Query
 
-  
+
 getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
   selectFirst [NoteUserId ==. userKey, NoteSlug ==. slug] []
 
-getNoteList :: Key User -> Maybe Text -> Limit -> Page -> DB (Int, [Entity Note])
-getNoteList key mquery limit' page =
+getNoteList :: Key User -> Maybe Text -> SharedP -> Limit -> Page -> DB (Int, [Entity Note])
+getNoteList key mquery sharedp limit' page =
   (,) -- total count
   <$> fmap (sum . fmap E.unValue)
       (select $
@@ -292,6 +293,10 @@ getNoteList key mquery limit' page =
       where_ $ (b ^. NoteUserId E.==. val key)
       -- search
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
+      case sharedp of
+        SharedAll -> pure ()
+        SharedPublic ->  where_ (b ^. NoteShared E.==. val True)
+        SharedPrivate -> where_ (b ^. NoteShared E.==. val False)
 
     toLikeExpr :: E.SqlExpr (Entity Note) -> Text -> E.SqlExpr (E.Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
@@ -415,6 +420,7 @@ fileNoteToNote user (FileNote {..} ) = do
       fileNoteTitle
       fileNoteText
       False
+      False
       fileNoteCreatedAt
       fileNoteUpdatedAt
 
@@ -425,19 +431,19 @@ insertDirFileNotes userId noteDirectory = do
       Left e -> print e
       Right fnotes -> do
         notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
-        void $ mapM insertUnique notes 
+        void $ mapM insertUnique notes
   where
     readFileNotes :: MonadIO m => FilePath -> m (Either String [FileNote])
     readFileNotes fdir = do
       files <- liftIO (listDirectory fdir)
-      noteBSS <- mapM (readFile . (fdir </>)) files 
-      pure (mapM (A.eitherDecode' . fromStrict) noteBSS) 
+      noteBSS <- mapM (readFile . (fdir </>)) files
+      pure (mapM (A.eitherDecode' . fromStrict) noteBSS)
 
 -- AccountSettingsForm
 data AccountSettingsForm = AccountSettingsForm
-  { _privateDefault :: Bool 
-  , _archiveDefault :: Bool 
-  , _privacyLock :: Bool 
+  { _privateDefault :: Bool
+  , _archiveDefault :: Bool
+  , _privacyLock :: Bool
   } deriving (Show, Eq, Read, Generic)
 
 instance FromJSON AccountSettingsForm where parseJSON = A.genericParseJSON gDefaultFormOptions
@@ -479,7 +485,7 @@ instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultForm
 instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
 
 gDefaultFormOptions :: A.Options
-gDefaultFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 } 
+gDefaultFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
 
 toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm]
 toBookmarkFormList bs as = do
@@ -533,7 +539,7 @@ upsertBookmark:: Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult,
 upsertBookmark mbid bm tags = do
   res <- case mbid of
     Just bid -> do
-      get bid >>= \case 
+      get bid >>= \case
         Just prev_bm -> replaceBookmark bid prev_bm
         _ -> fail "not found"
     Nothing -> do
@@ -542,7 +548,7 @@ upsertBookmark mbid bm tags = do
         _ -> (Created,) <$> insert bm
   insertTags (bookmarkUserId bm) (snd res)
   pure res
-  where 
+  where
     prepareReplace prev_bm = do
       if (bookmarkHref bm /= bookmarkHref prev_bm)
         then bm { bookmarkArchiveHref = Nothing }
@@ -567,7 +573,7 @@ upsertNote:: Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
 upsertNote mnid bmark@Note{..} = do
   case mnid of
     Just nid -> do
-      get nid >>= \case 
+      get nid >>= \case
         Just _ -> do
           replace nid bmark
           pure (Updated, nid)

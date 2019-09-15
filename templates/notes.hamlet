@@ -2,6 +2,10 @@
   <div .w-100.mw8.center>
     <div .fr.nt1 style="margin-bottom:.7rem">
       ^{search}
+    <div .di>
+      <div .fr.f6.pr3.dib.mb2>
+          <a .link.gold.hover-orange
+             href="@{NotesFeedR unamep}">RSS
 
     <span .db .mb3>#{T.append "" (maybe "You have" (const "Found") mquery)} #{bcount} notes:
 

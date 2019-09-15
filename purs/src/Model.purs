@@ -34,6 +34,7 @@ type Note =
   , text :: String
   , length :: Int
   , isMarkdown :: Boolean
+  , shared :: Boolean
   , created :: String
   , updated :: String
   }

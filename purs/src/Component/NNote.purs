@@ -51,11 +51,12 @@ _edit_note = lens _.edit_note (_ { edit_note = _ })
 _edit :: Lens' NState Boolean
 _edit = lens _.edit (_ { edit = _ })
 
--- | FormField Edits 
+-- | FormField Edits
 data EditField
   = Etitle String
   | Etext String
   | EisMarkdown Boolean
+  | Eshared Boolean
 
 _markdown = SProxy :: SProxy "markdown"
 
@@ -99,8 +100,13 @@ nnote st' =
              , if note.isMarkdown
                then div [ class_ "description mt1" ] [ HH.slot _markdown unit Markdown.component note.text absurd ]
                else div [ class_ "description mt1 mid-gray" ] (toTextarea note.text)
-             , div [ class_ "link f7 dib gray w4", title (maybe note.created snd (mmoment note)) ]
-               [ text (maybe " " fst (mmoment note)) ]
+             , div [ class_ "link f7 dib gray w4"]
+                 [ span [title (maybe note.created snd (mmoment note))]
+                   [text (maybe " " fst (mmoment note))]
+                 , text " - "
+                 , span [ class_ ("gray")]
+                   [ text $ if note.shared then "public" else "private" ]
+               ]
              ]
            ]
            <> -- | Render Action Links
@@ -111,7 +117,7 @@ nnote st' =
                , span ([ class_ ("confirm red" <> guard (not st.deleteAsk) " dn") ] )
                  [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk false)] [ text "cancel / " ]
                  , button [ type_ ButtonButton, onClick \_ -> Just NDestroy, class_ "red" ] [ text "destroy" ]
-                 ] 
+                 ]
                ]
              ]
            ]
@@ -134,9 +140,20 @@ nnote st' =
              , label [ for "edit_ismarkdown" , class_ "mr2" ] [ text "use markdown?" ]
              , br_
             ]
-          , input [ type_ InputSubmit , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "save" ]
+          , div [ class_ "edit_form_checkboxes mb3"]
+            [ input [ type_ InputCheckbox , class_ "is-markdown pointer" , id_ "edit_shared", name "shared"
+                    , checked (edit_note.shared) , onChecked (editField Eshared) ]
+            , text " "
+            , label [ for "edit_shared" , class_ "mr2" ] [ text "public?" ]
+            , br_
+            ]
+          , input [ type_ InputSubmit
+                  , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+                  , value "save" ]
           , text " "
-          , input [ type_ InputReset , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "cancel"
+          , input [ type_ InputReset
+                  , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+                  , value "cancel"
                   , onClick \_ -> Just (NEdit false)
                   ]
           ]
@@ -161,6 +178,7 @@ nnote st' =
       Etitle e -> _ { title = e }
       Etext e -> _ { text = e }
       EisMarkdown e -> _ { isMarkdown = e }
+      Eshared e -> _ { shared = e }
 
   -- | Delete
   handleAction (NDeleteAsk e) = do

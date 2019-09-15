@@ -31,6 +31,9 @@ $maybe route <- mroute
             ‧  
             <a .link.silver.hover-blue :filterp == FilterStarred:.nav-active 
                href="@{UserFilterR unamep FilterStarred}">starred
+        <div .fr.f6.pr3.dib.mb2>
+            <a .link.gold.hover-orange
+               href="@{UserFeedR unamep}">RSS
   
       <div .cf>
       

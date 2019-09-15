@@ -48,19 +48,23 @@ nlist st' =
   render st@{ notes } =
     HH.div_ (map renderNote notes)
     where
-      renderNote bm =
-        div [ id_ (show bm.id) , class_ ("note w-100 mw7 pa1 mb2")] $
+      renderNote note =
+        div [ id_ (show note.id)
+            , class_ ("note w-100 mw7 pa1 mb2"
+                     <> if note.shared then "" else " private")] $
            [ div [ class_ "display" ] $
-             [ a [ href (linkToFilterSingle bm.slug), class_ ("link f5 lh-title")]
-               [ text $ if S.null bm.title then "[no title]" else bm.title ]
+             [ a [ href (linkToFilterSingle note.slug), class_ ("link f5 lh-title")]
+               [ text $ if S.null note.title then "[no title]" else note.title ]
              , br_
-             , div [ class_ "description mt1 mid-gray" ] (toTextarea (S.take 200 bm.text))
-             , a [ class_ "link f7 dib gray w4", title (maybe bm.created snd (mmoment bm)) , href (linkToFilterSingle bm.slug) ]
-               [ text (maybe " " fst (mmoment bm)) ]
+             , div [ class_ "description mt1 mid-gray" ] (toTextarea (S.take 200 note.text))
+             ,  a [ class_ "link f7 dib gray w4"
+                  , title (maybe note.created snd (mmoment note))
+                  , href (linkToFilterSingle note.slug)]
+                [text (maybe " " fst (mmoment note))]
              ]
            ]
 
-  mmoment bm = mmoment8601 bm.created
+  mmoment note = mmoment8601 note.created
   linkToFilterSingle slug = fromNullableStr app.userR <> "/notes/" <> slug
   toTextarea input =
     S.split (Pattern "\n") input
