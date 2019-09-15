@@ -14,43 +14,37 @@ module Application
   , db
   ) where
 
-import Control.Monad.Logger (liftLoc, runLoggingT)
-import Database.Persist.Sqlite
-       (createSqlitePool, sqlDatabase, sqlPoolSize)
-import Import
-import Yesod.Auth (getAuth)
-import Language.Haskell.TH.Syntax (qLocation)
-import Lens.Micro
-import Network.HTTP.Client.TLS
-import Network.Wai (Middleware)
-import Network.Wai.Middleware.Autohead
-import Network.Wai.Middleware.AcceptOverride
-import Network.Wai.Middleware.Gzip
-import Network.Wai.Middleware.MethodOverride
-import Network.Wai.Handler.Warp
-       (Settings, defaultSettings, defaultShouldDisplayException,
-        runSettings, setHost, setOnException, setPort, getPort)
-import Network.Wai.Middleware.RequestLogger
-       (Destination(Logger), IPAddrSource(..), OutputFormat(..),
-        destination, mkRequestLogger, outputFormat)
-import System.Log.FastLogger
-       (defaultBufSize, newStdoutLoggerSet, toLogStr)
+import           Control.Monad.Logger (liftLoc, runLoggingT)
+import           Database.Persist.Sqlite (createSqlitePool, runSqlPool, sqlDatabase, sqlPoolSize)
+import           Import
+import           Language.Haskell.TH.Syntax (qLocation)
+import           Lens.Micro
+import           Network.HTTP.Client.TLS
+import           Network.Wai (Middleware)
+import           Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, runSettings, setHost, setOnException, setPort, getPort)
+import           Network.Wai.Middleware.AcceptOverride
+import           Network.Wai.Middleware.Autohead
+import           Network.Wai.Middleware.Gzip
+import           Network.Wai.Middleware.MethodOverride
+import           Network.Wai.Middleware.RequestLogger (Destination(Logger), IPAddrSource(..), OutputFormat(..), destination, mkRequestLogger, outputFormat)
+import           System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)
+import           Yesod.Auth (getAuth)
 
 import qualified Control.Monad.Metrics as MM
-import qualified Network.Wai.Metrics   as WM
-import qualified System.Metrics        as EKG
+import qualified Network.Wai.Metrics as WM
+import qualified System.Metrics as EKG
 import qualified System.Remote.Monitoring as EKG
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Common
-import Handler.Home
-import Handler.User
-import Handler.AccountSettings
-import Handler.Add
-import Handler.Edit
-import Handler.Notes
-import Handler.Docs
+import           Handler.Common
+import           Handler.Home
+import           Handler.User
+import           Handler.AccountSettings
+import           Handler.Add
+import           Handler.Edit
+import           Handler.Notes
+import           Handler.Docs
 
 mkYesodDispatch "App" resourcesApp
 
@@ -74,9 +68,9 @@ makeFoundation appSettings = do
     createSqlitePool
       (sqlDatabase (appDatabaseConf appSettings))
       (sqlPoolSize (appDatabaseConf appSettings))
-  -- runLoggingT
-  --   (runSqlPool runMigrations pool)
-  --   logFunc
+  runLoggingT
+    (runSqlPool runMigrations pool)
+    logFunc
   return (mkFoundation pool)
 
 makeApplication :: App -> IO Application

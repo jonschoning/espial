@@ -11,6 +11,7 @@ import qualified Text.Blaze.Html5 as H
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
+  muserid <- maybeAuthId
   (limit', page') <- lookupPagingParams
   let queryp = "query" :: Text
   mquery <- lookupGetParam queryp
@@ -19,7 +20,8 @@ getNotesR unamep@(UserNameP uname) = do
       mqueryp = fmap (\q -> (queryp, q)) mquery
   (bcount, notes) <- runDB $ do
     Entity userId _ <- getBy404 (UniqueUserName uname)
-    getNoteList userId mquery limit page
+    let sharedp = if muserid == Just userId then SharedAll else SharedPublic
+    getNoteList userId mquery sharedp limit page
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout $ do
@@ -58,7 +60,7 @@ getAddNoteViewR :: UserNameP -> Handler Html
 getAddNoteViewR unamep@(UserNameP uname) = do
   userId <- requireAuthId
   let renderEl = "note" :: Text
-  note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId (NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+  note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId (NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
   defaultLayout $ do
     $(widgetFile "note")
     toWidgetBody [julius|
@@ -107,6 +109,7 @@ data NoteForm = NoteForm
   , _title :: Maybe Text
   , _text :: Maybe Textarea
   , _isMarkdown :: Maybe Bool
+  , _shared :: Maybe Bool
   , _created :: Maybe UTCTimeStr
   , _updated :: Maybe UTCTimeStr
   } deriving (Show, Eq, Read, Generic)
@@ -129,6 +132,7 @@ _toNote userId NoteForm {..} = do
       (fromMaybe "" _title)
       (maybe "" unTextarea _text)
       (fromMaybe False _isMarkdown)
+      (fromMaybe False _shared)
       (fromMaybe time (fmap unUTCTimeStr _created))
       (fromMaybe time (fmap unUTCTimeStr _updated))
 
@@ -150,7 +154,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
       page  = maybe 1   fromIntegral page'
   (bcount, notes) <- runDB $ do
       Entity userId _ <- getBy404 (UniqueUserName uname)
-      getNoteList userId mquery limit page
+      getNoteList userId mquery SharedPublic limit page
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
   let entries = map (noteToRssEntry unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
