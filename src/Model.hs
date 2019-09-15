@@ -535,12 +535,15 @@ fetchBookmarkByUrl userId murl = runMaybeT $ do
 
 data UpsertResult = Created | Updated
 
-upsertBookmark:: Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult, Key Bookmark)
-upsertBookmark mbid bm tags = do
+upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult, Key Bookmark)
+upsertBookmark userId mbid bm tags = do
   res <- case mbid of
     Just bid -> do
       get bid >>= \case
-        Just prev_bm -> replaceBookmark bid prev_bm
+        Just prev_bm -> do
+          when (userId /= bookmarkUserId prev_bm)
+            (fail "unauthorized")
+          replaceBookmark bid prev_bm
         _ -> fail "not found"
     Nothing -> do
       getBy (UniqueUserHref (bookmarkUserId bm) (bookmarkHref bm)) >>= \case
@@ -559,9 +562,9 @@ upsertBookmark mbid bm tags = do
       pure (Updated, bid)
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId ==. bid]
-    insertTags userId bid' =
+    insertTags userId' bid' =
       for_ (zip [1 ..] tags) $
-      \(i, tag) -> void $ insert $ BookmarkTag userId tag bid' i
+      \(i, tag) -> void $ insert $ BookmarkTag userId' tag bid' i
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl = do
@@ -569,17 +572,19 @@ updateBookmarkArchiveUrl userId bid marchiveUrl = do
     [BookmarkUserId ==. userId, BookmarkId ==. bid]
     [BookmarkArchiveHref CP.=. marchiveUrl]
 
-upsertNote:: Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
-upsertNote mnid bmark@Note{..} = do
+upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
+upsertNote userId mnid note = do
   case mnid of
     Just nid -> do
       get nid >>= \case
-        Just _ -> do
-          replace nid bmark
+        Just note' -> do
+          when (userId /= (noteUserId note'))
+            (fail "unauthorized")
+          replace nid note
           pure (Updated, nid)
         _ -> fail "not found"
     Nothing -> do
-      (Created,) <$> insert bmark
+      (Created,) <$> insert note
 
 -- * FileBookmarks
 

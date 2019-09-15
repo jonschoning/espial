@@ -58,7 +58,7 @@ _handleFormSuccess :: BookmarkForm -> Handler (UpsertResult, Key Bookmark)
 _handleFormSuccess bookmarkForm = do
   (userId, user) <- requireAuthPair
   bm <- liftIO $ _toBookmark userId bookmarkForm
-  (res, kbid) <- runDB (upsertBookmark mkbid bm tags)
+  (res, kbid) <- runDB (upsertBookmark userId mkbid bm tags)
   whenM (shouldArchiveBookmark user kbid) $
     void $ async (archiveBookmarkUrl kbid (unpack (bookmarkHref bm)))
   pure (res, kbid)

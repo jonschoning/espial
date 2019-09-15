@@ -36,6 +36,7 @@ getNotesR unamep@(UserNameP uname) = do
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
         app.dat.notes = #{ toJSON notes } || [];
+        app.dat.isowner = #{ isowner };
     |]
     toWidget [julius|
       PS['Main'].renderNotes('##{rawJS renderEl}')(app.dat.notes)();
@@ -59,6 +60,7 @@ getNoteR unamep@(UserNameP uname) slug = do
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
         app.dat.note = #{ toJSON note } || [];
+        app.dat.isowner = #{ isowner };
     |]
     toWidget [julius|
       PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
@@ -107,7 +109,7 @@ _handleFormSuccess :: NoteForm -> Handler (UpsertResult, Key Note)
 _handleFormSuccess noteForm = do
   userId <- requireAuthId
   note <- liftIO $ _toNote userId noteForm
-  runDB (upsertNote knid note)
+  runDB (upsertNote userId knid note)
   where
     knid = NoteKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
 
