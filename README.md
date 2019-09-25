@@ -16,6 +16,10 @@ https://esp.ae8.org/u:demo
 
 ![jpg](https://i.imgur.com/XikHLua.png)
 
+## Docker Setup
+
+see https://github.com/jonschoning/espial-docker
+
 ## Server Setup (from source)
 
 1. [Install Stack](https://haskell-lang.org/get-started)
