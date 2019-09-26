@@ -22,8 +22,8 @@ see https://github.com/jonschoning/espial-docker
 
 ## Server Setup (from source)
 
-1. [Install Stack](https://haskell-lang.org/get-started)
-	- On POSIX systems, this is usually `curl -sSL https://get.haskellstack.org/ | sh`
+1. Install the Stack executable here:
+    - https://tech.fpcomplete.com/haskell/get-started
 
 2. Build executables
  
