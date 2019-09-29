@@ -153,6 +153,7 @@ noteToRssEntry usernamep (Entity entryId entry) =
             , feedEntryTitle = (noteTitle entry)
             , feedEntryContent =  (toHtml (noteText entry))
             , feedEntryEnclosure = Nothing
+            , feedEntryCategories = []
             }
 
 getNotesFeedR :: UserNameP -> Handler RepRss

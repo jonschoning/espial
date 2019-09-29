@@ -7,6 +7,7 @@ import           Import
 import           Text.Blaze.Html (toHtml)
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
+import qualified Database.Esqueleto as E
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -65,14 +66,22 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
 
-bookmarkToRssEntry :: Entity Bookmark -> FeedEntry Text
-bookmarkToRssEntry (Entity entryId entry) =
+bookmarkToRssEntry :: (Entity Bookmark,[Text]) -> FeedEntry Text
+bookmarkToRssEntry ((Entity entryId entry), tags) =
   FeedEntry { feedEntryLink = (bookmarkHref entry)
             , feedEntryUpdated = (bookmarkTime entry)
             , feedEntryTitle = (bookmarkDescription entry)
             , feedEntryContent =  (toHtml (bookmarkExtended entry))
+            , feedEntryCategories = map (EntryCategory Nothing Nothing) tags
             , feedEntryEnclosure = Nothing
             }
+
+toBookmarkWithTagsList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [(Entity Bookmark, [Text])]
+toBookmarkWithTagsList bs as = do
+  b <- bs
+  let bid = E.entityKey b
+  let btags = filter ((==) bid . bookmarkTagBookmarkId . E.entityVal) as
+  pure $ (b, map (bookmarkTagTag . E.entityVal) btags)
 
 getUserFeedR :: UserNameP -> Handler RepRss
 getUserFeedR unamep@(UserNameP uname) = do
@@ -83,14 +92,17 @@ getUserFeedR unamep@(UserNameP uname) = do
       queryp = "query" :: Text
       isowner = maybe False (== uname) mauthuname
   mquery <- lookupGetParam queryp
-  (_, bmarks) <-
+  (_, bmarks, alltags) <-
     runDB $
     do Entity userId user <- getBy404 (UniqueUserName uname)
        when (not isowner && userPrivacyLock user)
          (redirect (AuthR LoginR))
-       bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
+       (cnt, bm) <- bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
+       tg <- tagsQuery bm
+       pure (cnt, bm, tg)
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
-      entries = map bookmarkToRssEntry bmarks
+      entriesWithTags = toBookmarkWithTagsList bmarks alltags
+      entries = map bookmarkToRssEntry entriesWithTags
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m
