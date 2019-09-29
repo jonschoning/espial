@@ -32,6 +32,13 @@ packages:
       sha256: 99366b831109417cd8e739fb45e9fd214cb79f28a507f8154e5528120042d0ac
   original:
     hackage: wai-middleware-metrics-0.2.4
+- completed:
+    hackage: yesod-newsfeed-1.7.0.0@sha256:ba49f9af47fe96c521ed889bf041c559b4bddb60a81f385449f7557f8f4aaef2,1345
+    pantry-tree:
+      size: 488
+      sha256: 96027436cc6dc07bca3f691f2d17a5b3993e980f73076c7b1b4d9c5c3ac5cb86
+  original:
+    hackage: yesod-newsfeed-1.7.0.0
 snapshots:
 - completed:
     size: 523878
