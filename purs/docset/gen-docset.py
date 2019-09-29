@@ -12,7 +12,7 @@ from html import unescape
 from bs4 import BeautifulSoup
 
 class Generator:
-	GENERATED_DOCS = '../generated-docs'
+	GENERATED_DOCS = '../generated-docs/html'
 	OUTPUT = 'purescript-local.docset'
 
 	def documents_path(self, *paths):
