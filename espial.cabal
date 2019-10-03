@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: da944088abb7ae887d67efd710c100bdbd5587072c6ddcfdc5d05392e7509d85
+-- hash: a1c4f3fb35a54693a90df55afc50d56a7f642b99e7cd0ca995512c3c528c69f9
 
 name:           espial
 version:        0.0.8
@@ -180,7 +180,7 @@ library
     , yesod-auth >=1.6 && <1.7
     , yesod-core >=1.6 && <1.7
     , yesod-form >=1.6 && <1.7
-    , yesod-newsfeed >=1.6 && <1.7
+    , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.7
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs -O0
@@ -256,7 +256,7 @@ executable espial
     , yesod-auth >=1.6 && <1.7
     , yesod-core >=1.6 && <1.7
     , yesod-form >=1.6 && <1.7
-    , yesod-newsfeed >=1.6 && <1.7
+    , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.7
   if flag(library-only)
     buildable: False
@@ -329,7 +329,7 @@ executable migration
     , yesod-auth >=1.6 && <1.7
     , yesod-core >=1.6 && <1.7
     , yesod-form >=1.6 && <1.7
-    , yesod-newsfeed >=1.6 && <1.7
+    , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.7
   if flag(library-only)
     buildable: False
@@ -406,7 +406,7 @@ test-suite test
     , yesod-auth >=1.6 && <1.7
     , yesod-core >=1.6 && <1.7
     , yesod-form >=1.6 && <1.7
-    , yesod-newsfeed >=1.6 && <1.7
+    , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.7
     , yesod-test
   default-language: Haskell2010
