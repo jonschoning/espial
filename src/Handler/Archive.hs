@@ -42,7 +42,7 @@ archiveBookmarkUrl kbid url =
         case status of
           s | s == NH.status200 ->
             for_ (lookup "Refresh" headers >>= _parseRefreshHeaderUrl) updateArchiveUrl
-          s | s == NH.status302 -> 
+          s | s == NH.status302 || s == NH.status307 -> 
             for_ (lookup "Location" headers) (updateArchiveUrl . decodeUtf8)
           _ -> $(logError) (pack (show res)))
   `catch` (\(e::SomeException) -> ($(logError) $ (pack.show) e) >> throwIO e)
