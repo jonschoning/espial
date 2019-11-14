@@ -2,7 +2,7 @@ module App where
 
 import Prelude
 
-import Affjax (Response, ResponseFormatError)
+import Affjax (Response, Error)
 import Affjax (defaultRequest) as AX
 import Affjax as Ax
 import Affjax.RequestBody as AXReq
@@ -34,28 +34,28 @@ toggleStar bid action = do
   let path = "bm/" <> show bid <> "/" <> show action
   void (fetchUrlEnc POST path Nothing AXRes.ignore)
 
-destroy :: Int -> Aff (Response (Either ResponseFormatError Unit))
+destroy :: Int -> Aff (Either Error (Response Unit))
 destroy bid =
   fetchUrlEnc DELETE ("bm/" <> show bid) Nothing AXRes.ignore
 
-markRead :: Int -> Aff (Response (Either ResponseFormatError Unit))
+markRead :: Int -> Aff (Either Error (Response Unit))
 markRead bid = do
   let path = "bm/" <> show bid <> "/read"
   fetchUrlEnc POST path Nothing AXRes.ignore
 
-editBookmark :: Bookmark -> Aff (Response (Either ResponseFormatError Unit))
+editBookmark :: Bookmark -> Aff (Either Error (Response Unit))
 editBookmark bm =  do
     fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.ignore
 
-editNote :: Note -> Aff (Response (Either ResponseFormatError Json))
+editNote :: Note -> Aff (Either Error (Response Json))
 editNote bm =  do
     fetchJson POST "api/note/add" (Just (Note' bm)) AXRes.json
 
-destroyNote :: Int -> Aff (Response (Either ResponseFormatError Unit))
+destroyNote :: Int -> Aff (Either Error (Response Unit))
 destroyNote nid =  do
   fetchUrlEnc DELETE ("api/note/" <> show nid) Nothing AXRes.ignore
 
-editAccountSettings :: AccountSettings -> Aff (Response (Either ResponseFormatError Unit))
+editAccountSettings :: AccountSettings -> Aff (Either Error (Response Unit))
 editAccountSettings us =  do
     fetchJson POST "api/accountSettings" (Just (AccountSettings' us)) AXRes.ignore
 
@@ -73,7 +73,7 @@ fetchJson
   -> String
   -> Maybe b
   -> AXRes.ResponseFormat a
-  -> Aff (Response (Either ResponseFormatError a))
+  -> Aff (Either Error (Response a))
 fetchJson method path content rt =
     fetchPath method path [ContentType applicationJSON] (AXReq.string <<< J.writeJSON <$> content) rt
 
@@ -83,7 +83,7 @@ fetchUrlEnc
   -> String
   -> Maybe FormURLEncoded
   -> AXRes.ResponseFormat a
-  -> Aff (Response (Either ResponseFormatError a))
+  -> Aff (Either Error (Response a))
 fetchUrlEnc method path content rt =
     fetchPath method path [ContentType applicationFormURLEncoded] (AXReq.FormURLEncoded <$> content) rt
 
@@ -94,7 +94,7 @@ fetchPath
   -> Array RequestHeader
   -> Maybe AXReq.RequestBody
   -> AXRes.ResponseFormat a
-  -> Aff (Response (Either ResponseFormatError a))
+  -> Aff (Either Error (Response a))
 fetchPath method path headers content rt =
     fetchUrl method ((app' unit).homeR <> path) headers content rt
 
@@ -105,7 +105,7 @@ fetchUrl
   -> Array RequestHeader
   -> Maybe AXReq.RequestBody
   -> AXRes.ResponseFormat a
-  -> Aff (Response (Either ResponseFormatError a))
+  -> Aff (Either Error (Response a))
 fetchUrl method url headers content rt =
   Ax.request
     AX.defaultRequest

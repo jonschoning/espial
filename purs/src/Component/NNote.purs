@@ -5,7 +5,7 @@ import Prelude hiding (div)
 import App (destroyNote, editNote)
 import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
-import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
@@ -200,13 +200,12 @@ nnote st' =
   handleAction (NEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_note <- use _edit_note
-    res <- H.liftAff (editNote edit_note)
-    case res.body of
-      Left err -> pure unit
-      Right r -> do
-        if (edit_note.id == 0)
-          then do
-            liftEffect (setHref (fromNullableStr app.noteR) =<< _loc)
-          else do
-            _note .= edit_note
-            _edit .= false
+    res' <- H.liftAff (editNote edit_note)
+    for_ res' \res -> do
+      let r = res.body
+      if (edit_note.id == 0)
+        then do
+          liftEffect (setHref (fromNullableStr app.noteR) =<< _loc)
+        else do
+          _note .= edit_note
+          _edit .= false
