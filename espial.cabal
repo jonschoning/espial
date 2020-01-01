@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a1c4f3fb35a54693a90df55afc50d56a7f642b99e7cd0ca995512c3c528c69f9
+-- hash: e38da659643e4b4691321fcadef6f3700e48643736805020965305c3348a750e
 
 name:           espial
 version:        0.0.8
@@ -174,7 +174,7 @@ library
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
     , wai-middleware-metrics
-    , warp >=3.0 && <3.3
+    , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
     , yesod-auth >=1.6 && <1.7
@@ -250,7 +250,7 @@ executable espial
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
     , wai-middleware-metrics
-    , warp >=3.0 && <3.3
+    , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
     , yesod-auth >=1.6 && <1.7
@@ -323,7 +323,7 @@ executable migration
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
     , wai-middleware-metrics
-    , warp >=3.0 && <3.3
+    , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
     , yesod-auth >=1.6 && <1.7
@@ -400,7 +400,7 @@ test-suite test
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
     , wai-middleware-metrics
-    , warp >=3.0 && <3.3
+    , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
     , yesod-auth >=1.6 && <1.7

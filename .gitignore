@@ -29,3 +29,4 @@ tmp
 .cache
 tags
 purs/docset/purescript-local.docset/
+.ghc.environment.x86_64-linux-8.6.5
