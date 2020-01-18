@@ -8,9 +8,10 @@ import Affjax as Ax
 import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes
+import Affjax.StatusCode (StatusCode(..))
 import Data.Argonaut (Json)
 import Data.Array ((:))
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.FormURLEncoded (FormURLEncoded)
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
@@ -51,6 +52,14 @@ editNote :: Note -> Aff (Either Error (Response Json))
 editNote bm =  do
     fetchJson POST "api/note/add" (Just (Note' bm)) AXRes.json
 
+lookupTitle :: Bookmark -> Aff (Maybe String)
+lookupTitle bm = do
+  eres <- fetchJson POST "api/lookuptitle" (Just (Bookmark' bm)) AXRes.string
+  pure $ hush eres >>= \res ->
+    if (res.status == StatusCode 200)
+    then Just res.body
+    else Nothing
+      
 destroyNote :: Int -> Aff (Either Error (Response Unit))
 destroyNote nid =  do
   fetchUrlEnc DELETE ("api/note/" <> show nid) Nothing AXRes.ignore

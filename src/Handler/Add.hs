@@ -65,3 +65,11 @@ _handleFormSuccess bookmarkForm = do
   where
     mkbid = BookmarkKey <$> _bid bookmarkForm
     tags = maybe [] (nub . words) (_tags bookmarkForm)
+
+postLookupTitleR :: Handler ()
+postLookupTitleR = do
+  void requireAuthId
+  bookmarkForm <- (requireCheckJsonBody :: Handler BookmarkForm)
+  fetchPageTitle (unpack (_url bookmarkForm)) >>= \case
+    Left _ -> sendResponseStatus noContent204 ()
+    Right title -> sendResponseStatus ok200 title

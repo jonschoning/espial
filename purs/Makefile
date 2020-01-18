@@ -1,12 +1,14 @@
 .PHONY: clean build
 
-all: build
+all: bundle
 
 install: 
-	spago install
+	@spago install
 
 build: 
 	@spago build
+
+bundle: build
 	@spago bundle-app --to dist/bundle.js
 	@npm run parcel-build
 	@rm -f dist/*.gz
@@ -27,4 +29,4 @@ docset: docs
 clean:
 	rm -f dist/*
 
-# inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make; done
+# inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make build; done

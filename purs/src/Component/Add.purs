@@ -1,8 +1,9 @@
 module Component.Add where
 
+
 import Prelude hiding (div)
 
-import App (destroy, editBookmark)
+import App (destroy, editBookmark, lookupTitle)
 import Data.Array (drop, foldMap)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), maybe)
@@ -17,7 +18,7 @@ import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
 import Halogen.HTML (HTML, br_, button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Properties (autofocus, ButtonType(..), InputType(..), autocomplete, checked, for, id_, name, required, rows, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
 import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
@@ -28,6 +29,7 @@ data BAction
   = BEditField EditField
   | BEditSubmit Event
   | BDeleteAsk Boolean
+  | BLookupTitle
   | BDestroy
 
 data EditField
@@ -42,6 +44,7 @@ type BState =
   { bm :: Bookmark
   , edit_bm :: Bookmark
   , deleteAsk :: Boolean
+  , loading :: Boolean
   , destroyed :: Boolean
   }
 
@@ -66,6 +69,7 @@ addbmark b' =
     , edit_bm: b
     , deleteAsk: false
     , destroyed: false
+    , loading: false
     }
 
   render :: forall m. BState -> H.ComponentHTML BAction () m
@@ -87,12 +91,14 @@ addbmark b' =
            , tr_
              [ td_ [ label [ for "url" ] [ text "URL" ] ]
              , td_ [ input [ type_ InputUrl , id_ "url", class_ "w-100 mv1" , required true, name "url", autofocus (null bm.url)
-                           , value (edit_bm.url) , onValueChange (editField Eurl)] ]
+                          , value (edit_bm.url) , onValueChange (editField Eurl)] ]
              ]
            , tr_
              [ td_ [ label [ for "title" ] [ text "title" ] ]
-             , td_ [ input [ type_ InputText , id_ "title", class_ "w-100 mv1" , name "title"
-                           , value (edit_bm.title) , onValueChange (editField Etitle)] ]
+             , td [class_ "flex"]
+                  [ input [ type_ InputText , id_ "title", class_ "w-100 mv1 flex-auto" , name "title" , value (edit_bm.title) , onValueChange (editField Etitle)]
+                  , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "Fetch" ]
+                  ]
              ]
            , tr_
              [ td_ [ label [ for "description" ] [ text "description" ] ]
@@ -152,6 +158,14 @@ addbmark b' =
   handleAction :: BAction -> H.HalogenM BState BAction () o Aff Unit
   handleAction (BDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
+  handleAction BLookupTitle = do
+    H.modify_ (_ { loading = true })
+    edit_bm <- H.gets _.edit_bm
+    mtitle <- H.liftAff $ lookupTitle edit_bm
+    case mtitle of
+      Just title' -> _edit_bm %= (_ { title = title' })
+      Nothing -> pure $ unit
+    H.modify_ (_ { loading = false })
   handleAction (BDestroy) = do
     bid <- H.gets _.bm.bid
     void $ H.liftAff (destroy bid)

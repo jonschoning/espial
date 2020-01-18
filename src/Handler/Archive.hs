@@ -85,16 +85,12 @@ _buildArchiveSubmitRequest (action, submitId) href =
 _fetchArchiveSubmitInfo :: Handler (Either String (String , String))
 _fetchArchiveSubmitInfo = do
   MM.increment "archive.fetchSubmitId"  
-  res <- liftIO $ NH.httpLbs buildSubmitRequest =<< NH.getGlobalManager
+  res <- liftIO $ NH.httpLbs (buildSimpleRequest "https://archive.li/") =<< NH.getGlobalManager
   MM.increment ("archive.fetchSubmitId_status_" <> (pack.show) (NH.statusCode (NH.responseStatus res))) 
   let body = LBS.toStrict (responseBody res)
       action = _parseSubstring (AP.string "action=\"") (AP.notChar '"') body
       submitId = _parseSubstring (AP.string "submitid\" value=\"") (AP.notChar '"') body
   pure $ (,) <$> action <*> submitId
-  where
-    buildSubmitRequest =
-      NH.parseRequest_ "https://archive.li/" & \r ->
-        r {NH.requestHeaders = [("User-Agent", _archiveUserAgent)]}
 
 _archiveUserAgent :: ByteString
 _archiveUserAgent = "espial"
@@ -104,3 +100,26 @@ _parseSubstring start inner res = do
   (flip AP.parseOnly) res (skipAnyTill start >> AP.many1 inner)
   where
     skipAnyTill end = go where go = end *> pure () <|> AP.anyChar *> go
+
+
+fetchPageTitle :: String -> Handler (Either String String)
+fetchPageTitle url = do
+  MM.increment "fetchPageTitle"  
+  res <- liftIO $ NH.httpLbs (buildSimpleRequest url) =<< NH.getGlobalManager
+  let body = LBS.toStrict (responseBody res)
+      title = (flip AP.parseOnly) body $ do
+                 _ <- skipAnyTill (AP.string "<title")
+                 _ <- skipAnyTill (AP.string ">")
+                 AP.many1 (AP.notChar '<')
+  pure title
+  `catch` (\(e::SomeException) -> do
+    MM.increment "fetchPageTitle.error"  
+    $(logError) $ (pack.show) e
+    pure (Left (show e)))
+  where
+    skipAnyTill end = go where go = end *> pure () <|> AP.anyChar *> go
+
+buildSimpleRequest :: String -> Request
+buildSimpleRequest url =
+  NH.parseRequest_ url & \r ->
+    r {NH.requestHeaders = [("User-Agent", _archiveUserAgent)]}

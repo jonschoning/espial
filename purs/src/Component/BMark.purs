@@ -2,7 +2,7 @@ module Component.BMark where
 
 import Prelude hiding (div)
 
-import App (StarAction(..), destroy, editBookmark, markRead, toggleStar)
+import App (StarAction(..), destroy, editBookmark, markRead, toggleStar, lookupTitle)
 import Component.Markdown as Markdown
 import Data.Const (Const)
 import Data.Lens (Lens', lens, use, (%=), (.=))
@@ -18,7 +18,7 @@ import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, for, href, id_, name, required, rows, target, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, disabled, for, href, id_, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
 import Util (attr, class_, fromNullableStr, ifElseH, whenH, whenA)
 import Web.Event.Event (Event, preventDefault)
@@ -27,6 +27,7 @@ import Web.Event.Event (Event, preventDefault)
 data BAction
   = BStar Boolean
   | BDeleteAsk Boolean
+  | BLookupTitle
   | BDestroy
   | BEdit Boolean
   | BEditField EditField
@@ -53,6 +54,7 @@ type BState =
   , edit_bm :: Bookmark
   , deleteAsk:: Boolean
   , edit :: Boolean
+  , loading :: Boolean
   }
 
 _bm :: Lens' BState Bookmark
@@ -85,6 +87,7 @@ bmark b' =
     , edit_bm: b
     , deleteAsk: false
     , edit: false
+    , loading: false
     }
 
   render :: BState -> H.ComponentHTML BAction ChildSlots Aff
@@ -154,8 +157,11 @@ bmark b' =
                  , value (edit_bm.url) , onValueChange (editField Eurl) ]
          , br_
          , div_ [ text "title" ]
-         , input [ type_ InputText , class_ "title w-100 mb2 pt1 f7 edit_form_input" , name "title"
-                 , value (edit_bm.title) , onValueChange (editField Etitle) ]
+         , div [class_ "flex"]
+               [input [ type_ InputText , class_ "title w-100 mb2 pt1 f7 edit_form_input" , name "title"
+                      , value (edit_bm.title) , onValueChange (editField Etitle) ]
+               , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "Fetch" ]
+               ]
          , br_
          , div_ [ text "description" ]
          , textarea [ class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "description", rows 5
@@ -234,6 +240,16 @@ bmark b' =
       Etags e -> _ { tags = e }
       Eprivate e -> _ { private = e }
       Etoread e -> _ { toread = e }
+
+  -- | Lookup Title
+  handleAction BLookupTitle = do
+    H.modify_ (_ { loading = true })
+    edit_bm <- H.gets _.edit_bm
+    mtitle <- H.liftAff $ lookupTitle edit_bm
+    case mtitle of
+      Just title' -> _edit_bm %= (_ { title = title' })
+      Nothing -> pure $ unit
+    H.modify_ (_ { loading = false })
 
   -- | Submit
   handleAction (BEditSubmit e) = do

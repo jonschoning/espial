@@ -31,6 +31,7 @@ api/accountSettings EditAccountSettingsR POST
 -- add
 /add AddViewR GET
 api/add AddR POST
+api/lookuptitle LookupTitleR POST
 
 -- edit
 /bm/#Int64 DeleteR DELETE
