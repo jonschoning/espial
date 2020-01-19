@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e38da659643e4b4691321fcadef6f3700e48643736805020965305c3348a750e
+-- hash: 9ee2c0431ff44c217101ae145895fa4c4df6141ac59c65d5d35f586938ce6657
 
 name:           espial
 version:        0.0.8
@@ -147,6 +147,7 @@ library
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
+    , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls >=0.3 && <0.4
@@ -223,6 +224,7 @@ executable espial
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
+    , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls >=0.3 && <0.4
@@ -295,6 +297,7 @@ executable migration
     , foreign-store
     , hjsmin >=0.1 && <0.3
     , hscolour
+    , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls >=0.3 && <0.4
@@ -373,6 +376,7 @@ test-suite test
     , hjsmin >=0.1 && <0.3
     , hscolour
     , hspec >=2.0.0
+    , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls >=0.3 && <0.4

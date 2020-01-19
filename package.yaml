@@ -142,6 +142,7 @@ dependencies:
 - transformers >= 0.2.2
 - wai-middleware-metrics
 - parser-combinators
+- html-entities
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

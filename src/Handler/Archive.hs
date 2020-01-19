@@ -2,7 +2,9 @@ module Handler.Archive where
 
 import Import
 import Data.Function ((&))
-import qualified Data.Attoparsec.ByteString.Char8 as AP
+import Data.Char (chr)
+import qualified Data.Attoparsec.ByteString.Char8 as AP8
+import qualified Data.Attoparsec.ByteString as AP
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString.Char8 as BS8
@@ -11,6 +13,8 @@ import qualified Network.HTTP.Client.TLS as NH
 import qualified Network.HTTP.Types.Status as NH
 import qualified Web.FormUrlEncoded as WH
 import qualified Control.Monad.Metrics as MM
+import HTMLEntities.Decoder (htmlEncodedText)
+import Data.Text.Lazy.Builder (toLazyText)
 
 shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
 shouldArchiveBookmark user kbid = do
@@ -88,36 +92,38 @@ _fetchArchiveSubmitInfo = do
   res <- liftIO $ NH.httpLbs (buildSimpleRequest "https://archive.li/") =<< NH.getGlobalManager
   MM.increment ("archive.fetchSubmitId_status_" <> (pack.show) (NH.statusCode (NH.responseStatus res))) 
   let body = LBS.toStrict (responseBody res)
-      action = _parseSubstring (AP.string "action=\"") (AP.notChar '"') body
-      submitId = _parseSubstring (AP.string "submitid\" value=\"") (AP.notChar '"') body
+      action = _parseSubstring (AP8.string "action=\"") (AP8.notChar '"') body
+      submitId = _parseSubstring (AP8.string "submitid\" value=\"") (AP8.notChar '"') body
   pure $ (,) <$> action <*> submitId
 
 _archiveUserAgent :: ByteString
 _archiveUserAgent = "espial"
 
-_parseSubstring :: AP.Parser ByteString -> AP.Parser Char -> BS.ByteString -> Either String String
+_parseSubstring :: AP8.Parser ByteString -> AP8.Parser Char -> BS.ByteString -> Either String String
 _parseSubstring start inner res = do
-  (flip AP.parseOnly) res (skipAnyTill start >> AP.many1 inner)
+  (flip AP8.parseOnly) res (skipAnyTill start >> AP8.many1 inner)
   where
-    skipAnyTill end = go where go = end *> pure () <|> AP.anyChar *> go
+    skipAnyTill end = go where go = end *> pure () <|> AP8.anyChar *> go
 
 
-fetchPageTitle :: String -> Handler (Either String String)
-fetchPageTitle url = do
-  MM.increment "fetchPageTitle"  
-  res <- liftIO $ NH.httpLbs (buildSimpleRequest url) =<< NH.getGlobalManager
-  let body = LBS.toStrict (responseBody res)
-      title = (flip AP.parseOnly) body $ do
-                 _ <- skipAnyTill (AP.string "<title")
-                 _ <- skipAnyTill (AP.string ">")
-                 AP.many1 (AP.notChar '<')
-  pure title
-  `catch` (\(e::SomeException) -> do
-    MM.increment "fetchPageTitle.error"  
-    $(logError) $ (pack.show) e
-    pure (Left (show e)))
+fetchPageTitle :: String -> Handler (Either String Text)
+fetchPageTitle url =
+  do MM.increment "fetchPageTitle"
+     res <- liftIO $ NH.httpLbs (buildSimpleRequest url) =<< NH.getGlobalManager
+     let body = LBS.toStrict (responseBody res)
+     pure (decodeHtmlBs <$> parseTitle body)
+     `catch` (\(e :: SomeException) -> do
+                MM.increment "fetchPageTitle.error"
+                $(logError) $ (pack . show) e
+                pure (Left (show e)))
   where
-    skipAnyTill end = go where go = end *> pure () <|> AP.anyChar *> go
+    parseTitle bs =
+      (flip AP.parseOnly) bs $ do
+        _ <- skipAnyTill (AP.string "<title")
+        _ <- skipAnyTill (AP.string ">")
+        AP.takeTill (\w -> chr (fromEnum w) == '<')
+    decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
+    skipAnyTill end = go where go = end *> pure () <|> AP.anyWord8 *> go
 
 buildSimpleRequest :: String -> Request
 buildSimpleRequest url =
