@@ -2,7 +2,7 @@ module Handler.Archive where
 
 import Import
 import Data.Function ((&))
-import Data.Char (chr)
+import Data.Char (ord)
 import qualified Data.Attoparsec.ByteString.Char8 as AP8
 import qualified Data.Attoparsec.ByteString as AP
 import qualified Data.ByteString as BS
@@ -121,7 +121,8 @@ fetchPageTitle url =
       (flip AP.parseOnly) bs $ do
         _ <- skipAnyTill (AP.string "<title")
         _ <- skipAnyTill (AP.string ">")
-        AP.takeTill (\w -> chr (fromEnum w) == '<')
+        let lt = toEnum (ord '<')
+        AP.takeTill (== lt)
     decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
     skipAnyTill end = go where go = end *> pure () <|> AP.anyWord8 *> go
 
