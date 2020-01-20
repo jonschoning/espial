@@ -95,3 +95,8 @@ closeWindow win = pure $ runFn1 _closeWindow win
 newtype RawHTML = RawHTML String
 
 derive instance newtypeRawHTML :: Newtype RawHTML _
+
+foreign import _setFocus :: Fn1 String Unit
+
+setFocus :: String -> Effect Unit
+setFocus s = pure $ runFn1 _setFocus s

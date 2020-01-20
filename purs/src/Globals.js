@@ -65,3 +65,7 @@ exports._mmoment8601 = function(just, nothing, tuple, s) {
 exports._closeWindow = function (window) {
   window.close();
 };
+
+exports._setFocus = function(elemId) {
+    document.getElementById(elemId).focus();
+};

@@ -13,7 +13,7 @@ import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Symbol (SProxy(..))
 import Effect.Aff (Aff)
-import Globals (app')
+import Globals (app', setFocus)
 import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
@@ -155,24 +155,20 @@ bmark b' =
          [ div_ [ text "url" ]
          , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 f7 edit_form_input" , required true , name "url"
                  , value (edit_bm.url) , onValueChange (editField Eurl) ]
-         , br_
          , div_ [ text "title" ]
          , div [class_ "flex"]
                [input [ type_ InputText , class_ "title w-100 mb2 pt1 f7 edit_form_input" , name "title"
                       , value (edit_bm.title) , onValueChange (editField Etitle) ]
-               , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "Fetch" ]
+               , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                ]
-         , br_
          , div_ [ text "description" ]
          , textarea [ class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "description", rows 5
                     , value (edit_bm.description) , onValueChange (editField Edescription) ]
-         , br_
          , div [ id_ "tags_input_box"]
            [ div_ [ text "tags" ]
-             , input [ type_ InputText , class_ "tags w-100 mb1 pt1 f7 edit_form_input" , name "tags"
+             , input [ id_ (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 f7 edit_form_input" , name "tags"
                      , autocomplete false, attr "autocapitalize" "off"
                      , value (edit_bm.tags) , onValueChange (editField Etags) ]
-             , br_
            ]
          , div [ class_ "edit_form_checkboxes mv3"]
            [ input [ type_ InputCheckbox , class_ "private pointer" , id_ "edit_private", name "private"
@@ -184,7 +180,6 @@ bmark b' =
                    , checked (edit_bm.toread) , onChecked (editField Etoread) ]
            , text " "
            , label [ for "edit_toread" ] [ text "to-read" ]
-           , br_
            ]
          , input [ type_ InputSubmit , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "save" ]
          , text " "
@@ -199,6 +194,8 @@ bmark b' =
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
      shtime = S.take 16 bm.time `append` "Z"
+
+  tagid bm = show bm.bid <> "_tags"
 
   handleAction :: BAction -> H.HalogenM BState BAction ChildSlots BMessage Aff Unit
 
@@ -230,6 +227,7 @@ bmark b' =
     bm <- use _bm
     _edit_bm .= bm
     _edit .= e
+    H.liftEffect $ whenM (pure e) (setFocus (tagid bm))
 
   -- | Update Form Field 
   handleAction (BEditField f) = do

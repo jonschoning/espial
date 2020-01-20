@@ -97,7 +97,7 @@ addbmark b' =
              [ td_ [ label [ for "title" ] [ text "title" ] ]
              , td [class_ "flex"]
                   [ input [ type_ InputText , id_ "title", class_ "w-100 mv1 flex-auto" , name "title" , value (edit_bm.title) , onValueChange (editField Etitle)]
-                  , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "Fetch" ]
+                  , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                   ]
              ]
            , tr_
