@@ -2,12 +2,13 @@
 module Handler.User where
 
 import qualified Data.Text as T
-import           Handler.Common (lookupPagingParams)
+import           Handler.Common
 import           Import
 import           Text.Blaze.Html (toHtml)
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
 import qualified Database.Esqueleto as E
+import qualified Data.Map as Map
 
 getUserR :: UserNameP -> Handler Html
 getUserR uname@(UserNameP name) = do
@@ -50,21 +51,53 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
        pure (cnt, bm, tg)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
+  tagCloudMode <- getTagCloudMode isowner pathtags
   req <- getRequest
   defaultLayout $ do
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
         renderEl = "bookmarks" :: Text
+        tagCloudRenderEl = "tagCloud" :: Text
     rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")
     toWidgetBody [julius|
         app.dat.bmarks = #{ toJSON $ toBookmarkFormList bmarks alltags } || [];
         app.dat.isowner = #{ isowner };
         app.userR = "@{UserR unamep}";
+        app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
     toWidget [julius|
+      PS['Main'].renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
       PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
     |]
+
+-- Form
+ 
+postUserTagCloudR :: Handler ()
+postUserTagCloudR = do
+  userId <- requireAuthId
+  mode <- requireCheckJsonBody
+  _updateTagCloudMode mode
+  tc <- runDB $ case mode of
+    TagCloudModeTop _ n -> tagCountTop userId n
+    TagCloudModeLowerBound _ n -> tagCountLowerBound userId n
+    TagCloudModeRelated _ _ -> notFound
+    TagCloudModeNone -> notFound
+  sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
+
+postUserTagCloudModeR :: Handler ()
+postUserTagCloudModeR = do
+  userId <- requireAuthId
+  mode <- requireCheckJsonBody
+  _updateTagCloudMode mode
+
+_updateTagCloudMode :: TagCloudMode -> Handler ()
+_updateTagCloudMode mode =  
+  case mode of
+    TagCloudModeTop _ _ -> setTagCloudMode mode
+    TagCloudModeLowerBound _ _ -> setTagCloudMode mode
+    TagCloudModeRelated _ _ -> notFound
+    TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark,[Text]) -> FeedEntry Text
 bookmarkToRssEntry ((Entity entryId entry), tags) =

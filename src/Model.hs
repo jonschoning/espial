@@ -405,7 +405,75 @@ allUserBookmarks user = do
          let tags = sqlite_group_concat (t ^. BookmarkTagTag) (E.val " ")
          pure (t ^. BookmarkTagBookmarkId, tags))
 
+  
+data TagCloudMode
+  = TagCloudModeTop Bool Int          -- { mode: "top", value: 200 }
+  | TagCloudModeLowerBound Bool Int   -- { mode: "lowerBound", value: 20 }
+  | TagCloudModeRelated Bool [Tag]
+  | TagCloudModeNone
+  deriving (Show, Eq, Read, Generic)
+
+instance FromJSON TagCloudMode where
+  parseJSON (Object o) =
+    case lookup "mode" o of
+      Just (String "top") -> TagCloudModeTop <$> o .: "expanded" <*> o .: "value"
+      Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
+      Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> (fmap words (o .: "value"))
+      Just (String "none") -> pure TagCloudModeNone
+      _ -> fail "bad parse"
+  parseJSON _ = fail "bad parse"
+
+instance ToJSON TagCloudMode where
+  toJSON (TagCloudModeTop e i) =
+    object [ "mode" .= String "top"
+           , "value" .= toJSON i
+           , "expanded" .= Bool e
+           ]
+  toJSON (TagCloudModeLowerBound e i) =
+    object [ "mode" .= String "lowerBound"
+           , "value" .= toJSON i
+           , "expanded" .= Bool e
+           ]
+  toJSON (TagCloudModeRelated e tags) =
+    object [ "mode" .= String "related"
+           , "value" .= String (unwords tags)
+           , "expanded" .= Bool e
+           ]
+  toJSON TagCloudModeNone =
+    object [ "mode" .= String "none"
+           , "value" .= Null
+           , "expanded" .= Bool False
+           ]
+    
+  
 type Tag = Text
+
+tagCountTop :: Key User -> Int -> DB [(Text, Int)]
+tagCountTop user top = 
+    sortOn (toLower . fst) .
+    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    ( select $
+      from $ \t -> do
+      where_ (t ^. BookmarkTagUserId E.==. val user)
+      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
+      let countRows' = E.countRows
+      E.orderBy [E.desc countRows'] 
+      E.limit ((fromIntegral . toInteger) top)
+      pure $ (t ^. BookmarkTagTag, countRows')
+    )
+
+tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
+tagCountLowerBound user lowerBound = 
+    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    ( select $
+      from $ \t -> do
+      where_ (t ^. BookmarkTagUserId E.==. val user)
+      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
+      let countRows' = E.countRows
+      E.orderBy [E.asc (t ^. BookmarkTagTag)]
+      E.having (countRows' E.>=. E.val lowerBound)
+      pure $ (t ^. BookmarkTagTag, countRows')
+    )
 
 -- Notes
 

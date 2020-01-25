@@ -5,6 +5,7 @@ import Import
 
 import Data.FileEmbed (embedFile)
 import Text.Read
+import Data.Aeson as A
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
@@ -21,11 +22,43 @@ getRobotsR = return $ TypedContent typePlain
 
 
 lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
-lookupPagingParams = do
-  cq <- fmap parseMaybe (lookupGetParam "count")
-  cs <- fmap parseMaybe (lookupSession "count")
-  for_ cq (setSession "count" . (pack . show)) 
-  pq <- fmap parseMaybe (lookupGetParam "page")
-  pure (cq <|> cs, pq)
+lookupPagingParams =
+  (,)
+  <$> getUrlSessionParam "count"
+  <*> getUrlParam "page"
+
+getUrlParam :: (Read a) => Text -> Handler (Maybe a)
+getUrlParam name = do
+  p <- fmap parseMaybe (lookupGetParam name)
+  pure p
   where
     parseMaybe x = readMaybe . unpack =<< x
+
+getUrlSessionParam :: forall a.
+  (Show a, Read a)
+  => Text
+  -> Handler (Maybe a)
+getUrlSessionParam name = do
+  p <- fmap parseMaybe (lookupGetParam name)
+  s <- fmap parseMaybe (lookupSession name)
+  for_ p (setSession name . (pack . show))
+  pure (p <|> s)
+  where
+    parseMaybe :: Maybe Text -> Maybe a
+    parseMaybe x = readMaybe . unpack =<< x
+
+lookupTagCloudMode :: MonadHandler m => m (Maybe TagCloudMode)
+lookupTagCloudMode = do
+  (A.decode . fromStrict =<<) <$> lookupSessionBS "tagCloudMode"
+
+setTagCloudMode :: MonadHandler m => TagCloudMode -> m ()
+setTagCloudMode = setSessionBS "tagCloudMode" . toStrict . A.encode
+
+getTagCloudMode :: MonadHandler m => Bool -> [Tag] -> m TagCloudMode
+getTagCloudMode isowner tags = do
+  ms <- lookupTagCloudMode
+  pure $
+    if not isowner then TagCloudModeNone else
+      if not (null tags)
+        then fromMaybe (TagCloudModeTop False 200) ms --TagCloudModeRelated False tags
+        else fromMaybe (TagCloudModeTop False 200) ms

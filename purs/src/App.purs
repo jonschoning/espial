@@ -9,7 +9,7 @@ import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes
 import Affjax.StatusCode (StatusCode(..))
-import Data.Argonaut (Json)
+import Data.Argonaut (Json, decodeJson)
 import Data.Array ((:))
 import Data.Either (Either(..), hush)
 import Data.FormURLEncoded (FormURLEncoded)
@@ -19,7 +19,7 @@ import Data.MediaType.Common (applicationFormURLEncoded, applicationJSON)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Globals (app')
-import Model (Bookmark, Bookmark'(..), Note, Note'(..), AccountSettings, AccountSettings'(..))
+import Model (Bookmark, Bookmark'(..), Note, Note'(..), AccountSettings, AccountSettings'(..), TagCloudMode, TagCloudMode'(..), TagCloud)
 import Simple.JSON as J
 import Web.HTML (window)
 import Web.HTML.Location (reload)
@@ -60,6 +60,16 @@ lookupTitle bm = do
     then Just res.body
     else Nothing
       
+getTagCloud :: TagCloudMode -> Aff (Maybe TagCloud)
+getTagCloud mode = do
+    eres <- fetchJson POST "api/tagcloud" (Just (TagCloudMode' mode)) AXRes.json
+    pure $ hush eres >>= \res ->
+        hush (decodeJson res.body)
+
+updateTagCloudMode :: TagCloudMode -> Aff (Either Error (Response Unit))
+updateTagCloudMode mode = do
+    fetchJson POST "api/tagcloudmode" (Just (TagCloudMode' mode)) AXRes.ignore
+  
 destroyNote :: Int -> Aff (Either Error (Response Unit))
 destroyNote nid =  do
   fetchUrlEnc DELETE ("api/note/" <> show nid) Nothing AXRes.ignore

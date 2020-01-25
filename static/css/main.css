@@ -101,6 +101,7 @@ label {
 .tag {
     color:#a51;
     line-height:190%;
+    display: inline-block;
 }
 
 .private { background:#ddd;border:1px solid #d1d1d1; }
