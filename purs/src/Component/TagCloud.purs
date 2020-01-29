@@ -3,31 +3,25 @@ module Component.TagCloud where
 import Prelude hiding (div)
 
 import App (getTagCloud, updateTagCloudMode)
-import Data.Array (sortBy, drop, foldMap, fromFoldable)
-import Data.Foldable (for_, maximum, minimum)
+import Data.Array (sortBy)
+import Data.Foldable (maximum, minimum)
 import Data.Int (toNumber)
-import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Lens (Lens', lens)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (guard)
-import Data.Ord (comparing)
-import Data.String (toLower, null, split) as S
-import Data.String.Pattern (Pattern(..))
-import Data.Symbol (SProxy(..))
-import Data.Tuple (fst, snd, uncurry)
+import Data.String (toLower) as S
+import Data.Tuple (fst, uncurry)
 import Effect.Aff (Aff)
-import Effect.Class (liftEffect)
-import Foreign.Object (toUnfoldable, toArrayWithKey, empty, values) as F
+import Foreign.Object (toUnfoldable, empty, values) as F
 import Globals (app')
 import Halogen (AttrName(..))
 import Halogen as H
-import Halogen.HTML (HTML, a, attr, br_, button, div, form, input, label, p, span, text, textarea)
-import Halogen.HTML as HH
-import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), checked, for, href, id_, name, rows, title, type_, value)
-import Math (log, pow, sqrt)
-import Model (TagCloud, TagCloudMode, TagCloudModeF(..), tagCloudModeFromF, isExpanded, setExpanded, isSameMode, showMode)
-import Util (_loc, class_, fromNullableStr, ifElseH, whenH)
-import Web.Event.Event (Event, preventDefault)
+import Halogen.HTML (HTML, a, attr, button, div, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (ButtonType(..), href, title, type_)
+import Math (log)
+import Model (TagCloud, TagCloudModeF(..), isExpanded, setExpanded, tagCloudModeFromF)
+import Util (class_, fromNullableStr, whenH)
 
 data TAction
   = TInitialize
@@ -68,7 +62,12 @@ tagcloudcomponent m' =
                , title "show a cloud of your most-used tags"
                , onClick \_ -> Just (TChangeMode modetop)
                ] [text "Top Tags"]
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue ml2 " <> guard (mode == modelb2) " b") 
+      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue ml2 " <> guard (mode == modelb1) " b") 
+               , title "show all tags"
+               , onClick \_ -> Just (TChangeMode modelb1)
+               ] [text "all"] 
+      , text "‧"
+      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb2) " b") 
                , title "show tags with at least 2 bookmarks"
                , onClick \_ -> Just (TChangeMode modelb2)
                ] [text "2"]
@@ -101,6 +100,7 @@ tagcloudcomponent m' =
     ]
     where
       modetop = TagCloudModeTop (isExpanded mode) 200
+      modelb1 = TagCloudModeLowerBound (isExpanded mode) 1
       modelb2 = TagCloudModeLowerBound (isExpanded mode) 2
       modelb5 = TagCloudModeLowerBound (isExpanded mode) 5
       modelb10 = TagCloudModeLowerBound (isExpanded mode) 10
@@ -126,7 +126,7 @@ tagcloudcomponent m' =
       opacity = rescale (log <<< (1.0 + _)) (toNumber v) (toNumber n) (toNumber m) 0.6 1.0
 
   rescale :: (Number -> Number) -> Number -> Number -> Number -> Number -> Number -> Number
-  rescale f v n m l h = (f (v - n) / f (m - n)) * (h - l) + l
+  rescale f v n m l h = (if m - n < 0.01 then 1.0 else (f (v - n) / f (m - n))) * (h - l) + l
 
   fetchTagCloud :: TagCloudModeF -> H.HalogenM TState TAction () o Aff Unit
   fetchTagCloud mode' = do

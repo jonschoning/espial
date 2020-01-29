@@ -1,15 +1,13 @@
 module Model where
 
-import Control.Monad
-import Foreign
-import Prelude
-
 import Control.Monad.Except (runExcept)
 import Data.Array (intercalate, singleton)
-import Data.Either (Either, hush)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Either (hush)
+import Data.Maybe (fromMaybe)
 import Data.Nullable (Nullable)
+import Foreign (Foreign, readInt, readString, unsafeToForeign)
 import Foreign.Object (Object)
+import Prelude (class Eq, pure, ($), (<$>))
 import Simple.JSON as J
 
 type BookmarkId = Int
@@ -112,15 +110,15 @@ setExpanded (TagCloudModeLowerBound e i) e' = TagCloudModeLowerBound e' i
 setExpanded (TagCloudModeRelated e i) e' = TagCloudModeRelated e' i
 setExpanded TagCloudModeNone _ = TagCloudModeNone
 
-isSameMode :: TagCloudModeF -> TagCloudModeF -> Boolean
-isSameMode (TagCloudModeTop _ _) (TagCloudModeTop _ _) = true
-isSameMode (TagCloudModeLowerBound _ _) (TagCloudModeLowerBound _ _) = true
-isSameMode (TagCloudModeRelated _ _) (TagCloudModeRelated _ _) = true
-isSameMode TagCloudModeNone TagCloudModeNone = true
-isSameMode _ _ = false
-
 showMode :: TagCloudModeF -> String
 showMode (TagCloudModeTop _ _)  = "top"
 showMode (TagCloudModeLowerBound _ _)  = "lowerBound"
 showMode (TagCloudModeRelated _ _)  = "related"
 showMode TagCloudModeNone = ""
+
+-- isSameMode :: TagCloudModeF -> TagCloudModeF -> Boolean
+-- isSameMode (TagCloudModeTop _ _) (TagCloudModeTop _ _) = true
+-- isSameMode (TagCloudModeLowerBound _ _) (TagCloudModeLowerBound _ _) = true
+-- isSameMode (TagCloudModeRelated _ _) (TagCloudModeRelated _ _) = true
+-- isSameMode TagCloudModeNone TagCloudModeNone = true
+-- isSameMode _ _ = false
