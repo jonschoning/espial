@@ -14,7 +14,7 @@ log in — username: demo  password: demo
 
 https://esp.ae8.org/u:demo
 
-![jpg](https://i.imgur.com/XikHLua.png)
+![jpg](https://i.imgur.com/jdnV93c.png)
 
 ## Docker Setup
 
