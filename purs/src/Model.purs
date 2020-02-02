@@ -5,6 +5,7 @@ import Data.Array (intercalate, singleton)
 import Data.Either (hush)
 import Data.Maybe (fromMaybe)
 import Data.Nullable (Nullable)
+import Data.String (Pattern(..), split)
 import Foreign (Foreign, readInt, readString, unsafeToForeign)
 import Foreign.Object (Object)
 import Prelude (class Eq, pure, ($), (<$>))
@@ -85,7 +86,7 @@ tagCloudModeToF tagCloudMode =
     case tagCloudMode.mode of
       "top" -> TagCloudModeTop tagCloudMode.expanded <$> readInt tagCloudMode.value
       "lowerBound" -> TagCloudModeLowerBound tagCloudMode.expanded <$> readInt tagCloudMode.value
-      "related" -> (\s -> TagCloudModeRelated tagCloudMode.expanded (singleton s)) <$> readString tagCloudMode.value
+      "related" -> (\s -> TagCloudModeRelated tagCloudMode.expanded (split (Pattern " ") s)) <$> readString tagCloudMode.value
       _ -> pure TagCloudModeNone
 
 tagCloudModeFromF :: TagCloudModeF -> TagCloudMode
@@ -96,13 +97,17 @@ tagCloudModeFromF (TagCloudModeLowerBound e i) =
 tagCloudModeFromF (TagCloudModeRelated e tags) =
   { mode: "related" , value: unsafeToForeign (intercalate " " tags), expanded: e  }
 tagCloudModeFromF TagCloudModeNone =
-  { mode: "related" , value: unsafeToForeign "", expanded: false }
+  { mode: "none" , value: unsafeToForeign "", expanded: false }
     
 isExpanded :: TagCloudModeF -> Boolean
 isExpanded (TagCloudModeTop e _) = e
 isExpanded (TagCloudModeLowerBound e _) = e
 isExpanded (TagCloudModeRelated e _) = e
 isExpanded TagCloudModeNone = false
+
+isRelated :: TagCloudModeF -> Boolean
+isRelated (TagCloudModeRelated _ _) = true
+isRelated _ = false
 
 setExpanded :: TagCloudModeF -> Boolean -> TagCloudModeF
 setExpanded (TagCloudModeTop e i) e' = TagCloudModeTop e' i

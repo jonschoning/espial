@@ -20,8 +20,8 @@ import Halogen.HTML (HTML, a, attr, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (ButtonType(..), href, title, type_)
 import Math (log)
-import Model (TagCloud, TagCloudModeF(..), isExpanded, setExpanded, tagCloudModeFromF)
-import Util (class_, fromNullableStr, whenH)
+import Model (TagCloud, TagCloudModeF(..), isExpanded, isRelated, setExpanded, tagCloudModeFromF)
+import Util (class_, fromNullableStr, whenH, ifElseA)
 
 data TAction
   = TInitialize
@@ -57,39 +57,48 @@ tagcloudcomponent m' =
     div [class_ "tag_cloud" ] []
   render s@{ mode, tagcloud } =
     div [class_ "tag_cloud mv3" ] 
-    [ div [class_ "tag_cloud_header mb2"]
-      [ button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue mr1" <> guard (mode == modetop) " b")
-               , title "show a cloud of your most-used tags"
-               , onClick \_ -> Just (TChangeMode modetop)
-               ] [text "Top Tags"]
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue ml2 " <> guard (mode == modelb1) " b") 
-               , title "show all tags"
-               , onClick \_ -> Just (TChangeMode modelb1)
-               ] [text "all"] 
-      , text "‧"
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb2) " b") 
-               , title "show tags with at least 2 bookmarks"
-               , onClick \_ -> Just (TChangeMode modelb2)
-               ] [text "2"]
-      , text "‧"
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb5) " b") 
-               , title "show tags with at least 5 bookmarks"
-               , onClick \_ -> Just (TChangeMode modelb5)
-               ] [text "5"]
-      , text "‧"
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb10) " b") 
-               , title "show tags with at least 10 bookmarks"
-               , onClick \_ -> Just (TChangeMode modelb10)
-               ] [text "10"]
-      , text "‧"
-      , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb20) " b") 
-               , title "show tags with at least 20 bookmarks"
-               , onClick \_ -> Just (TChangeMode modelb20)
-               ] [text "20"]
-      , button [ type_ ButtonButton, class_ "pa1 ml2 f7 link silver hover-blue "
-               , onClick \_ -> Just (TExpanded (not (isExpanded mode)))]
-               [ text (if isExpanded mode then "hide" else "show") ]
-      ]
+    [
+      div [class_ "tag_cloud_header mb2"] $
+          ifElseA (isRelated mode)
+            (\_ -> do --RELATED
+              [ button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue mr1 b")
+                       , onClick \_ -> Just (TExpanded (not (isExpanded mode)))
+                       ] [text "Related Tags"]
+              ]
+            ) 
+            (\_ -> do -- NOT RELATED
+              [ button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue mr1" <> guard (mode == modetop) " b")
+                       , title "show a cloud of your most-used tags"
+                       , onClick \_ -> Just (TChangeMode modetop)
+                       ] [text "Top Tags"]
+              , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue ml2 " <> guard (mode == modelb1) " b") 
+                       , title "show all tags"
+                       , onClick \_ -> Just (TChangeMode modelb1)
+                       ] [text "all"] 
+              , text "‧"
+              , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb2) " b") 
+                       , title "show tags with at least 2 bookmarks"
+                       , onClick \_ -> Just (TChangeMode modelb2)
+                       ] [text "2"]
+              , text "‧"
+              , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb5) " b") 
+                       , title "show tags with at least 5 bookmarks"
+                       , onClick \_ -> Just (TChangeMode modelb5)
+                       ] [text "5"]
+              , text "‧"
+              , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb10) " b") 
+                       , title "show tags with at least 10 bookmarks"
+                       , onClick \_ -> Just (TChangeMode modelb10)
+                       ] [text "10"]
+              , text "‧"
+              , button [ type_ ButtonButton, class_ ("pa1 f7 link hover-blue" <> guard (mode == modelb20) " b") 
+                       , title "show tags with at least 20 bookmarks"
+                       , onClick \_ -> Just (TChangeMode modelb20)
+                       ] [text "20"]
+              ])
+              <> [button [ type_ ButtonButton, class_ "pa1 ml2 f7 link silver hover-blue "
+                         , onClick \_ -> Just (TExpanded (not (isExpanded mode)))]
+                         [ text (if isExpanded mode then "hide" else "show") ]]
     , whenH (isExpanded mode) $ \_ -> do
         let n = fromMaybe 1 (minimum (F.values tagcloud))
             m = fromMaybe 1 (maximum (F.values tagcloud))

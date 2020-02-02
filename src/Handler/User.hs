@@ -81,7 +81,7 @@ postUserTagCloudR = do
   tc <- runDB $ case mode of
     TagCloudModeTop _ n -> tagCountTop userId n
     TagCloudModeLowerBound _ n -> tagCountLowerBound userId n
-    TagCloudModeRelated _ _ -> notFound
+    TagCloudModeRelated _ tags ->  tagCountRelated userId tags
     TagCloudModeNone -> notFound
   sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
 
@@ -96,7 +96,7 @@ _updateTagCloudMode mode =
   case mode of
     TagCloudModeTop _ _ -> setTagCloudMode mode
     TagCloudModeLowerBound _ _ -> setTagCloudMode mode
-    TagCloudModeRelated _ _ -> notFound
+    TagCloudModeRelated _ _ -> setTagCloudMode mode
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark,[Text]) -> FeedEntry Text

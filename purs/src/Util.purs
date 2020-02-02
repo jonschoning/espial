@@ -135,6 +135,9 @@ whenA b k = if b then k unit else []
 ifElseH :: forall p i. Boolean -> (Unit -> HH.HTML p i) -> (Unit -> HH.HTML p i) -> HH.HTML p i
 ifElseH b f k = if b then f unit else k unit
 
+ifElseA :: forall t. Boolean -> (Unit -> Array t) -> (Unit -> Array t) -> Array t
+ifElseA b f k = if b then f unit else k unit
+
 maybeH :: forall a p i. Maybe a -> (a -> HH.HTML p i) -> HH.HTML p i
 maybeH m k = maybe (HH.text "") k m
 

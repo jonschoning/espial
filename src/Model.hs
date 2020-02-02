@@ -413,6 +413,12 @@ data TagCloudMode
   | TagCloudModeNone
   deriving (Show, Eq, Read, Generic)
 
+isExpanded :: TagCloudMode -> Bool
+isExpanded (TagCloudModeTop e _) = e
+isExpanded (TagCloudModeLowerBound e _) = e
+isExpanded (TagCloudModeRelated e _) = e
+isExpanded TagCloudModeNone = False
+
 instance FromJSON TagCloudMode where
   parseJSON (Object o) =
     case lookup "mode" o of
@@ -472,6 +478,25 @@ tagCountLowerBound user lowerBound =
       let countRows' = E.countRows
       E.orderBy [E.asc (t ^. BookmarkTagTag)]
       E.having (countRows' E.>=. E.val lowerBound)
+      pure $ (t ^. BookmarkTagTag, countRows')
+    )
+
+tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
+tagCountRelated user tags = 
+    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    ( select $
+      from $ \t -> do
+      where_ $
+        foldl (\expr tag ->
+                expr &&. (exists $
+                          from $ \u ->
+                          where_ (u ^. BookmarkTagBookmarkId E.==. t ^. BookmarkTagBookmarkId &&.
+                                 (u ^. BookmarkTagTag `E.like` val tag))))
+          (t ^. BookmarkTagUserId E.==. val user)
+          tags
+      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
+      let countRows' = E.countRows
+      E.orderBy [E.asc $ E.lower_ $ (t ^. BookmarkTagTag)]
       pure $ (t ^. BookmarkTagTag, countRows')
     )
 
