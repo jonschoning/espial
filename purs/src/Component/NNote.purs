@@ -9,22 +9,23 @@ import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
+import Data.String (null)
 import Data.String (null, split) as S
 import Data.String.Pattern (Pattern(..))
+import Data.Symbol (SProxy(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Globals (app', mmoment8601)
+import Globals (app', mmoment8601, setFocus)
 import Halogen as H
 import Halogen.HTML (br_, button, div, form, input, label, p, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), checked, for, id_, name, rows, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autofocus, checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
 import Util (_loc, class_, fromNullableStr, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
-import Data.Symbol (SProxy(..))
 
 data NAction
   = NNop
@@ -126,11 +127,11 @@ nnote st' =
         form [ onSubmit (Just <<< NEditSubmit) ]
           [ p [ class_ "mt2 mb1"] [ text "title:" ]
           , input [ type_ InputText , class_ "title w-100 mb1 pt1 f7 edit_form_input" , name "title"
-                  , value (edit_note.title) , onValueChange (editField Etitle)
+                  , value (edit_note.title) , onValueChange (editField Etitle), autofocus (null edit_note.title)
             ]
           , br_
           , p [ class_ "mt2 mb1"] [ text "description:" ]
-          , textarea [ class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "text", rows 30
+          , textarea [ id_ (notetextid edit_note), class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "text", rows 30
                      , value (edit_note.text) , onValueChange (editField Etext)
             ]
           , div [ class_ "edit_form_checkboxes mb3"]
@@ -168,6 +169,7 @@ nnote st' =
         # foldMap (\x -> [br_, text x])
         # drop 1
 
+  notetextid note = show note.id <> "_text"
 
   handleAction :: NAction -> H.HalogenM NState NAction ChildSlots o Aff Unit
   handleAction (NNop) = pure unit
@@ -195,6 +197,7 @@ nnote st' =
     note <- use _note
     _edit_note .= note
     _edit .= e
+    H.liftEffect $ whenM (pure e) (setFocus (notetextid note))
 
   -- | Submit
   handleAction (NEditSubmit e) = do

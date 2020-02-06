@@ -227,7 +227,7 @@ bmark b' =
     bm <- use _bm
     _edit_bm .= bm
     _edit .= e
-    H.liftEffect $ whenM (pure e) (setFocus (tagid bm))
+    H.liftEffect $ whenM (pure e) (setFocus (tagid bm)) 
 
   -- | Update Form Field 
   handleAction (BEditField f) = do
