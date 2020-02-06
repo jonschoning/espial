@@ -3,15 +3,17 @@ module Component.TagCloud where
 import Prelude hiding (div)
 
 import App (getTagCloud, updateTagCloudMode)
-import Data.Array (sortBy)
+import Data.Array (concat, cons, delete, notElem, null, sortBy)
 import Data.Foldable (maximum, minimum)
 import Data.Int (toNumber)
 import Data.Lens (Lens', lens)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (guard)
-import Data.String (toLower) as S
+import Data.String (joinWith, toLower, null) as S
+import Data.String (toLower)
 import Data.Tuple (fst, uncurry)
 import Effect.Aff (Aff)
+import Foreign.Object (Object)
 import Foreign.Object (toUnfoldable, empty, values) as F
 import Globals (app')
 import Halogen (AttrName(..))
@@ -99,12 +101,15 @@ tagcloudcomponent m' =
               <> [button [ type_ ButtonButton, class_ "pa1 ml2 f7 link silver hover-blue "
                          , onClick \_ -> Just (TExpanded (not (isExpanded mode)))]
                          [ text (if isExpanded mode then "hide" else "show") ]]
-    , whenH (isExpanded mode) $ \_ -> do
+    , whenH (isExpanded mode) \_ -> do
         let n = fromMaybe 1 (minimum (F.values tagcloud))
             m = fromMaybe 1 (maximum (F.values tagcloud))
         div [class_ "tag_cloud_body"] $ case mode of
           TagCloudModeNone -> []
-          _ -> toArray n m tagcloud
+          (TagCloudModeRelated _ curtags) -> 
+            toArray curtags n m tagcloud
+          _ -> 
+            toArray [] n m tagcloud
           
     ]
     where
@@ -116,23 +121,28 @@ tagcloudcomponent m' =
       modelb20 = TagCloudModeLowerBound (isExpanded mode) 20
 
 
-  toArray :: Int -> Int -> _
-  toArray n m =
-    map (uncurry (toSizedTag n m))
+  toArray :: Array String -> Int -> Int -> Object Int -> Array (HTML _ _)
+  toArray curtags n m =
+    concat
+    <<< map (uncurry (toSizedTag (map toLower curtags) n m))
     <<< sortBy (comparing (S.toLower <<< fst))
     <<< F.toUnfoldable
 
-  linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
-  toSizedTag :: Int -> Int -> String -> Int -> _
-  toSizedTag n m k v =
-    a [ href (linkToFilterTag k)
-      , class_ "link tag mr1"
-      , attr (AttrName "style") ("font-size:" <> show fontsize <> "%" <>
-                                 ";opacity:" <> show opacity)
-      ] [text k]
+  linkToFilterTag tag = fromNullableStr app.userR <> (if S.null tag then "" else "/t:" <> tag) 
+
+  toSizedTag :: Array String -> Int -> Int -> String -> Int -> _
+  toSizedTag curtags n m k v =
+    [ a [ href (linkToFilterTag k) , class_ "link tag mr1" , style] 
+        [ text k ]
+      , whenH (not (null curtags))  \_ -> if (notElem k_lower curtags)
+          then a [href (linkToFilterTag (S.joinWith "+" (cons k_lower curtags))), class_ "link mr2 tag-include"] [text "⊕"]
+          else a [href (linkToFilterTag (S.joinWith "+" (delete k_lower curtags))), class_ "link mr2 tag-exclude"] [text "⊖"]
+    ]
     where
+      k_lower = toLower k
       fontsize = rescale identity (toNumber v) (toNumber n) (toNumber m) 100.0 150.0
       opacity = rescale (log <<< (1.0 + _)) (toNumber v) (toNumber n) (toNumber m) 0.6 1.0
+      style = attr (AttrName "style") ("font-size:" <> show fontsize <> "%" <> ";opacity:" <> show opacity)
 
   rescale :: (Number -> Number) -> Number -> Number -> Number -> Number -> Number -> Number
   rescale f v n m l h = (if m - n < 0.01 then 1.0 else (f (v - n) / f (m - n))) * (h - l) + l

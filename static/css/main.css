@@ -103,6 +103,16 @@ label {
     line-height:190%;
     display: inline-block;
 }
+.tag-include {
+    color:rgb(221, 221, 221);
+    line-height:190%;
+    display: inline-block;
+}
+.tag-exclude {
+   color:rgb(255, 170, 170);
+   line-height:190%;
+   display: inline-block;
+}
 
 .private { background:#ddd;border:1px solid #d1d1d1; }
 .unread { color:#b41 }
