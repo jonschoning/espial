@@ -143,3 +143,6 @@ maybeH m k = maybe (HH.text "") k m
 
 fromNullableStr :: Nullable String -> String
 fromNullableStr = fromMaybe "" <<< toMaybe
+
+monthNames :: Array String
+monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]

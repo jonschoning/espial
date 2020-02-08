@@ -13,7 +13,7 @@ import Data.String (null, split, take) as S
 import Data.String.Pattern (Pattern(..))
 import Data.Symbol (SProxy(..))
 import Effect.Aff (Aff)
-import Globals (app', setFocus)
+import Globals (app', setFocus, toLocaleDateString)
 import Halogen as H
 import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
@@ -125,8 +125,8 @@ bmark b' =
                              [ text tag ])
                 (S.split (Pattern " ") bm.tags)
               
-        , a [ class_ "link f7 dib gray w4", href (linkToFilterSingle bm.slug) ]
-          [ text shtime ]
+        , a [ class_ "link f7 dib gray w4", href (linkToFilterSingle bm.slug), title shdatetime ]
+          [ text shdate ]
 
         -- links
         , whenH app.dat.isowner $ \_ ->
@@ -193,7 +193,8 @@ bmark b' =
      editField f = Just <<< BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
-     shtime = S.take 16 bm.time `append` "Z"
+     shdate = toLocaleDateString bm.time 
+     shdatetime = S.take 16 bm.time `append` "Z"
 
   tagid bm = show bm.bid <> "_tags"
 
@@ -227,7 +228,9 @@ bmark b' =
     bm <- use _bm
     _edit_bm .= bm
     _edit .= e
-    H.liftEffect $ whenM (pure e) (setFocus (tagid bm)) 
+    H.liftEffect $
+      when e
+        (setFocus (tagid bm)) 
 
   -- | Update Form Field 
   handleAction (BEditField f) = do

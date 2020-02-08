@@ -36,14 +36,6 @@ exports._createFormArray = function(formElement) {
   return Array.from(new FormData(formElement));
 }
 
-exports._getDataAttribute = function(name, el) {
-  return el.dataset[name];
-}
-
-exports._setDataAttribute = function(name, value, el) {
-  return el.dataset[name] = value;
-}
-
 exports._moment8601 = function(tuple, s) {
   var m = moment(s, moment.ISO_8601);
   var s1 = m.fromNow();
@@ -69,3 +61,8 @@ exports._closeWindow = function (window) {
 exports._setFocus = function(elemId) {
     document.getElementById(elemId).focus();
 };
+
+
+exports._toLocaleDateString = function(dateString) {
+  return new Date(dateString).toLocaleDateString(undefined, {dateStyle: 'medium'}) 
+}
