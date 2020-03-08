@@ -5,10 +5,10 @@ import Data.Newtype (class Newtype)
 import Data.Nullable (Nullable)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Data.Function.Uncurried
-import Effect.Uncurried
+import Data.Function.Uncurried (Fn0, Fn1, Fn4, runFn0, runFn1, runFn4)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn4)
 import Model (Bookmark)
-import Prelude
+import Prelude (Unit)
 import Web.DOM (Node)
 import Web.HTML (HTMLElement, HTMLFormElement, Window)
 import Web.XHR.FormData (FormData)

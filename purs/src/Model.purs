@@ -1,7 +1,7 @@
 module Model where
 
 import Control.Monad.Except (runExcept)
-import Data.Array (intercalate, singleton)
+import Data.Array (intercalate)
 import Data.Either (hush)
 import Data.Maybe (fromMaybe)
 import Data.Nullable (Nullable)
