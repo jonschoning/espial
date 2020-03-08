@@ -25,7 +25,6 @@ shouldArchiveBookmark user kbid = do
         (isNothing $ bookmarkArchiveHref bm) &&
         (bookmarkShared bm)
         && not (_isArchiveBlacklisted bm)
-        && not (userPrivacyLock user)
         && userArchiveDefault user
 
 archiveBookmarkUrl :: Key Bookmark -> String -> Handler ()
