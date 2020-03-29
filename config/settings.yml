@@ -37,7 +37,7 @@ database:
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE
 
-ekg-host:       "_env:EKG_HOST:0.0.0.0"
-ekg-port:       "_env:EKG_PORT:8000"
+# ekg-host:       "_env:EKG_HOST:0.0.0.0"
+# ekg-port:       "_env:EKG_PORT:8000"
 
 source-code-uri: "https://github.com/jonschoning/espial"

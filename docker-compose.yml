@@ -7,7 +7,7 @@ services:
       dockerfile: ../Dockerfile
     ports:
       - "3000:3000"
-      - "8000:8000"
+      # - "8000:8000"
     volumes:
       - '$APPDATA:/app/data'
     environment:
