@@ -59,8 +59,6 @@ see `config/settings.yml` for changing default run-time parameters / environment
 
 default app http port: `3000`
 
-default ekg http port: `8000`
-
 ssl: use reverse proxy
 
 ## Development 

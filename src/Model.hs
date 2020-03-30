@@ -3,7 +3,9 @@
 module Model where
 
 import qualified ClassyPrelude.Yesod as CP
+import Control.Monad.Fail (MonadFail)
 import qualified Data.Aeson as A
+import qualified Data.Aeson.Types as A (parseFail)
 import qualified Data.Attoparsec.Text as P
 import qualified Control.Monad.Combinators as PC
 import qualified Data.List.NonEmpty as NE
@@ -245,7 +247,7 @@ parseSearchQuery toExpr =
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
         simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|')
 
-parseTimeText :: (TI.ParseTime t, Monad m, Alternative m) => Text -> m t
+parseTimeText :: (TI.ParseTime t, MonadFail m, Alternative m) => Text -> m t
 parseTimeText t =
   asum $
   flip (parseTimeM True defaultTimeLocale) (unpack t) <$>
@@ -426,8 +428,8 @@ instance FromJSON TagCloudMode where
       Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
       Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> (fmap words (o .: "value"))
       Just (String "none") -> pure TagCloudModeNone
-      _ -> fail "bad parse"
-  parseJSON _ = fail "bad parse"
+      _ -> A.parseFail "bad parse"
+  parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON TagCloudMode where
   toJSON (TagCloudModeTop e i) =
@@ -635,9 +637,9 @@ upsertBookmark userId mbid bm tags = do
       get bid >>= \case
         Just prev_bm -> do
           when (userId /= bookmarkUserId prev_bm)
-            (fail "unauthorized")
+            (throwString "unauthorized")
           replaceBookmark bid prev_bm
-        _ -> fail "not found"
+        _ -> throwString "not found"
     Nothing -> do
       getBy (UniqueUserHref (bookmarkUserId bm) (bookmarkHref bm)) >>= \case
         Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
@@ -672,10 +674,10 @@ upsertNote userId mnid note = do
       get nid >>= \case
         Just note' -> do
           when (userId /= (noteUserId note'))
-            (fail "unauthorized")
+            (throwString "unauthorized")
           replace nid note
           pure (Updated, nid)
-        _ -> fail "not found"
+        _ -> throwString "not found"
     Nothing -> do
       (Created,) <$> insert note
 
@@ -702,7 +704,7 @@ instance FromJSON FileBookmark where
     (o A..:? "selected") <*>
     (o A..:? "archive_url") <*>
     (o .: "tags")
-  parseJSON _ = fail "bad parse"
+  parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON FileBookmark where
   toJSON (FileBookmark {..}) =
@@ -743,7 +745,7 @@ instance FromJSON FileNote where
     o .: "length" <*>
     (readFileNoteTime =<< o .: "created_at") <*>
     (readFileNoteTime =<< o .: "updated_at")
-  parseJSON _ = fail "bad parse"
+  parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON FileNote where
   toJSON (FileNote {..}) =
@@ -757,7 +759,7 @@ instance ToJSON FileNote where
       ]
 
 readFileNoteTime
-  :: Monad m
+  :: MonadFail m
   => String -> m UTCTime
 readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
 

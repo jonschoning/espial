@@ -12,7 +12,7 @@ import qualified Network.HTTP.Client as NH
 import qualified Network.HTTP.Client.TLS as NH
 import qualified Network.HTTP.Types.Status as NH
 import qualified Web.FormUrlEncoded as WH
-import qualified Control.Monad.Metrics as MM
+-- import qualified Control.Monad.Metrics as MM
 import HTMLEntities.Decoder (htmlEncodedText)
 import Data.Text.Lazy.Builder (toLazyText)
 
@@ -31,15 +31,15 @@ archiveBookmarkUrl :: Key Bookmark -> String -> Handler ()
 archiveBookmarkUrl kbid url =
   (_fetchArchiveSubmitInfo >>= \case
     Left e -> do
-      MM.increment "archive.fetchSubmitId_noparse"
+      -- MM.increment "archive.fetchSubmitId_noparse"
       $(logError) (pack e)
     Right submitInfo ->  do
         userId <- requireAuthId
         let req = _buildArchiveSubmitRequest submitInfo url
-        MM.increment "archive.submit"  
+        -- MM.increment "archive.submit"  
         res <- liftIO $ NH.httpLbs req  =<< NH.getGlobalManager
         let status = NH.responseStatus res
-        MM.increment ("archive.submit_status_" <> (pack.show) (NH.statusCode status)) 
+        -- MM.increment ("archive.submit_status_" <> (pack.show) (NH.statusCode status)) 
         let updateArchiveUrl = runDB . updateBookmarkArchiveUrl userId kbid . Just
             headers = NH.responseHeaders res
         case status of
@@ -87,9 +87,9 @@ _buildArchiveSubmitRequest (action, submitId) href =
 
 _fetchArchiveSubmitInfo :: Handler (Either String (String , String))
 _fetchArchiveSubmitInfo = do
-  MM.increment "archive.fetchSubmitId"  
+  -- MM.increment "archive.fetchSubmitId"  
   res <- liftIO $ NH.httpLbs (buildSimpleRequest "https://archive.li/") =<< NH.getGlobalManager
-  MM.increment ("archive.fetchSubmitId_status_" <> (pack.show) (NH.statusCode (NH.responseStatus res))) 
+  -- MM.increment ("archive.fetchSubmitId_status_" <> (pack.show) (NH.statusCode (NH.responseStatus res))) 
   let body = LBS.toStrict (responseBody res)
       action = _parseSubstring (AP8.string "action=\"") (AP8.notChar '"') body
       submitId = _parseSubstring (AP8.string "submitid\" value=\"") (AP8.notChar '"') body
@@ -107,12 +107,13 @@ _parseSubstring start inner res = do
 
 fetchPageTitle :: String -> Handler (Either String Text)
 fetchPageTitle url =
-  do MM.increment "fetchPageTitle"
+  do
+     -- MM.increment "fetchPageTitle"
      res <- liftIO $ NH.httpLbs (buildSimpleRequest url) =<< NH.getGlobalManager
      let body = LBS.toStrict (responseBody res)
      pure (decodeHtmlBs <$> parseTitle body)
      `catch` (\(e :: SomeException) -> do
-                MM.increment "fetchPageTitle.error"
+                -- MM.increment "fetchPageTitle.error"
                 $(logError) $ (pack . show) e
                 pure (Left (show e)))
   where

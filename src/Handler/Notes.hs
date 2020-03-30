@@ -6,7 +6,6 @@ import Handler.Common (lookupPagingParams)
 import qualified Data.Aeson as A
 import qualified Data.Text as T
 import           Yesod.RssFeed
-import           Text.Blaze.Html (toHtml)
 import qualified Text.Blaze.Html5 as H
 
 getNotesR :: UserNameP -> Handler Html

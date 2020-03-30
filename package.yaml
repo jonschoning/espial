@@ -47,6 +47,7 @@ default-extensions:
 - DataKinds
 - DeriveDataTypeable
 - DeriveGeneric
+- DerivingStrategies      
 - EmptyDataDecls
 - FlexibleContexts
 - FlexibleInstances
@@ -73,6 +74,7 @@ default-extensions:
 - TypeFamilies
 - TypeOperators
 - TypeSynonymInstances
+- UndecidableInstances
 - ViewPatterns
 
 dependencies:
@@ -92,7 +94,7 @@ dependencies:
 - classy-prelude-yesod >=1.4 && <1.6
 - bytestring >=0.9 && <0.11
 - text >=0.11 && <2.0
-- persistent >=2.8 && <2.10
+- persistent >=2.8 && <2.11
 # - persistent-postgresql >=2.8 && <2.9
 - blaze-html >= 0.9 && < 1.0
 - persistent-template >=2.5 && <2.9
@@ -110,7 +112,7 @@ dependencies:
 # - aeson >=0.6 && <1.4
 - conduit >=1.0 && <2.0
 - monad-logger >=0.3 && <0.4
-- fast-logger >=2.2 && <2.5
+- fast-logger >=2.2 && <4
 - wai-logger >=2.2 && <2.4
 - file-embed
 - safe
@@ -126,8 +128,8 @@ dependencies:
 - attoparsec
 - bcrypt >= 0.0.8
 - entropy
-- ekg
-- ekg-core
+# - ekg
+# - ekg-core
 - esqueleto
 - hscolour
 - http-api-data >= 0.3.4
@@ -135,12 +137,12 @@ dependencies:
 - http-types
 - iso8601-time >=0.1.3
 - microlens
-- monad-metrics
+# - monad-metrics
 - mtl
 - persistent-sqlite >=2.6.2
 - pretty-show
 - transformers >= 0.2.2
-- wai-middleware-metrics
+# - wai-middleware-metrics
 - parser-combinators
 - html-entities
 

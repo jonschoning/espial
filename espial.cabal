@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 853ba5e7d0435fcec73b493932da0f2748f4674bbfc62ebbd54df707166f999b
+-- hash: b6f4cdc1abf4e7a6b5bbc1382963c22cc62bbbe8c4ae5e5394cf6fe5fc1ff9cb
 
 name:           espial
 version:        0.0.8
@@ -123,7 +123,7 @@ library
       Paths_espial
   hs-source-dirs:
       src
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   build-depends:
       aeson >=1.4
     , attoparsec
@@ -139,11 +139,9 @@ library
     , containers
     , data-default
     , directory >=1.1 && <1.4
-    , ekg
-    , ekg-core
     , entropy
     , esqueleto
-    , fast-logger >=2.2 && <2.5
+    , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
     , hjsmin >=0.1 && <0.3
@@ -157,10 +155,9 @@ library
     , iso8601-time >=0.1.3
     , microlens
     , monad-logger >=0.3 && <0.4
-    , monad-metrics
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.10
+    , persistent >=2.8 && <2.11
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.9
     , pretty-show
@@ -175,7 +172,6 @@ library
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
-    , wai-middleware-metrics
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
@@ -198,7 +194,7 @@ executable espial
       Paths_espial
   hs-source-dirs:
       app
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -215,12 +211,10 @@ executable espial
     , containers
     , data-default
     , directory >=1.1 && <1.4
-    , ekg
-    , ekg-core
     , entropy
     , espial
     , esqueleto
-    , fast-logger >=2.2 && <2.5
+    , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
     , hjsmin >=0.1 && <0.3
@@ -234,10 +228,9 @@ executable espial
     , iso8601-time >=0.1.3
     , microlens
     , monad-logger >=0.3 && <0.4
-    , monad-metrics
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.10
+    , persistent >=2.8 && <2.11
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.9
     , pretty-show
@@ -252,7 +245,6 @@ executable espial
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
-    , wai-middleware-metrics
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
@@ -271,7 +263,7 @@ executable migration
       Paths_espial
   hs-source-dirs:
       app/migration
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -288,12 +280,10 @@ executable migration
     , containers
     , data-default
     , directory >=1.1 && <1.4
-    , ekg
-    , ekg-core
     , entropy
     , espial
     , esqueleto
-    , fast-logger >=2.2 && <2.5
+    , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
     , hjsmin >=0.1 && <0.3
@@ -307,11 +297,10 @@ executable migration
     , iso8601-time >=0.1.3
     , microlens
     , monad-logger >=0.3 && <0.4
-    , monad-metrics
     , mtl
     , optparse-generic >=1.2.3
     , parser-combinators
-    , persistent >=2.8 && <2.10
+    , persistent >=2.8 && <2.11
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.9
     , pretty-show
@@ -326,7 +315,6 @@ executable migration
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
-    , wai-middleware-metrics
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
@@ -349,7 +337,7 @@ test-suite test
       Paths_espial
   hs-source-dirs:
       test
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances ViewPatterns
+  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -Wall
   build-depends:
       aeson >=1.4
@@ -366,12 +354,10 @@ test-suite test
     , containers
     , data-default
     , directory >=1.1 && <1.4
-    , ekg
-    , ekg-core
     , entropy
     , espial
     , esqueleto
-    , fast-logger >=2.2 && <2.5
+    , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
     , hjsmin >=0.1 && <0.3
@@ -386,10 +372,9 @@ test-suite test
     , iso8601-time >=0.1.3
     , microlens
     , monad-logger >=0.3 && <0.4
-    , monad-metrics
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.10
+    , persistent >=2.8 && <2.11
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.9
     , pretty-show
@@ -404,7 +389,6 @@ test-suite test
     , wai
     , wai-extra >=3.0 && <3.1
     , wai-logger >=2.2 && <2.4
-    , wai-middleware-metrics
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.7
