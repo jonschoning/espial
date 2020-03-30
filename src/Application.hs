@@ -28,7 +28,6 @@ import           Network.Wai.Middleware.Gzip
 import           Network.Wai.Middleware.MethodOverride
 import           Network.Wai.Middleware.RequestLogger (Destination(Logger), IPAddrSource(..), OutputFormat(..), destination, mkRequestLogger, outputFormat)
 import           System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)
-import           Yesod.Auth (getAuth)
 
 -- import qualified Control.Monad.Metrics as MM
 -- import qualified Network.Wai.Metrics as WM

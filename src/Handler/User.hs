@@ -4,7 +4,6 @@ module Handler.User where
 import qualified Data.Text as T
 import           Handler.Common
 import           Import
-import           Text.Blaze.Html (toHtml)
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
 import qualified Database.Esqueleto as E
