@@ -14,23 +14,25 @@ import Lens.Micro
 import Options.Generic
 
 data MigrationOpts
-  = CreateDB { conn :: Text}
+  = CreateDB { conn :: Text }
   | CreateUser { conn :: Text
                , userName :: Text
                , userPassword :: Text
-               , userApiToken :: Maybe Text }
+               , privateDefault :: Maybe Bool
+               , archiveDefault :: Maybe Bool
+               , privacyLock :: Maybe Bool }
   | DeleteUser { conn :: Text
-               , userName :: Text}
+               , userName :: Text }
   | ImportBookmarks { conn :: Text
                     , userName :: Text
-                    , bookmarkFile :: FilePath}
+                    , bookmarkFile :: FilePath }
   | ExportBookmarks { conn :: Text
                     , userName :: Text
-                    , bookmarkFile :: FilePath}
+                    , bookmarkFile :: FilePath }
   | ImportNotes { conn :: Text
                 , userName :: Text
-                , noteDirectory :: FilePath}
-  | PrintMigrateDB { conn :: Text}
+                , noteDirectory :: FilePath }
+  | PrintMigrateDB { conn :: Text }
   deriving (Generic, Show)
 
 instance ParseRecord MigrationOpts
@@ -39,54 +41,54 @@ main :: IO ()
 main = do
   args <- getRecord "Migrations"
   case args of
-    PrintMigrateDB conn ->
+    PrintMigrateDB {..} ->
       P.runSqlite conn dumpMigration
 
-    CreateDB conn -> do
+    CreateDB {..} -> do
       let connInfo = P.mkSqliteConnectionInfo conn
                      & set P.fkEnabled False
       P.runSqliteInfo connInfo runMigrations
 
-    CreateUser conn uname upass utoken ->
+    CreateUser{..} ->
       P.runSqlite conn $ do
-        hash' <- liftIO (hashPassword upass)
+        hash' <- liftIO (hashPassword userPassword)
         void $ P.upsertBy
-          (UniqueUserName uname)
-          (User uname hash' utoken False False False)
+          (UniqueUserName userName)
+          (User userName hash' Nothing False False False)
           [ UserPasswordHash P.=. hash'
-          , UserApiToken P.=. utoken
-          , UserPrivateDefault P.=. False
-          , UserArchiveDefault P.=. False
-          , UserPrivacyLock P.=. False
+          , UserApiToken P.=. Nothing
+          , UserPrivateDefault P.=. fromMaybe False privateDefault
+          , UserArchiveDefault P.=. fromMaybe False archiveDefault
+          , UserPrivacyLock P.=. fromMaybe False privacyLock
           ]
         pure () :: DB ()
 
-    DeleteUser conn uname ->
+    DeleteUser {..} ->
       P.runSqlite conn $ do
-        muser <- P.getBy (UniqueUserName uname)
+        muser <- P.getBy (UniqueUserName userName)
         case muser of
-          Nothing -> liftIO (print (uname ++ "not found"))
+          Nothing -> liftIO (print (userName ++ "not found"))
           Just (P.Entity uid _) -> do
             P.deleteCascade uid
             pure () :: DB ()
 
-    ImportBookmarks conn uname file ->
+    ImportBookmarks {..} ->
       P.runSqlite conn $ do
-        muser <- P.getBy (UniqueUserName uname)
+        muser <- P.getBy (UniqueUserName userName)
         case muser of
-          Just (P.Entity uid _) -> insertFileBookmarks uid file
-          Nothing -> liftIO (print (uname ++ "not found"))
+          Just (P.Entity uid _) -> insertFileBookmarks uid bookmarkFile
+          Nothing -> liftIO (print (userName ++ "not found"))
 
-    ExportBookmarks conn uname file ->
+    ExportBookmarks {..} ->
       P.runSqlite conn $ do
-        muser <- P.getBy (UniqueUserName uname)
+        muser <- P.getBy (UniqueUserName userName)
         case muser of
-          Just (P.Entity uid _) -> exportFileBookmarks uid file
-          Nothing -> liftIO (print (uname ++ "not found"))
+          Just (P.Entity uid _) -> exportFileBookmarks uid bookmarkFile
+          Nothing -> liftIO (print (userName ++ "not found"))
 
-    ImportNotes conn uname dir ->
+    ImportNotes {..} ->
       P.runSqlite conn $ do
-        muser <- P.getBy (UniqueUserName uname)
+        muser <- P.getBy (UniqueUserName userName)
         case muser of
-          Just (P.Entity uid _) -> insertDirFileNotes uid dir
-          Nothing -> liftIO (print (uname ++ "not found"))
+          Just (P.Entity uid _) -> insertDirFileNotes uid noteDirectory
+          Nothing -> liftIO (print (userName ++ "not found"))
