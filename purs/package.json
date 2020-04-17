@@ -7,12 +7,12 @@
     "parcel-build": "parcel build dist/bundle.js --out-file dist/app.min.js --public-url /static/js/"
   },
   "devDependencies": {
-    "marked": "^0.7.0",
+    "marked": "^0.8.2",
     "moment": "^2.24.0",
     "parcel-bundler": "^1.12.4",
     "purescript": "^0.13.3",
-    "spago": "^0.10.0",
-    "terser": "^4.6.3"
+    "spago": "^0.15.2",
+    "terser": "^4.6.11"
   },
   "dependencies": {}
 }
