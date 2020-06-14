@@ -43,10 +43,16 @@ see https://github.com/jonschoning/espial-docker
     stack exec migration -- createuser --conn espial.sqlite3 --userName myusername --userPassword myuserpassword
     ```
 
-5. Import a bookmark file for a user (optional)
+5a. Import a pinboard bookmark file for a user (optional)
 
     ```
      stack exec migration -- importbookmarks --conn espial.sqlite3 --userName myusername --bookmarkFile sample-bookmarks.json
+    ```
+
+5b. Import a firefox bookmark file for a user (optional)
+
+    ```
+     stack exec migration -- importfirefoxbookmarks --conn espial.sqlite3 --userName myusername --bookmarkFile firefox-bookmarks.json
     ```
 
 6. Start a production server:
@@ -78,7 +84,7 @@ ssl: use reverse proxy
 
 - See `purs/` folder
 
-## Import Bookmark file format
+## Import Bookmark file format (pinboard compatible format)
 
 see `sample-bookmarks.json`, which contains a JSON array, each line containing a `FileBookmark` object. 
 

@@ -26,6 +26,9 @@ data MigrationOpts
   | ImportBookmarks { conn :: Text
                     , userName :: Text
                     , bookmarkFile :: FilePath }
+  | ImportFirefoxBookmarks { conn :: Text
+                    , userName :: Text
+                    , bookmarkFile :: FilePath }
   | ExportBookmarks { conn :: Text
                     , userName :: Text
                     , bookmarkFile :: FilePath }
@@ -72,13 +75,6 @@ main = do
             P.deleteCascade uid
             pure () :: DB ()
 
-    ImportBookmarks {..} ->
-      P.runSqlite conn $ do
-        muser <- P.getBy (UniqueUserName userName)
-        case muser of
-          Just (P.Entity uid _) -> insertFileBookmarks uid bookmarkFile
-          Nothing -> liftIO (print (userName ++ "not found"))
-
     ExportBookmarks {..} ->
       P.runSqlite conn $ do
         muser <- P.getBy (UniqueUserName userName)
@@ -86,9 +82,36 @@ main = do
           Just (P.Entity uid _) -> exportFileBookmarks uid bookmarkFile
           Nothing -> liftIO (print (userName ++ "not found"))
 
+    ImportBookmarks {..} ->
+      P.runSqlite conn $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> do
+            result <- insertFileBookmarks uid bookmarkFile
+            case result of
+              Left e -> liftIO (print e)
+              Right n -> liftIO (print (show n ++ " bookmarks imported."))
+          Nothing -> liftIO (print (userName ++ "not found"))
+
+
+    ImportFirefoxBookmarks {..} ->
+      P.runSqlite conn $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> do
+            result <- insertFFBookmarks uid bookmarkFile
+            case result of
+              Left e -> liftIO (print e)
+              Right n -> liftIO (print (show n ++ " bookmarks imported."))
+          Nothing -> liftIO (print (userName ++ "not found"))
+
     ImportNotes {..} ->
       P.runSqlite conn $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
-          Just (P.Entity uid _) -> insertDirFileNotes uid noteDirectory
+          Just (P.Entity uid _) -> do
+            result <- insertDirFileNotes uid noteDirectory
+            case result of
+              Left e -> liftIO (print e)
+              Right n -> liftIO (print (show n ++ " notes imported."))
           Nothing -> liftIO (print (userName ++ "not found"))

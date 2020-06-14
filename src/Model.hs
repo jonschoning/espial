@@ -10,6 +10,7 @@ import qualified Data.Attoparsec.Text as P
 import qualified Control.Monad.Combinators as PC
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Time.ISO8601 as TI
+import qualified Data.Time.Clock.POSIX as TI
 import qualified Database.Esqueleto as E
 import Database.Esqueleto.Internal.Sql as E
 import qualified Data.Time as TI
@@ -349,12 +350,69 @@ bookmarkTofileBookmark (Bookmark {..}) tags =
       bookmarkArchiveHref
       tags
 
+data FFBookmarkNode = FFBookmarkNode
+  { firefoxBookmarkChildren :: Maybe [FFBookmarkNode]
+  , firefoxBookmarkDateAdded :: !TI.POSIXTime
+  , firefoxBookmarkGuid :: !Text
+  , firefoxBookmarkIconUri :: !(Maybe Text)
+  , firefoxBookmarkId :: !Int
+  , firefoxBookmarkIndex :: !Int
+  , firefoxBookmarkLastModified :: !TI.POSIXTime
+  , firefoxBookmarkRoot :: !(Maybe Text)
+  , firefoxBookmarkTitle :: !Text
+  , firefoxBookmarkType :: !Text
+  , firefoxBookmarkTypeCode :: !Int
+  , firefoxBookmarkUri :: !(Maybe Text)
+  } deriving (Show, Eq, Typeable, Ord)
+  
+instance FromJSON FFBookmarkNode where
+  parseJSON (Object o) =
+    FFBookmarkNode <$>
+    (o A..:? "children") <*>
+    (o .: "dateAdded") <*>
+    o .: "guid" <*>
+    (o A..:? "iconUri") <*>
+    o .: "id" <*>
+    o .: "index" <*>
+    (o .: "lastModified") <*>
+    (o A..:? "root") <*>
+    (o .: "title") <*>
+    (o .: "type") <*>
+    (o .: "typeCode") <*>
+    (o A..:? "uri")
+  parseJSON _ = A.parseFail "bad parse"
 
-insertFileBookmarks :: Key User -> FilePath -> DB ()
+firefoxBookmarkNodeToBookmark :: UserId -> FFBookmarkNode -> IO [Bookmark]
+firefoxBookmarkNodeToBookmark user (FFBookmarkNode {..}) = do
+  case firefoxBookmarkTypeCode of
+    1 -> do
+      slug <- mkBmSlug
+      pure $
+        [ Bookmark
+            user
+            slug
+            (fromMaybe "" firefoxBookmarkUri)
+            firefoxBookmarkTitle
+            ""
+            (TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000))
+            True
+            False
+            False
+            Nothing
+        ]
+    2 ->
+      join <$>
+      mapM
+        (firefoxBookmarkNodeToBookmark user)
+        (fromMaybe [] firefoxBookmarkChildren)
+    _ -> pure []
+
+ 
+insertFileBookmarks :: Key User -> FilePath -> DB (Either String Int)
 insertFileBookmarks userId bookmarkFile = do
   mfmarks <- liftIO $ readFileBookmarks bookmarkFile
   case mfmarks of
-    Left e -> print e
+    Left e -> pure $ Left e
     Right fmarks -> do
       bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
       mbids <- mapM insertUnique bmarks
@@ -366,11 +424,28 @@ insertFileBookmarks userId bookmarkFile = do
           (\mbid tags -> ((, tags) <$> mbid))
           mbids
           (extractTags <$> fmarks)
+      pure $ Right (length bmarks)
+      
   where
     extractTags = words . fileBookmarkTags
 
+insertFFBookmarks :: Key User -> FilePath -> DB (Either String Int)
+insertFFBookmarks userId bookmarkFile = do
+  mfmarks <- liftIO $ readFFBookmarks bookmarkFile
+  case mfmarks of
+    Left e -> pure $ Left e
+    Right fmarks -> do
+      bmarks <- liftIO $ firefoxBookmarkNodeToBookmark userId fmarks
+      _ <- mapM insertUnique bmarks
+      pure $ Right (length bmarks)
+
+
 readFileBookmarks :: MonadIO m => FilePath -> m (Either String [FileBookmark])
 readFileBookmarks fpath =
+  pure . A.eitherDecode' . fromStrict =<< readFile fpath
+
+readFFBookmarks :: MonadIO m => FilePath -> m (Either String FFBookmarkNode)
+readFFBookmarks fpath =
   pure . A.eitherDecode' . fromStrict =<< readFile fpath
 
 exportFileBookmarks :: Key User -> FilePath -> DB ()
@@ -519,14 +594,15 @@ fileNoteToNote user (FileNote {..} ) = do
       fileNoteCreatedAt
       fileNoteUpdatedAt
 
-insertDirFileNotes :: Key User -> FilePath -> DB ()
+insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
 insertDirFileNotes userId noteDirectory = do
   mfnotes <- liftIO $ readFileNotes noteDirectory
   case mfnotes of
-      Left e -> print e
+      Left e -> pure $ Left e
       Right fnotes -> do
         notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
         void $ mapM insertUnique notes
+        pure $ Right (length notes)
   where
     readFileNotes :: MonadIO m => FilePath -> m (Either String [FileNote])
     readFileNotes fdir = do
