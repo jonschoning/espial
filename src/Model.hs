@@ -694,12 +694,12 @@ _toBookmark userId BookmarkForm {..} = do
     { bookmarkUserId = userId
     , bookmarkSlug = slug
     , bookmarkHref = _url
-    , bookmarkDescription = (fromMaybe "" _title)
-    , bookmarkExtended = (maybe "" unTextarea _description)
-    , bookmarkTime = (fromMaybe time (fmap unUTCTimeStr _time))
-    , bookmarkShared = (maybe True not _private)
-    , bookmarkToRead = (fromMaybe False _toread)
-    , bookmarkSelected = (fromMaybe False _selected)
+    , bookmarkDescription = fromMaybe "" _title
+    , bookmarkExtended = maybe "" unTextarea _description
+    , bookmarkTime = fromMaybe time (fmap unUTCTimeStr _time)
+    , bookmarkShared = maybe True not _private
+    , bookmarkToRead = fromMaybe False _toread
+    , bookmarkSelected = fromMaybe False _selected
     , bookmarkArchiveHref = _archiveUrl
     }
 

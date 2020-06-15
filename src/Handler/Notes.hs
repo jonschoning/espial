@@ -69,7 +69,7 @@ getAddNoteViewR :: UserNameP -> Handler Html
 getAddNoteViewR unamep@(UserNameP uname) = do
   userId <- requireAuthId
   let renderEl = "note" :: Text
-  note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId (NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+  note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId emptyNoteForm
   defaultLayout $ do
     $(widgetFile "note")
     toWidgetBody [julius|
@@ -128,6 +128,9 @@ instance ToJSON NoteForm where toJSON = A.genericToJSON gNoteFormOptions
 
 gNoteFormOptions :: A.Options
 gNoteFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
+
+emptyNoteForm :: NoteForm
+emptyNoteForm = NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 _toNote :: UserId -> NoteForm -> IO Note
 _toNote userId NoteForm {..} = do

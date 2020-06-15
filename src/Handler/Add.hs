@@ -30,18 +30,26 @@ getAddViewR = do
 bookmarkFormUrl :: Handler BookmarkForm
 bookmarkFormUrl = do
   Entity _ user <- requireAuth
-  BookmarkForm
-    <$> (lookupGetParam "url" >>= pure . fromMaybe "")
-    <*> (lookupGetParam "title")
-    <*> (lookupGetParam "description" >>= pure . fmap Textarea)
-    <*> (lookupGetParam "tags")
-    <*> (lookupGetParam "private" >>= pure . fmap parseChk <&> (<|> Just (userPrivateDefault user)))
-    <*> (lookupGetParam "toread" >>= pure . fmap parseChk)
-    <*> pure Nothing
-    <*> pure Nothing
-    <*> pure Nothing
-    <*> pure Nothing
-    <*> pure Nothing
+  url <- lookupGetParam "url" >>= pure . fromMaybe ""
+  title <- lookupGetParam "title"
+  description <- lookupGetParam "description" >>= pure . fmap Textarea
+  tags <- lookupGetParam "tags"
+  private <- lookupGetParam "private" >>= pure . fmap parseChk <&> (<|> Just (userPrivateDefault user))
+  toread <- lookupGetParam "toread" >>= pure . fmap parseChk
+  pure $
+    BookmarkForm
+    { _url = url
+    , _title = title
+    , _description = description
+    , _tags = tags
+    , _private = private
+    , _toread = toread
+    , _bid = Nothing
+    , _slug = Nothing
+    , _selected = Nothing
+    , _time = Nothing
+    , _archiveUrl = Nothing
+    }
   where
     parseChk s = s == "yes" || s == "on"
 
