@@ -98,15 +98,16 @@ _updateTagCloudMode mode =
     TagCloudModeRelated _ _ -> setTagCloudMode mode
     TagCloudModeNone -> notFound
 
-bookmarkToRssEntry :: (Entity Bookmark,[Text]) -> FeedEntry Text
+bookmarkToRssEntry :: (Entity Bookmark, [Text]) -> FeedEntry Text
 bookmarkToRssEntry ((Entity entryId entry), tags) =
-  FeedEntry { feedEntryLink = (bookmarkHref entry)
-            , feedEntryUpdated = (bookmarkTime entry)
-            , feedEntryTitle = (bookmarkDescription entry)
-            , feedEntryContent =  (toHtml (bookmarkExtended entry))
-            , feedEntryCategories = map (EntryCategory Nothing Nothing) tags
-            , feedEntryEnclosure = Nothing
-            }
+  FeedEntry
+  { feedEntryLink = bookmarkHref entry
+  , feedEntryUpdated = bookmarkTime entry
+  , feedEntryTitle = bookmarkDescription entry
+  , feedEntryContent = toHtml (bookmarkExtended entry)
+  , feedEntryCategories = map (EntryCategory Nothing Nothing) tags
+  , feedEntryEnclosure = Nothing
+  }
 
 toBookmarkWithTagsList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [(Entity Bookmark, [Text])]
 toBookmarkWithTagsList bs as = do
@@ -139,12 +140,15 @@ getUserFeedR unamep@(UserNameP uname) = do
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m
   render <- getUrlRender
-  rssFeedText $ Feed ("espial " <> uname)
-                     (render (UserFeedR unamep))
-                     (render (UserR unamep))
-                     uname
-                     descr
-                     "en"
-                     updated
-                     Nothing
-                     entries
+  rssFeedText $
+    Feed
+    { feedTitle = "espial " <> uname
+    , feedLinkSelf = render (UserFeedR unamep)
+    , feedLinkHome = render (UserR unamep)
+    , feedAuthor = uname
+    , feedDescription = descr
+    , feedLanguage = "en"
+    , feedUpdated = updated
+    , feedLogo = Nothing
+    , feedEntries = entries
+    }

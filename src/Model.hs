@@ -326,29 +326,31 @@ fileBookmarkToBookmark user (FileBookmark {..}) = do
   slug <- mkBmSlug
   pure $
     Bookmark
-      user
-      slug
-      fileBookmarkHref
-      fileBookmarkDescription
-      fileBookmarkExtended
-      fileBookmarkTime
-      fileBookmarkShared
-      fileBookmarkToRead
-      (fromMaybe False fileBookmarkSelected)
-      fileBookmarkArchiveHref
+    { bookmarkUserId = user
+    , bookmarkSlug = slug
+    , bookmarkHref = fileBookmarkHref
+    , bookmarkDescription = fileBookmarkDescription
+    , bookmarkExtended = fileBookmarkExtended
+    , bookmarkTime = fileBookmarkTime
+    , bookmarkShared = fileBookmarkShared
+    , bookmarkToRead = fileBookmarkToRead
+    , bookmarkSelected = (fromMaybe False fileBookmarkSelected)
+    , bookmarkArchiveHref = fileBookmarkArchiveHref
+    }
 
 bookmarkTofileBookmark :: Bookmark -> Text -> FileBookmark
 bookmarkTofileBookmark (Bookmark {..}) tags =
     FileBookmark
-      bookmarkHref
-      bookmarkDescription
-      bookmarkExtended
-      bookmarkTime
-      bookmarkShared
-      bookmarkToRead
-      (Just bookmarkSelected)
-      bookmarkArchiveHref
-      tags
+    { fileBookmarkHref = bookmarkHref
+    , fileBookmarkDescription = bookmarkDescription
+    , fileBookmarkExtended = bookmarkExtended
+    , fileBookmarkTime = bookmarkTime
+    , fileBookmarkShared = bookmarkShared
+    , fileBookmarkToRead = bookmarkToRead
+    , fileBookmarkSelected = Just bookmarkSelected
+    , fileBookmarkArchiveHref = bookmarkArchiveHref
+    , fileBookmarkTags = tags
+    }
 
 data FFBookmarkNode = FFBookmarkNode
   { firefoxBookmarkChildren :: Maybe [FFBookmarkNode]
@@ -389,16 +391,17 @@ firefoxBookmarkNodeToBookmark user (FFBookmarkNode {..}) = do
       slug <- mkBmSlug
       pure $
         [ Bookmark
-            user
-            slug
-            (fromMaybe "" firefoxBookmarkUri)
-            firefoxBookmarkTitle
-            ""
-            (TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000))
-            True
-            False
-            False
-            Nothing
+          { bookmarkUserId = user
+          , bookmarkSlug = slug
+          , bookmarkHref = (fromMaybe "" firefoxBookmarkUri)
+          , bookmarkDescription = firefoxBookmarkTitle
+          , bookmarkExtended = ""
+          , bookmarkTime = (TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000))
+          , bookmarkShared = True
+          , bookmarkToRead = False
+          , bookmarkSelected = False
+          , bookmarkArchiveHref = Nothing
+          }
         ]
     2 ->
       join <$>
@@ -584,15 +587,16 @@ fileNoteToNote user (FileNote {..} ) = do
   slug <- mkNtSlug
   pure $
     Note
-      user
-      slug
-      fileNoteLength
-      fileNoteTitle
-      fileNoteText
-      False
-      False
-      fileNoteCreatedAt
-      fileNoteUpdatedAt
+    { noteUserId = user
+    , noteSlug = slug
+    , noteLength = fileNoteLength
+    , noteTitle = fileNoteTitle
+    , noteText = fileNoteText
+    , noteIsMarkdown = False
+    , noteShared = False
+    , noteCreated = fileNoteCreatedAt
+    , noteUpdated = fileNoteUpdatedAt 
+    }
 
 insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
 insertDirFileNotes userId noteDirectory = do
@@ -687,16 +691,17 @@ _toBookmark userId BookmarkForm {..} = do
   slug <- maybe mkBmSlug pure _slug
   pure $
     Bookmark
-      userId
-      slug
-      _url
-      (fromMaybe "" _title)
-      (maybe "" unTextarea _description)
-      (fromMaybe time (fmap unUTCTimeStr _time))
-      (maybe True not _private)
-      (fromMaybe False _toread)
-      (fromMaybe False _selected)
-      _archiveUrl
+    { bookmarkUserId = userId
+    , bookmarkSlug = slug
+    , bookmarkHref = _url
+    , bookmarkDescription = (fromMaybe "" _title)
+    , bookmarkExtended = (maybe "" unTextarea _description)
+    , bookmarkTime = (fromMaybe time (fmap unUTCTimeStr _time))
+    , bookmarkShared = (maybe True not _private)
+    , bookmarkToRead = (fromMaybe False _toread)
+    , bookmarkSelected = (fromMaybe False _selected)
+    , bookmarkArchiveHref = _archiveUrl
+    }
 
 fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
 fetchBookmarkByUrl userId murl = runMaybeT $ do

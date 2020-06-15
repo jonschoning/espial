@@ -135,25 +135,27 @@ _toNote userId NoteForm {..} = do
   slug <- maybe mkNtSlug pure _slug
   pure $
     Note
-      userId
-      slug
-      (length _text)
-      (fromMaybe "" _title)
-      (maybe "" unTextarea _text)
-      (fromMaybe False _isMarkdown)
-      (fromMaybe False _shared)
-      (fromMaybe time (fmap unUTCTimeStr _created))
-      (fromMaybe time (fmap unUTCTimeStr _updated))
+    { noteUserId = userId
+    , noteSlug = slug
+    , noteLength = length _text
+    , noteTitle = fromMaybe "" _title
+    , noteText = maybe "" unTextarea _text
+    , noteIsMarkdown = fromMaybe False _isMarkdown
+    , noteShared = fromMaybe False _shared
+    , noteCreated = fromMaybe time (fmap unUTCTimeStr _created)
+    , noteUpdated = fromMaybe time (fmap unUTCTimeStr _updated)
+    }
 
 noteToRssEntry :: UserNameP -> Entity Note -> FeedEntry (Route App)
 noteToRssEntry usernamep (Entity entryId entry) =
-  FeedEntry { feedEntryLink = NoteR usernamep (noteSlug entry)
-            , feedEntryUpdated = (noteUpdated entry)
-            , feedEntryTitle = (noteTitle entry)
-            , feedEntryContent =  (toHtml (noteText entry))
-            , feedEntryEnclosure = Nothing
-            , feedEntryCategories = []
-            }
+  FeedEntry
+  { feedEntryLink = NoteR usernamep (noteSlug entry)
+  , feedEntryUpdated = noteUpdated entry
+  , feedEntryTitle = noteTitle entry
+  , feedEntryContent = toHtml (noteText entry)
+  , feedEntryEnclosure = Nothing
+  , feedEntryCategories = []
+  }
 
 getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
@@ -173,12 +175,15 @@ getNotesFeedR unamep@(UserNameP uname) = do
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m
-  rssFeed $ Feed (uname <> " notes")
-    (NotesFeedR unamep)
-    (NotesR unamep)
-    uname
-    descr
-    "en"
-    updated
-    Nothing
-    entries
+  rssFeed $
+    Feed
+    { feedTitle = uname <> " notes"
+    , feedLinkSelf = NotesFeedR unamep
+    , feedLinkHome = NotesR unamep
+    , feedAuthor = uname
+    , feedDescription = descr
+    , feedLanguage = "en"
+    , feedUpdated = updated
+    , feedLogo = Nothing
+    , feedEntries = entries
+    }
