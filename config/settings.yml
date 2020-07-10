@@ -40,4 +40,4 @@ copyright: Insert copyright statement here
 # ekg-host:       "_env:EKG_HOST:0.0.0.0"
 # ekg-port:       "_env:EKG_PORT:8000"
 
-source-code-uri: "https://github.com/jonschoning/espial/commits/4a3cb64"
+source-code-uri: "https://github.com/jonschoning/espial/commits/d770116"
