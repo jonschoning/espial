@@ -139,8 +139,8 @@ develMain = develMainHelper getApplicationDev
 -- forkEKG :: App -> IO ()
 -- forkEKG foundation = 
 --   let settings = appSettings foundation in
---   for_ (appEkgHost settings) $ \ekgHost ->
---     for_ (appEkgPort settings) $ \ekgPort ->
+--   for_ (appEkgHost settings) \ekgHost ->
+--     for_ (appEkgPort settings) \ekgPort ->
 --       EKG.forkServerWith
 --         (appMetrics foundation ^. MM.metricsStore)
 --         (encodeUtf8 ekgHost)

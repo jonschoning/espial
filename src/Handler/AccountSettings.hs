@@ -8,7 +8,7 @@ getAccountSettingsR = do
   (_, user) <- requireAuthPair
   let accountSettingsEl = "accountSettings" :: Text
   let accountSettings = toAccountSettingsForm user
-  defaultLayout $ do
+  defaultLayout do
     $(widgetFile "user-settings")
     toWidgetBody [julius|
         app.userR = "@{UserR (UserNameP $ userName user)}";

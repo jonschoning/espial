@@ -52,7 +52,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
   req <- getRequest
-  defaultLayout $ do
+  defaultLayout do
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
         renderEl = "bookmarks" :: Text

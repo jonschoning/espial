@@ -18,7 +18,7 @@ getNotesR unamep@(UserNameP uname) = do
       page  = maybe 1  fromIntegral page'
       mqueryp = fmap (\q -> (queryp, q)) mquery
       isowner = maybe False (== uname) mauthuname
-  (bcount, notes) <- runDB $ do
+  (bcount, notes) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     let sharedp = if isowner then SharedAll else SharedPublic
     when (not isowner && userPrivacyLock user)
@@ -26,7 +26,7 @@ getNotesR unamep@(UserNameP uname) = do
     getNoteList userId mquery sharedp limit page
   req <- getRequest
   mroute <- getCurrentRoute
-  defaultLayout $ do
+  defaultLayout do
     rssLink (NotesFeedR unamep) "feed"
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
@@ -54,7 +54,7 @@ getNoteR unamep@(UserNameP uname) slug = do
        when (not isowner && (userPrivacyLock user || (not . noteShared . entityVal) note))
          (redirect (AuthR LoginR))
        pure note
-  defaultLayout $ do
+  defaultLayout do
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
@@ -70,7 +70,7 @@ getAddNoteViewR unamep@(UserNameP uname) = do
   userId <- requireAuthId
   let renderEl = "note" :: Text
   note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId emptyNoteForm
-  defaultLayout $ do
+  defaultLayout do
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
@@ -84,7 +84,7 @@ getAddNoteViewR unamep@(UserNameP uname) = do
 deleteDeleteNoteR :: Int64 -> Handler Html
 deleteDeleteNoteR nid = do
   userId <- requireAuthId
-  runDB $ do
+  runDB do
     let k_nid = NoteKey nid
     _ <- requireResource userId k_nid
     deleteCascade k_nid
@@ -168,7 +168,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       isowner = maybe False (== uname) mauthuname
-  (_, notes) <- runDB $ do
+  (_, notes) <- runDB do
       Entity userId user <- getBy404 (UniqueUserName uname)
       when (not isowner && userPrivacyLock user)
         (redirect (AuthR LoginR))

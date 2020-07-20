@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b6f4cdc1abf4e7a6b5bbc1382963c22cc62bbbe8c4ae5e5394cf6fe5fc1ff9cb
+-- hash: 1e6238118c05016ee28c808f6f736f03c5c719ed69576390d95900d6a5e85cee
 
 name:           espial
 version:        0.0.8
@@ -123,7 +123,7 @@ library
       Paths_espial
   hs-source-dirs:
       src
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   build-depends:
       aeson >=1.4
     , attoparsec
@@ -194,7 +194,7 @@ executable espial
       Paths_espial
   hs-source-dirs:
       app
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -263,7 +263,7 @@ executable migration
       Paths_espial
   hs-source-dirs:
       app/migration
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -337,7 +337,7 @@ test-suite test
       Paths_espial
   hs-source-dirs:
       test
-  default-extensions: BangPatterns CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -Wall
   build-depends:
       aeson >=1.4

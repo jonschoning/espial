@@ -66,7 +66,7 @@ data AppSettings = AppSettings
     }
 
 instance FromJSON AppSettings where
-    parseJSON = withObject "AppSettings" $ \o -> do
+    parseJSON = withObject "AppSettings" \o -> do
         let defaultDev =
 #ifdef DEVELOPMENT
                 True

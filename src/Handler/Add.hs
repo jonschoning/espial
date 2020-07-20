@@ -16,7 +16,7 @@ getAddViewR = do
 
   let renderEl = "addForm" :: Text
 
-  popupLayout $ do
+  popupLayout do
     toWidget [whamlet|
       <div id="#{ renderEl }">
     |]

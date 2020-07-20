@@ -11,7 +11,7 @@ import Import
 deleteDeleteR :: Int64 -> Handler Html
 deleteDeleteR bid = do
   userId <- requireAuthId
-  runDB $ do
+  runDB do
     let k_bid = BookmarkKey bid
     _ <- requireResource userId k_bid
     deleteCascade k_bid
@@ -20,7 +20,7 @@ deleteDeleteR bid = do
 postReadR :: Int64 -> Handler Html
 postReadR bid = do
   userId <- requireAuthId
-  runDB $ do
+  runDB do
     let k_bid = BookmarkKey bid
     _ <- requireResource userId k_bid
     update k_bid [BookmarkToRead =. False]
@@ -37,7 +37,7 @@ postUnstarR bid = _setSelected bid False
 _setSelected :: Int64 -> Bool -> Handler Html
 _setSelected bid selected = do
   userId <- requireAuthId
-  runDB $ do
+  runDB do
     let k_bid = BookmarkKey bid
     bm <- requireResource userId k_bid
     update k_bid [BookmarkSelected =. selected]

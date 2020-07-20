@@ -49,7 +49,7 @@ instance YesodPersistRunner App where
 -- Yesod
 
 instance Yesod App where
-    approot = ApprootRequest $ \app req ->
+    approot = ApprootRequest \app req ->
         case appRoot (appSettings app) of
             Nothing -> getApprootText guessApproot app req
             Just root -> root
@@ -71,7 +71,7 @@ instance Yesod App where
         mcurrentRoute <- getCurrentRoute
         -- void $ mapM (incrementRouteEKG req) mcurrentRoute
         let msourceCodeUri = appSourceCodeUri (appSettings master)
-        pc <- widgetToPageContent $ do
+        pc <- widgetToPageContent do
             setTitle "Espial"
             addAppScripts
             addStylesheet (StaticR css_tachyons_min_css)
@@ -132,7 +132,7 @@ popupLayout widget = do
     mmsg <- getMessage
     musername <- maybeAuthUsername
     let msourceCodeUri = appSourceCodeUri (appSettings master)
-    pc <- widgetToPageContent $ do
+    pc <- widgetToPageContent do
       addAppScripts
       addStylesheet (StaticR css_tachyons_min_css)
       addStylesheet (StaticR css_popup_css)
