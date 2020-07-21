@@ -1,4 +1,4 @@
-resolver: nightly-2020-03-29
+resolver: lts-16.6
 # allow-newer: true
 packages:
 - '.'

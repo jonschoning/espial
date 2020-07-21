@@ -41,7 +41,7 @@ packages:
     hackage: yesod-newsfeed-1.7.0.0
 snapshots:
 - completed:
-    size: 507788
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/3/29.yaml
-    sha256: f5cfc0452d1dc9d3058dcf389278d1cfb72ebc91b1a9bd48e8dde399c9479999
-  original: nightly-2020-03-29
+    size: 531718
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/6.yaml
+    sha256: 230a7266fc11f76222bd3bb68e9503ed11d553060a752f164bff6753ed03e271
+  original: lts-16.6
