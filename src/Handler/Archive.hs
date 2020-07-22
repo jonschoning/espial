@@ -22,6 +22,7 @@ shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
 shouldArchiveBookmark user kbid = do
   runDB (get kbid) >>= \case
     Nothing -> pure False
+  
     Just bm -> do
       pure $
         (isNothing $ bookmarkArchiveHref bm) &&
@@ -32,10 +33,12 @@ shouldArchiveBookmark user kbid = do
 getArchiveManager :: Handler Manager
 getArchiveManager = do
   appSettings <- pure . appSettings =<< getYesod
-  NH.newTlsManagerWith $ NH.mkManagerSettings def $
-    NC.SockSettingsSimple
-      <$> fmap unpack (appArchiveSocksProxyHost appSettings)
-      <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
+  let mSocks =
+        NC.SockSettingsSimple <$>
+        fmap unpack (appArchiveSocksProxyHost appSettings) <*>
+        fmap toEnum (appArchiveSocksProxyPort appSettings)
+  NH.newTlsManagerWith (NH.mkManagerSettings def mSocks)
+    
 
 archiveBookmarkUrl :: Key Bookmark -> String -> Handler ()
 archiveBookmarkUrl kbid url =
