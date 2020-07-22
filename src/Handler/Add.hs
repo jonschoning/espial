@@ -3,6 +3,7 @@ module Handler.Add where
 import Import
 import Handler.Archive
 import Data.List (nub)
+import qualified Data.Text as T (replace)
 
 -- View
 
@@ -72,7 +73,7 @@ _handleFormSuccess bookmarkForm = do
   pure (res, kbid)
   where
     mkbid = BookmarkKey <$> _bid bookmarkForm
-    tags = maybe [] (nub . words) (_tags bookmarkForm)
+    tags = maybe [] (nub . words . T.replace "," " ") (_tags bookmarkForm)
 
 postLookupTitleR :: Handler ()
 postLookupTitleR = do

@@ -9,8 +9,8 @@ import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Monoid (guard)
 import Data.Nullable (toMaybe)
-import Data.String (null, split, take) as S
-import Data.String.Pattern (Pattern(..))
+import Data.String (null, split, take, replaceAll) as S
+import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Symbol (SProxy(..))
 import Effect.Aff (Aff)
 import Globals (app', setFocus, toLocaleDateString)
@@ -256,6 +256,7 @@ bmark b' =
   handleAction (BEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_bm <- use _edit_bm
-    void $ H.liftAff (editBookmark edit_bm)
-    _bm .= edit_bm
+    let edit_bm' = edit_bm { tags = S.replaceAll (Pattern ",") (Replacement " ") edit_bm.tags }
+    void $ H.liftAff (editBookmark edit_bm')
+    _bm .= edit_bm'
     _edit .= false
