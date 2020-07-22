@@ -18,8 +18,8 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 # Optional values with the following production defaults.
 # In development, they default to the inverse.
 #
-# detailed-logging: false
-# should-log-all: false
+detailed-logging: "_env:DETAILED_LOGGING" # false
+should-log-all: "_env:SHOULD_LOG_ALL" # false
 # reload-templates: false
 # mutable-static: false
 # skip-combining: false
@@ -37,7 +37,7 @@ database:
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE
 
-# ekg-host:       "_env:EKG_HOST:0.0.0.0"
-# ekg-port:       "_env:EKG_PORT:8000"
+archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
+archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
 
-source-code-uri: "https://github.com/jonschoning/espial/commits/d770116"
+source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"

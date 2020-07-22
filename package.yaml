@@ -146,6 +146,7 @@ dependencies:
 # - wai-middleware-metrics
 - parser-combinators
 - html-entities
+- connection
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

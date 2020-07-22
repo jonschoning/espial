@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1e6238118c05016ee28c808f6f736f03c5c719ed69576390d95900d6a5e85cee
+-- hash: 7535921358f6f30b353ed1ea8a7bfff26aa471228add3c6392836563ee7fc58d
 
 name:           espial
 version:        0.0.8
@@ -136,6 +136,7 @@ library
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
+    , connection
     , containers
     , data-default
     , directory >=1.1 && <1.4
@@ -208,6 +209,7 @@ executable espial
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
+    , connection
     , containers
     , data-default
     , directory >=1.1 && <1.4
@@ -277,6 +279,7 @@ executable migration
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
+    , connection
     , containers
     , data-default
     , directory >=1.1 && <1.4
@@ -351,6 +354,7 @@ test-suite test
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
+    , connection
     , containers
     , data-default
     , directory >=1.1 && <1.4

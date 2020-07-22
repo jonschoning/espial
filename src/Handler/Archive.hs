@@ -16,6 +16,7 @@ import qualified Web.FormUrlEncoded as WH
 import HTMLEntities.Decoder (htmlEncodedText)
 import Data.Text.Lazy.Builder (toLazyText)
 import Network.Wai (requestHeaderHost)
+import qualified Network.Connection as NC
 
 shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
 shouldArchiveBookmark user kbid = do
@@ -28,6 +29,14 @@ shouldArchiveBookmark user kbid = do
         && not (_isArchiveBlacklisted bm)
         && userArchiveDefault user
 
+getArchiveManager :: Handler Manager
+getArchiveManager = do
+  appSettings <- pure . appSettings =<< getYesod
+  NH.newTlsManagerWith $ NH.mkManagerSettings def $
+    NC.SockSettingsSimple
+      <$> fmap unpack (appArchiveSocksProxyHost appSettings)
+      <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
+
 archiveBookmarkUrl :: Key Bookmark -> String -> Handler ()
 archiveBookmarkUrl kbid url =
   (_fetchArchiveSubmitInfo >>= \case
@@ -38,7 +47,8 @@ archiveBookmarkUrl kbid url =
         userId <- requireAuthId
         req <- _buildArchiveSubmitRequest submitInfo url
         -- MM.increment "archive.submit"  
-        res <- liftIO $ NH.httpLbs req  =<< NH.getGlobalManager
+        manager <- getArchiveManager
+        res <- liftIO $ NH.httpLbs req manager
         let status = NH.responseStatus res
         -- MM.increment ("archive.submit_status_" <> (pack.show) (NH.statusCode status)) 
         let updateArchiveUrl = runDB . updateBookmarkArchiveUrl userId kbid . Just
@@ -76,7 +86,8 @@ _fetchArchiveSubmitInfo :: Handler (Either String (String , String))
 _fetchArchiveSubmitInfo = do
   -- MM.increment "archive.fetchSubmitId"  
   req <- buildRequest "https://archive.li/" 
-  res <- liftIO $ NH.httpLbs req =<< NH.getGlobalManager
+  manager <- getArchiveManager
+  res <- liftIO $ NH.httpLbs req manager
   -- MM.increment ("archive.fetchSubmitId_status_" <> (pack.show) (NH.statusCode (NH.responseStatus res))) 
   let body = LBS.toStrict (responseBody res)
       action = _parseSubstring (AP8.string "action=\"") (AP8.notChar '"') body

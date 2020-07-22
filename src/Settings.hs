@@ -56,10 +56,11 @@ data AppSettings = AppSettings
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
 
-    -- , appEkgHost                :: Maybe Text
-    -- -- ^ Host/interface the ekg server should bind to.
-    -- , appEkgPort                :: Maybe Int
-    -- -- ^ Port to listen on
+    , appArchiveSocksProxyHost   :: Maybe Text
+    -- ^ Socks proxy host to use when making archive requests
+
+    , appArchiveSocksProxyPort   :: Maybe Int
+    -- ^ Socks proxy port to use when making archive requests
 
     , appSourceCodeUri                :: Maybe Text
     -- ^ Uri to app source code
@@ -93,8 +94,8 @@ instance FromJSON AppSettings where
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
 
-        -- appEkgHost                <- o .:? "ekg-host"
-        -- appEkgPort                <- o .:? "ekg-port"
+        appArchiveSocksProxyHost   <- o .:? "archive-socks-proxy-host"
+        appArchiveSocksProxyPort   <- o .:? "archive-socks-proxy-port"
         appSourceCodeUri          <- o .:? "source-code-uri"
 
         return AppSettings {..}
