@@ -147,10 +147,6 @@ buildRequest url = do
   pure $ NH.parseRequest_ url & \r ->
     r { NH.requestHeaders =
           [ ("Cache-Control", "max-age=0")
-          , ("Connection", "keep-alive")
-          , ("DNT", "1")
-          , ("Host", "archive.li")
-          , ("Upgrade-Insecure-Requests", "1")
           , ("User-Agent", ua)
           ]
       }
