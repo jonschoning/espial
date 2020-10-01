@@ -11,7 +11,7 @@ $newline never
     <title>#{pageTitle pc}
     <meta name="description" content="Espial is an open-source, web-based bookmarking server.">
     <meta name="robots" content="noindex, nofollow, noodp, noydir">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0;">
     $maybe sourceCodeUri <- msourceCodeUri
       <meta name="source" content="#{ sourceCodeUri }">
 
