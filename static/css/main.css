@@ -26,6 +26,13 @@ input::placeholder {
     color: lightgray;
 }
 
+input[type="text"],
+input[type="url"],
+input[type="password"],
+textarea {
+    font-size: 16px;
+}
+
 .queryInput {
     width: 128px;
     padding: 0 22px 0 2px;
