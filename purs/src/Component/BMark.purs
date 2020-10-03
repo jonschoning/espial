@@ -153,20 +153,20 @@ bmark b' =
        div [ class_ "edit_bookmark_form pa2 pt0 bg-white" ] $
        [ form [ onSubmit (Just <<< BEditSubmit) ]
          [ div_ [ text "url" ]
-         , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 f7 edit_form_input" , required true , name "url"
+         , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 edit_form_input" , required true , name "url"
                  , value (edit_bm.url) , onValueChange (editField Eurl) ]
          , div_ [ text "title" ]
          , div [class_ "flex"]
-               [input [ type_ InputText , class_ "title w-100 mb2 pt1 f7 edit_form_input" , name "title"
+               [input [ type_ InputText , class_ "title w-100 mb2 pt1 edit_form_input" , name "title"
                       , value (edit_bm.title) , onValueChange (editField Etitle) ]
                , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                ]
          , div_ [ text "description" ]
-         , textarea [ class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "description", rows 5
+         , textarea [ class_ "description w-100 mb1 pt1 edit_form_input" , name "description", rows 5
                     , value (edit_bm.description) , onValueChange (editField Edescription) ]
          , div [ id_ "tags_input_box"]
            [ div_ [ text "tags" ]
-             , input [ id_ (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 f7 edit_form_input" , name "tags"
+             , input [ id_ (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 edit_form_input" , name "tags"
                      , autocomplete false, attr "autocapitalize" "off"
                      , value (edit_bm.tags) , onValueChange (editField Etags) ]
            ]
