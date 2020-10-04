@@ -22,6 +22,9 @@ textarea {
     background: #ced;
     border: 1px solid #acc;
 }
+#addForm .alert {
+    margin-top: -6px;
+}
 form label {
     margin: 0;
     vertical-align: middle;
