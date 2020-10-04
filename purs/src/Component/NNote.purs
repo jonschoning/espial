@@ -131,7 +131,7 @@ nnote st' =
             ]
           , br_
           , p [ class_ "mt2 mb1"] [ text "description:" ]
-          , textarea [ id_ (notetextid edit_note), class_ "description w-100 mb1 pt1 edit_form_input" , name "text", rows 30
+          , textarea [ id_ (notetextid edit_note), class_ "description w-100 mb1 pt1 edit_form_input" , name "text", rows 25
                      , value (edit_note.text) , onValueChange (editField Etext)
             ]
           , div [ class_ "edit_form_checkboxes mb3"]
