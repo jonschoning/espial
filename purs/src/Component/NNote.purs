@@ -126,12 +126,12 @@ nnote st' =
       renderNote_edit _ =
         form [ onSubmit (Just <<< NEditSubmit) ]
           [ p [ class_ "mt2 mb1"] [ text "title:" ]
-          , input [ type_ InputText , class_ "title w-100 mb1 pt1 f7 edit_form_input" , name "title"
+          , input [ type_ InputText , class_ "title w-100 mb1 pt1 edit_form_input" , name "title"
                   , value (edit_note.title) , onValueChange (editField Etitle), autofocus (null edit_note.title)
             ]
           , br_
           , p [ class_ "mt2 mb1"] [ text "description:" ]
-          , textarea [ id_ (notetextid edit_note), class_ "description w-100 mb1 pt1 f7 edit_form_input" , name "text", rows 30
+          , textarea [ id_ (notetextid edit_note), class_ "description w-100 mb1 pt1 edit_form_input" , name "text", rows 30
                      , value (edit_note.text) , onValueChange (editField Etext)
             ]
           , div [ class_ "edit_form_checkboxes mb3"]

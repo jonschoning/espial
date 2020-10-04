@@ -1,34 +1,52 @@
 html {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 [hidden] {
-    display: none !important
+    display: none !important;
 }
 button {
-    background:none;
-    border:none; 
-    padding:0;
-    cursor:pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
 }
 button:focus {
     outline: none;
 }
-.alert { 
-    background:#ced;
-    border:1px solid #acc; 
+input[type="text"],
+input[type="url"],
+textarea {
+    font-size: 16px;
 }
-form label { 
+.alert {
+    background: #ced;
+    border: 1px solid #acc;
+}
+form label {
     margin: 0;
     vertical-align: middle;
     display: table-cell;
     padding: 2px 0;
 }
-li { list-style-type: none; margin: 0; padding: 0; display: block;} 
+li {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: block;
+}
 
-.when { color:#999}
-.unread { color:#b41 }
-a.unread { color:#b41 }
-a.bookmark_title { font-size:120%;}
+.when {
+    color: #999;
+}
+.unread {
+    color: #b41;
+}
+a.unread {
+    color: #b41;
+}
+a.bookmark_title {
+    font-size: 120%;
+}
 
 label {
     cursor: pointer;
