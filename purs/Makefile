@@ -3,13 +3,13 @@
 all: bundle
 
 install: 
-	@spago install
+	@npm run spago install
 
 build: 
-	@spago build
+	@npm run spago build
 
 bundle: build
-	@spago bundle-app --to dist/bundle.js
+	@npm run spago -- bundle-app --to dist/bundle.js
 	@npm run parcel-build
 	@rm -f dist/*.gz
 	@gzip -k dist/app.min.js.map
@@ -22,7 +22,7 @@ bundle: build
 
 docs:
 	@rm -Rf generated-docs
-	@purs docs ".spago/*/*/src/**/*.purs" --format html
+	@npm run purs -- docs ".spago/*/*/src/**/*.purs" --format html
 
 docset: docs
 	@(cd docset; python3 ./gen-docset.py)

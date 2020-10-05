@@ -2,16 +2,18 @@
   "name": "espial",
   "private": true,
   "scripts": {
+    "spago": "spago",
+    "purs": "purs",
     "make-install": "make install",
     "make-watch": "inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make; done",
     "parcel-build": "parcel build dist/bundle.js --out-file dist/app.min.js --public-url /static/js/"
   },
   "devDependencies": {
-    "marked": "^1.1.0",
-    "moment": "^2.26.0",
+    "marked": "^1.2.0",
+    "moment": "^2.29.0",
     "parcel-bundler": "^1.12.4",
     "purescript": "^0.13.8",
-    "spago": "^0.15.2",
+    "spago": "^0.16.0",
     "terser": "^4.7.0"
   },
   "dependencies": {}
