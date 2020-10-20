@@ -1,10 +1,10 @@
-resolver: lts-16.6
+resolver: lts-16.19
 # allow-newer: true
 packages:
 - '.'
 extra-deps:
-- ekg-0.4.0.15
-- ekg-json-0.1.0.6
-- monad-metrics-0.2.1.4
-- wai-middleware-metrics-0.2.4
+  # - ekg-0.4.0.15
+  # - ekg-json-0.1.0.6
+  # - monad-metrics-0.2.1.4
+  # - wai-middleware-metrics-0.2.4
 - yesod-newsfeed-1.7.0.0

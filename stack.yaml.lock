@@ -5,34 +5,6 @@
 
 packages:
 - completed:
-    hackage: ekg-0.4.0.15@sha256:f35b2c6d80415314f84056afaba6e622bf8d90eb01d0504c87f04c64cb105e04,2030
-    pantry-tree:
-      size: 1495
-      sha256: f9f8f92d73fd4cc8efe37b5a3db009a8c195e590ab9f7d680582ca253123ab3a
-  original:
-    hackage: ekg-0.4.0.15
-- completed:
-    hackage: ekg-json-0.1.0.6@sha256:4ff2e9cac213a5868ae8b4a7c72a16a9a76fac14d944ae819b3d838a9725569b,1050
-    pantry-tree:
-      size: 265
-      sha256: 77dde8082700d78a353b7e476e4457aaa41acf62b1b60dbdbb450dfd553cf9b5
-  original:
-    hackage: ekg-json-0.1.0.6
-- completed:
-    hackage: monad-metrics-0.2.1.4@sha256:ec7be46f0693b1acb0d7cad114b33f418eb82447f3a6bc90b19f695ff3a6d718,1914
-    pantry-tree:
-      size: 457
-      sha256: 07d623e9b2ebf8c4a5f2210ff8117d53c6aab05bfe7ac2ecd4c990cba4046096
-  original:
-    hackage: monad-metrics-0.2.1.4
-- completed:
-    hackage: wai-middleware-metrics-0.2.4@sha256:d6b6916acd41aaef4ca59a839d40a3a377f9df784ae49fd4c64926ae916b6ba2,2890
-    pantry-tree:
-      size: 330
-      sha256: 99366b831109417cd8e739fb45e9fd214cb79f28a507f8154e5528120042d0ac
-  original:
-    hackage: wai-middleware-metrics-0.2.4
-- completed:
     hackage: yesod-newsfeed-1.7.0.0@sha256:ba49f9af47fe96c521ed889bf041c559b4bddb60a81f385449f7557f8f4aaef2,1345
     pantry-tree:
       size: 488
@@ -41,7 +13,7 @@ packages:
     hackage: yesod-newsfeed-1.7.0.0
 snapshots:
 - completed:
-    size: 531718
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/6.yaml
-    sha256: 230a7266fc11f76222bd3bb68e9503ed11d553060a752f164bff6753ed03e271
-  original: lts-16.6
+    size: 532177
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/19.yaml
+    sha256: d2b828ecf50386841d0c5700b58d38566992e10d63a062af497ab29ab031faa1
+  original: lts-16.19
