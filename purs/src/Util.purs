@@ -10,7 +10,6 @@ import Data.Nullable (Nullable, toMaybe)
 import Data.String (Pattern(..), Replacement(..), drop, replaceAll, split, take)
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect (Effect)
-import Global.Unsafe (unsafeDecodeURIComponent)
 import Halogen (ClassName(..))
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -28,6 +27,13 @@ import Web.HTML.HTMLElement (HTMLElement)
 import Web.HTML.HTMLElement (fromElement) as HE
 import Web.HTML.Location (search)
 import Web.HTML.Window (document, location)
+import JSURI (decodeURIComponent)
+
+import Partial.Unsafe (unsafePartial)
+import Data.Maybe (fromJust)
+
+unsafeDecode :: String -> String
+unsafeDecode str = unsafePartial $ fromJust $ decodeURIComponent str
   
 -- Halogen
 
@@ -94,7 +100,7 @@ _parseQueryString srh = do
   let qs = let srh' = take 1 srh in if (srh' == "#" || srh' == "?") then drop 1 srh else srh
   mapMaybe go $ (filter (_ /= "") <<< split (Pattern "&")) qs
   where
-    decode = unsafeDecodeURIComponent <<< replaceAll (Pattern "+") (Replacement " ")
+    decode = unsafeDecode <<< replaceAll (Pattern "+") (Replacement " ")
     go kv =
       case split (Pattern "=") kv of
         [k] -> Just (Tuple (decode k) Nothing)

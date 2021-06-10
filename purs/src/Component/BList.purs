@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH
-import Data.Symbol (SProxy(..))
+import Type.Proxy (Proxy(..))
 
 data LAction =
   HandleBMessage BookmarkId BMessage
@@ -19,9 +19,9 @@ type ChildSlots =
   ( bookmark :: BSlot Int
   )
 
-_bookmark = SProxy :: SProxy "bookmark"
+_bookmark = Proxy :: Proxy "bookmark"
 
-blist :: forall q i o. Array Bookmark -> H.Component HH.HTML q i o Aff
+blist :: forall q i o. Array Bookmark -> H.Component q i o Aff
 blist st =
   H.mkComponent
     { initialState: const st
@@ -32,7 +32,7 @@ blist st =
 
   render :: Array Bookmark -> H.ComponentHTML LAction ChildSlots Aff
   render bms =
-    HH.div_ $ map (\b -> HH.slot _bookmark b.bid (bmark b) unit (Just <<< HandleBMessage b.bid)) bms
+    HH.div_ $ map (\b -> HH.slot _bookmark b.bid (bmark b) unit (HandleBMessage b.bid)) bms
 
   handleAction :: LAction -> H.HalogenM (Array Bookmark) LAction ChildSlots o Aff Unit
   handleAction (HandleBMessage bid BNotifyRemove) = do

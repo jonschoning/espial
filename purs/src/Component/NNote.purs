@@ -12,7 +12,7 @@ import Data.Monoid (guard)
 import Data.String (null)
 import Data.String (null, split) as S
 import Data.String.Pattern (Pattern(..))
-import Data.Symbol (SProxy(..))
+import Type.Proxy (Proxy(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -59,13 +59,13 @@ data EditField
   | EisMarkdown Boolean
   | Eshared Boolean
 
-_markdown = SProxy :: SProxy "markdown"
+_markdown = Proxy :: Proxy "markdown"
 
 type ChildSlots =
   ( markdown :: Markdown.Slot Unit
   )
 
-nnote :: forall q i o. Note -> H.Component HH.HTML q i o Aff
+nnote :: forall q i o. Note -> H.Component q i o Aff
 nnote st' =
   H.mkComponent
     { initialState: const (mkState st')
@@ -111,12 +111,12 @@ nnote st' =
              ]
            , whenH app.dat.isowner $ \_ ->
                div [ class_ "edit_links db mt3" ]
-                 [ button [ type_ ButtonButton, onClick \_ -> Just (NEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
+                 [ button [ type_ ButtonButton, onClick \_ -> NEdit true, class_ "edit light-silver hover-blue" ] [ text "edit  " ]
                  , div [ class_ "delete_link di" ]
-                   [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
+                   [ button [ type_ ButtonButton, onClick \_ -> NDeleteAsk true, class_ ("delete light-silver hover-blue" <> guard st.deleteAsk " dn") ] [ text "delete" ]
                    , span ([ class_ ("confirm red" <> guard (not st.deleteAsk) " dn") ] )
-                     [ button [ type_ ButtonButton, onClick \_ -> Just (NDeleteAsk false)] [ text "cancel / " ]
-                     , button [ type_ ButtonButton, onClick \_ -> Just NDestroy, class_ "red" ] [ text "destroy" ]
+                     [ button [ type_ ButtonButton, onClick \_ -> NDeleteAsk false] [ text "cancel / " ]
+                     , button [ type_ ButtonButton, onClick \_ -> NDestroy, class_ "red" ] [ text "destroy" ]
                      ]
                    ]
                  ]
@@ -124,7 +124,7 @@ nnote st' =
            ]
 
       renderNote_edit _ =
-        form [ onSubmit (Just <<< NEditSubmit) ]
+        form [ onSubmit NEditSubmit ]
           [ p [ class_ "mt2 mb1"] [ text "title:" ]
           , input [ type_ InputText , class_ "title w-100 mb1 pt1 edit_form_input" , name "title"
                   , value (edit_note.title) , onValueChange (editField Etitle), autofocus (null edit_note.title)
@@ -155,15 +155,15 @@ nnote st' =
           , input [ type_ InputReset
                   , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
                   , value "cancel"
-                  , onClick \_ -> Just (NEdit false)
+                  , onClick \_ -> NEdit false
                   ]
           ]
 
       display_destroyed _ = p [ class_ "red"] [text "you killed this note"]
 
       mmoment n = mmoment8601 n.created
-      editField :: forall a. (a -> EditField) -> a -> Maybe NAction
-      editField f = Just <<< NEditField <<< f
+      editField :: forall a. (a -> EditField) -> a -> NAction
+      editField f = NEditField <<< f
       toTextarea input =
         S.split (Pattern "\n") input
         # foldMap (\x -> [br_, text x])
@@ -204,8 +204,7 @@ nnote st' =
     H.liftEffect (preventDefault e)
     edit_note <- use _edit_note
     res' <- H.liftAff (editNote edit_note)
-    for_ res' \res -> do
-      let r = res.body
+    for_ res' \_ -> do
       if (edit_note.id == 0)
         then do
           liftEffect (setHref (fromNullableStr app.noteR) =<< _loc)

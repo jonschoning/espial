@@ -27,7 +27,7 @@ type NLState =
   }
 
 
-nlist :: forall q i o. Array Note -> H.Component HH.HTML q i o Aff
+nlist :: forall q i o. Array Note -> H.Component q i o Aff
 nlist st' =
   H.mkComponent
     { initialState: const (mkState st')

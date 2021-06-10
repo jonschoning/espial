@@ -11,7 +11,7 @@ import Data.Monoid (guard)
 import Data.Nullable (toMaybe)
 import Data.String (null, split, take, replaceAll) as S
 import Data.String.Pattern (Pattern(..), Replacement(..))
-import Data.Symbol (SProxy(..))
+import Type.Proxy (Proxy(..))
 import Effect.Aff (Aff)
 import Globals (app', setFocus, toLocaleDateString)
 import Halogen as H
@@ -66,13 +66,13 @@ _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 _edit :: Lens' BState Boolean
 _edit = lens _.edit (_ { edit = _ })
 
-_markdown = SProxy :: SProxy "markdown"
+_markdown = Proxy :: Proxy "markdown"
 
 type ChildSlots =
   ( markdown :: Markdown.Slot Unit
   )
 
-bmark :: forall q i. Bookmark -> H.Component HTML q i BMessage Aff
+bmark :: forall q i. Bookmark -> H.Component q i BMessage Aff
 bmark b' =
   H.mkComponent
     { initialState: const (mkState b')
@@ -104,7 +104,7 @@ bmark b' =
 
      star _ =
        div [ class_ ("star fl pointer" <> guard bm.selected " selected") ]
-       [ button [ class_ "moon-gray", onClick \_ -> Just (BStar (not bm.selected)) ] [ text "✭" ] ]
+       [ button [ class_ "moon-gray", onClick \_ -> BStar (not bm.selected) ] [ text "✭" ] ]
 
      display _ =
         div [ class_ "display" ] $
@@ -131,12 +131,12 @@ bmark b' =
         -- links
         , whenH app.dat.isowner $ \_ ->
             div [ class_ "edit_links di" ]
-            [ button [ type_ ButtonButton, onClick \_ -> Just (BEdit true), class_ "edit light-silver hover-blue" ] [ text "edit  " ]
+            [ button [ type_ ButtonButton, onClick \_ -> BEdit true, class_ "edit light-silver hover-blue" ] [ text "edit  " ]
             , div [ class_ "delete_link di" ]
-              [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk true), class_ ("delete light-silver hover-blue" <> guard s.deleteAsk " dn") ] [ text "delete" ]
+              [ button [ type_ ButtonButton, onClick \_ -> BDeleteAsk true, class_ ("delete light-silver hover-blue" <> guard s.deleteAsk " dn") ] [ text "delete" ]
               , span ([ class_ ("confirm red" <> guard (not s.deleteAsk) " dn") ] )
-                [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk false)] [ text "cancel / " ]
-                , button [ type_ ButtonButton, onClick \_ -> Just BDestroy, class_ "red" ] [ text "destroy" ]
+                [ button [ type_ ButtonButton, onClick \_ -> BDeleteAsk false] [ text "cancel / " ]
+                , button [ type_ ButtonButton, onClick \_ -> BDestroy, class_ "red" ] [ text "destroy" ]
                 ] 
               ]
             ]
@@ -144,14 +144,14 @@ bmark b' =
             div [ class_ "read di" ] $
               guard bm.toread
               [ text "  "
-              , button [ onClick \_ -> Just BMarkRead, class_ "mark_read" ] [ text "mark as read"]
+              , button [ onClick \_ -> BMarkRead, class_ "mark_read" ] [ text "mark as read"]
               ]
         ]
        
 
      display_edit _ =
        div [ class_ "edit_bookmark_form pa2 pt0 bg-white" ] $
-       [ form [ onSubmit (Just <<< BEditSubmit) ]
+       [ form [ onSubmit BEditSubmit ]
          [ div_ [ text "url" ]
          , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 edit_form_input" , required true , name "url"
                  , value (edit_bm.url) , onValueChange (editField Eurl) ]
@@ -159,7 +159,7 @@ bmark b' =
          , div [class_ "flex"]
                [input [ type_ InputText , class_ "title w-100 mb2 pt1 edit_form_input" , name "title"
                       , value (edit_bm.title) , onValueChange (editField Etitle) ]
-               , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
+               , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> BLookupTitle, class_ ("ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                ]
          , div_ [ text "description" ]
          , textarea [ class_ "description w-100 mb1 pt1 edit_form_input" , name "description", rows 5
@@ -184,13 +184,13 @@ bmark b' =
          , input [ type_ InputSubmit , class_ "mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "save" ]
          , text " "
          , input [ type_ InputReset , class_ "pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim" , value "cancel"
-                 , onClick \_ -> Just (BEdit false) ]
+                 , onClick \_ -> BEdit false ]
          ]
        ]
        
 
-     editField :: forall a. (a -> EditField) -> a -> Maybe BAction
-     editField f = Just <<< BEditField <<< f
+     editField :: forall a. (a -> EditField) -> a -> BAction
+     editField f = BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
      linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
      shdate = toLocaleDateString bm.time 

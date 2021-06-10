@@ -34,7 +34,7 @@ data EditField
 
 
 -- | The bookmark component definition.
-usetting :: forall q i o. AccountSettings -> H.Component HTML q i o Aff
+usetting :: forall q i o. AccountSettings -> H.Component q i o Aff
 usetting u' =
   H.mkComponent
     { initialState: const (mkState u')
@@ -72,8 +72,8 @@ usetting u' =
       ]
     ]
     where
-      editField :: forall a. (a -> EditField) -> a -> Maybe UAction
-      editField f = Just <<< UEditField <<< f
+      editField :: forall a. (a -> EditField) -> a -> UAction
+      editField f = UEditField <<< f
 
   handleAction :: UAction -> H.HalogenM UState UAction () o Aff Unit
   handleAction (UEditField f) = do

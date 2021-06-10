@@ -54,7 +54,7 @@ _bm = lens _.bm (_ { bm = _ })
 _edit_bm :: Lens' BState Bookmark
 _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 
-addbmark :: forall q i o. Bookmark -> H.Component HTML q i o Aff
+addbmark :: forall q i o. Bookmark -> H.Component q i o Aff
 addbmark b' =
   H.mkComponent
     { initialState: const (mkState b')
@@ -79,7 +79,7 @@ addbmark b' =
       display_destroyed
    where
      display_edit _ =
-       form [ onSubmit (Just <<< BEditSubmit) ]
+       form [ onSubmit BEditSubmit ]
        [ table [ class_ "w-100" ]
          [ tbody_
            [ tr_
@@ -97,7 +97,7 @@ addbmark b' =
              [ td_ [ label [ for "title" ] [ text "title" ] ]
              , td [class_ "flex"]
                   [ input [ type_ InputText , id_ "title", class_ "w-100 mv1 flex-auto" , name "title" , value (edit_bm.title) , onValueChange (editField Etitle)]
-                  , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> Just BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
+                  , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                   ]
              ]
            , tr_
@@ -136,10 +136,10 @@ addbmark b' =
          [ text (maybe " " fst mmoment) ]
        , div [ class_ "edit_links dib ml1" ]
          [ div [ class_ "delete_link di" ]
-           [ button ([ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk true), class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
+           [ button ([ type_ ButtonButton, onClick \_ -> BDeleteAsk true, class_ "delete" ] <> guard s.deleteAsk [ attr "hidden" "hidden" ]) [ text "delete" ]
            , span ([ class_ "confirm red" ] <> guard (not s.deleteAsk) [ attr "hidden" "hidden" ])
-             [ button [ type_ ButtonButton, onClick \_ -> Just (BDeleteAsk false)] [ text "cancel / " ]
-             , button [ type_ ButtonButton, onClick \_ -> Just BDestroy, class_ "red" ] [ text "destroy" ]
+             [ button [ type_ ButtonButton, onClick \_ -> BDeleteAsk false] [ text "cancel / " ]
+             , button [ type_ ButtonButton, onClick \_ -> BDestroy, class_ "red" ] [ text "destroy" ]
              ] 
            ]
          ]
@@ -147,8 +147,8 @@ addbmark b' =
 
      display_destroyed _ = p [ class_ "red"] [text "you killed this bookmark"]
 
-     editField :: forall a. (a -> EditField) -> a -> Maybe BAction
-     editField f = Just <<< BEditField <<< f
+     editField :: forall a. (a -> EditField) -> a -> BAction
+     editField f = BEditField <<< f
      mmoment = mmoment8601 bm.time
      toTextarea =
        drop 1

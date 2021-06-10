@@ -10,5 +10,5 @@ import Prelude (Void)
 
 type Slot = H.Slot (Const Void) Void
 
-component :: forall q o. H.Component HH.HTML q String o Aff
+component :: forall q o. H.Component q String o Aff
 component = RH.mkComponent marked

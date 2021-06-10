@@ -26,10 +26,10 @@ type State i =
   , inputval :: Input i
   }
 
-component :: forall q o. H.Component HH.HTML q (Input String) o Aff
+component :: forall q o. H.Component q (Input String) o Aff
 component = mkComponent RawHTML
 
-mkComponent :: forall q i o. (Input i -> RawHTML) -> H.Component HH.HTML q (Input i) o Aff
+mkComponent :: forall q i o. (Input i -> RawHTML) -> H.Component q (Input i) o Aff
 mkComponent toRawHTML =
   H.mkComponent
     { initialState: \inputval -> { elRef: H.RefLabel "inputval", inputval } 
