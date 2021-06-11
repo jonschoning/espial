@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7535921358f6f30b353ed1ea8a7bfff26aa471228add3c6392836563ee7fc58d
+-- hash: 6f3e508b4528e0e41eab58d1f0830dc3917d04d50226e7dba709392b50db0c96
 
 name:           espial
-version:        0.0.8
+version:        0.0.9
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -123,7 +123,7 @@ library
       Paths_espial
   hs-source-dirs:
       src
-  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents PartialTypeSignatures QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   build-depends:
       aeson >=1.4
     , attoparsec
@@ -158,9 +158,9 @@ library
     , monad-logger >=0.3 && <0.4
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.11
+    , persistent >=2.8 && <2.12
     , persistent-sqlite >=2.6.2
-    , persistent-template >=2.5 && <2.9
+    , persistent-template >=2.5 && <2.10
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.1
@@ -171,7 +171,7 @@ library
     , unordered-containers
     , vector
     , wai
-    , wai-extra >=3.0 && <3.1
+    , wai-extra >=3.0 && <3.2
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
@@ -195,7 +195,7 @@ executable espial
       Paths_espial
   hs-source-dirs:
       app
-  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents PartialTypeSignatures QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -232,9 +232,9 @@ executable espial
     , monad-logger >=0.3 && <0.4
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.11
+    , persistent >=2.8 && <2.12
     , persistent-sqlite >=2.6.2
-    , persistent-template >=2.5 && <2.9
+    , persistent-template >=2.5 && <2.10
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.1
@@ -245,7 +245,7 @@ executable espial
     , unordered-containers
     , vector
     , wai
-    , wai-extra >=3.0 && <3.1
+    , wai-extra >=3.0 && <3.2
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
@@ -265,7 +265,7 @@ executable migration
       Paths_espial
   hs-source-dirs:
       app/migration
-  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents PartialTypeSignatures QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson >=1.4
@@ -303,9 +303,9 @@ executable migration
     , mtl
     , optparse-generic >=1.2.3
     , parser-combinators
-    , persistent >=2.8 && <2.11
+    , persistent >=2.8 && <2.12
     , persistent-sqlite >=2.6.2
-    , persistent-template >=2.5 && <2.9
+    , persistent-template >=2.5 && <2.10
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.1
@@ -316,7 +316,7 @@ executable migration
     , unordered-containers
     , vector
     , wai
-    , wai-extra >=3.0 && <3.1
+    , wai-extra >=3.0 && <3.2
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
@@ -340,7 +340,7 @@ test-suite test
       Paths_espial
   hs-source-dirs:
       test
-  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
+  default-extensions: BangPatterns BlockArguments CPP ConstraintKinds DataKinds DeriveDataTypeable DeriveGeneric DerivingStrategies EmptyDataDecls FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving InstanceSigs KindSignatures LambdaCase MultiParamTypeClasses MultiWayIf NoImplicitPrelude OverloadedStrings PolyKinds PolymorphicComponents PartialTypeSignatures QuasiQuotes Rank2Types RankNTypes RecordWildCards ScopedTypeVariables StandaloneDeriving TemplateHaskell TupleSections TypeApplications TypeFamilies TypeOperators TypeSynonymInstances UndecidableInstances ViewPatterns
   ghc-options: -Wall
   build-depends:
       aeson >=1.4
@@ -378,9 +378,9 @@ test-suite test
     , monad-logger >=0.3 && <0.4
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.11
+    , persistent >=2.8 && <2.12
     , persistent-sqlite >=2.6.2
-    , persistent-template >=2.5 && <2.9
+    , persistent-template >=2.5 && <2.10
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.1
@@ -391,7 +391,7 @@ test-suite test
     , unordered-containers
     , vector
     , wai
-    , wai-extra >=3.0 && <3.1
+    , wai-extra >=3.0 && <3.2
     , wai-logger >=2.2 && <2.4
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12

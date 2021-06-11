@@ -12,7 +12,7 @@ import qualified Data.List.NonEmpty as NE
 import qualified Data.Time.ISO8601 as TI
 import qualified Data.Time.Clock.POSIX as TI
 import qualified Database.Esqueleto as E
-import Database.Esqueleto.Internal.Sql as E
+import qualified Database.Esqueleto.Internal.Internal as E (exists, unsafeSqlFunction)
 import qualified Data.Time as TI
 import ClassyPrelude.Yesod hiding ((||.))
 import Control.Monad.Trans.Maybe
@@ -188,7 +188,7 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
     _whereClause b = do
       where_ $
         foldl (\expr tag ->
-                expr &&. (exists $   -- each tag becomes an exists constraint
+                expr &&. (E.exists $   -- each tag becomes an exists constraint
                           from \t ->
                           where_ (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId &&.
                                  (t ^. BookmarkTagTag `E.like` val tag))))
@@ -217,7 +217,7 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
           (toLikeB BookmarkHref term) ||.
           (toLikeB BookmarkDescription term) ||.
           (toLikeB BookmarkExtended term) ||.
-          (exists $ from (\t -> where_ $
+          (E.exists $ from (\t -> where_ $
              (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
              (t ^. BookmarkTagTag `E.like` (wild term))))
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
@@ -225,7 +225,7 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
             p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
             p_title = "title:" *> fmap (toLikeB BookmarkDescription) P.takeText
             p_description = "description:" *> fmap (toLikeB BookmarkExtended) P.takeText
-            p_tags = "tags:" *> fmap (\term' -> exists $ from (\t -> where_ $
+            p_tags = "tags:" *> fmap (\term' -> E.exists $ from (\t -> where_ $
                                                          (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
                                                          (t ^. BookmarkTagTag `E.like` wild term'))) P.takeText
             p_after  = "after:"  *> fmap ((b ^. BookmarkTime E.>=.) . val) (parseTimeText =<< P.takeText)
@@ -568,7 +568,7 @@ tagCountRelated user tags =
       from \t -> do
       where_ $
         foldl (\expr tag ->
-                expr &&. (exists $
+                expr &&. (E.exists $
                           from \u ->
                           where_ (u ^. BookmarkTagBookmarkId E.==. t ^. BookmarkTagBookmarkId &&.
                                  (u ^. BookmarkTagTag `E.like` val tag))))

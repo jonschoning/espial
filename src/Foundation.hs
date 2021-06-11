@@ -10,13 +10,9 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import PathPiece()
 
--- import Yesod.Auth.Dummy
-
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types
 import Yesod.Auth.Message
--- import qualified Network.Wai as NW
--- import qualified Control.Monad.Metrics as MM
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 import qualified Yesod.Core.Unsafe as Unsafe
@@ -27,7 +23,6 @@ data App = App
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
-    -- , appMetrics     :: !MM.Metrics
     } deriving (Typeable)
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
@@ -58,7 +53,6 @@ instance Yesod App where
         10080 -- min (7 days)
         "config/client_session_key.aes"
 
-    -- yesodMiddleware = metricsMiddleware . defaultYesodMiddleware . defaultCsrfMiddleware
     yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
 
     defaultLayout widget = do
@@ -69,7 +63,6 @@ instance Yesod App where
         musername <- maybeAuthUsername
         muser <- (fmap.fmap) snd maybeAuthPair
         mcurrentRoute <- getCurrentRoute
-        -- void $ mapM (incrementRouteEKG req) mcurrentRoute
         let msourceCodeUri = appSourceCodeUri (appSettings master)
         pc <- widgetToPageContent do
             setTitle "Espial"
@@ -140,23 +133,10 @@ popupLayout widget = do
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 
--- metricsMiddleware :: Handler a -> Handler a
--- metricsMiddleware handler = do
---   req <- getRequest
---   mcurrentRoute <- getCurrentRoute
---   void $ mapM (incrementRouteEKG req) mcurrentRoute
---   handler
-
-
--- incrementRouteEKG :: YesodRequest -> Route App -> Handler ()
--- incrementRouteEKG req = MM.increment . (\r -> "route." <> r <> "." <> method) . pack . constrName
---   where method = decodeUtf8 $ NW.requestMethod $ reqWaiRequest req
-
 -- YesodAuth
 
 instance YesodAuth App where
   type AuthId App = UserId
-  -- authHttpManager = getHttpManager
   authPlugins _ = [dbAuthPlugin]
   authenticate = authenticateCreds
   loginDest = const HomeR
@@ -169,9 +149,6 @@ instance YesodAuth App where
   redirectToReferer = const True
 
 instance YesodAuthPersist App
-
--- instance MM.MonadMetrics Handler where
---   getMetrics = pure . appMetrics =<< getYesod 
 
 -- session keys
 

@@ -1,6 +1,6 @@
 name:    espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.8"
+version: "0.0.9"
 description: ! '
 
   Espial is an open-source, web-based bookmarking server.
@@ -63,6 +63,7 @@ default-extensions:
 - OverloadedStrings
 - PolyKinds
 - PolymorphicComponents
+- PartialTypeSignatures
 - QuasiQuotes
 - Rank2Types
 - RankNTypes
@@ -95,22 +96,19 @@ dependencies:
 - classy-prelude-yesod >=1.4 && <1.6
 - bytestring >=0.9 && <0.11
 - text >=0.11 && <2.0
-- persistent >=2.8 && <2.11
-# - persistent-postgresql >=2.8 && <2.9
+- persistent >=2.8 && <2.12
 - blaze-html >= 0.9 && < 1.0
-- persistent-template >=2.5 && <2.9
+- persistent-template >=2.5 && <2.10
 - template-haskell
 - shakespeare >=2.0 && <2.1
 - hjsmin >=0.1 && <0.3
-# - monad-control >=0.3 && <1.1
-- wai-extra >=3.0 && <3.1
+- wai-extra >=3.0 && <3.2
 - yaml >=0.8 && <0.12
 - http-client-tls >=0.3 && <0.4
 - http-conduit >=2.3 && <2.4
 - directory >=1.1 && <1.4
 - warp >=3.0 && <3.4
 - data-default
-# - aeson >=0.6 && <1.4
 - conduit >=1.0 && <2.0
 - monad-logger >=0.3 && <0.4
 - fast-logger >=2.2 && <4
@@ -129,8 +127,6 @@ dependencies:
 - attoparsec
 - bcrypt >= 0.0.8
 - entropy
-# - ekg
-# - ekg-core
 - esqueleto
 - hscolour
 - http-api-data >= 0.3.4
@@ -138,12 +134,10 @@ dependencies:
 - http-types
 - iso8601-time >=0.1.3
 - microlens
-# - monad-metrics
 - mtl
 - persistent-sqlite >=2.6.2
 - pretty-show
 - transformers >= 0.2.2
-# - wai-middleware-metrics
 - parser-combinators
 - html-entities
 - connection
