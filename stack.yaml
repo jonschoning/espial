@@ -1,4 +1,4 @@
-resolver: lts-17.15
+resolver: lts-18.3
 # allow-newer: true
 packages:
 - '.'
