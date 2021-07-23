@@ -10,7 +10,7 @@ module TestImport
 import Application           (makeFoundation, makeLogWare)
 import ClassyPrelude         as X hiding (delete, deleteBy, Handler)
 import Database.Persist      as X hiding (get)
-import Database.Persist.Sql  (SqlPersistM, runSqlPersistMPool, rawExecute, rawSql, unSingle, connEscapeName)
+import Database.Persist.Sql  (SqlPersistM, runSqlPersistMPool, rawExecute, rawSql, unSingle)
 import Foundation            as X
 import Model                 as X
 import Test.Hspec            as X
@@ -62,8 +62,9 @@ wipeDB app = do
 
     flip runSqlPersistMPool pool $ do
         tables <- getTables
-        sqlBackend <- ask
-        let queries = map (\t -> "DELETE FROM " ++ (connEscapeName sqlBackend $ DBName t)) tables
+        -- sqlBackend <- ask
+        -- let queries = map (\t -> "DELETE FROM " ++ (connEscapeName sqlBackend $ DBName t)) tables
+        let queries = map (\t -> "DELETE FROM " ++ t) tables
         forM_ queries (\q -> rawExecute q [])
 
 getTables :: DB [Text]

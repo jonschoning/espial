@@ -87,7 +87,7 @@ deleteDeleteNoteR nid = do
   runDB do
     let k_nid = NoteKey nid
     _ <- requireResource userId k_nid
-    deleteCascade k_nid
+    delete k_nid
   return ""
 
 postAddNoteR :: Handler ()

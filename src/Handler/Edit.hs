@@ -14,7 +14,7 @@ deleteDeleteR bid = do
   runDB do
     let k_bid = BookmarkKey bid
     _ <- requireResource userId k_bid
-    deleteCascade k_bid
+    delete k_bid
   return ""
 
 postReadR :: Int64 -> Handler Html

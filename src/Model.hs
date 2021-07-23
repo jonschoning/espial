@@ -11,7 +11,7 @@ import qualified Control.Monad.Combinators as PC
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Time.ISO8601 as TI
 import qualified Data.Time.Clock.POSIX as TI
-import qualified Database.Esqueleto as E
+import qualified Database.Esqueleto.Experimental as E
 import qualified Database.Esqueleto.Internal.Internal as E (exists, unsafeSqlFunction)
 import qualified Data.Time as TI
 import ClassyPrelude.Yesod hiding ((||.))
@@ -21,15 +21,16 @@ import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.List.NonEmpty (NonEmpty(..))
-import Database.Esqueleto hiding ((==.))
+import Database.Esqueleto.Experimental hiding ((==.))
 import Pretty
 import System.Directory
 import Types
+
 import qualified Data.Map.Strict as MS
 
 import ModelCustom
 
-share [mkPersist sqlSettings, mkDeleteCascade sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase|
+share [mkPersist sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase|
 User json
   Id Int64
   name Text
@@ -43,7 +44,7 @@ User json
 
 Bookmark json
   Id Int64
-  userId UserId
+  userId UserId OnDeleteCascade
   slug BmSlug default="(lower(hex(randomblob(6))))"
   href Text
   description Text
@@ -59,9 +60,9 @@ Bookmark json
 
 BookmarkTag json
   Id Int64
-  userId UserId
+  userId UserId OnDeleteCascade
   tag Text
-  bookmarkId BookmarkId
+  bookmarkId BookmarkId OnDeleteCascade
   seq Int
   UniqueUserTagBookmarkId userId tag bookmarkId
   UniqueUserBookmarkIdTagSeq userId bookmarkId tag seq
@@ -69,7 +70,7 @@ BookmarkTag json
 
 Note json
   Id Int64
-  userId UserId
+  userId UserId  OnDeleteCascade
   slug NtSlug default="(lower(hex(randomblob(10))))"
   length Int
   title Text
@@ -172,13 +173,13 @@ bookmarksQuery
 bookmarksQuery userId sharedp filterp tags mquery limit' page =
   (,) -- total count
   <$> fmap (sum . fmap E.unValue)
-      (select $
-      from \b -> do
-      _whereClause b
-      pure E.countRows)
+      (select $ do
+       b <- from $ table @Bookmark
+       _whereClause b
+       pure E.countRows)
       -- paged data
-  <*> (select $
-       from \b -> do
+  <*> (select $ do
+       b <- from $ table @Bookmark
        _whereClause b
        orderBy [desc (b ^. BookmarkTime)]
        limit limit'
@@ -189,7 +190,7 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
       where_ $
         foldl (\expr tag ->
                 expr &&. (E.exists $   -- each tag becomes an exists constraint
-                          from \t ->
+                          from (table @BookmarkTag) >>= \t ->
                           where_ (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId &&.
                                  (t ^. BookmarkTagTag `E.like` val tag))))
           (b ^. BookmarkUserId E.==. val userId)
@@ -203,8 +204,8 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
         FilterUnread -> where_ (b ^. BookmarkToRead E.==. val True)
         FilterStarred -> where_ (b ^. BookmarkSelected E.==. val True)
         FilterSingle slug -> where_ (b ^. BookmarkSlug E.==. val slug)
-        FilterUntagged -> where_ $ notExists $ from (\t -> where_ $
-                                                     (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId))
+        FilterUntagged -> where_ $ notExists $ from (table @BookmarkTag) >>= \t -> where_ $
+                                                    t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId
       -- search
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
 
@@ -217,17 +218,18 @@ bookmarksQuery userId sharedp filterp tags mquery limit' page =
           (toLikeB BookmarkHref term) ||.
           (toLikeB BookmarkDescription term) ||.
           (toLikeB BookmarkExtended term) ||.
-          (E.exists $ from (\t -> where_ $
-             (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
-             (t ^. BookmarkTagTag `E.like` (wild term))))
+          (E.exists $ from (table @BookmarkTag) >>= \t -> where_ $
+               (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
+               (t ^. BookmarkTagTag `E.like` (wild term)) 
+          )
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
           where
             p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
             p_title = "title:" *> fmap (toLikeB BookmarkDescription) P.takeText
             p_description = "description:" *> fmap (toLikeB BookmarkExtended) P.takeText
-            p_tags = "tags:" *> fmap (\term' -> E.exists $ from (\t -> where_ $
+            p_tags = "tags:" *> fmap (\term' -> E.exists $ from (table @BookmarkTag) >>= \t -> where_ $
                                                          (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
-                                                         (t ^. BookmarkTagTag `E.like` wild term'))) P.takeText
+                                                         (t ^. BookmarkTagTag `E.like` wild term')) P.takeText
             p_after  = "after:"  *> fmap ((b ^. BookmarkTime E.>=.) . val) (parseTimeText =<< P.takeText)
             p_before = "before:" *> fmap ((b ^. BookmarkTime E.<=.) . val) (parseTimeText =<< P.takeText)
 
@@ -260,8 +262,8 @@ parseTimeText t =
 
 tagsQuery :: [Entity Bookmark] -> DB [Entity BookmarkTag]
 tagsQuery bmarks =
-  select $
-  from \t -> do
+  select $ do
+  t <- from (table @BookmarkTag)
   where_ (t ^. BookmarkTagBookmarkId `in_` valList (fmap entityKey bmarks))
   orderBy [asc (t ^. BookmarkTagSeq)]
   pure t
@@ -280,12 +282,12 @@ getNoteList :: Key User -> Maybe Text -> SharedP -> Limit -> Page -> DB (Int, [E
 getNoteList key mquery sharedp limit' page =
   (,) -- total count
   <$> fmap (sum . fmap E.unValue)
-      (select $
-      from \b -> do
+      (select $ do
+      b <- from (table @Note)
       _whereClause b
       pure $ E.countRows)
-  <*> (select $
-       from \b -> do
+  <*> (select $ do
+       b <- from (table @Note)
        _whereClause b
        orderBy [desc (b ^. NoteCreated)]
        limit limit'
@@ -470,16 +472,16 @@ allUserBookmarks user = do
   where
     bquery :: DB [Entity Bookmark]
     bquery =
-      select $
-      from \b -> do
+      select $ do
+        b <- from (table @Bookmark)
         where_ (b ^. BookmarkUserId E.==. val user)
         orderBy [asc (b ^. BookmarkTime)]
         pure b
     tquery :: DB [(Key Bookmark, Text)]
     tquery =
       fmap (\(tid, tags) -> (E.unValue tid, E.unValue tags)) <$>
-      (select $
-       from \t -> do
+      (select $ do
+         t <- from (table @BookmarkTag)
          where_ (t ^. BookmarkTagUserId E.==. val user)
          E.groupBy (t ^. BookmarkTagBookmarkId)
          let tags = sqlite_group_concat (t ^. BookmarkTagTag) (E.val " ")
@@ -538,8 +540,8 @@ tagCountTop :: Key User -> Int -> DB [(Text, Int)]
 tagCountTop user top = 
     sortOn (toLower . fst) .
     fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
-    ( select $
-      from \t -> do
+    ( select $ do
+      t <- from (table @BookmarkTag)
       where_ (t ^. BookmarkTagUserId E.==. val user)
       E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
       let countRows' = E.countRows
@@ -551,8 +553,8 @@ tagCountTop user top =
 tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
 tagCountLowerBound user lowerBound = 
     fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
-    ( select $
-      from \t -> do
+    ( select $ do
+      t <- from (table @BookmarkTag)
       where_ (t ^. BookmarkTagUserId E.==. val user)
       E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
       let countRows' = E.countRows
@@ -564,12 +566,12 @@ tagCountLowerBound user lowerBound =
 tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
 tagCountRelated user tags = 
     fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
-    ( select $
-      from \t -> do
+    ( select $ do
+      t <- from (table @BookmarkTag)
       where_ $
         foldl (\expr tag ->
-                expr &&. (E.exists $
-                          from \u ->
+                expr &&. (E.exists $ do
+                          u <- from (table @BookmarkTag)
                           where_ (u ^. BookmarkTagBookmarkId E.==. t ^. BookmarkTagBookmarkId &&.
                                  (u ^. BookmarkTagTag `E.like` val tag))))
           (t ^. BookmarkTagUserId E.==. val user)

@@ -72,7 +72,7 @@ main = do
         case muser of
           Nothing -> liftIO (print (userName ++ "not found"))
           Just (P.Entity uid _) -> do
-            P.deleteCascade uid
+            P.delete uid
             pure () :: DB ()
 
     ExportBookmarks {..} ->

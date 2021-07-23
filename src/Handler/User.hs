@@ -6,7 +6,7 @@ import           Handler.Common
 import           Import
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
-import qualified Database.Esqueleto as E
+import qualified Database.Esqueleto.Experimental as E
 import qualified Data.Map as Map
 
 getUserR :: UserNameP -> Handler Html
