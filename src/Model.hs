@@ -3,27 +3,25 @@
 module Model where
 
 import qualified ClassyPrelude.Yesod as CP
-import Control.Monad.Fail (MonadFail)
+import qualified Control.Monad.Combinators as PC (between)
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A (parseFail)
 import qualified Data.Attoparsec.Text as P
-import qualified Control.Monad.Combinators as PC
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Time.ISO8601 as TI
-import qualified Data.Time.Clock.POSIX as TI
-import qualified Database.Esqueleto.Experimental as E
-import qualified Database.Esqueleto.Internal.Internal as E (exists, unsafeSqlFunction)
-import qualified Data.Time as TI
-import ClassyPrelude.Yesod hiding ((||.))
-import Control.Monad.Trans.Maybe
+import qualified Data.Time as TI (ParseTime)
+import qualified Data.Time.Clock.POSIX as TI (posixSecondsToUTCTime, POSIXTime)
+import qualified Data.Time.ISO8601 as TI (parseISO8601, formatISO8601Millis)
+import ClassyPrelude.Yesod hiding ((==.), (||.), on, Value, groupBy, exists, (>=.), (<=.))
+import Control.Monad.Fail (MonadFail)
+import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import Control.Monad.Writer (tell)
 import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.List.NonEmpty (NonEmpty(..))
-import Database.Esqueleto.Experimental hiding ((==.))
-import Pretty
-import System.Directory
+import Database.Esqueleto.Experimental
+import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
+import Pretty ()
+import System.Directory (listDirectory)
 import Types
 
 import qualified Data.Map.Strict as MS
@@ -142,10 +140,10 @@ migrateIndexes =
 
 sqlite_group_concat ::
      PersistField a
-  => SqlExpr (E.Value a)
-  -> SqlExpr (E.Value a)
-  -> SqlExpr (E.Value Text)
-sqlite_group_concat expr sep = E.unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
+  => SqlExpr (Value a)
+  -> SqlExpr (Value a)
+  -> SqlExpr (Value Text)
+sqlite_group_concat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
 
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
@@ -159,9 +157,10 @@ authenticatePassword username password = do
 
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
 getUserByName (UserNameP uname) = do
-  selectFirst [UserName ==. uname] []
+  selectFirst [UserName CP.==. uname] []
 
-bookmarksQuery
+-- returns a list of pair of bookmark with tags merged into a string
+bookmarksTagsQuery
   :: Key User
   -> SharedP
   -> FilterP
@@ -169,74 +168,92 @@ bookmarksQuery
   -> Maybe Text
   -> Limit
   -> Page
-  -> DB (Int, [Entity Bookmark])
-bookmarksQuery userId sharedp filterp tags mquery limit' page =
+  -> DB (Int, [(Entity Bookmark, Maybe Text)])
+bookmarksTagsQuery userId sharedp filterp tags mquery limit' page =
   (,) -- total count
-  <$> fmap (sum . fmap E.unValue)
-      (select $ do
-       b <- from $ table @Bookmark
+  <$> fmap (sum . fmap unValue)
+      (select $ from (table @Bookmark) >>= \b -> do
        _whereClause b
-       pure E.countRows)
+       pure countRows)
       -- paged data
-  <*> (select $ do
-       b <- from $ table @Bookmark
+  <*> (fmap . fmap . fmap) unValue
+      (select $ from (table @Bookmark) >>= \b -> do
        _whereClause b
        orderBy [desc (b ^. BookmarkTime)]
        limit limit'
        offset ((page - 1) * limit')
-       pure b)
+       pure (b, subSelect $ from (table @BookmarkTag) >>= \t -> do
+                where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+                groupBy (t ^. BookmarkTagBookmarkId)
+                orderBy [asc (t ^. BookmarkTagSeq)]
+                pure $ sqlite_group_concat (t ^. BookmarkTagTag) (val " ")))
   where
     _whereClause b = do
       where_ $
         foldl (\expr tag ->
-                expr &&. (E.exists $   -- each tag becomes an exists constraint
+                expr &&. (exists $   -- each tag becomes an exists constraint
                           from (table @BookmarkTag) >>= \t ->
-                          where_ (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId &&.
-                                 (t ^. BookmarkTagTag `E.like` val tag))))
-          (b ^. BookmarkUserId E.==. val userId)
+                          where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId &&.
+                                 (t ^. BookmarkTagTag `like` val tag))))
+          (b ^. BookmarkUserId ==. val userId)
           tags
       case sharedp of
         SharedAll -> pure ()
-        SharedPublic ->  where_ (b ^. BookmarkShared E.==. val True)
-        SharedPrivate -> where_ (b ^. BookmarkShared E.==. val False)
+        SharedPublic ->  where_ (b ^. BookmarkShared ==. val True)
+        SharedPrivate -> where_ (b ^. BookmarkShared ==. val False)
       case filterp of
         FilterAll -> pure ()
-        FilterUnread -> where_ (b ^. BookmarkToRead E.==. val True)
-        FilterStarred -> where_ (b ^. BookmarkSelected E.==. val True)
-        FilterSingle slug -> where_ (b ^. BookmarkSlug E.==. val slug)
+        FilterUnread -> where_ (b ^. BookmarkToRead ==. val True)
+        FilterStarred -> where_ (b ^. BookmarkSelected ==. val True)
+        FilterSingle slug -> where_ (b ^. BookmarkSlug ==. val slug)
         FilterUntagged -> where_ $ notExists $ from (table @BookmarkTag) >>= \t -> where_ $
-                                                    t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId
+                                                    t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
       -- search
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
 
-    toLikeExpr :: E.SqlExpr (Entity Bookmark) -> Text -> E.SqlExpr (E.Value Bool)
+    toLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
-        wild s = (E.%) ++. val s ++. (E.%)
-        toLikeB field s = b ^. field `E.like` wild s
+        wild s = (%) ++. val s ++. (%)
+        toLikeB field s = b ^. field `like` wild s
         p_allFields =
           (toLikeB BookmarkHref term) ||.
           (toLikeB BookmarkDescription term) ||.
           (toLikeB BookmarkExtended term) ||.
-          (E.exists $ from (table @BookmarkTag) >>= \t -> where_ $
-               (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
-               (t ^. BookmarkTagTag `E.like` (wild term)) 
+          (exists $ from (table @BookmarkTag) >>= \t -> where_ $
+               (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId) &&.
+               (t ^. BookmarkTagTag `like` (wild term)) 
           )
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
           where
             p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
             p_title = "title:" *> fmap (toLikeB BookmarkDescription) P.takeText
             p_description = "description:" *> fmap (toLikeB BookmarkExtended) P.takeText
-            p_tags = "tags:" *> fmap (\term' -> E.exists $ from (table @BookmarkTag) >>= \t -> where_ $
-                                                         (t ^. BookmarkTagBookmarkId E.==. b ^. BookmarkId) &&.
-                                                         (t ^. BookmarkTagTag `E.like` wild term')) P.takeText
-            p_after  = "after:"  *> fmap ((b ^. BookmarkTime E.>=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. BookmarkTime E.<=.) . val) (parseTimeText =<< P.takeText)
+            p_tags = "tags:" *> fmap (\term' -> exists $ from (table @BookmarkTag) >>= \t -> where_ $
+                                                         (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId) &&.
+                                                         (t ^. BookmarkTagTag `like` wild term')) P.takeText
+            p_after  = "after:"  *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = "before:" *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
 
+
+-- returns a list of pair of bookmark with tags merged into a string
+allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
+allUserBookmarks user =
+  (fmap . fmap . fmap) (fromMaybe "" . unValue) $
+  select $ do
+    b <- from (table @Bookmark)
+    where_ (b ^. BookmarkUserId ==. val user)
+    orderBy [asc (b ^. BookmarkTime)]
+    pure (b, subSelect $ from (table @BookmarkTag) >>= \t -> do
+             where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+             groupBy (t ^. BookmarkTagBookmarkId)
+             orderBy [asc (t ^. BookmarkTagSeq)]
+             pure $ sqlite_group_concat (t ^. BookmarkTagTag) (val " "))
+  
 parseSearchQuery ::
-  (Text -> E.SqlExpr (E.Value Bool))
+  (Text -> SqlExpr (Value Bool))
   -> Text
-  -> Maybe (E.SqlQuery ())
+  -> Maybe (SqlQuery ())
 parseSearchQuery toExpr =
   fmap where_ . either (const Nothing) Just . P.parseOnly andE
   where
@@ -260,32 +277,24 @@ parseTimeText t =
   , "%s"                                                     -- 1535932800
   ]
 
-tagsQuery :: [Entity Bookmark] -> DB [Entity BookmarkTag]
-tagsQuery bmarks =
-  select $ do
-  t <- from (table @BookmarkTag)
-  where_ (t ^. BookmarkTagBookmarkId `in_` valList (fmap entityKey bmarks))
-  orderBy [asc (t ^. BookmarkTagSeq)]
-  pure t
-
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
-withTags key = selectList [BookmarkTagBookmarkId ==. key] [Asc BookmarkTagSeq]
+withTags key = selectList [BookmarkTagBookmarkId CP.==. key] [Asc BookmarkTagSeq]
 
 -- Note List Query
 
 
 getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
-  selectFirst [NoteUserId ==. userKey, NoteSlug ==. slug] []
+  selectFirst [NoteUserId CP.==. userKey, NoteSlug CP.==. slug] []
 
 getNoteList :: Key User -> Maybe Text -> SharedP -> Limit -> Page -> DB (Int, [Entity Note])
 getNoteList key mquery sharedp limit' page =
   (,) -- total count
-  <$> fmap (sum . fmap E.unValue)
+  <$> fmap (sum . fmap unValue)
       (select $ do
       b <- from (table @Note)
       _whereClause b
-      pure $ E.countRows)
+      pure $ countRows)
   <*> (select $ do
        b <- from (table @Note)
        _whereClause b
@@ -295,26 +304,26 @@ getNoteList key mquery sharedp limit' page =
        pure b)
   where
     _whereClause b = do
-      where_ $ (b ^. NoteUserId E.==. val key)
+      where_ $ (b ^. NoteUserId ==. val key)
       -- search
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
       case sharedp of
         SharedAll -> pure ()
-        SharedPublic ->  where_ (b ^. NoteShared E.==. val True)
-        SharedPrivate -> where_ (b ^. NoteShared E.==. val False)
+        SharedPublic ->  where_ (b ^. NoteShared ==. val True)
+        SharedPrivate -> where_ (b ^. NoteShared ==. val False)
 
-    toLikeExpr :: E.SqlExpr (Entity Note) -> Text -> E.SqlExpr (E.Value Bool)
+    toLikeExpr :: SqlExpr (Entity Note) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
-        wild s = (E.%) ++. val s ++. (E.%)
-        toLikeN field s = b ^. field `E.like` wild s
+        wild s = (%) ++. val s ++. (%)
+        toLikeN field s = b ^. field `like` wild s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_after <|> p_before
           where
             p_title = "title:" *> fmap (toLikeN NoteTitle) P.takeText
             p_text = "description:" *> fmap (toLikeN NoteText) P.takeText
-            p_after  = "after:"  *> fmap ((b ^. NoteCreated E.>=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. NoteCreated E.<=.) . val) (parseTimeText =<< P.takeText)
+            p_after  = "after:"  *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = "before:" *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
 
 -- Bookmark Files
 
@@ -462,32 +471,6 @@ getFileBookmarks user = do
   marks <- allUserBookmarks user
   pure $ fmap (\(bm, t) -> bookmarkTofileBookmark (entityVal bm) t) marks
 
--- returns a list of pair of bookmark with tags merged into a string
-allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
-allUserBookmarks user = do
-  bmarks <- bquery
-  tags <- tquery
-  let tagmap = MS.fromList tags
-  pure $ (\bm@(Entity bid _) -> (bm, findWithDefault mempty bid tagmap)) <$> bmarks
-  where
-    bquery :: DB [Entity Bookmark]
-    bquery =
-      select $ do
-        b <- from (table @Bookmark)
-        where_ (b ^. BookmarkUserId E.==. val user)
-        orderBy [asc (b ^. BookmarkTime)]
-        pure b
-    tquery :: DB [(Key Bookmark, Text)]
-    tquery =
-      fmap (\(tid, tags) -> (E.unValue tid, E.unValue tags)) <$>
-      (select $ do
-         t <- from (table @BookmarkTag)
-         where_ (t ^. BookmarkTagUserId E.==. val user)
-         E.groupBy (t ^. BookmarkTagBookmarkId)
-         let tags = sqlite_group_concat (t ^. BookmarkTagTag) (E.val " ")
-         pure (t ^. BookmarkTagBookmarkId, tags))
-
-  
 data TagCloudMode
   = TagCloudModeTop Bool Int          -- { mode: "top", value: 200 }
   | TagCloudModeLowerBound Bool Int   -- { mode: "lowerBound", value: 20 }
@@ -539,46 +522,46 @@ type Tag = Text
 tagCountTop :: Key User -> Int -> DB [(Text, Int)]
 tagCountTop user top = 
     sortOn (toLower . fst) .
-    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
-      where_ (t ^. BookmarkTagUserId E.==. val user)
-      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
-      let countRows' = E.countRows
-      E.orderBy [E.desc countRows'] 
-      E.limit ((fromIntegral . toInteger) top)
+      where_ (t ^. BookmarkTagUserId ==. val user)
+      groupBy (lower_ $ t ^. BookmarkTagTag)
+      let countRows' = countRows
+      orderBy [desc countRows'] 
+      limit ((fromIntegral . toInteger) top)
       pure $ (t ^. BookmarkTagTag, countRows')
     )
 
 tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
 tagCountLowerBound user lowerBound = 
-    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
-      where_ (t ^. BookmarkTagUserId E.==. val user)
-      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
-      let countRows' = E.countRows
-      E.orderBy [E.asc (t ^. BookmarkTagTag)]
-      E.having (countRows' E.>=. E.val lowerBound)
+      where_ (t ^. BookmarkTagUserId ==. val user)
+      groupBy (lower_ $ t ^. BookmarkTagTag)
+      let countRows' = countRows
+      orderBy [asc (t ^. BookmarkTagTag)]
+      having (countRows' >=. val lowerBound)
       pure $ (t ^. BookmarkTagTag, countRows')
     )
 
 tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
 tagCountRelated user tags = 
-    fmap (\(tname, tcount) -> (E.unValue tname, E.unValue tcount)) <$>
+    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
       where_ $
         foldl (\expr tag ->
-                expr &&. (E.exists $ do
+                expr &&. (exists $ do
                           u <- from (table @BookmarkTag)
-                          where_ (u ^. BookmarkTagBookmarkId E.==. t ^. BookmarkTagBookmarkId &&.
-                                 (u ^. BookmarkTagTag `E.like` val tag))))
-          (t ^. BookmarkTagUserId E.==. val user)
+                          where_ (u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId &&.
+                                 (u ^. BookmarkTagTag `like` val tag))))
+          (t ^. BookmarkTagUserId ==. val user)
           tags
-      E.groupBy (E.lower_ $ t ^. BookmarkTagTag)
-      let countRows' = E.countRows
-      E.orderBy [E.asc $ E.lower_ $ (t ^. BookmarkTagTag)]
+      groupBy (lower_ $ t ^. BookmarkTagTag)
+      let countRows' = countRows
+      orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
       pure $ (t ^. BookmarkTagTag, countRows')
     )
 
@@ -664,20 +647,20 @@ instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
 gDefaultFormOptions :: A.Options
 gDefaultFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
 
-toBookmarkFormList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [BookmarkForm]
-toBookmarkFormList bs as = do
-  b <- bs
-  let bid = E.entityKey b
-  let btags = filter ((==) bid . bookmarkTagBookmarkId . E.entityVal) as
-  pure $ _toBookmarkForm (b, btags)
+toBookmarkFormList :: [(Entity Bookmark, Maybe Text)] -> [BookmarkForm]
+toBookmarkFormList = fmap _toBookmarkForm'
 
 _toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
-_toBookmarkForm (Entity bid Bookmark {..}, tags) =
+_toBookmarkForm (bm, tags) =
+  _toBookmarkForm' (bm, Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags)
+
+_toBookmarkForm' :: (Entity Bookmark, Maybe Text) -> BookmarkForm
+_toBookmarkForm' (Entity bid Bookmark {..}, tags) =
   BookmarkForm
   { _url = bookmarkHref
   , _title = Just bookmarkDescription
   , _description = Just $ Textarea $ bookmarkExtended
-  , _tags = Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags
+  , _tags = Just $ fromMaybe "" tags
   , _private = Just $ not bookmarkShared
   , _toread = Just $ bookmarkToRead
   , _bid = Just $ unBookmarkKey $ bid
@@ -686,6 +669,7 @@ _toBookmarkForm (Entity bid Bookmark {..}, tags) =
   , _time = Just $ UTCTimeStr $ bookmarkTime
   , _archiveUrl = bookmarkArchiveHref
   }
+
 
 _toBookmark :: UserId -> BookmarkForm -> IO Bookmark
 _toBookmark userId BookmarkForm {..} = do
@@ -739,7 +723,7 @@ upsertBookmark userId mbid bm tags = do
       deleteTags bid
       pure (Updated, bid)
     deleteTags bid =
-      deleteWhere [BookmarkTagBookmarkId ==. bid]
+      deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
       for_ (zip [1 ..] tags) $
       \(i, tag) -> void $ insert $ BookmarkTag userId' tag bid' i
@@ -747,7 +731,7 @@ upsertBookmark userId mbid bm tags = do
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl = do
   updateWhere
-    [BookmarkUserId ==. userId, BookmarkId ==. bid]
+    [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
     [BookmarkArchiveHref CP.=. marchiveUrl]
 
 upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)

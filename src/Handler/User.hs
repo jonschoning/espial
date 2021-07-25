@@ -6,7 +6,6 @@ import           Handler.Common
 import           Import
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
-import qualified Database.Esqueleto.Experimental as E
 import qualified Data.Map as Map
 
 getUserR :: UserNameP -> Handler Html
@@ -40,14 +39,11 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
   mquery <- lookupGetParam queryp
   let mqueryp = fmap (\q -> (queryp, q)) mquery
-  (bcount, bmarks, alltags) <-
-    runDB $
-    do Entity userId user <- getBy404 (UniqueUserName uname)
+  (bcount, btmarks) <- runDB $ do
+       Entity userId user <- getBy404 (UniqueUserName uname)
        when (not isowner && userPrivacyLock user)
          (redirect (AuthR LoginR))
-       (cnt, bm) <- bookmarksQuery userId sharedp filterp pathtags mquery limit page
-       tg <- tagsQuery bm
-       pure (cnt, bm, tg)
+       bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
@@ -60,14 +56,18 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")
     toWidgetBody [julius|
-        app.dat.bmarks = #{ toJSON $ toBookmarkFormList bmarks alltags } || [];
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormList btmarks } || [];
         app.dat.isowner = #{ isowner };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
     toWidget [julius|
-      PS['Main'].renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
-      PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
+      setTimeout(() => {
+        PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
+      }, 0);
+      setTimeout(() => {
+        PS['Main'].renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
+      }, 0);
     |]
 
 -- Form
@@ -98,23 +98,16 @@ _updateTagCloudMode mode =
     TagCloudModeRelated _ _ -> setTagCloudMode mode
     TagCloudModeNone -> notFound
 
-bookmarkToRssEntry :: (Entity Bookmark, [Text]) -> FeedEntry Text
+bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
 bookmarkToRssEntry ((Entity entryId entry), tags) =
   FeedEntry
   { feedEntryLink = bookmarkHref entry
   , feedEntryUpdated = bookmarkTime entry
   , feedEntryTitle = bookmarkDescription entry
   , feedEntryContent = toHtml (bookmarkExtended entry)
-  , feedEntryCategories = map (EntryCategory Nothing Nothing) tags
+  , feedEntryCategories = map (EntryCategory Nothing Nothing) (maybe [] words tags)
   , feedEntryEnclosure = Nothing
   }
-
-toBookmarkWithTagsList :: [Entity Bookmark] -> [Entity BookmarkTag] -> [(Entity Bookmark, [Text])]
-toBookmarkWithTagsList bs as = do
-  b <- bs
-  let bid = E.entityKey b
-  let btags = filter ((==) bid . bookmarkTagBookmarkId . E.entityVal) as
-  pure $ (b, map (bookmarkTagTag . E.entityVal) btags)
 
 getUserFeedR :: UserNameP -> Handler RepRss
 getUserFeedR unamep@(UserNameP uname) = do
@@ -125,17 +118,13 @@ getUserFeedR unamep@(UserNameP uname) = do
       queryp = "query" :: Text
       isowner = maybe False (== uname) mauthuname
   mquery <- lookupGetParam queryp
-  (_, bmarks, alltags) <-
-    runDB $
-    do Entity userId user <- getBy404 (UniqueUserName uname)
+  (_, btmarks) <- runDB $ do
+       Entity userId user <- getBy404 (UniqueUserName uname)
        when (not isowner && userPrivacyLock user)
          (redirect (AuthR LoginR))
-       (cnt, bm) <- bookmarksQuery userId SharedPublic FilterAll [] mquery limit page
-       tg <- tagsQuery bm
-       pure (cnt, bm, tg)
+       bookmarksTagsQuery userId SharedPublic FilterAll [] mquery limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
-      entriesWithTags = toBookmarkWithTagsList bmarks alltags
-      entries = map bookmarkToRssEntry entriesWithTags
+      entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO $ getCurrentTime
                 Just m ->  return m
