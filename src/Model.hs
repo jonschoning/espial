@@ -138,12 +138,12 @@ migrateIndexes =
     , "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)"
     ]
 
-sqlite_group_concat ::
+sqliteGroupConcat ::
      PersistField a
   => SqlExpr (Value a)
   -> SqlExpr (Value a)
   -> SqlExpr (Value Text)
-sqlite_group_concat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
+sqliteGroupConcat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
 
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
@@ -156,7 +156,7 @@ authenticatePassword username password = do
         else return Nothing
 
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
-getUserByName (UserNameP uname) = do
+getUserByName (UserNameP uname) =
   selectFirst [UserName CP.==. uname] []
 
 -- returns a list of pair of bookmark with tags merged into a string
@@ -186,12 +186,12 @@ bookmarksTagsQuery userId sharedp filterp tags mquery limit' page =
                 where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
                 groupBy (t ^. BookmarkTagBookmarkId)
                 orderBy [asc (t ^. BookmarkTagSeq)]
-                pure $ sqlite_group_concat (t ^. BookmarkTagTag) (val " ")))
+                pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")))
   where
     _whereClause b = do
       where_ $
         foldl (\expr tag ->
-                expr &&. (exists $   -- each tag becomes an exists constraint
+                expr &&. exists (   -- each tag becomes an exists constraint
                           from (table @BookmarkTag) >>= \t ->
                           where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId &&.
                                  (t ^. BookmarkTagTag `like` val tag))))
@@ -217,13 +217,12 @@ bookmarksTagsQuery userId sharedp filterp tags mquery limit' page =
         wild s = (%) ++. val s ++. (%)
         toLikeB field s = b ^. field `like` wild s
         p_allFields =
-          (toLikeB BookmarkHref term) ||.
-          (toLikeB BookmarkDescription term) ||.
-          (toLikeB BookmarkExtended term) ||.
-          (exists $ from (table @BookmarkTag) >>= \t -> where_ $
+          toLikeB BookmarkHref term ||.
+          toLikeB BookmarkDescription term ||.
+          toLikeB BookmarkExtended term ||.
+          exists (from (table @BookmarkTag) >>= \t -> where_ $
                (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId) &&.
-               (t ^. BookmarkTagTag `like` (wild term)) 
-          )
+               (t ^. BookmarkTagTag `like` wild term))
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
           where
             p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
@@ -248,8 +247,8 @@ allUserBookmarks user =
              where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
              groupBy (t ^. BookmarkTagBookmarkId)
              orderBy [asc (t ^. BookmarkTagSeq)]
-             pure $ sqlite_group_concat (t ^. BookmarkTagTag) (val " "))
-  
+             pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " "))
+
 parseSearchQuery ::
   (Text -> SqlExpr (Value Bool))
   -> Text
@@ -294,7 +293,7 @@ getNoteList key mquery sharedp limit' page =
       (select $ do
       b <- from (table @Note)
       _whereClause b
-      pure $ countRows)
+      pure countRows)
   <*> (select $ do
        b <- from (table @Note)
        _whereClause b
@@ -304,7 +303,7 @@ getNoteList key mquery sharedp limit' page =
        pure b)
   where
     _whereClause b = do
-      where_ $ (b ^. NoteUserId ==. val key)
+      where_ (b ^. NoteUserId ==. val key)
       -- search
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
       case sharedp of
@@ -333,7 +332,7 @@ mkBookmarkTags userId bookmarkId tags =
 
 
 fileBookmarkToBookmark :: UserId -> FileBookmark -> IO Bookmark
-fileBookmarkToBookmark user (FileBookmark {..}) = do
+fileBookmarkToBookmark user FileBookmark {..} = do
   slug <- mkBmSlug
   pure $
     Bookmark
@@ -345,12 +344,12 @@ fileBookmarkToBookmark user (FileBookmark {..}) = do
     , bookmarkTime = fileBookmarkTime
     , bookmarkShared = fileBookmarkShared
     , bookmarkToRead = fileBookmarkToRead
-    , bookmarkSelected = (fromMaybe False fileBookmarkSelected)
+    , bookmarkSelected = Just True == fileBookmarkSelected
     , bookmarkArchiveHref = fileBookmarkArchiveHref
     }
 
 bookmarkTofileBookmark :: Bookmark -> Text -> FileBookmark
-bookmarkTofileBookmark (Bookmark {..}) tags =
+bookmarkTofileBookmark Bookmark {..} tags =
     FileBookmark
     { fileBookmarkHref = bookmarkHref
     , fileBookmarkDescription = bookmarkDescription
@@ -377,7 +376,7 @@ data FFBookmarkNode = FFBookmarkNode
   , firefoxBookmarkTypeCode :: !Int
   , firefoxBookmarkUri :: !(Maybe Text)
   } deriving (Show, Eq, Typeable, Ord)
-  
+
 instance FromJSON FFBookmarkNode where
   parseJSON (Object o) =
     FFBookmarkNode <$>
@@ -396,7 +395,7 @@ instance FromJSON FFBookmarkNode where
   parseJSON _ = A.parseFail "bad parse"
 
 firefoxBookmarkNodeToBookmark :: UserId -> FFBookmarkNode -> IO [Bookmark]
-firefoxBookmarkNodeToBookmark user (FFBookmarkNode {..}) = do
+firefoxBookmarkNodeToBookmark user FFBookmarkNode {..} =
   case firefoxBookmarkTypeCode of
     1 -> do
       slug <- mkBmSlug
@@ -404,10 +403,10 @@ firefoxBookmarkNodeToBookmark user (FFBookmarkNode {..}) = do
         [ Bookmark
           { bookmarkUserId = user
           , bookmarkSlug = slug
-          , bookmarkHref = (fromMaybe "" firefoxBookmarkUri)
+          , bookmarkHref = fromMaybe "" firefoxBookmarkUri
           , bookmarkDescription = firefoxBookmarkTitle
           , bookmarkExtended = ""
-          , bookmarkTime = (TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000))
+          , bookmarkTime = TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000)
           , bookmarkShared = True
           , bookmarkToRead = False
           , bookmarkSelected = False
@@ -421,7 +420,7 @@ firefoxBookmarkNodeToBookmark user (FFBookmarkNode {..}) = do
         (fromMaybe [] firefoxBookmarkChildren)
     _ -> pure []
 
- 
+
 insertFileBookmarks :: Key User -> FilePath -> DB (Either String Int)
 insertFileBookmarks userId bookmarkFile = do
   mfmarks <- liftIO $ readFileBookmarks bookmarkFile
@@ -430,16 +429,15 @@ insertFileBookmarks userId bookmarkFile = do
     Right fmarks -> do
       bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
       mbids <- mapM insertUnique bmarks
-      void $
-        mapM insertUnique $
+      mapM_ (void . insertUnique) $
         concatMap (uncurry (mkBookmarkTags userId)) $
         catMaybes $
         zipWith
-          (\mbid tags -> ((, tags) <$> mbid))
+          (\mbid tags -> (, tags) <$> mbid)
           mbids
           (extractTags <$> fmarks)
       pure $ Right (length bmarks)
-      
+
   where
     extractTags = words . fileBookmarkTags
 
@@ -450,20 +448,20 @@ insertFFBookmarks userId bookmarkFile = do
     Left e -> pure $ Left e
     Right fmarks -> do
       bmarks <- liftIO $ firefoxBookmarkNodeToBookmark userId fmarks
-      _ <- mapM insertUnique bmarks
+      mapM_ (void . insertUnique) bmarks
       pure $ Right (length bmarks)
 
 
 readFileBookmarks :: MonadIO m => FilePath -> m (Either String [FileBookmark])
 readFileBookmarks fpath =
-  pure . A.eitherDecode' . fromStrict =<< readFile fpath
+  A.eitherDecode' . fromStrict <$> readFile fpath
 
 readFFBookmarks :: MonadIO m => FilePath -> m (Either String FFBookmarkNode)
 readFFBookmarks fpath =
-  pure . A.eitherDecode' . fromStrict =<< readFile fpath
+  A.eitherDecode' . fromStrict <$> readFile fpath
 
 exportFileBookmarks :: Key User -> FilePath -> DB ()
-exportFileBookmarks user fpath = do
+exportFileBookmarks user fpath =
     liftIO . A.encodeFile fpath =<< getFileBookmarks user
 
 getFileBookmarks :: Key User -> DB [FileBookmark]
@@ -489,7 +487,7 @@ instance FromJSON TagCloudMode where
     case lookup "mode" o of
       Just (String "top") -> TagCloudModeTop <$> o .: "expanded" <*> o .: "value"
       Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
-      Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> (fmap words (o .: "value"))
+      Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> fmap words (o .: "value")
       Just (String "none") -> pure TagCloudModeNone
       _ -> A.parseFail "bad parse"
   parseJSON _ = A.parseFail "bad parse"
@@ -515,27 +513,27 @@ instance ToJSON TagCloudMode where
            , "value" .= Null
            , "expanded" .= Bool False
            ]
-    
-  
+
+
 type Tag = Text
 
 tagCountTop :: Key User -> Int -> DB [(Text, Int)]
-tagCountTop user top = 
+tagCountTop user top =
     sortOn (toLower . fst) .
-    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
+    fmap (bimap unValue unValue) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
       where_ (t ^. BookmarkTagUserId ==. val user)
       groupBy (lower_ $ t ^. BookmarkTagTag)
       let countRows' = countRows
-      orderBy [desc countRows'] 
+      orderBy [desc countRows']
       limit ((fromIntegral . toInteger) top)
-      pure $ (t ^. BookmarkTagTag, countRows')
+      pure (t ^. BookmarkTagTag, countRows')
     )
 
 tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
-tagCountLowerBound user lowerBound = 
-    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
+tagCountLowerBound user lowerBound =
+    fmap (bimap unValue unValue) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
       where_ (t ^. BookmarkTagUserId ==. val user)
@@ -543,17 +541,17 @@ tagCountLowerBound user lowerBound =
       let countRows' = countRows
       orderBy [asc (t ^. BookmarkTagTag)]
       having (countRows' >=. val lowerBound)
-      pure $ (t ^. BookmarkTagTag, countRows')
+      pure (t ^. BookmarkTagTag, countRows')
     )
 
 tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
-tagCountRelated user tags = 
-    fmap (\(tname, tcount) -> (unValue tname, unValue tcount)) <$>
+tagCountRelated user tags =
+    fmap (bimap unValue unValue) <$>
     ( select $ do
       t <- from (table @BookmarkTag)
       where_ $
         foldl (\expr tag ->
-                expr &&. (exists $ do
+                expr &&. exists ( do
                           u <- from (table @BookmarkTag)
                           where_ (u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId &&.
                                  (u ^. BookmarkTagTag `like` val tag))))
@@ -562,13 +560,13 @@ tagCountRelated user tags =
       groupBy (lower_ $ t ^. BookmarkTagTag)
       let countRows' = countRows
       orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
-      pure $ (t ^. BookmarkTagTag, countRows')
+      pure (t ^. BookmarkTagTag, countRows')
     )
 
 -- Notes
 
 fileNoteToNote :: UserId -> FileNote -> IO Note
-fileNoteToNote user (FileNote {..} ) = do
+fileNoteToNote user FileNote {..}  = do
   slug <- mkNtSlug
   pure $
     Note
@@ -580,7 +578,7 @@ fileNoteToNote user (FileNote {..} ) = do
     , noteIsMarkdown = False
     , noteShared = False
     , noteCreated = fileNoteCreatedAt
-    , noteUpdated = fileNoteUpdatedAt 
+    , noteUpdated = fileNoteUpdatedAt
     }
 
 insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
@@ -610,7 +608,7 @@ instance FromJSON AccountSettingsForm where parseJSON = A.genericParseJSON gDefa
 instance ToJSON AccountSettingsForm where toJSON = A.genericToJSON gDefaultFormOptions
 
 toAccountSettingsForm :: User -> AccountSettingsForm
-toAccountSettingsForm (User {..}) =
+toAccountSettingsForm User {..} =
   AccountSettingsForm
   { _privateDefault = userPrivateDefault
   , _archiveDefault = userArchiveDefault
@@ -618,12 +616,12 @@ toAccountSettingsForm (User {..}) =
   }
 
 updateUserFromAccountSettingsForm :: Key User -> AccountSettingsForm -> DB ()
-updateUserFromAccountSettingsForm userId (AccountSettingsForm {..}) = do
+updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
   CP.update userId
-    [ UserPrivateDefault CP.=. _privateDefault
-    , UserArchiveDefault CP.=. _archiveDefault
-    , UserPrivacyLock CP.=. _privacyLock
-    ]
+  [ UserPrivateDefault CP.=. _privateDefault
+  , UserArchiveDefault CP.=. _archiveDefault
+  , UserPrivacyLock CP.=. _privacyLock
+  ]
 
 -- BookmarkForm
 
@@ -662,10 +660,10 @@ _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
   , _description = Just $ Textarea $ bookmarkExtended
   , _tags = Just $ fromMaybe "" tags
   , _private = Just $ not bookmarkShared
-  , _toread = Just $ bookmarkToRead
+  , _toread = Just bookmarkToRead
   , _bid = Just $ unBookmarkKey $ bid
-  , _slug = Just $ bookmarkSlug
-  , _selected = Just $ bookmarkSelected
+  , _slug = Just bookmarkSlug
+  , _selected = Just bookmarkSelected
   , _time = Just $ UTCTimeStr $ bookmarkTime
   , _archiveUrl = bookmarkArchiveHref
   }
@@ -682,16 +680,16 @@ _toBookmark userId BookmarkForm {..} = do
     , bookmarkHref = _url
     , bookmarkDescription = fromMaybe "" _title
     , bookmarkExtended = maybe "" unTextarea _description
-    , bookmarkTime = fromMaybe time (fmap unUTCTimeStr _time)
+    , bookmarkTime = maybe time unUTCTimeStr _time
     , bookmarkShared = maybe True not _private
-    , bookmarkToRead = fromMaybe False _toread
-    , bookmarkSelected = fromMaybe False _selected
+    , bookmarkToRead = Just True == _toread
+    , bookmarkSelected = Just True == _selected
     , bookmarkArchiveHref = _archiveUrl
     }
 
 fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
 fetchBookmarkByUrl userId murl = runMaybeT do
-  bmark <- MaybeT . getBy . UniqueUserHref userId =<< (MaybeT $ pure murl)
+  bmark <- MaybeT . getBy . UniqueUserHref userId =<< MaybeT (pure murl)
   btags <- lift $ withTags (entityKey bmark)
   pure (bmark, btags)
 
@@ -700,22 +698,22 @@ data UpsertResult = Created | Updated
 upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult, Key Bookmark)
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
-    Just bid -> do
+    Just bid ->
       get bid >>= \case
-        Just prev_bm -> do
-          when (userId /= bookmarkUserId prev_bm)
-            (throwString "unauthorized")
-          replaceBookmark bid prev_bm
-        _ -> throwString "not found"
-    Nothing -> do
+      Just prev_bm -> do
+        when (userId /= bookmarkUserId prev_bm)
+          (throwString "unauthorized")
+        replaceBookmark bid prev_bm
+      _ -> throwString "not found"
+    Nothing ->
       getBy (UniqueUserHref (bookmarkUserId bm) (bookmarkHref bm)) >>= \case
-        Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
-        _ -> (Created,) <$> insert bm
+      Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
+      _ -> (Created,) <$> insert bm
   insertTags (bookmarkUserId bm) (snd res)
   pure res
   where
-    prepareReplace prev_bm = do
-      if (bookmarkHref bm /= bookmarkHref prev_bm)
+    prepareReplace prev_bm =
+      if bookmarkHref bm /= bookmarkHref prev_bm
         then bm { bookmarkArchiveHref = Nothing }
         else bm { bookmarkArchiveHref = bookmarkArchiveHref prev_bm }
     replaceBookmark bid prev_bm = do
@@ -729,18 +727,18 @@ upsertBookmark userId mbid bm tags = do
       \(i, tag) -> void $ insert $ BookmarkTag userId' tag bid' i
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
-updateBookmarkArchiveUrl userId bid marchiveUrl = do
+updateBookmarkArchiveUrl userId bid marchiveUrl =
   updateWhere
-    [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
-    [BookmarkArchiveHref CP.=. marchiveUrl]
+  [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
+  [BookmarkArchiveHref CP.=. marchiveUrl]
 
 upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
-upsertNote userId mnid note = do
+upsertNote userId mnid note =
   case mnid of
     Just nid -> do
       get nid >>= \case
         Just note' -> do
-          when (userId /= (noteUserId note'))
+          when (userId /= noteUserId note')
             (throwString "unauthorized")
           replace nid note
           pure (Updated, nid)
@@ -774,7 +772,7 @@ instance FromJSON FileBookmark where
   parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON FileBookmark where
-  toJSON (FileBookmark {..}) =
+  toJSON FileBookmark {..} =
     object
       [ "href" .= toJSON fileBookmarkHref
       , "description" .= toJSON fileBookmarkDescription
@@ -815,7 +813,7 @@ instance FromJSON FileNote where
   parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON FileNote where
-  toJSON (FileNote {..}) =
+  toJSON FileNote {..} =
     object
       [ "id" .= toJSON fileNoteId
       , "title" .= toJSON fileNoteTitle

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# LANGUAGE TupleSections #-}
 module Handler.Notes where
 
 import Import
@@ -16,8 +17,8 @@ getNotesR unamep@(UserNameP uname) = do
   mquery <- lookupGetParam queryp
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1  fromIntegral page'
-      mqueryp = fmap (\q -> (queryp, q)) mquery
-      isowner = maybe False (== uname) mauthuname
+      mqueryp = fmap (queryp,) mquery
+      isowner = Just uname == mauthuname
   (bcount, notes) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     let sharedp = if isowner then SharedAll else SharedPublic
@@ -45,7 +46,7 @@ getNoteR :: UserNameP -> NtSlug -> Handler Html
 getNoteR unamep@(UserNameP uname) slug = do
   mauthuname <- maybeAuthUsername
   let renderEl = "note" :: Text
-      isowner = maybe False (== uname) mauthuname
+      isowner = Just uname == mauthuname
   note <-
     runDB $
     do Entity userId user <- getBy404 (UniqueUserName uname)
@@ -143,10 +144,10 @@ _toNote userId NoteForm {..} = do
     , noteLength = length _text
     , noteTitle = fromMaybe "" _title
     , noteText = maybe "" unTextarea _text
-    , noteIsMarkdown = fromMaybe False _isMarkdown
-    , noteShared = fromMaybe False _shared
-    , noteCreated = fromMaybe time (fmap unUTCTimeStr _created)
-    , noteUpdated = fromMaybe time (fmap unUTCTimeStr _updated)
+    , noteIsMarkdown = Just True == _isMarkdown
+    , noteShared = Just True == _shared
+    , noteCreated = maybe time unUTCTimeStr _created
+    , noteUpdated = maybe time unUTCTimeStr _updated
     }
 
 noteToRssEntry :: UserNameP -> Entity Note -> FeedEntry (Route App)
@@ -167,7 +168,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
   mquery <- lookupGetParam "query"
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
-      isowner = maybe False (== uname) mauthuname
+      isowner = Just uname == mauthuname
   (_, notes) <- runDB do
       Entity userId user <- getBy404 (UniqueUserName uname)
       when (not isowner && userPrivacyLock user)
@@ -176,7 +177,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
       entries = map (noteToRssEntry unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
-                Nothing -> liftIO $ getCurrentTime
+                Nothing -> liftIO getCurrentTime
                 Just m ->  return m
   rssFeed $
     Feed

@@ -12,7 +12,7 @@ getAddViewR = do
   userId <- requireAuthId
 
   murl <- lookupGetParam "url"
-  mformdb <- runDB (pure . fmap _toBookmarkForm =<< fetchBookmarkByUrl userId murl)
+  mformdb <- runDB (fmap _toBookmarkForm <$> fetchBookmarkByUrl userId murl)
   formurl <- bookmarkFormUrl
 
   let renderEl = "addForm" :: Text
@@ -31,12 +31,12 @@ getAddViewR = do
 bookmarkFormUrl :: Handler BookmarkForm
 bookmarkFormUrl = do
   Entity _ user <- requireAuth
-  url <- lookupGetParam "url" >>= pure . fromMaybe ""
+  url <- lookupGetParam "url" <&> fromMaybe ""
   title <- lookupGetParam "title"
-  description <- lookupGetParam "description" >>= pure . fmap Textarea
+  description <- lookupGetParam "description" <&> fmap Textarea
   tags <- lookupGetParam "tags"
-  private <- lookupGetParam "private" >>= pure . fmap parseChk <&> (<|> Just (userPrivateDefault user))
-  toread <- lookupGetParam "toread" >>= pure . fmap parseChk
+  private <- lookupGetParam "private" <&> fmap parseChk <&> (<|> Just (userPrivateDefault user))
+  toread <- lookupGetParam "toread" <&> fmap parseChk
   pure $
     BookmarkForm
     { _url = url

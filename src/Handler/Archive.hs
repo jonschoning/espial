@@ -18,26 +18,26 @@ import Network.Wai (requestHeaderHost)
 import qualified Network.Connection as NC
 
 shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
-shouldArchiveBookmark user kbid = do
+shouldArchiveBookmark user kbid =
   runDB (get kbid) >>= \case
-    Nothing -> pure False
-  
-    Just bm -> do
-      pure $
-        (isNothing $ bookmarkArchiveHref bm) &&
-        (bookmarkShared bm)
-        && not (_isArchiveBlacklisted bm)
-        && userArchiveDefault user
+  Nothing -> pure False
+
+  Just bm -> do
+    pure $
+      isNothing (bookmarkArchiveHref bm) &&
+      bookmarkShared bm
+      && not (_isArchiveBlacklisted bm)
+      && userArchiveDefault user
 
 getArchiveManager :: Handler Manager
 getArchiveManager = do
-  appSettings <- pure . appSettings =<< getYesod
+  appSettings <- appSettings <$> getYesod
   let mSocks =
         NC.SockSettingsSimple <$>
         fmap unpack (appArchiveSocksProxyHost appSettings) <*>
         fmap toEnum (appArchiveSocksProxyPort appSettings)
   NH.newTlsManagerWith (NH.mkManagerSettings def mSocks)
-    
+
 
 archiveBookmarkUrl :: Key Bookmark -> String -> Handler ()
 archiveBookmarkUrl kbid url =
@@ -55,13 +55,13 @@ archiveBookmarkUrl kbid url =
         case status of
           s | s == NH.status200 ->
             for_ (lookup "Refresh" headers >>= _parseRefreshHeaderUrl) updateArchiveUrl
-          s | s == NH.status302 || s == NH.status307 -> 
+          s | s == NH.status302 || s == NH.status307 ->
             for_ (lookup "Location" headers) (updateArchiveUrl . decodeUtf8)
           _ -> $(logError) (pack (show res)))
   `catch` (\(e::SomeException) -> ($(logError) $ (pack.show) e) >> throwIO e)
 
 _isArchiveBlacklisted :: Bookmark -> Bool
-_isArchiveBlacklisted (Bookmark {..}) =
+_isArchiveBlacklisted Bookmark {..} =
   [ "hulu"
   , "livestream"
   , "netflix"
@@ -77,13 +77,13 @@ _isArchiveBlacklisted (Bookmark {..}) =
 _parseRefreshHeaderUrl :: ByteString -> Maybe Text
 _parseRefreshHeaderUrl h = do
   let u = BS8.drop 1 $ BS8.dropWhile (/= '=') h
-  if (not (null u))
+  if not (null u)
     then Just $ decodeUtf8 u
     else Nothing
 
 _fetchArchiveSubmitInfo :: Handler (Either String (String , String))
 _fetchArchiveSubmitInfo = do
-  req <- buildRequest "https://archive.li/" 
+  req <- buildRequest "https://archive.li/"
   manager <- getArchiveManager
   res <- liftIO $ NH.httpLbs req manager
   let body = LBS.toStrict (responseBody res)
@@ -92,13 +92,12 @@ _fetchArchiveSubmitInfo = do
   if statusCode (responseStatus res) == 200
     then pure $ (,) <$> action <*> submitId
     else pure $ Left $ "Invalid statusCode: " <> show (responseStatus res)
-  
+
 
 _parseSubstring :: AP8.Parser ByteString -> AP8.Parser Char -> BS.ByteString -> Either String String
-_parseSubstring start inner res = do
-  (flip AP8.parseOnly) res (skipAnyTill start >> AP8.many1 inner)
+_parseSubstring start inner = AP8.parseOnly (skipAnyTill start >> AP8.many1 inner)
   where
-    skipAnyTill end = go where go = end *> pure () <|> AP8.anyChar *> go
+    skipAnyTill end = go where go = end $> () <|> AP8.anyChar *> go
 
 
 fetchPageTitle :: String -> Handler (Either String Text)
@@ -113,23 +112,23 @@ fetchPageTitle url =
                 pure (Left (show e)))
   where
     parseTitle bs =
-      (flip AP.parseOnly) bs do
+      flip AP.parseOnly bs do
         _ <- skipAnyTill (AP.string "<title")
         _ <- skipAnyTill (AP.string ">")
         let lt = toEnum (ord '<')
         AP.takeTill (== lt)
     decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
-    skipAnyTill end = go where go = end *> pure () <|> AP.anyWord8 *> go
+    skipAnyTill end = go where go = end $> () <|> AP.anyWord8 *> go
 
 _buildArchiveSubmitRequest :: (String, String) -> String -> Handler NH.Request
 _buildArchiveSubmitRequest (action, submitId) href = do
-  req <- buildRequest ("POST " <> action) 
+  req <- buildRequest ("POST " <> action)
   pure $ req
     { NH.requestHeaders = ("Content-Type", "application/x-www-form-urlencoded") : NH.requestHeaders req
     , NH.requestBody =
         NH.RequestBodyLBS $
         WH.urlEncodeAsForm
-            (([("submitid", submitId), ("url", href)]) :: [(String, String)])
+            ([("submitid", submitId), ("url", href)] :: [(String, String)])
     , NH.redirectCount = 0
     }
 
@@ -145,6 +144,6 @@ buildRequest url = do
 
 _archiveUserAgent :: Handler ByteString
 _archiveUserAgent = do
-  mHost <- pure . requestHeaderHost . reqWaiRequest =<< getRequest
-  pure $ ("espial-" <>) (maybe "" (BS8.takeWhile (/= ':')) mHost)
+  mHost <- requestHeaderHost . reqWaiRequest <$> getRequest
+  pure $ "espial-" <> maybe "" (BS8.takeWhile (/= ':')) mHost
 

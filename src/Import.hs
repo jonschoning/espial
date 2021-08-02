@@ -48,13 +48,13 @@ aFormToMaybeGetSuccess
   :: MonadHandler f
   => AForm f a -> f (Maybe a)
 aFormToMaybeGetSuccess =
-  fmap maybeSuccess . fmap fst . runFormGet . const . fmap fst . aFormToForm
+  fmap (maybeSuccess . fst) . runFormGet . const . fmap fst . aFormToForm
 
 aFormToMaybePostSuccess
   :: MonadHandlerForm f
   => AForm f a -> f (Maybe a)
 aFormToMaybePostSuccess =
-  fmap maybeSuccess . fmap fst . runFormPostNoToken . const . fmap fst . aFormToForm
+  fmap (maybeSuccess . fst) . runFormPostNoToken . const . fmap fst . aFormToForm
 
 maybeSuccess :: FormResult a -> Maybe a
 maybeSuccess (FormSuccess a) = Just a
@@ -83,4 +83,4 @@ attrs n f =
   }
 
 cls :: [Text] -> FieldSettings master -> FieldSettings master
-cls n = attrs [("class", intercalate " " n)]
+cls n = attrs [("class", unwords n)]

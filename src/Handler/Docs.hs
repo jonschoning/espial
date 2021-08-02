@@ -5,5 +5,5 @@ module Handler.Docs where
 import Import
 
 getDocsSearchR :: Handler Html
-getDocsSearchR = popupLayout $
+getDocsSearchR = popupLayout
   $(widgetFile "docs-search")

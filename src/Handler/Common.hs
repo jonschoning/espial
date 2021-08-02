@@ -29,8 +29,7 @@ lookupPagingParams =
 
 getUrlParam :: (Read a) => Text -> Handler (Maybe a)
 getUrlParam name = do
-  p <- fmap parseMaybe (lookupGetParam name)
-  pure p
+  fmap parseMaybe (lookupGetParam name)
   where
     parseMaybe x = readMaybe . unpack =<< x
 
@@ -68,4 +67,4 @@ getTagCloudMode isowner tags = do
                     Just (TagCloudModeRelated e _) -> TagCloudModeTop e 200
                     Just m -> m
 
-  
+

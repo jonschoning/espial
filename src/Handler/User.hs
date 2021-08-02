@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# LANGUAGE TupleSections #-}
 module Handler.User where
 
 import qualified Data.Text as T
@@ -9,7 +10,7 @@ import           Yesod.RssFeed
 import qualified Data.Map as Map
 
 getUserR :: UserNameP -> Handler Html
-getUserR uname@(UserNameP name) = do
+getUserR uname@(UserNameP name) =
   _getUser uname SharedAll FilterAll (TagsP [])
 
 getUserSharedR :: UserNameP -> SharedP -> Handler Html
@@ -21,8 +22,7 @@ getUserFilterR uname filterp =
   _getUser uname SharedAll filterp (TagsP [])
 
 getUserTagsR :: UserNameP -> TagsP -> Handler Html
-getUserTagsR uname pathtags =
-  _getUser uname SharedAll FilterAll pathtags
+getUserTagsR uname = _getUser uname SharedAll FilterAll
 
 _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
@@ -30,15 +30,15 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
-      isowner = maybe False (== uname) mauthuname
+      isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
       filterp = case filterp' of
         FilterSingle _ -> filterp'
         _ -> if isowner then filterp' else FilterAll
-      isAll = filterp == FilterAll && sharedp == SharedAll && pathtags == []
+      isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
       queryp = "query" :: Text
   mquery <- lookupGetParam queryp
-  let mqueryp = fmap (\q -> (queryp, q)) mquery
+  let mqueryp = fmap (queryp,) mquery
   (bcount, btmarks) <- runDB $ do
        Entity userId user <- getBy404 (UniqueUserName uname)
        when (not isowner && userPrivacyLock user)
@@ -71,7 +71,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     |]
 
 -- Form
- 
+
 postUserTagCloudR :: Handler ()
 postUserTagCloudR = do
   userId <- requireAuthId
@@ -91,7 +91,7 @@ postUserTagCloudModeR = do
   _updateTagCloudMode mode
 
 _updateTagCloudMode :: TagCloudMode -> Handler ()
-_updateTagCloudMode mode =  
+_updateTagCloudMode mode =
   case mode of
     TagCloudModeTop _ _ -> setTagCloudMode mode
     TagCloudModeLowerBound _ _ -> setTagCloudMode mode
@@ -99,7 +99,7 @@ _updateTagCloudMode mode =
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
-bookmarkToRssEntry ((Entity entryId entry), tags) =
+bookmarkToRssEntry (Entity entryId entry, tags) =
   FeedEntry
   { feedEntryLink = bookmarkHref entry
   , feedEntryUpdated = bookmarkTime entry
@@ -116,7 +116,7 @@ getUserFeedR unamep@(UserNameP uname) = do
   let limit = maybe 120 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       queryp = "query" :: Text
-      isowner = maybe False (== uname) mauthuname
+      isowner = Just uname == mauthuname
   mquery <- lookupGetParam queryp
   (_, btmarks) <- runDB $ do
        Entity userId user <- getBy404 (UniqueUserName uname)
@@ -126,7 +126,7 @@ getUserFeedR unamep@(UserNameP uname) = do
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
-                Nothing -> liftIO $ getCurrentTime
+                Nothing -> liftIO getCurrentTime
                 Just m ->  return m
   render <- getUrlRender
   rssFeedText $

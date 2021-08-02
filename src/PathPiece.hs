@@ -17,7 +17,7 @@ instance PathPiece UserNameP where
       _ -> Nothing
 
 instance PathPiece TagsP where
-  toPathPiece (TagsP tags) = "t:" <> (intercalate "+" tags)
+  toPathPiece (TagsP tags) = "t:" <> intercalate "+" tags
   fromPathPiece s =
     case splitOn ":" s of
       ["t", ""] -> Nothing
