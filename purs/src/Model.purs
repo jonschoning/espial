@@ -29,8 +29,8 @@ type Bookmark =
   }
 
 newtype Bookmark' = Bookmark' Bookmark
-derive newtype instance bookmark_rfI :: J.ReadForeign Bookmark'
-derive newtype instance bookmark_wfI :: J.WriteForeign Bookmark'
+derive newtype instance J.ReadForeign Bookmark'
+derive newtype instance J.WriteForeign Bookmark'
 
 type NoteId = Int
 type NoteSlug = String
@@ -48,8 +48,8 @@ type Note =
   }
 
 newtype Note' = Note' Note
-derive newtype instance note_rfI :: J.ReadForeign Note'
-derive newtype instance note_wfI :: J.WriteForeign Note'
+derive newtype instance J.ReadForeign Note'
+derive newtype instance J.WriteForeign Note'
 
 type AccountSettings =
   { archiveDefault :: Boolean
@@ -58,8 +58,8 @@ type AccountSettings =
   }
 
 newtype AccountSettings' = AccountSettings' AccountSettings
-derive newtype instance usersettings_rfI :: J.ReadForeign AccountSettings'
-derive newtype instance usersettings_wfI :: J.WriteForeign AccountSettings'
+derive newtype instance J.ReadForeign AccountSettings'
+derive newtype instance J.WriteForeign AccountSettings'
 
 type TagCloudMode =
   { mode :: String
@@ -67,8 +67,8 @@ type TagCloudMode =
   , expanded :: Boolean
   }
 newtype TagCloudMode' = TagCloudMode' TagCloudMode
-derive newtype instance tagcloudmode_rfi :: J.ReadForeign TagCloudMode'
-derive newtype instance tagcloudmode_wfI :: J.WriteForeign TagCloudMode'
+derive newtype instance J.ReadForeign TagCloudMode'
+derive newtype instance J.WriteForeign TagCloudMode'
 
 type TagCloud = Object Int
 
@@ -78,7 +78,7 @@ data TagCloudModeF
   | TagCloudModeRelated Boolean (Array String) 
   | TagCloudModeNone
 
-derive instance eqTagCloudModeF :: Eq TagCloudModeF
+derive instance Eq TagCloudModeF
 
 tagCloudModeToF :: TagCloudMode -> TagCloudModeF
 tagCloudModeToF tagCloudMode =
