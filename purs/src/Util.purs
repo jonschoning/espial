@@ -29,9 +29,6 @@ import Web.HTML.Location (search)
 import Web.HTML.Window (document, location)
 import JSURI (decodeURIComponent)
 
-import Partial.Unsafe (unsafePartial)
-import Data.Maybe (fromJust)
-
 unsafeDecode :: String -> String
 unsafeDecode str = unsafePartial $ fromJust $ decodeURIComponent str
   

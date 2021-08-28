@@ -4,19 +4,16 @@ module Component.Add where
 import Prelude hiding (div)
 
 import App (destroy, editBookmark, lookupTitle)
-import Data.Array (drop, foldMap)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
 import Data.String (null)
-import Data.String (split) as S
-import Data.String.Pattern (Pattern(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
-import Halogen.HTML (HTML, br_, button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
+import Halogen.HTML (button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
@@ -150,10 +147,10 @@ addbmark b' =
      editField :: forall a. (a -> EditField) -> a -> BAction
      editField f = BEditField <<< f
      mmoment = mmoment8601 bm.time
-     toTextarea =
-       drop 1
-         <<< foldMap (\x -> [br_, text x])
-         <<< S.split (Pattern "\n")
+     -- toTextarea =
+     --   drop 1
+     --     <<< foldMap (\x -> [br_, text x])
+     --     <<< S.split (Pattern "\n")
 
   handleAction :: BAction -> H.HalogenM BState BAction () o Aff Unit
   handleAction (BDeleteAsk e) = do

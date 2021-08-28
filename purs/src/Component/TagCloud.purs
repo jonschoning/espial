@@ -55,9 +55,9 @@ tagcloudcomponent m' =
     }
 
   render :: TState -> H.ComponentHTML TAction () Aff
-  render s@{ mode:TagCloudModeNone } =
+  render { mode:TagCloudModeNone } =
     div [class_ "tag_cloud" ] []
-  render s@{ mode, tagcloud } =
+  render { mode, tagcloud } =
     div [class_ "tag_cloud mv3" ] 
     [
       div [class_ "tag_cloud_header mb2"] $

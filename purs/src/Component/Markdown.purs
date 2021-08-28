@@ -5,7 +5,6 @@ import Data.Const (Const)
 import Effect.Aff (Aff)
 import Foreign.Marked (marked)
 import Halogen as H
-import Halogen.HTML as HH
 import Prelude (Void)
 
 type Slot = H.Slot (Const Void) Void

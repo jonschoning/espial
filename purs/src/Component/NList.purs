@@ -45,7 +45,7 @@ nlist st' =
     }
 
   render :: NLState -> H.ComponentHTML NLAction () Aff
-  render st@{ notes } =
+  render { notes } =
     HH.div_ (map renderNote notes)
     where
       renderNote note =

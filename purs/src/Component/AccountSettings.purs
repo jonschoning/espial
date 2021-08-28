@@ -4,11 +4,10 @@ import Prelude hiding (div)
 
 import App (editAccountSettings)
 import Data.Lens (Lens', lens, use, (%=))
-import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Globals (app')
 import Halogen as H
-import Halogen.HTML (HTML, div, input, text)
+import Halogen.HTML (div, input, text)
 import Halogen.HTML.Elements (label)
 import Halogen.HTML.Events (onChecked)
 import Halogen.HTML.Properties (InputType(..), checked, for, id_, name, type_)
@@ -84,6 +83,6 @@ usetting u' =
     us <- use _us
     void $ H.liftAff (editAccountSettings us)
 
-  handleAction (USubmit e) = do
+  handleAction (USubmit _) = do
     us <- use _us
     void $ H.liftAff (editAccountSettings us)

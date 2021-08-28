@@ -6,7 +6,6 @@ import Component.BMark (BMessage(..), BSlot, bmark)
 import Model (Bookmark, BookmarkId)
 
 import Data.Array (filter)
-import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.HTML as HH

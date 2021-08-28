@@ -19,6 +19,7 @@ data Action i
   = SetInnerHTML
   | Receive (Input i)
 
+type Input :: forall k. k -> k
 type Input i = i
 
 type State i =
@@ -53,7 +54,7 @@ mkComponent toRawHTML =
       mel <- H.getHTMLElementRef elRef
       for_ mel \el -> do  
         { inputval } <- H.get
-        H.liftAff $ forkAff $ makeAff \cb -> do
+        H.liftAff $ forkAff $ makeAff \_ -> do
           liftEffect $ unsafeSetInnerHTML el (toRawHTML inputval)
           mempty
       pure unit

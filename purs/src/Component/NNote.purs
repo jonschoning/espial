@@ -7,7 +7,7 @@ import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (maybe)
 import Data.Monoid (guard)
 import Data.String (null)
 import Data.String (null, split) as S

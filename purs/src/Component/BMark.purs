@@ -15,7 +15,7 @@ import Type.Proxy (Proxy(..))
 import Effect.Aff (Aff)
 import Globals (app', setFocus, toLocaleDateString)
 import Halogen as H
-import Halogen.HTML (HTML, a, br_, button, div, div_, form, input, label, span, text, textarea)
+import Halogen.HTML (a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, disabled, for, href, id_, name, required, rows, target, title, type_, value)
