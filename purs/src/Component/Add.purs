@@ -1,6 +1,5 @@
 module Component.Add where
 
-
 import Prelude hiding (div)
 
 import App (destroy, editBookmark, lookupTitle)
@@ -155,6 +154,7 @@ addbmark b' =
   handleAction :: BAction -> H.HalogenM BState BAction () o Aff Unit
   handleAction (BDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
+
   handleAction BLookupTitle = do
     H.modify_ (_ { loading = true })
     edit_bm <- H.gets _.edit_bm
@@ -163,10 +163,12 @@ addbmark b' =
       Just title' -> _edit_bm %= (_ { title = title' })
       Nothing -> pure $ unit
     H.modify_ (_ { loading = false })
+
   handleAction (BDestroy) = do
     bid <- H.gets _.bm.bid
     void $ H.liftAff (destroy bid)
     H.modify_ (_ { destroyed = true })
+
   handleAction (BEditField f) = do
     _edit_bm %= case f of
       Eurl e -> _ { url = e }
@@ -175,6 +177,7 @@ addbmark b' =
       Etags e -> _ { tags = e }
       Eprivate e -> _ { private = e }
       Etoread e -> _ { toread = e }
+
   handleAction (BEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_bm <- use _edit_bm 

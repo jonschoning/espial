@@ -58,7 +58,7 @@ see https://github.com/jonschoning/espial-docker
 7. Start a production server:
 
     ```
-    stack exec espial -- +RTS -T
+    stack exec espial
     ```
 
 see `config/settings.yml` for changing default run-time parameters / environment variables
