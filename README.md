@@ -8,6 +8,8 @@ The bookmarks are stored in a sqlite3 database, for ease of deployment & mainten
 
 The easist way for logged-in users to add bookmarks, is with the "bookmarklet", found on the Settings page.
 
+Also, see the android app for adding bookmarks via an Android Share intent https://github.com/jonschoning/espial-share-android
+
 ## demo server
 
 log in — username: demo  password: demo
