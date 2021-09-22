@@ -66,17 +66,23 @@ getNoteR unamep@(UserNameP uname) slug = do
       PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
     |]
 
+getAddNoteSlimViewR :: Handler Html
+getAddNoteSlimViewR = do
+  Entity userId user <- requireAuth
+  getAddNoteViewR (UserNameP (userName user))
+
 getAddNoteViewR :: UserNameP -> Handler Html
 getAddNoteViewR unamep@(UserNameP uname) = do
   userId <- requireAuthId
+  note <- liftIO . _toNote userId =<< noteFormUrl
   let renderEl = "note" :: Text
-  note <- liftIO $ Entity (NoteKey 0) <$> _toNote userId emptyNoteForm
+      enote = Entity (NoteKey 0) note
   defaultLayout do
     $(widgetFile "note")
     toWidgetBody [julius|
         app.userR = "@{UserR unamep}";
-        app.noteR = "@{NoteR unamep (noteSlug (entityVal note))}";
-        app.dat.note = #{ toJSON note } || [];
+        app.noteR = "@{NoteR unamep (noteSlug (entityVal enote))}";
+        app.dat.note = #{ toJSON enote } || [];
     |]
     toWidget [julius|
       PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
@@ -130,8 +136,23 @@ instance ToJSON NoteForm where toJSON = A.genericToJSON gNoteFormOptions
 gNoteFormOptions :: A.Options
 gNoteFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
 
-emptyNoteForm :: NoteForm
-emptyNoteForm = NoteForm Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+noteFormUrl :: Handler NoteForm
+noteFormUrl = do
+  title <- lookupGetParam "title"
+  description <- lookupGetParam "description" <&> fmap Textarea
+  isMarkdown <- lookupGetParam "isMarkdown" <&> fmap parseChk
+  pure $ NoteForm
+    { _id = Nothing
+    , _slug = Nothing
+    , _title = title
+    , _text = description
+    , _isMarkdown = isMarkdown
+    , _shared = Nothing
+    , _created = Nothing
+    , _updated = Nothing
+    }
+  where
+    parseChk s = s == "yes" || s == "on" || s == "true" || s == "1"
 
 _toNote :: UserId -> NoteForm -> IO Note
 _toNote userId NoteForm {..} = do

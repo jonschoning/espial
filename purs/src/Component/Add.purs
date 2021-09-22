@@ -184,8 +184,8 @@ addbmark b' =
     void $ H.liftAff (editBookmark edit_bm)
     _bm .= edit_bm
     loc <- liftEffect _loc
-    win <- liftEffect window
     qs <- liftEffect _curQuerystring
     case _lookupQueryStringValue qs "next" of
-      Just n -> liftEffect (setHref n loc)
-      _ -> liftEffect (closeWindow win)
+      Just "closeWindow" -> liftEffect $ closeWindow =<< window
+      Just n -> liftEffect $ setHref n loc
+      _ -> liftEffect $ closeWindow =<< window

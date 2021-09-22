@@ -12,7 +12,8 @@ getAddViewR = do
   userId <- requireAuthId
 
   murl <- lookupGetParam "url"
-  mformdb <- runDB (fmap _toBookmarkForm <$> fetchBookmarkByUrl userId murl)
+  mBookmarkDb <- runDB (fetchBookmarkByUrl userId murl)
+  let mformdb = fmap _toBookmarkForm mBookmarkDb 
   formurl <- bookmarkFormUrl
 
   let renderEl = "addForm" :: Text
@@ -52,7 +53,7 @@ bookmarkFormUrl = do
     , _archiveUrl = Nothing
     }
   where
-    parseChk s = s == "yes" || s == "on"
+    parseChk s = s == "yes" || s == "on" || s == "true" || s == "1"
 
 -- API
 

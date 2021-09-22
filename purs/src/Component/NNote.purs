@@ -7,7 +7,7 @@ import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Monoid (guard)
 import Data.String (null)
 import Data.String (null, split) as S
@@ -16,16 +16,17 @@ import Type.Proxy (Proxy(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Globals (app', mmoment8601, setFocus)
+import Globals (app', mmoment8601, setFocus, closeWindow)
 import Halogen as H
 import Halogen.HTML (br_, button, div, form, input, label, p, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autofocus, checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
-import Util (_loc, class_, fromNullableStr, ifElseH, whenH)
+import Util (_lookupQueryStringValue, _curQuerystring, _loc, class_, fromNullableStr, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Location (setHref)
+import Web.HTML (window)
 
 data NAction
   = NNop
@@ -197,7 +198,11 @@ nnote st' =
     note <- use _note
     _edit_note .= note
     _edit .= e
-    H.liftEffect $ whenM (pure e) (setFocus (notetextid note))
+    qs <- liftEffect _curQuerystring
+    case {e:e, q:_lookupQueryStringValue qs "next"} of
+      {e:false, q:Just "closeWindow"} -> liftEffect $ closeWindow =<< window
+      _ -> H.liftEffect $ whenM (pure e) (setFocus (notetextid note))
+    
 
   -- | Submit
   handleAction (NEditSubmit e) = do
@@ -205,9 +210,11 @@ nnote st' =
     edit_note <- use _edit_note
     res' <- H.liftAff (editNote edit_note)
     for_ res' \_ -> do
-      if (edit_note.id == 0)
-        then do
-          liftEffect (setHref (fromNullableStr app.noteR) =<< _loc)
-        else do
-          _note .= edit_note
-          _edit .= false
+      qs <- liftEffect _curQuerystring
+      case _lookupQueryStringValue qs "next" of
+        Just "closeWindow" -> liftEffect $ closeWindow =<< window
+        _ -> if (edit_note.id == 0)
+               then liftEffect $ setHref (fromNullableStr app.noteR) =<< _loc
+               else do
+                 _note .= edit_note
+                 _edit .= false

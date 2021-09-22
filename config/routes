@@ -8,6 +8,7 @@
 -- notes
 !/#UserNameP/notes NotesR GET
 !/#UserNameP/notes/add AddNoteViewR GET
+!/notes/add AddNoteSlimViewR GET
 !/#UserNameP/notes/feed.xml NotesFeedR GET
 !/#UserNameP/notes/#NtSlug NoteR GET
 !/api/note/add AddNoteR POST
