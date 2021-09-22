@@ -4,9 +4,9 @@ import Prelude hiding (div)
 
 import App (destroy, editBookmark, lookupTitle)
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), maybe, isJust)
 import Data.Monoid (guard)
-import Data.String (null)
+import Data.String (Pattern(..), null, stripPrefix)
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -16,10 +16,11 @@ import Halogen.HTML (button, div, form, input, label, p, span, table, tbody_, td
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id_, name, required, rows, title, type_, value)
 import Model (Bookmark)
-import Util (_curQuerystring, _loc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
+import Util (_curQuerystring, _loc, _doc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
-import Web.HTML.Location (setHref)
+import Web.HTML.HTMLDocument (referrer)
+import Web.HTML.Location (setHref, origin)
 
 data BAction
   = BEditField EditField
@@ -183,9 +184,15 @@ addbmark b' =
     edit_bm <- use _edit_bm 
     void $ H.liftAff (editBookmark edit_bm)
     _bm .= edit_bm
-    loc <- liftEffect _loc
-    qs <- liftEffect _curQuerystring
+    qs <- liftEffect $ _curQuerystring
+    doc <- liftEffect $ _doc
+    ref <- liftEffect $ referrer doc
+    loc <- liftEffect $ _loc
+    org <- liftEffect $ origin loc
     case _lookupQueryStringValue qs "next" of
       Just "closeWindow" -> liftEffect $ closeWindow =<< window
-      Just n -> liftEffect $ setHref n loc
+      Just "back" -> liftEffect $
+        if isJust (stripPrefix (Pattern org) ref)
+          then setHref ref loc
+          else setHref org loc
       _ -> liftEffect $ closeWindow =<< window

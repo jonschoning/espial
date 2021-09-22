@@ -7,12 +7,11 @@ import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Monoid (guard)
-import Data.String (null)
 import Data.String (null, split) as S
+import Data.String (null, stripPrefix)
 import Data.String.Pattern (Pattern(..))
-import Type.Proxy (Proxy(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -23,10 +22,12 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autofocus, checked, for, id_, name, rows, title, type_, value)
 import Model (Note)
-import Util (_lookupQueryStringValue, _curQuerystring, _loc, class_, fromNullableStr, ifElseH, whenH)
+import Type.Proxy (Proxy(..))
+import Util (_curQuerystring, _doc, _loc, _lookupQueryStringValue, class_, fromNullableStr, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
-import Web.HTML.Location (setHref)
 import Web.HTML (window)
+import Web.HTML.HTMLDocument (referrer)
+import Web.HTML.Location (origin, setHref)
 
 data NAction
   = NNop
@@ -211,8 +212,16 @@ nnote st' =
     res' <- H.liftAff (editNote edit_note)
     for_ res' \_ -> do
       qs <- liftEffect _curQuerystring
+      doc <- liftEffect $ _doc
+      ref <- liftEffect $ referrer doc
+      loc <- liftEffect $ _loc
+      org <- liftEffect $ origin loc
       case _lookupQueryStringValue qs "next" of
         Just "closeWindow" -> liftEffect $ closeWindow =<< window
+        Just "back" -> liftEffect $
+          if isJust (stripPrefix (Pattern org) ref)
+            then setHref ref loc
+            else setHref org loc
         _ -> if (edit_note.id == 0)
                then liftEffect $ setHref (fromNullableStr app.noteR) =<< _loc
                else do

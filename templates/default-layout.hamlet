@@ -14,12 +14,11 @@
       <div .top_menu.fr>
 
         $maybe userName <- musername
-          $maybe currentroute <- mcurrentRoute
-            <a .link href="@?{(AddViewR, [("next",urlrender currentroute)])}">add url&nbsp;&nbsp;
-            <a .link href="@{AddNoteViewR (UserNameP userName)}">add note&nbsp;&nbsp;
-            <a .link href="@{NotesR (UserNameP userName)}">notes&nbsp;&nbsp;
-            <a .link href="@{AccountSettingsR}">settings&nbsp;&nbsp;
-            <a .link onclick="PS['Main'].logoutE(event)()" href="@{AuthR LogoutR}">
+          <a .link href="@?{(AddViewR, [("next","back")])}">add url&nbsp;&nbsp;
+          <a .link href="@{AddNoteViewR (UserNameP userName)}">add note&nbsp;&nbsp;
+          <a .link href="@{NotesR (UserNameP userName)}">notes&nbsp;&nbsp;
+          <a .link href="@{AccountSettingsR}">settings&nbsp;&nbsp;
+          <a .link onclick="PS['Main'].logoutE(event)()" href="@{AuthR LogoutR}">
               log out
         $nothing
           <a .link href="@{AuthR LoginR}">

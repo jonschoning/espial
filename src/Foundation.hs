@@ -62,7 +62,6 @@ instance Yesod App where
         mmsg <- getMessage
         musername <- maybeAuthUsername
         muser <- (fmap.fmap) snd maybeAuthPair
-        mcurrentRoute <- getCurrentRoute
         let msourceCodeUri = appSourceCodeUri (appSettings master)
         pc <- widgetToPageContent do
             setTitle "Espial"
