@@ -15,15 +15,6 @@ exports._closest = function(just, nothing, selector, el) {
   }
 }
 
-exports._innerHtml = function(el) {
-  return el.innerHTML;
-}
-
-exports._setInnerHtml = function(content, el) {
-  el.innerHTML = content;
-  return el;
-}
-
 exports._createFormData = function(formElement) {
   return new FormData(formElement);
 }

@@ -16,5 +16,7 @@
     "spago": "^0.20.3",
     "terser": "^5.7.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dompurify": "^2.3.3"
+  }
 }

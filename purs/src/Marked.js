@@ -1,4 +1,5 @@
 var marked = require("marked");
+var DOMPurify = require("dompurify");
 
 marked.setOptions({
   pedantic: false,
@@ -7,5 +8,5 @@ marked.setOptions({
 
 exports.markedImpl = function(str) {
   if (!str) return "";
-  return marked(str);
+  return DOMPurify.sanitize(marked(str));
 };

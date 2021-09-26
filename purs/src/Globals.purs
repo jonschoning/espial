@@ -51,16 +51,6 @@ foreign import _mmoment8601 :: forall a. Fn4 (a -> Maybe a) (Maybe a) (String ->
 mmoment8601 :: String -> Maybe (Tuple String String)
 mmoment8601 s = runFn4 _mmoment8601 Just Nothing Tuple s
 
-foreign import _innerHtml :: EffectFn1 HTMLElement String
-
-innerHtml :: HTMLElement -> Effect String
-innerHtml n = runEffectFn1 _innerHtml n
-
-foreign import _setInnerHtml :: EffectFn2 String HTMLElement HTMLElement
-
-setInnerHtml :: String -> HTMLElement -> Effect HTMLElement
-setInnerHtml c n = runEffectFn2 _setInnerHtml c n
-
 foreign import _createFormData :: Fn1 HTMLFormElement FormData
 
 createFormData :: HTMLFormElement -> FormData
