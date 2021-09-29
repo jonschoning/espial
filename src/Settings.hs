@@ -64,6 +64,8 @@ data AppSettings = AppSettings
 
     , appSourceCodeUri                :: Maybe Text
     -- ^ Uri to app source code
+
+    , appSSLOnly :: Bool
     }
 
 instance FromJSON AppSettings where
@@ -96,7 +98,9 @@ instance FromJSON AppSettings where
 
         appArchiveSocksProxyHost   <- o .:? "archive-socks-proxy-host"
         appArchiveSocksProxyPort   <- o .:? "archive-socks-proxy-port"
-        appSourceCodeUri          <- o .:? "source-code-uri"
+        appSourceCodeUri           <- o .:? "source-code-uri"
+
+        appSSLOnly                 <- fromMaybe False <$> o .:? "ssl-only"
 
         return AppSettings {..}
 

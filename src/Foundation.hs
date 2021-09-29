@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Foundation where
@@ -41,6 +42,9 @@ instance YesodPersist App where
 instance YesodPersistRunner App where
     getDBRunner = defaultGetDBRunner appConnPool
 
+session_timeout_minutes :: Int
+session_timeout_minutes = 10080 -- (7 days)
+
 -- Yesod
 
 instance Yesod App where
@@ -49,11 +53,28 @@ instance Yesod App where
             Nothing -> getApprootText guessApproot app req
             Just root -> root
 
-    makeSessionBackend _ = Just <$> defaultClientSessionBackend
-        10080 -- min (7 days)
-        "config/client_session_key.aes"
+    makeSessionBackend :: App -> IO (Maybe SessionBackend)
+    makeSessionBackend App {appSettings} = do
+      backend <-
+        defaultClientSessionBackend
+          session_timeout_minutes
+          "config/client_session_key.aes"
+      maybeSSLOnly $ pure (Just backend)
+      where
+        maybeSSLOnly =
+          if appSSLOnly appSettings
+            then sslOnlySessions
+            else id
 
-    yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
+    yesodMiddleware :: HandlerFor App res -> HandlerFor App res
+    yesodMiddleware = maybeSSLOnly . defaultYesodMiddleware . defaultCsrfMiddleware
+      where
+        maybeSSLOnly handler = do
+          yesod <- getYesod
+          (if appSSLOnly (appSettings yesod)
+             then sslOnlyMiddleware session_timeout_minutes
+             else id)
+            handler
 
     defaultLayout widget = do
         req <- getRequest
