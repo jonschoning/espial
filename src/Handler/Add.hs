@@ -57,24 +57,28 @@ bookmarkFormUrl = do
 
 -- API
 
-postAddR :: Handler ()
+postAddR :: Handler Text
 postAddR = do
   bookmarkForm <- requireCheckJsonBody
   _handleFormSuccess bookmarkForm >>= \case
-    (Created, bid) -> sendStatusJSON created201 bid
-    (Updated, _) -> sendResponseStatus noContent204 ()
+    Created bid -> sendStatusJSON created201 bid
+    Updated _ -> sendResponseStatus noContent204 ()
+    Failed s -> sendResponseStatus status400 s
 
-_handleFormSuccess :: BookmarkForm -> Handler (UpsertResult, Key Bookmark)
+_handleFormSuccess :: BookmarkForm -> Handler (UpsertResult (Key Bookmark))
 _handleFormSuccess bookmarkForm = do
   (userId, user) <- requireAuthPair
-  bm <- liftIO $ _toBookmark userId bookmarkForm
-  (res, kbid) <- runDB (upsertBookmark userId mkbid bm tags)
-  whenM (shouldArchiveBookmark user kbid) $
-    void $ async (archiveBookmarkUrl kbid (unpack (bookmarkHref bm)))
-  pure (res, kbid)
-  where
-    mkbid = BookmarkKey <$> _bid bookmarkForm
-    tags = maybe [] (nub . words . T.replace "," " ") (_tags bookmarkForm)
+  case (parseRequest . unpack . _url) bookmarkForm of
+    Nothing -> pure $ Failed "Invalid URL"
+    Just _ -> do
+      let mkbid = BookmarkKey <$> _bid bookmarkForm
+          tags = maybe [] (nub . words . T.replace "," " ") (_tags bookmarkForm)
+      bm <- liftIO $ _toBookmark userId bookmarkForm
+      res <- runDB (upsertBookmark userId mkbid bm tags)
+      forM_ (maybeUpsertResult res) $ \kbid ->
+        whenM (shouldArchiveBookmark user kbid) $
+          void $ async (archiveBookmarkUrl kbid (unpack (bookmarkHref bm)))
+      pure res
 
 postLookupTitleR :: Handler ()
 postLookupTitleR = do

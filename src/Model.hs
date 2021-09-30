@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module Model where
@@ -693,23 +694,28 @@ fetchBookmarkByUrl userId murl = runMaybeT do
   btags <- lift $ withTags (entityKey bmark)
   pure (bmark, btags)
 
-data UpsertResult = Created | Updated
+data UpsertResult a = Created a | Updated a | Failed String
+  deriving (Show, Eq, Functor)
 
-upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult, Key Bookmark)
+maybeUpsertResult :: UpsertResult a -> Maybe a
+maybeUpsertResult (Created a) = Just a
+maybeUpsertResult (Updated a) = Just a
+maybeUpsertResult _ = Nothing
+
+upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult (Key Bookmark))
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
     Just bid ->
       get bid >>= \case
-      Just prev_bm -> do
-        when (userId /= bookmarkUserId prev_bm)
-          (throwString "unauthorized")
-        replaceBookmark bid prev_bm
-      _ -> throwString "not found"
+        Just prev_bm | userId == bookmarkUserId prev_bm ->
+          replaceBookmark bid prev_bm
+        Just _ -> pure (Failed "unauthorized")
+        _ -> pure (Failed "not found")
     Nothing ->
       getBy (UniqueUserHref (bookmarkUserId bm) (bookmarkHref bm)) >>= \case
-      Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
-      _ -> (Created,) <$> insert bm
-  insertTags (bookmarkUserId bm) (snd res)
+        Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
+        _ -> Created <$> insert bm
+  forM_ (maybeUpsertResult res) (insertTags (bookmarkUserId bm)) 
   pure res
   where
     prepareReplace prev_bm =
@@ -719,7 +725,7 @@ upsertBookmark userId mbid bm tags = do
     replaceBookmark bid prev_bm = do
       replace bid (prepareReplace prev_bm)
       deleteTags bid
-      pure (Updated, bid)
+      pure (Updated bid)
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
@@ -732,7 +738,7 @@ updateBookmarkArchiveUrl userId bid marchiveUrl =
   [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
   [BookmarkArchiveHref CP.=. marchiveUrl]
 
-upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult, Key Note)
+upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Key Note))
 upsertNote userId mnid note =
   case mnid of
     Just nid -> do
@@ -741,10 +747,10 @@ upsertNote userId mnid note =
           when (userId /= noteUserId note')
             (throwString "unauthorized")
           replace nid note
-          pure (Updated, nid)
+          pure (Updated nid)
         _ -> throwString "not found"
     Nothing -> do
-      (Created,) <$> insert note
+      Created <$> insert note
 
 -- * FileBookmarks
 

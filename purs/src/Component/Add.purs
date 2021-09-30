@@ -2,7 +2,10 @@ module Component.Add where
 
 import Prelude hiding (div)
 
+import Affjax (printError)
+import Affjax.StatusCode (StatusCode(..))
 import App (destroy, editBookmark, lookupTitle)
+import Data.Either (Either(..))
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), maybe, isJust)
 import Data.Monoid (guard)
@@ -10,6 +13,7 @@ import Data.String (Pattern(..), null, stripPrefix)
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Console (log)
 import Globals (app', closeWindow, mmoment8601)
 import Halogen as H
 import Halogen.HTML (button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
@@ -180,19 +184,24 @@ addbmark b' =
       Etoread e -> _ { toread = e }
 
   handleAction (BEditSubmit e) = do
-    H.liftEffect (preventDefault e)
+    liftEffect (preventDefault e)
     edit_bm <- use _edit_bm 
-    void $ H.liftAff (editBookmark edit_bm)
-    _bm .= edit_bm
-    qs <- liftEffect $ _curQuerystring
-    doc <- liftEffect $ _doc
-    ref <- liftEffect $ referrer doc
-    loc <- liftEffect $ _loc
-    org <- liftEffect $ origin loc
-    case _lookupQueryStringValue qs "next" of
-      Just "closeWindow" -> liftEffect $ closeWindow =<< window
-      Just "back" -> liftEffect $
-        if isJust (stripPrefix (Pattern org) ref)
-          then setHref ref loc
-          else setHref org loc
-      _ -> liftEffect $ closeWindow =<< window
+    H.liftAff (editBookmark edit_bm) >>= case _ of
+      Left affErr -> do
+        liftEffect $ log (printError affErr)
+      Right { status: StatusCode s } | s >= 200 && s < 300 -> do
+        _bm .= edit_bm
+        qs <- liftEffect $ _curQuerystring
+        doc <- liftEffect $ _doc
+        ref <- liftEffect $ referrer doc
+        loc <- liftEffect $ _loc
+        org <- liftEffect $ origin loc
+        case _lookupQueryStringValue qs "next" of
+          Just "closeWindow" -> liftEffect $ closeWindow =<< window
+          Just "back" -> liftEffect $
+            case stripPrefix (Pattern org) ref of
+              Just _ -> setHref ref loc
+              Nothing -> setHref org loc
+          _ -> liftEffect $ closeWindow =<< window
+      Right res -> do
+        liftEffect $ log (res.body)

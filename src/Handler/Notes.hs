@@ -97,12 +97,13 @@ deleteDeleteNoteR nid = do
     delete k_nid
   return ""
 
-postAddNoteR :: Handler ()
+postAddNoteR :: Handler Text
 postAddNoteR = do
   noteForm <- requireCheckJsonBody
   _handleFormSuccess noteForm >>= \case
-    (Created, nid) -> sendStatusJSON created201 nid
-    (Updated, _) -> sendResponseStatus noContent204 ()
+    Created nid -> sendStatusJSON created201 nid
+    Updated _ -> sendResponseStatus noContent204 ()
+    Failed s -> sendResponseStatus status400 s
 
 requireResource :: UserId -> Key Note -> DBM Handler Note
 requireResource userId k_nid = do
@@ -111,7 +112,7 @@ requireResource userId k_nid = do
     then return nnote
     else notFound
 
-_handleFormSuccess :: NoteForm -> Handler (UpsertResult, Key Note)
+_handleFormSuccess :: NoteForm -> Handler (UpsertResult (Key Note))
 _handleFormSuccess noteForm = do
   userId <- requireAuthId
   note <- liftIO $ _toNote userId noteForm

@@ -44,9 +44,9 @@ markRead bid = do
   let path = "bm/" <> show bid <> "/read"
   fetchUrlEnc POST path Nothing AXRes.ignore
 
-editBookmark :: Bookmark -> Aff (Either Error (Response Unit))
+editBookmark :: Bookmark -> Aff (Either Error (Response String))
 editBookmark bm =  do
-    fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.ignore
+    fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.string
 
 editNote :: Note -> Aff (Either Error (Response Json))
 editNote bm =  do
