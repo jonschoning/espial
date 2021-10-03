@@ -48,9 +48,9 @@ editBookmark :: Bookmark -> Aff (Either Error (Response String))
 editBookmark bm =  do
     fetchJson POST "api/add" (Just (Bookmark' bm)) AXRes.string
 
-editNote :: Note -> Aff (Either Error (Response Json))
+editNote :: Note -> Aff (Either Error (Response String))
 editNote bm =  do
-    fetchJson POST "api/note/add" (Just (Note' bm)) AXRes.json
+    fetchJson POST "api/note/add" (Just (Note' bm)) AXRes.string
 
 lookupTitle :: Bookmark -> Aff (Maybe String)
 lookupTitle bm = do

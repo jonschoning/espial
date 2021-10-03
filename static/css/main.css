@@ -151,6 +151,11 @@ label {
 .alert {
     background: #ced;
     border: 1px solid #acc;
+    margin-bottom: 5px;
+    padding: 2px;
+}
+.alert.alert-err {
+    background-color: #ffdfdf
 }
 
 .edit_bookmark_form {

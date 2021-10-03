@@ -10,7 +10,7 @@ import Halogen as H
 import Halogen.HTML (div, input, text)
 import Halogen.HTML.Elements (label)
 import Halogen.HTML.Events (onChecked)
-import Halogen.HTML.Properties (InputType(..), checked, for, id_, name, type_)
+import Halogen.HTML.Properties (InputType(..), checked, for, id, name, type_)
 import Model (AccountSettings)
 import Util (class_)
 import Web.Event.Event (Event)
@@ -52,19 +52,19 @@ usetting u' =
     div [ class_ "settings-form" ]
     [ div [ class_ "fw7 mb2"] [ text "Account Settings" ]
     , div [ class_ "flex items-center mb2" ]
-      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id_ "archiveDefault", name "archiveDefault"
+      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id "archiveDefault", name "archiveDefault"
               , checked (us.archiveDefault) , onChecked (editField EarchiveDefault) ]
       , label [ for "archiveDefault", class_ "lh-copy" ]
         [ text "Archive Non-Private Bookmarks (archive.li)" ]
       ]
     , div [ class_ "flex items-center mb2" ]
-      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id_ "privateDefault", name "privateDefault"
+      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id "privateDefault", name "privateDefault"
               , checked (us.privateDefault) , onChecked (editField EprivateDefault) ]
       , label [ for "privateDefault", class_ "lh-copy"  ]
         [ text "Default new bookmarks to Private" ]
       ]
     , div [ class_ "flex items-center mb2" ]
-      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id_ "privacyLock", name "privacyLock"
+      [ input [ type_ InputCheckbox , class_ "pointer mr2" , id "privacyLock", name "privacyLock"
               , checked (us.privacyLock) , onChecked (editField EprivacyLock) ]
       , label [ for "privacyLock", class_ "lh-copy"  ]
         [ text "Privacy Lock (Private Account)" ]

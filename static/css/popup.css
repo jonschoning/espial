@@ -25,6 +25,9 @@ textarea {
 #addForm .alert {
     margin-top: -6px;
 }
+.alert.alert-err {
+    background-color: #ffdfdf
+}
 form label {
     margin: 0;
     vertical-align: middle;

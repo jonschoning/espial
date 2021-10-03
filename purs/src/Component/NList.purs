@@ -12,7 +12,7 @@ import Globals (app', mmoment8601)
 import Halogen as H
 import Halogen.HTML (a, br_, div, text)
 import Halogen.HTML as HH
-import Halogen.HTML.Properties (href, id_, title)
+import Halogen.HTML.Properties (href, id, title)
 import Model (Note, NoteSlug)
 import Util (class_, fromNullableStr)
 
@@ -49,7 +49,7 @@ nlist st' =
     HH.div_ (map renderNote notes)
     where
       renderNote note =
-        div [ id_ (show note.id)
+        div [ id (show note.id)
             , class_ ("note w-100 mw7 pa1 mb2"
                      <> if note.shared then "" else " private")] $
            [ div [ class_ "display" ] $

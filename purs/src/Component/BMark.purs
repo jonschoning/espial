@@ -2,24 +2,29 @@ module Component.BMark where
 
 import Prelude hiding (div)
 
+import Affjax (printError)
+import Affjax.StatusCode (StatusCode(..))
 import App (StarAction(..), destroy, editBookmark, markRead, toggleStar, lookupTitle)
 import Component.Markdown as Markdown
 import Data.Const (Const)
+import Data.Either (Either(..))
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Monoid (guard)
 import Data.Nullable (toMaybe)
 import Data.String (null, split, take, replaceAll) as S
 import Data.String.Pattern (Pattern(..), Replacement(..))
-import Type.Proxy (Proxy(..))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Globals (app', setFocus, toLocaleDateString)
 import Halogen as H
 import Halogen.HTML (a, br_, button, div, div_, form, input, label, span, text, textarea)
 import Halogen.HTML as HH
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, disabled, for, href, id_, name, required, rows, target, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, disabled, for, href, id, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
+import Type.Proxy (Proxy(..))
 import Util (attr, class_, fromNullableStr, ifElseH, whenH, whenA)
 import Web.Event.Event (Event, preventDefault)
 
@@ -55,6 +60,7 @@ type BState =
   , deleteAsk:: Boolean
   , edit :: Boolean
   , loading :: Boolean
+  , apiError :: Maybe String
   }
 
 _bm :: Lens' BState Bookmark
@@ -65,6 +71,9 @@ _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
 
 _edit :: Lens' BState Boolean
 _edit = lens _.edit (_ { edit = _ })
+
+_apiError :: Lens' BState (Maybe String)
+_apiError = lens _.apiError (_ { apiError = _ })
 
 _markdown = Proxy :: Proxy "markdown"
 
@@ -88,11 +97,12 @@ bmark b' =
     , deleteAsk: false
     , edit: false
     , loading: false
+    , apiError: Nothing
     }
 
   render :: BState -> H.ComponentHTML BAction ChildSlots Aff
-  render s@{ bm, edit_bm } =
-    div [ id_ (show bm.bid) , class_ ("bookmark w-100 mw7 pa1 mb3" <> guard bm.private " private")] $
+  render s@{ bm, edit_bm, apiError } =
+    div [ id (show bm.bid) , class_ ("bookmark w-100 mw7 pa1 mb3" <> guard bm.private " private")] $
       [ whenH app.dat.isowner
           star
       , ifElseH s.edit
@@ -151,7 +161,9 @@ bmark b' =
 
      display_edit _ =
        div [ class_ "edit_bookmark_form pa2 pt0 bg-white" ] $
-       [ form [ onSubmit BEditSubmit ]
+       [ whenH (isJust apiError)
+              (alert_notification (fromMaybe "" apiError))
+       , form [ onSubmit BEditSubmit ]
          [ div_ [ text "url" ]
          , input [ type_ InputUrl , class_ "url w-100 mb2 pt1 edit_form_input" , required true , name "url"
                  , value (edit_bm.url) , onValueChange (editField Eurl) ]
@@ -164,19 +176,19 @@ bmark b' =
          , div_ [ text "description" ]
          , textarea [ class_ "description w-100 mb1 pt1 edit_form_input" , name "description", rows 5
                     , value (edit_bm.description) , onValueChange (editField Edescription) ]
-         , div [ id_ "tags_input_box"]
+         , div [ id "tags_input_box"]
            [ div_ [ text "tags" ]
-             , input [ id_ (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 edit_form_input" , name "tags"
+             , input [ id (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 edit_form_input" , name "tags"
                      , autocomplete false, attr "autocapitalize" "off"
                      , value (edit_bm.tags) , onValueChange (editField Etags) ]
            ]
          , div [ class_ "edit_form_checkboxes mv3"]
-           [ input [ type_ InputCheckbox , class_ "private pointer" , id_ "edit_private", name "private"
+           [ input [ type_ InputCheckbox , class_ "private pointer" , id "edit_private", name "private"
                    , checked (edit_bm.private) , onChecked (editField Eprivate) ]
            , text " "
            , label [ for "edit_private" , class_ "mr2" ] [ text "private" ]
            , text " "
-           , input [ type_ InputCheckbox , class_ "toread pointer" , id_ "edit_toread", name "toread"
+           , input [ type_ InputCheckbox , class_ "toread pointer" , id "edit_toread", name "toread"
                    , checked (edit_bm.toread) , onChecked (editField Etoread) ]
            , text " "
            , label [ for "edit_toread" ] [ text "to-read" ]
@@ -188,6 +200,8 @@ bmark b' =
          ]
        ]
        
+     alert_notification alert_text _ = 
+       div [ class_ "alert alert-err" ] [ text alert_text ]
 
      editField :: forall a. (a -> EditField) -> a -> BAction
      editField f = BEditField <<< f
@@ -228,6 +242,7 @@ bmark b' =
     bm <- use _bm
     _edit_bm .= bm
     _edit .= e
+    _apiError .= Nothing
     H.liftEffect $
       when e
         (setFocus (tagid bm)) 
@@ -256,7 +271,15 @@ bmark b' =
   handleAction (BEditSubmit e) = do
     H.liftEffect (preventDefault e)
     edit_bm <- use _edit_bm
+    _apiError .= Nothing
     let edit_bm' = edit_bm { tags = S.replaceAll (Pattern ",") (Replacement " ") edit_bm.tags }
-    void $ H.liftAff (editBookmark edit_bm')
-    _bm .= edit_bm'
-    _edit .= false
+    H.liftAff (editBookmark edit_bm') >>= case _ of
+      Left affErr -> do
+        _apiError .= Just (printError affErr)
+        liftEffect $ log (printError affErr)
+      Right { status: StatusCode s } | s >= 200 && s < 300 -> do
+        _bm .= edit_bm'
+        _edit .= false
+      Right res -> do
+        _apiError .= Just (res.body)
+        liftEffect $ log (res.body)

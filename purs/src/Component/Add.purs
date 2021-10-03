@@ -7,18 +7,18 @@ import Affjax.StatusCode (StatusCode(..))
 import App (destroy, editBookmark, lookupTitle)
 import Data.Either (Either(..))
 import Data.Lens (Lens', lens, use, (%=), (.=))
-import Data.Maybe (Maybe(..), maybe, isJust)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Monoid (guard)
 import Data.String (Pattern(..), null, stripPrefix)
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
-import Globals (app', closeWindow, mmoment8601)
+import Globals (closeWindow, mmoment8601)
 import Halogen as H
 import Halogen.HTML (button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
 import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
-import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id_, name, required, rows, title, type_, value)
+import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id, name, required, rows, title, type_, value)
 import Model (Bookmark)
 import Util (_curQuerystring, _loc, _doc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
@@ -47,6 +47,7 @@ type BState =
   , deleteAsk :: Boolean
   , loading :: Boolean
   , destroyed :: Boolean
+  , apiError :: Maybe String
   }
 
 _bm :: Lens' BState Bookmark
@@ -54,6 +55,9 @@ _bm = lens _.bm (_ { bm = _ })
 
 _edit_bm :: Lens' BState Bookmark
 _edit_bm = lens _.edit_bm (_ { edit_bm = _ })
+
+_apiError :: Lens' BState (Maybe String)
+_apiError = lens _.apiError (_ { apiError = _ })
 
 addbmark :: forall q i o. Bookmark -> H.Component q i o Aff
 addbmark b' =
@@ -63,7 +67,6 @@ addbmark b' =
     , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
-  app = app' unit
 
   mkState b =
     { bm: b
@@ -71,10 +74,11 @@ addbmark b' =
     , deleteAsk: false
     , destroyed: false
     , loading: false
+    , apiError: Nothing
     }
 
   render :: forall m. BState -> H.ComponentHTML BAction () m
-  render s@{ bm, edit_bm } =
+  render s@{ bm, edit_bm, apiError } =
     ifElseH (not s.destroyed)
       display_edit
       display_destroyed
@@ -86,39 +90,41 @@ addbmark b' =
            [ tr_
              [ td [ class_ "w1" ] [ ]
              , td_ [ whenH (bm.bid > 0)
-                       display_exists
+                       display_exists,
+                     whenH (isJust apiError)
+                       (alert_notification (fromMaybe "" apiError))
                    ]
              ]
            , tr_
              [ td_ [ label [ for "url" ] [ text "URL" ] ]
-             , td_ [ input [ type_ InputUrl , id_ "url", class_ "w-100 mv1" , required true, name "url", autofocus (null bm.url)
+             , td_ [ input [ type_ InputUrl , id "url", class_ "w-100 mv1" , required true, name "url", autofocus (null bm.url)
                           , value (edit_bm.url) , onValueChange (editField Eurl)] ]
              ]
            , tr_
              [ td_ [ label [ for "title" ] [ text "title" ] ]
              , td [class_ "flex"]
-                  [ input [ type_ InputText , id_ "title", class_ "w-100 mv1 flex-auto" , name "title" , value (edit_bm.title) , onValueChange (editField Etitle)]
+                  [ input [ type_ InputText , id "title", class_ "w-100 mv1 flex-auto" , name "title" , value (edit_bm.title) , onValueChange (editField Etitle)]
                   , button [ disabled s.loading, type_ ButtonButton, onClick \_ -> BLookupTitle, class_ ("ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0 " <> guard s.loading "bg-light-silver") ] [ text "fetch" ]
                   ]
              ]
            , tr_
              [ td_ [ label [ for "description" ] [ text "description" ] ]
-             , td_ [ textarea [ class_ "w-100 mt1 mid-gray" , id_ "description", name "description", rows 4
+             , td_ [ textarea [ class_ "w-100 mt1 mid-gray" , id "description", name "description", rows 4
                               , value (edit_bm.description) , onValueChange (editField Edescription)] ]
              ]
            , tr_
              [ td_ [ label [ for "tags" ] [ text "tags" ] ]
-             , td_ [ input [ type_ InputText , id_ "tags", class_ "w-100 mv1" , name "tags", autocomplete false, attr "autocapitalize" "off", autofocus (not $ null bm.url)
+             , td_ [ input [ type_ InputText , id "tags", class_ "w-100 mv1" , name "tags", autocomplete false, attr "autocapitalize" "off", autofocus (not $ null bm.url)
                            , value (edit_bm.tags) , onValueChange (editField Etags)] ]
              ]
            , tr_
              [ td_ [ label [ for "private" ] [ text "private" ] ]
-             , td_ [ input [ type_ InputCheckbox , id_ "private", class_ "private pointer" , name "private"
+             , td_ [ input [ type_ InputCheckbox , id "private", class_ "private pointer" , name "private"
                            , checked (edit_bm.private) , onChecked (editField Eprivate)] ]
              ]
            , tr_
              [ td_ [ label [ for "toread" ] [ text "read later" ] ]
-             , td_ [ input [ type_ InputCheckbox , id_ "toread", class_ "toread pointer" , name "toread"
+             , td_ [ input [ type_ InputCheckbox , id "toread", class_ "toread pointer" , name "toread"
                            , checked (edit_bm.toread) , onChecked (editField Etoread)] ]
              ]
            , tr_
@@ -145,6 +151,9 @@ addbmark b' =
            ]
          ]
        ]
+
+     alert_notification alert_text _ = 
+       div [ class_ "alert alert-err" ] [ text alert_text ]
 
      display_destroyed _ = p [ class_ "red"] [text "you killed this bookmark"]
 
@@ -186,8 +195,10 @@ addbmark b' =
   handleAction (BEditSubmit e) = do
     liftEffect (preventDefault e)
     edit_bm <- use _edit_bm 
+    _apiError .= Nothing
     H.liftAff (editBookmark edit_bm) >>= case _ of
       Left affErr -> do
+        _apiError .= Just (printError affErr)
         liftEffect $ log (printError affErr)
       Right { status: StatusCode s } | s >= 200 && s < 300 -> do
         _bm .= edit_bm
@@ -204,4 +215,5 @@ addbmark b' =
               Nothing -> setHref org loc
           _ -> liftEffect $ closeWindow =<< window
       Right res -> do
+        _apiError .= Just (res.body)
         liftEffect $ log (res.body)
