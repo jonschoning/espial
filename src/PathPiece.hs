@@ -2,8 +2,8 @@
 
 module PathPiece where
   
-import Data.Text (splitOn)
-
+import Data.Text (breakOn, splitOn)
+import qualified Data.Text as T (replace)
 import Import.NoFoundation
 
 -- PathPiece
@@ -11,18 +11,24 @@ import Import.NoFoundation
 instance PathPiece UserNameP where
   toPathPiece (UserNameP i) = "u:" <> i
   fromPathPiece s =
-    case splitOn ":" s of
-      ["u", ""] -> Nothing
-      ["u", uname] -> Just $ UserNameP uname
+    case breakOn ":" s of
+      ("u", "") -> Nothing
+      ("u", uname) -> Just $ UserNameP (drop 1 uname)
       _ -> Nothing
 
 instance PathPiece TagsP where
-  toPathPiece (TagsP tags) = "t:" <> intercalate "+" tags
+  toPathPiece (TagsP tags) = "t:" <> intercalate "+" (fmap encodeTag tags)
   fromPathPiece s =
-    case splitOn ":" s of
-      ["t", ""] -> Nothing
-      ["t", tags] -> Just $ TagsP (splitOn "+" tags)
+    case breakOn ":" s of
+      ("t", "") -> Nothing
+      ("t", tags) -> Just $ (TagsP . fmap decodeTag . splitOn "+" . drop 1) tags
       _ -> Nothing
+
+encodeTag :: Text -> Text
+encodeTag = T.replace "+" "%2B"
+
+decodeTag :: Text -> Text
+decodeTag = T.replace "%2B" "+"
 
 instance PathPiece SharedP where
   toPathPiece = \case
@@ -45,9 +51,9 @@ instance PathPiece FilterP where
     "unread" -> Just FilterUnread
     "untagged" -> Just FilterUntagged
     "starred" -> Just FilterStarred
-    s -> case splitOn ":" s of
-        ["b", ""] -> Nothing
-        ["b", slug] -> Just $ FilterSingle (BmSlug slug)
+    s -> case breakOn ":" s of
+        ("b", "") -> Nothing
+        ("b", slug) -> Just $ FilterSingle (BmSlug (drop 1 slug))
         _ -> Nothing
 
 

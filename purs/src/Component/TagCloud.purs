@@ -23,7 +23,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (ButtonType(..), href, title, type_)
 import Math (log)
 import Model (TagCloud, TagCloudModeF(..), isExpanded, isRelated, setExpanded, tagCloudModeFromF)
-import Util (class_, fromNullableStr, whenH, ifElseA)
+import Util (class_, encodeTag, fromNullableStr, ifElseA, whenH)
 
 data TAction
   = TInitialize
@@ -128,15 +128,15 @@ tagcloudcomponent m' =
     <<< sortBy (comparing (S.toLower <<< fst))
     <<< F.toUnfoldable
 
-  linkToFilterTag tag = fromNullableStr app.userR <> (if S.null tag then "" else "/t:" <> tag) 
+  linkToFilterTag rest = fromNullableStr app.userR <> (if S.null rest then "" else "/t:" <> rest) 
 
   toSizedTag :: Array String -> Int -> Int -> String -> Int -> _
   toSizedTag curtags n m k v =
-    [ a [ href (linkToFilterTag k) , class_ "link tag mr1" , style] 
+    [ a [ href (linkToFilterTag (encodeTag k)), class_ "link tag mr1" , style] 
         [ text k ]
       , whenH (not (null curtags))  \_ -> if (notElem k_lower curtags)
-          then a [href (linkToFilterTag (S.joinWith "+" (cons k_lower curtags))), class_ "link mr2 tag-include"] [text "⊕"]
-          else a [href (linkToFilterTag (S.joinWith "+" (delete k_lower curtags))), class_ "link mr2 tag-exclude"] [text "⊖"]
+          then a [href (linkToFilterTag (S.joinWith "+" (map encodeTag (cons k_lower curtags)))), class_ "link mr2 tag-include"] [text "⊕"]
+          else a [href (linkToFilterTag (S.joinWith "+" (map encodeTag (delete k_lower curtags)))), class_ "link mr2 tag-exclude"] [text "⊖"]
     ]
     where
       k_lower = toLower k

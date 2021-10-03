@@ -8,11 +8,13 @@ import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Data.String (Pattern(..), Replacement(..), drop, replaceAll, split, take)
+import Data.String as S
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect (Effect)
 import Halogen (ClassName(..))
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import JSURI (decodeURIComponent, encodeURIComponent)
 import Partial.Unsafe (unsafePartial)
 import Web.DOM (Element, Node)
 import Web.DOM.Document (toNonElementParentNode)
@@ -27,7 +29,6 @@ import Web.HTML.HTMLElement (HTMLElement)
 import Web.HTML.HTMLElement (fromElement) as HE
 import Web.HTML.Location (search)
 import Web.HTML.Window (document, location)
-import JSURI (decodeURIComponent)
 
 unsafeDecode :: String -> String
 unsafeDecode str = unsafePartial $ fromJust $ decodeURIComponent str
@@ -116,6 +117,9 @@ _mt = MaybeT
 
 _mt_pure :: forall a. Maybe a -> MaybeT Effect a
 _mt_pure = MaybeT <<< pure
+
+encodeTag :: String -> String
+encodeTag = fromMaybe "" <<< encodeURIComponent <<< replaceAll (Pattern "+") (Replacement "%2B")
 
 dummyAttr :: forall r i. HP.IProp r i
 dummyAttr = HP.attr (HH.AttrName "data-dummy") ""

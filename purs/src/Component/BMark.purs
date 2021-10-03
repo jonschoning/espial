@@ -25,7 +25,7 @@ import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, checked, disabled, for, href, id, name, required, rows, target, title, type_, value)
 import Model (Bookmark)
 import Type.Proxy (Proxy(..))
-import Util (attr, class_, fromNullableStr, ifElseH, whenH, whenA)
+import Util (attr, class_, encodeTag, fromNullableStr, ifElseH, whenA, whenH)
 import Web.Event.Event (Event, preventDefault)
 
 -- | UI Events
@@ -206,7 +206,7 @@ bmark b' =
      editField :: forall a. (a -> EditField) -> a -> BAction
      editField f = BEditField <<< f
      linkToFilterSingle slug = fromNullableStr app.userR <> "/b:" <> slug
-     linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> tag
+     linkToFilterTag tag = fromNullableStr app.userR <> "/t:" <> encodeTag tag 
      shdate = toLocaleDateString bm.time 
      shdatetime = S.take 16 bm.time `append` "Z"
 
