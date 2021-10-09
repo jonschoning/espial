@@ -148,13 +148,12 @@ sqliteGroupConcat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
 
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
-  muser <- getBy (UniqueUserName username)
-  case muser of
-    Nothing -> return Nothing
+  getBy (UniqueUserName username) >>= \case
+    Nothing -> pure Nothing
     Just dbuser ->
       if validatePasswordHash (userPasswordHash (entityVal dbuser)) password
-        then return (Just dbuser)
-        else return Nothing
+        then pure (Just dbuser)
+        else pure Nothing
 
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
 getUserByName (UserNameP uname) =

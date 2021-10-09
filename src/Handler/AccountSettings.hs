@@ -34,17 +34,23 @@ getChangePasswordR = do
 
 postChangePasswordR :: Handler Html
 postChangePasswordR = do
-  userId <- requireAuthId
-  mauthuname <- maybeAuthUsername
-  mresult <- runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword")
-  case (mauthuname, mresult) of
-    (Just uname, FormSuccess (old, new)) -> do
-      muser <- runDB (authenticatePassword uname old)
-      case muser of
-        Just _ -> do 
-          new' <- liftIO (hashPassword new)
-          void $ runDB (update userId [UserPasswordHash CP.=. new'])
-          setMessage "Password Changed Successfully"
-        _ -> setMessage "Incorrect Old Password"
+  (userId, user) <- requireAuthPair
+  runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
+    FormSuccess (old, new) -> do
+      runDB (authenticatePassword (userName user) old) >>= \case
+        Nothing -> setMessage "Incorrect Old Password"
+        Just _ -> validateNewPassword new >>= \case
+          Just newValid -> do
+            newHash <- liftIO (hashPassword newValid)
+            void $ runDB (update userId [UserPasswordHash CP.=. newHash])
+            setMessage "Password Changed Successfully"
+          _ -> pure ()
     _ -> setMessage "Missing Required Fields"
   redirect ChangePasswordR
+
+validateNewPassword :: Text -> Handler (Maybe Text)
+validateNewPassword = \case
+    new | length new < 6 -> do
+          setMessage "Password must be at least 6 characters long"
+          pure Nothing
+    new -> pure $ Just new
