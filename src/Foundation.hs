@@ -67,14 +67,14 @@ instance Yesod App where
             else id
 
     yesodMiddleware :: HandlerFor App res -> HandlerFor App res
-    yesodMiddleware = maybeSSLOnly . defaultYesodMiddleware . defaultCsrfMiddleware
+    yesodMiddleware = customMiddleware . defaultYesodMiddleware . defaultCsrfMiddleware
       where
-        maybeSSLOnly handler = do
+        customMiddleware handler = do
+          addHeader "X-Frame-Options" "DENY"
           yesod <- getYesod
           (if appSSLOnly (appSettings yesod)
              then sslOnlyMiddleware session_timeout_minutes
-             else id)
-            handler
+             else id) handler
 
     defaultLayout widget = do
         req <- getRequest
