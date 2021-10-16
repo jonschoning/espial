@@ -20,7 +20,7 @@ import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.List.NonEmpty (NonEmpty(..))
-import Database.Esqueleto.Experimental
+import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Pretty ()
 import System.Directory (listDirectory)
@@ -532,7 +532,7 @@ tagCountTop user top =
       groupBy (lower_ $ t ^. BookmarkTagTag)
       let countRows' = countRows
       orderBy [desc countRows']
-      limit ((fromIntegral . toInteger) top)
+      limit (fromIntegral top)
       pure (t ^. BookmarkTagTag, countRows')
     )
 
@@ -840,3 +840,34 @@ readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
 
 showFileNoteTime :: UTCTime -> String
 showFileNoteTime = formatTime defaultTimeLocale "%F %T"
+
+data TagSuggestionForm = TagSuggestionForm
+  { _query :: Text
+  , _suggestions :: [Suggestion]
+  } deriving (Show, Eq, Read, Generic)
+
+data Suggestion = Suggestion
+  { _term :: Text
+  , _count :: Int
+  } deriving (Show, Eq, Read, Generic)
+
+instance FromJSON TagSuggestionForm where parseJSON = A.genericParseJSON gDefaultFormOptions
+instance ToJSON TagSuggestionForm where toJSON = A.genericToJSON gDefaultFormOptions
+instance FromJSON Suggestion where parseJSON = A.genericParseJSON gDefaultFormOptions
+instance ToJSON Suggestion where toJSON = A.genericToJSON gDefaultFormOptions
+
+getTagSuggestions :: Key User -> TagSuggestionForm -> Int -> DB TagSuggestionForm
+getTagSuggestions user f@TagSuggestionForm{_query=query} top = do
+  values <- fmap (bimap unValue unValue) <$>
+    (select $ do
+     t <- from (table @BookmarkTag)
+     where_ (t ^. BookmarkTagUserId ==. val user &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ ((%) ++. val query ++. (%))))
+     let countRows' = countRows
+     groupBy (lower_ $ t ^. BookmarkTagTag)
+     orderBy [desc countRows', asc $ lower_ $ (t ^. BookmarkTagTag)]
+     limit (fromIntegral top)
+     pure (t ^. BookmarkTagTag, countRows')
+    )
+  pure $ f {
+    _suggestions = uncurry Suggestion <$> values
+  }

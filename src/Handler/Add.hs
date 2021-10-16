@@ -88,3 +88,11 @@ postLookupTitleR = do
   fetchPageTitle (unpack (_url bookmarkForm)) >>= \case
     Left _ -> sendResponseStatus noContent204 ()
     Right title -> sendResponseStatus ok200 title
+
+postTagSuggestionsR :: Handler Text
+postTagSuggestionsR = do
+  userId <- requireAuthId
+  tagSuggestionForm <- requireCheckJsonBody
+  let suggestion_limit = 20
+  tagSuggestions <- runDB $ getTagSuggestions userId tagSuggestionForm suggestion_limit
+  sendStatusJSON ok200 tagSuggestions

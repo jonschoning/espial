@@ -41,6 +41,7 @@ api/add AddR POST
 api/lookuptitle LookupTitleR POST
 api/tagcloud UserTagCloudR POST
 api/tagcloudmode UserTagCloudModeR POST
+api/tagSuggestions TagSuggestionsR POST
 
 -- edit
 /bm/#Int64 DeleteR DELETE

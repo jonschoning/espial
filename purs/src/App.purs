@@ -2,15 +2,16 @@ module App where
 
 import Prelude
 
-import Affjax.Web (Response, Error)
+import Affjax.Web (Response, Error, printError)
 import Affjax.Web (defaultRequest) as AX
 import Affjax.Web as Ax
 import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes
 import Affjax.StatusCode (StatusCode(..))
-import Data.Argonaut (decodeJson)
+import Data.Argonaut (class DecodeJson, Json, decodeJson, printJsonDecodeError)
 import Data.Array ((:))
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), hush)
 import Data.FormURLEncoded (FormURLEncoded)
 import Data.HTTP.Method (Method(..))
@@ -19,7 +20,7 @@ import Data.MediaType.Common (applicationFormURLEncoded, applicationJSON)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Globals (app')
-import Model (Bookmark, Bookmark'(..), Note, Note'(..), AccountSettings, AccountSettings'(..), TagCloudMode, TagCloudMode'(..), TagCloud)
+import Model (AccountSettings, AccountSettings'(..), Bookmark, Bookmark'(..), Note, Note'(..), TagCloud, TagCloudMode, TagCloudMode'(..), TagSuggestions, TagSuggestions'(..))
 import Simple.JSON as J
 import Web.HTML (window)
 import Web.HTML.Location (reload)
@@ -59,7 +60,11 @@ lookupTitle bm = do
     if (res.status == StatusCode 200)
     then Just res.body
     else Nothing
-      
+
+tagSuggestions :: TagSuggestions -> Aff (Either String TagSuggestions)
+tagSuggestions a = do
+  decodeJsonResponse <$> fetchJson POST "api/tagSuggestions" (Just (TagSuggestions' a)) AXRes.json
+
 getTagCloud :: TagCloudMode -> Aff (Maybe TagCloud)
 getTagCloud mode = do
     eres <- fetchJson POST "api/tagcloud" (Just (TagCloudMode' mode)) AXRes.json
@@ -136,3 +141,10 @@ fetchUrl method url headers content rt =
     }
   where
     app = app' unit
+
+decodeJsonResponse :: forall a. DecodeJson a => Either Error (Ax.Response Json) -> Either String a
+decodeJsonResponse eres =
+  lmap printError eres >>= \{body} ->
+    lmap printJsonDecodeError (decodeJson body)
+  
+      

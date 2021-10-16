@@ -4,12 +4,20 @@ import Prelude hiding (div)
 
 import Affjax (printError)
 import Affjax.StatusCode (StatusCode(..))
-import App (destroy, editBookmark, lookupTitle)
+import App (destroy, editBookmark, lookupTitle, tagSuggestions)
+import Autocomplete (SuggesterInstance, mkSuggester')
+import Autocomplete.Types (Suggestions(..))
+import Control.Bind (bindFlipped)
+import Data.Array (last)
+import Data.Array as A
 import Data.Either (Either(..))
+import Data.Foldable (traverse_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Monoid (guard)
-import Data.String (Pattern(..), null, stripPrefix)
+import Data.String (Pattern(..), null, stripPrefix, trim)
+import Data.String as S
+import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (fst, snd)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -17,9 +25,10 @@ import Effect.Console (log)
 import Globals (closeWindow, mmoment8601)
 import Halogen as H
 import Halogen.HTML (button, div, form, input, label, p, span, table, tbody_, td, td_, text, textarea, tr_)
-import Halogen.HTML.Events (onSubmit, onValueChange, onChecked, onClick)
+import Halogen.HTML.Events (onChecked, onClick, onSubmit, onValueChange, onValueInput)
 import Halogen.HTML.Properties (ButtonType(..), InputType(..), autocomplete, autofocus, checked, disabled, for, id, name, required, rows, title, type_, value)
-import Model (Bookmark)
+import Halogen.Subscription as HS
+import Model (Bookmark, TSuggestion)
 import Util (_curQuerystring, _loc, _doc, _lookupQueryStringValue, attr, class_, ifElseH, whenH)
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
@@ -33,6 +42,9 @@ data BAction
   | BDeleteAsk Boolean
   | BLookupTitle
   | BDestroy
+  | BInitialize
+  | BTagsInput String
+  | BTagsSuggestions (Suggestions TSuggestion)
 
 data EditField
   = Eurl String
@@ -49,6 +61,8 @@ type BState =
   , loading :: Boolean
   , destroyed :: Boolean
   , apiError :: Maybe String
+  , suggester :: Maybe (SuggesterInstance TSuggestion)
+  , suggestions :: Suggestions TSuggestion
   }
 
 _bm :: Lens' BState Bookmark
@@ -65,17 +79,23 @@ addbmark b' =
   H.mkComponent
     { initialState: const (mkState b')
     , render
-    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
+    , eval: H.mkEval $ H.defaultEval { handleAction = handleAction
+                                     , initialize = Just BInitialize
+                                     }
     }
   where
 
-  mkState b =
+  mkState b'' =
+    let b = b'' { tags = "" }
+    in
     { bm: b
     , edit_bm: b
     , deleteAsk: false
     , destroyed: false
     , loading: false
     , apiError: Nothing
+    , suggester: Nothing
+    , suggestions: Failed "No Results" []
     }
 
   render :: forall m. BState -> H.ComponentHTML BAction () m
@@ -116,7 +136,7 @@ addbmark b' =
            , tr_
              [ td_ [ label [ for "tags" ] [ text "tags" ] ]
              , td_ [ input [ type_ InputText , id "tags", class_ "w-100 mv1" , name "tags", autocomplete AutocompleteOff, attr "autocapitalize" "off", autofocus (not $ null bm.url)
-                           , value (edit_bm.tags) , onValueChange (editField Etags)] ]
+                           , value (edit_bm.tags) , onValueInput BTagsInput, onValueChange (editField Etags)] ]
              ]
            , tr_
              [ td_ [ label [ for "private" ] [ text "private" ] ]
@@ -161,12 +181,24 @@ addbmark b' =
      editField :: forall a. (a -> EditField) -> a -> BAction
      editField f = BEditField <<< f
      mmoment = mmoment8601 bm.time
-     -- toTextarea =
-     --   drop 1
-     --     <<< foldMap (\x -> [br_, text x])
-     --     <<< S.split (Pattern "\n")
 
   handleAction :: BAction -> H.HalogenM BState BAction () o Aff Unit
+  handleAction BInitialize = do
+    suggester <- liftEffect $ mkSuggester'
+        { fetch: fetchFn
+        , inputDebounce: Milliseconds 500.0
+        , inputTransformer: identity
+        }
+    H.modify_ (_ {suggester = Just suggester})
+    { emitter, listener } <- liftEffect HS.create
+    void $ H.subscribe emitter
+    liftEffect $ suggester.subscribe (HS.notify listener <<< BTagsSuggestions)
+    where
+      fetchFn :: String -> Aff (Either String (Array TSuggestion))
+      fetchFn query =
+         tagSuggestions { query: query, suggestions: [] }
+         <#> bindFlipped (\s -> if A.null s.suggestions then Left "No Results" else Right s.suggestions)
+
   handleAction (BDeleteAsk e) = do
     H.modify_ (_ { deleteAsk = e })
 
@@ -192,6 +224,23 @@ addbmark b' =
       Etags e -> _ { tags = e }
       Eprivate e -> _ { private = e }
       Etoread e -> _ { toread = e }
+
+  handleAction (BTagsInput e) = do
+    edit_bm_tags <- H.gets _.edit_bm.tags
+    let edit_bm_tags_last = getLast edit_bm_tags
+        e_last = getLast e
+        e_send = if (S.length e_last >= 2 && edit_bm_tags_last /= e_last)
+                   then e_last
+                    else ""
+    H.gets _.suggester >>= traverse_ \suggester ->
+      liftEffect $ suggester.send e_send
+    handleAction (BEditField (Etags e))
+    where
+      getLast = fromMaybe "" <<< last <<< S.split (Pattern " ") <<< trim
+
+  handleAction (BTagsSuggestions e) = do
+    liftEffect $ log ("suggestions:  " <> show e)
+    H.modify_ (_ { suggestions = e })
 
   handleAction (BEditSubmit e) = do
     liftEffect (preventDefault e)
