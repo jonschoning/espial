@@ -12,12 +12,42 @@ import ClassyPrelude
 import Lens.Micro
 
 import Options.Generic
+import qualified Options.Applicative as OA
+import qualified Data.Text as T
+
+data Password
+  = PasswordText Text
+  | PasswordFile FilePath
+  deriving (Show, Read)
+
+parsePassword :: OA.Parser Password
+parsePassword = passwordText <|> passwordFile
+  where
+    passwordText = PasswordText <$> OA.strOption
+      ( OA.long "userPassword"
+          <> OA.metavar "PASSWORD"
+          <> OA.help "Password in plain-text"
+      )
+
+    passwordFile = PasswordFile <$> OA.strOption
+      ( OA.long "userPasswordFile"
+          <> OA.metavar "FILE"
+          <> OA.help "Password file"
+      )
+
+instance ParseFields Password
+
+instance ParseRecord Password where
+  parseRecord = fmap getOnly parseRecord
+
+instance ParseField Password where
+  parseField _ _ _ _ = parsePassword
 
 data MigrationOpts
   = CreateDB { conn :: Text }
   | CreateUser { conn :: Text
                , userName :: Text
-               , userPassword :: Text
+               , userPassword :: Password
                , privateDefault :: Maybe Bool
                , archiveDefault :: Maybe Bool
                , privacyLock :: Maybe Bool }
@@ -54,7 +84,10 @@ main = do
 
     CreateUser{..} ->
       P.runSqlite conn $ do
-        hash' <- liftIO (hashPassword userPassword)
+        passwordText <- liftIO . fmap T.strip $ case userPassword of
+          PasswordText s -> pure s
+          PasswordFile f -> readFileUtf8 f
+        hash' <- liftIO (hashPassword passwordText)
         void $ P.upsertBy
           (UniqueUserName userName)
           (User userName hash' Nothing False False False)

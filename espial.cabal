@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6176e4be5a9b09fa50173b5bb2f280e5d8bc4c70374c91f1eac67ab03a49426f
+-- hash: 2d724440a0ea54ad278837400547fc97cde79d5998c51d59b4882db32eeb5372
 
 name:           espial
 version:        0.0.9
@@ -412,6 +412,7 @@ executable migration
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , optparse-applicative
     , optparse-generic >=1.2.3
     , parser-combinators
     , persistent >=2.8 && <2.14
