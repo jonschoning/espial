@@ -185,6 +185,7 @@ executables:
     dependencies:
       - espial
       - optparse-generic >= 1.2.3
+      - optparse-applicative
 
 # Test suite
 tests:
