@@ -8,7 +8,6 @@ import App (destroyNote, editNote)
 import Component.Markdown as Markdown
 import Data.Array (drop, foldMap)
 import Data.Either (Either(..))
-import Data.Foldable (for_)
 import Data.Lens (Lens', lens, use, (%=), (.=))
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Monoid (guard)

@@ -21,7 +21,7 @@ in  upstream
     }
 -}
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.14.7-20220228/src/packages.dhall
-        sha256:585403682c9378a55da644fb2edbc74d2592d18283bc9fa3457ad79398bb55bb
+      https://raw.githubusercontent.com/purescript/package-sets/psc-0.14.7-20220404/src/packages.dhall
+        sha256:75d0f0719f32456e6bdc3efd41cfc64785655d2b751e3d080bd849033ed053f2
 
 in  upstream

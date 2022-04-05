@@ -10,7 +10,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn4, runEffectFn1, runEffec
 import Model (Bookmark)
 import Prelude (Unit)
 import Web.DOM (Node)
-import Web.HTML (HTMLElement, HTMLFormElement, Window)
+import Web.HTML (HTMLFormElement, Window)
 import Web.XHR.FormData (FormData)
 
 type App =

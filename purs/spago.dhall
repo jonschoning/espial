@@ -26,7 +26,6 @@
   , "partial"
   , "prelude"
   , "profunctor-lenses"
-  , "psci-support"
   , "simple-json"
   , "strings"
   , "transformers"

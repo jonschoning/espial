@@ -5,7 +5,6 @@ import Prelude hiding (div)
 import App (editAccountSettings)
 import Data.Lens (Lens', lens, use, (%=))
 import Effect.Aff (Aff)
-import Globals (app')
 import Halogen as H
 import Halogen.HTML (div, input, text)
 import Halogen.HTML.Elements (label)
@@ -41,7 +40,6 @@ usetting u' =
     , eval: H.mkEval $ H.defaultEval { handleAction = handleAction }
     }
   where
-  app = app' unit
 
   mkState u =
     { us: u

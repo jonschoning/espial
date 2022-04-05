@@ -12,9 +12,9 @@
     "marked": "^3.0.2",
     "moment": "^2.29.1",
     "parcel-bundler": "^1.12.5",
-    "purescript": "^0.14.7",
+    "purescript": "^0.14.9",
     "spago": "^0.20.7",
-    "terser": "^5.7.2"
+    "terser": "^5.12.1"
   },
   "dependencies": {
     "dompurify": "^2.3.3"

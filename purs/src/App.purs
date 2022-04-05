@@ -9,7 +9,7 @@ import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes
 import Affjax.StatusCode (StatusCode(..))
-import Data.Argonaut (Json, decodeJson)
+import Data.Argonaut (decodeJson)
 import Data.Array ((:))
 import Data.Either (Either(..), hush)
 import Data.FormURLEncoded (FormURLEncoded)
