@@ -51,8 +51,12 @@ data MigrationOpts
                , privateDefault :: Maybe Bool
                , archiveDefault :: Maybe Bool
                , privacyLock :: Maybe Bool }
+  | CreateApiKey { conn :: Text
+                 , userName :: Text }
   | DeleteUser { conn :: Text
                , userName :: Text }
+  | DeleteApiKey { conn :: Text
+                 , userName :: Text }
   | ImportBookmarks { conn :: Text
                     , userName :: Text
                     , bookmarkFile :: FilePath }
@@ -92,12 +96,32 @@ main = do
           (UniqueUserName userName)
           (User userName hash' Nothing False False False)
           [ UserPasswordHash P.=. hash'
-          , UserApiToken P.=. Nothing
           , UserPrivateDefault P.=. fromMaybe False privateDefault
           , UserArchiveDefault P.=. fromMaybe False archiveDefault
           , UserPrivacyLock P.=. fromMaybe False privacyLock
           ]
         pure () :: DB ()
+
+    CreateApiKey {..} ->
+      P.runSqlite conn $ do
+        apiKey@(ApiKey plainKey) <- liftIO generateApiKey
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Nothing -> liftIO (print (userName ++ " not found"))
+          Just (P.Entity uid _) -> do
+            -- API key is only displayed once after creation,
+            -- since it is stored in hashed form.
+            let hashedKey = hashApiKey apiKey
+            P.update uid  [ UserApiToken P.=. Just hashedKey ]
+            liftIO $ print plainKey
+
+    DeleteApiKey {..} ->
+      P.runSqlite conn $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Nothing -> liftIO (print (userName ++ " not found"))
+          Just (P.Entity uid _) -> do
+            P.update uid  [ UserApiToken P.=. Nothing ]
 
     DeleteUser {..} ->
       P.runSqlite conn $ do
