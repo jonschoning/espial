@@ -17,6 +17,7 @@ import Yesod.Auth.Message
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 import qualified Yesod.Core.Unsafe as Unsafe
+import qualified Network.Wai as Wai
 
 data App = App
     { appSettings    :: AppSettings
@@ -67,8 +68,20 @@ instance Yesod App where
             else id
 
     yesodMiddleware :: HandlerFor App res -> HandlerFor App res
-    yesodMiddleware = customMiddleware . defaultYesodMiddleware . defaultCsrfMiddleware
+    yesodMiddleware = customMiddleware . defaultYesodMiddleware . customCsrfMiddleware
       where
+        customCsrfMiddleware handler = do
+          maybeRoute <- getCurrentRoute
+          dontCheckCsrf <- case maybeRoute of
+            -- `maybeAuthId` checks for the validity of the Authorization
+            -- header anyway, but it is still a good idea to limit this
+            -- flexibility to designated routes.
+            -- For the time being, `AddR` is the only route that accepts an
+            -- authentication token.
+            Just AddR -> isJust <$> lookupHeader "Authorization"
+            _ -> pure False
+          (if dontCheckCsrf then id else defaultCsrfMiddleware) handler
+
         customMiddleware handler = do
           addHeader "X-Frame-Options" "DENY"
           yesod <- getYesod
@@ -167,6 +180,24 @@ instance YesodAuth App where
   onLogout =
     deleteSession userNameKey
   redirectToReferer = const True
+  maybeAuthId = do
+    req <- waiRequest
+    let mAuthHeader = lookup "Authorization" (Wai.requestHeaders req)
+        extractKey = stripPrefix "ApiKey " . TE.decodeUtf8
+    case mAuthHeader of
+      Just authHeader ->
+        case extractKey authHeader of
+          Just apiKey -> do
+            user <- liftHandler $ runDB $ getApiKeyUser (ApiKey apiKey)
+            let userId = entityKey <$> user
+            pure userId
+          -- Since we disable CSRF middleware in the presence of Authorization
+          -- header, we need to explicitly check for the validity of the header
+          -- content. Otherwise, a dummy Authorization header with garbage input
+          -- could be provided to circumvent CSRF token requirement, making the app
+          -- vulnerable to CSRF attacks.
+          Nothing -> pure Nothing
+      _ -> defaultMaybeAuthId
 
 instance YesodAuthPersist App
 

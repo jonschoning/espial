@@ -34,7 +34,7 @@ User json
   Id Int64
   name Text
   passwordHash BCrypt
-  apiToken Text Maybe
+  apiToken HashedApiKey Maybe
   privateDefault Bool
   archiveDefault Bool
   privacyLock Bool
@@ -158,6 +158,10 @@ authenticatePassword username password = do
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
 getUserByName (UserNameP uname) =
   selectFirst [UserName CP.==. uname] []
+
+getApiKeyUser :: ApiKey -> DB (Maybe (Entity User))
+getApiKeyUser apiKey =
+  selectFirst [UserApiToken CP.==. Just (hashApiKey apiKey)] []
 
 -- returns a list of pair of bookmark with tags merged into a string
 bookmarksTagsQuery

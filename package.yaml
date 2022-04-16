@@ -141,6 +141,8 @@ dependencies:
 - parser-combinators
 - html-entities
 - connection
+- base64
+- cryptohash-sha256
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

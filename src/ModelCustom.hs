@@ -12,6 +12,8 @@ import qualified Data.Aeson as A
 import System.Entropy (getEntropy)
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Base64.URL as Base64Url
+import qualified Crypto.Hash.SHA256 as SHA256
 
 mkSlug :: Int -> IO T.Text
 mkSlug size =
@@ -58,3 +60,18 @@ hashPassword rawPassword = do
 validatePasswordHash :: BCrypt -> T.Text -> Bool
 validatePasswordHash hash' pass = do
   validatePassword (TE.encodeUtf8 (unBCrypt hash')) (TE.encodeUtf8 pass)
+
+newtype ApiKey = ApiKey { unApiKey :: T.Text }
+
+newtype HashedApiKey
+  = HashedApiKey T.Text
+  deriving stock (Eq, Ord, Show)
+  deriving newtype (PersistField, PersistFieldSql, A.FromJSON, A.ToJSON)
+
+generateApiKey :: IO ApiKey
+generateApiKey = do
+  bytes <- getEntropy 32
+  pure $ ApiKey $ Base64Url.encodeBase64 bytes
+
+hashApiKey :: ApiKey -> HashedApiKey
+hashApiKey = HashedApiKey . TE.decodeUtf8 . Base64Url.encodeBase64' . SHA256.hash . TE.encodeUtf8 . unApiKey

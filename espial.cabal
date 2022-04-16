@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -163,6 +163,7 @@ library
       aeson >=1.4
     , attoparsec
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , base64
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1.0
     , bytestring >=0.9 && <0.11
@@ -173,6 +174,7 @@ library
     , conduit >=1.0 && <2.0
     , connection
     , containers
+    , cryptohash-sha256
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -273,6 +275,7 @@ executable espial
       aeson >=1.4
     , attoparsec
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , base64
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1.0
     , bytestring >=0.9 && <0.11
@@ -283,6 +286,7 @@ executable espial
     , conduit >=1.0 && <2.0
     , connection
     , containers
+    , cryptohash-sha256
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -380,6 +384,7 @@ executable migration
       aeson >=1.4
     , attoparsec
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , base64
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1.0
     , bytestring >=0.9 && <0.11
@@ -390,6 +395,7 @@ executable migration
     , conduit >=1.0 && <2.0
     , connection
     , containers
+    , cryptohash-sha256
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -493,6 +499,7 @@ test-suite test
       aeson >=1.4
     , attoparsec
     , base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
+    , base64
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1.0
     , bytestring >=0.9 && <0.11
@@ -503,6 +510,7 @@ test-suite test
     , conduit >=1.0 && <2.0
     , connection
     , containers
+    , cryptohash-sha256
     , data-default
     , directory >=1.1 && <1.4
     , entropy
