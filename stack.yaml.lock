@@ -3,24 +3,10 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: classy-prelude-yesod-1.5.0@sha256:8f7e183bdfd6d2ea9674284c4f285294ab086aff60d9be4e5d7d2f3c1a2b05b7,1330
-    pantry-tree:
-      size: 330
-      sha256: ae84d4cc0e1daf985db6cdcf2ac92319531b8e60f547183cc46480d00aafbe20
-  original:
-    hackage: classy-prelude-yesod-1.5.0@sha256:8f7e183bdfd6d2ea9674284c4f285294ab086aff60d9be4e5d7d2f3c1a2b05b7,1330
-- completed:
-    hackage: yesod-newsfeed-1.7.0.0@sha256:ba49f9af47fe96c521ed889bf041c559b4bddb60a81f385449f7557f8f4aaef2,1345
-    pantry-tree:
-      size: 488
-      sha256: 96027436cc6dc07bca3f691f2d17a5b3993e980f73076c7b1b4d9c5c3ac5cb86
-  original:
-    hackage: yesod-newsfeed-1.7.0.0
+packages: []
 snapshots:
 - completed:
-    size: 587126
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/8.yaml
-    sha256: 93a107557e8691ed5ca17beaee41e68222b142c48868fc8c04a4181fb233477d
-  original: lts-18.8
+    size: 618683
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/4.yaml
+    sha256: d4ee004c46ba878d2f304f5d748d493057be579192a8d148527f3ba55c9df57f
+  original: lts-19.4

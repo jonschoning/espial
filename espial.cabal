@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.7.
 --
 -- see: https://github.com/sol/hpack
 
@@ -209,7 +209,7 @@ library
     , vector
     , wai
     , wai-extra >=3.0 && <3.2
-    , wai-logger >=2.2 && <2.4
+    , wai-logger
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
@@ -322,7 +322,7 @@ executable espial
     , vector
     , wai
     , wai-extra >=3.0 && <3.2
-    , wai-logger >=2.2 && <2.4
+    , wai-logger
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
@@ -433,7 +433,7 @@ executable migration
     , vector
     , wai
     , wai-extra >=3.0 && <3.2
-    , wai-logger >=2.2 && <2.4
+    , wai-logger
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
@@ -547,7 +547,7 @@ test-suite test
     , vector
     , wai
     , wai-extra >=3.0 && <3.2
-    , wai-logger >=2.2 && <2.4
+    , wai-logger
     , warp >=3.0 && <3.4
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
