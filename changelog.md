@@ -1,3 +1,6 @@
+__v0.0.12__
+update to ghc9
+
 __v0.0.11__
 add api key auth. 
 add CreateApiKey/DeleteApiKey commands to executable 'migration' 

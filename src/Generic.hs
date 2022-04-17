@@ -2,11 +2,12 @@ module Generic where
 
 import GHC.Generics
 import ClassyPrelude.Yesod
+import Data.Kind (Type)
 
 constrName :: (HasConstructor (Rep a), Generic a)=> a -> String
 constrName = genericConstrName . from 
 
-class HasConstructor (f :: * -> *) where
+class HasConstructor (f :: Type -> Type) where
   genericConstrName :: f x -> String
 
 instance HasConstructor f => HasConstructor (D1 c f) where
