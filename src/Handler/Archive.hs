@@ -50,7 +50,7 @@ archiveBookmarkUrl kbid url =
         manager <- getArchiveManager
         res <- liftIO $ NH.httpLbs req manager
         let status = NH.responseStatus res
-        let updateArchiveUrl = runDB . updateBookmarkArchiveUrl userId kbid . Just
+        let updateArchiveUrl url' = runDB $ updateBookmarkArchiveUrl userId kbid $ Just url'
             headers = NH.responseHeaders res
         case status of
           s | s == NH.status200 ->

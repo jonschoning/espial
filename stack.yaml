@@ -1,11 +1,3 @@
-resolver: lts-18.8
-# allow-newer: true
+resolver: lts-19.4
 packages:
-- '.'
-extra-deps:
-  # - ekg-0.4.0.15
-  # - ekg-json-0.1.0.6
-  # - monad-metrics-0.2.1.4
-  # - wai-middleware-metrics-0.2.4
-- classy-prelude-yesod-1.5.0@sha256:8f7e183bdfd6d2ea9674284c4f285294ab086aff60d9be4e5d7d2f3c1a2b05b7,1330
-- yesod-newsfeed-1.7.0.0
+- .

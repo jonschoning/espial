@@ -6,6 +6,7 @@ module Model where
 import qualified ClassyPrelude.Yesod as CP
 import qualified Control.Monad.Combinators as PC (between)
 import qualified Data.Aeson as A
+import qualified Data.Aeson.KeyMap as KM
 import qualified Data.Aeson.Types as A (parseFail)
 import qualified Data.Attoparsec.Text as P
 import qualified Data.Time as TI (ParseTime)
@@ -488,7 +489,7 @@ isExpanded TagCloudModeNone = False
 
 instance FromJSON TagCloudMode where
   parseJSON (Object o) =
-    case lookup "mode" o of
+    case KM.lookup "mode" o of
       Just (String "top") -> TagCloudModeTop <$> o .: "expanded" <*> o .: "value"
       Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
       Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> fmap words (o .: "value")

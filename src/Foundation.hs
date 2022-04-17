@@ -221,6 +221,7 @@ dbAuthPluginName = "db"
 dbAuthPlugin :: AuthPlugin App
 dbAuthPlugin = AuthPlugin dbAuthPluginName dbDispatch dbLoginHandler
   where
+    dbDispatch :: Text -> [Text] -> AuthHandler App TypedContent
     dbDispatch "POST" ["login"] = dbPostLoginR >>= sendResponse
     dbDispatch _ _ = notFound
     dbLoginHandler toParent = do
@@ -259,7 +260,7 @@ authenticateCreds Creds {..} = do
   muser <-
     case credsPlugin of
       p | p == dbAuthPluginName -> liftHandler $ runDB $
-        join <$> mapM (authenticatePassword credsIdent) (lookup "password" credsExtra)
+        join <$> mapM (\pwd -> authenticatePassword credsIdent pwd) (lookup "password" credsExtra)
       _ -> pure Nothing
   case muser of
     Nothing -> pure (UserError InvalidUsernamePass)

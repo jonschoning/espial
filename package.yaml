@@ -112,7 +112,7 @@ dependencies:
 - conduit >=1.0 && <2.0
 - monad-logger >=0.3 && <0.4
 - fast-logger >=2.2 && <4
-- wai-logger >=2.2 && <2.4
+- wai-logger
 - file-embed
 - safe
 - unordered-containers
