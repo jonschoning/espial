@@ -1,3 +1,6 @@
+__v0.0.13__
+add setting ALLOW_NON_HTTP_URL_SCHEMES (default false)
+
 __v0.0.12__
 update to ghc9
 

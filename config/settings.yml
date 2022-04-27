@@ -43,3 +43,5 @@ archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 
 ssl-only: "_env:SSL_ONLY" # false
+
+allow-non-http-url-schemes: "_env:ALLOW_NON_HTTP_URL_SCHEMES:false"
