@@ -66,6 +66,8 @@ data AppSettings = AppSettings
     -- ^ Uri to app source code
 
     , appSSLOnly :: Bool
+
+    , appAllowNonHttpUrlSchemes :: Bool
     }
 
 instance FromJSON AppSettings where
@@ -101,6 +103,8 @@ instance FromJSON AppSettings where
         appSourceCodeUri           <- o .:? "source-code-uri"
 
         appSSLOnly                 <- fromMaybe False <$> o .:? "ssl-only"
+
+        appAllowNonHttpUrlSchemes  <- fromMaybe False <$> o .:? "allow-non-http-url-schemes"
 
         return AppSettings {..}
 
