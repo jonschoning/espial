@@ -1,3 +1,6 @@
+_DOCKER:=docker
+_DOCKER_COMPOSE:=docker compose
+
 .PHONY: clean build
 
 all: build
@@ -26,7 +29,7 @@ migrate-createdb:
 serve:
 	@stack exec espial -- +RTS -T
 
-_ESPIAL_PS_ID = $$(docker-compose ps -q espial)
+_ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')
 _EKG_ASSETS_PATH = $$(find ~/.stack -type d | grep ekg.*assets)
 
@@ -38,20 +41,20 @@ docker-compose-build: build
 	@cp -R config dist
 	@mkdir -p dist/ekg/assets
 	@cp -R $(_EKG_ASSETS_PATH) dist/ekg
-	@docker-compose build espial
+	@$(_DOCKER_COMPOSE) build espial
 docker-compose-up:
-	@docker-compose up --no-deps --no-build espial
+	@$(_DOCKER_COMPOSE) up --no-deps --no-build espial
 docker-compose-down:
-	@docker-compose down
+	@$(_DOCKER_COMPOSE) down
 docker-compose-up-d:
-	@docker-compose up --no-deps --no-build -d espial
+	@$(_DOCKER_COMPOSE) up --no-deps --no-build -d espial
 docker-compose-pull:
-	@docker-compose pull espial
+	@$(_DOCKER_COMPOSE) pull espial
 docker-compose-push:
 	@docker tag localhost/espial:espial $(HUB_REPO)/espial:espial
-	@docker-compose push espial
+	@$(_DOCKER_COMPOSE) push espial
 docker-espial-logs:
-	@docker logs -f --since `date -u +%FT%TZ` $(_ESPIAL_PS_ID)
+	@$(_DOCKER) logs -f --since `date -u +%FT%TZ` $(_ESPIAL_PS_ID)
 docker-espial-shell:
 	@$(docker_espial) sh
 
@@ -61,7 +64,7 @@ ifeq ($(_HUB_REPO),)
 	_HUB_REPO := "localhost"
 endif
 
-docker_espial = docker-compose exec espial
+docker_espial = $(_DOCKER_COMPOSE) exec espial
 
 clean:
 	@stack clean
