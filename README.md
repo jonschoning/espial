@@ -33,6 +33,8 @@ see https://github.com/jonschoning/espial-docker
     stack build
     ```
 
+	After editing `config/settings.yml`, be sure to run `stack build` again.
+
 3. Create the database
 
     ```
@@ -63,11 +65,14 @@ see https://github.com/jonschoning/espial-docker
     stack exec espial
     ```
 
-see `config/settings.yml` for changing default run-time parameters / environment variables
+See `config/settings.yml` for changing default run-time parameters / environment variables.
 
 default app http port: `3000`
 
 ssl: use reverse proxy
+
+After changing `config/settings.yml`, run `stack build` again to apply the
+new settings.
 
 ## Development 
 
