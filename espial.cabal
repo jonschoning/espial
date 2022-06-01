@@ -62,7 +62,6 @@ extra-source-files:
     purs/src/App.purs
     purs/src/Globals.js
     purs/src/Globals.purs
-    purs/src/Main.js
     purs/src/Main.purs
     purs/src/Marked.js
     purs/src/Marked.purs

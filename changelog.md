@@ -1,3 +1,7 @@
+__v0.0.14__
+upgrade to purescript v0.15
+increase bookmarklet window height
+
 __v0.0.13__
 add setting ALLOW_NON_HTTP_URL_SCHEMES (default false)
 

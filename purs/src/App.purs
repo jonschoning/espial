@@ -2,9 +2,9 @@ module App where
 
 import Prelude
 
-import Affjax (Response, Error)
-import Affjax (defaultRequest) as AX
-import Affjax as Ax
+import Affjax.Web (Response, Error)
+import Affjax.Web (defaultRequest) as AX
+import Affjax.Web as Ax
 import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes

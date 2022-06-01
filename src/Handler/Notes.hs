@@ -39,7 +39,7 @@ getNotesR unamep@(UserNameP uname) = do
         app.dat.isowner = #{ isowner };
     |]
     toWidget [julius|
-      PS['Main'].renderNotes('##{rawJS renderEl}')(app.dat.notes)();
+      PS.renderNotes('##{rawJS renderEl}')(app.dat.notes)();
     |]
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
@@ -63,7 +63,7 @@ getNoteR unamep@(UserNameP uname) slug = do
         app.dat.isowner = #{ isowner };
     |]
     toWidget [julius|
-      PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
+      PS.renderNote('##{rawJS renderEl}')(app.dat.note)();
     |]
 
 getAddNoteSlimViewR :: Handler Html
@@ -85,7 +85,7 @@ getAddNoteViewR unamep@(UserNameP uname) = do
         app.dat.note = #{ toJSON enote } || [];
     |]
     toWidget [julius|
-      PS['Main'].renderNote('##{rawJS renderEl}')(app.dat.note)();
+      PS.renderNote('##{rawJS renderEl}')(app.dat.note)();
     |]
 
 deleteDeleteNoteR :: Int64 -> Handler Html

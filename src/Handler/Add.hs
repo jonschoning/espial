@@ -26,7 +26,7 @@ getAddViewR = do
       app.dat.bmark = #{ toJSON (fromMaybe formurl mformdb) }; 
     |]
     toWidget [julius|
-      PS['Main'].renderAddForm('##{rawJS renderEl}')(app.dat.bmark)();
+      PS.renderAddForm('##{rawJS renderEl}')(app.dat.bmark)();
     |]
 
 bookmarkFormUrl :: Handler BookmarkForm

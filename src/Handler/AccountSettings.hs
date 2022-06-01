@@ -15,7 +15,7 @@ getAccountSettingsR = do
         app.dat.accountSettings = #{ toJSON accountSettings } || []; 
     |]
     toWidget [julius|
-      PS['Main'].renderAccountSettings('##{rawJS accountSettingsEl}')(app.dat.accountSettings)();
+      PS.renderAccountSettings('##{rawJS accountSettingsEl}')(app.dat.accountSettings)();
     |]
 
 postEditAccountSettingsR :: Handler ()

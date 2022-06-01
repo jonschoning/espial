@@ -1,12 +1,12 @@
 "use strict";
 
-var moment = require("moment");
+import moment from 'moment'
 
-exports._app = function() {
+export const _app = function() {
   return app;
 }
 
-exports._closest = function(just, nothing, selector, el) {
+export const _closest = function(just, nothing, selector, el) {
   var node = el.closest(selector);
   if(node) {
     return just(node);
@@ -15,26 +15,26 @@ exports._closest = function(just, nothing, selector, el) {
   }
 }
 
-exports._createFormData = function(formElement) {
+export const _createFormData = function(formElement) {
   return new FormData(formElement);
 }
 
-exports._createFormString = function(formElement) {
+export const _createFormString = function(formElement) {
   return new URLSearchParams(new FormData(formElement)).toString()
 }
 
-exports._createFormArray = function(formElement) {
+export const _createFormArray = function(formElement) {
   return Array.from(new FormData(formElement));
 }
 
-exports._moment8601 = function(tuple, s) {
+export const _moment8601 = function(tuple, s) {
   var m = moment(s, moment.ISO_8601);
   var s1 = m.fromNow();
   var s2 = m.format('MMMM D YYYY, h:mm a') + " (" + m.format() + ") ";
   return tuple(s1)(s2);
 }
 
-exports._mmoment8601 = function(just, nothing, tuple, s) {
+export const _mmoment8601 = function(just, nothing, tuple, s) {
   try {
     var m = moment(s, moment.ISO_8601);
     var s1 = m.fromNow();
@@ -45,15 +45,15 @@ exports._mmoment8601 = function(just, nothing, tuple, s) {
   }
 }
 
-exports._closeWindow = function (window) {
+export const _closeWindow = function (window) {
   window.close();
 };
 
-exports._setFocus = function(elemId) {
+export const _setFocus = function(elemId) {
     document.getElementById(elemId).focus();
 };
 
 
-exports._toLocaleDateString = function(dateString) {
+export const _toLocaleDateString = function(dateString) {
   return new Date(dateString).toLocaleDateString(undefined, {dateStyle: 'medium'}) 
 }

@@ -18,7 +18,7 @@
           <a .link href="@{AddNoteViewR (UserNameP userName)}">add note&nbsp;&nbsp;
           <a .link href="@{NotesR (UserNameP userName)}">notes&nbsp;&nbsp;
           <a .link href="@{AccountSettingsR}">settings&nbsp;&nbsp;
-          <a .link onclick="PS['Main'].logoutE(event)()" href="@{AuthR LogoutR}">
+          <a .link onclick="PS.logoutE(event)()" href="@{AuthR LogoutR}">
               log out
         $nothing
           <a .link href="@{AuthR LoginR}">

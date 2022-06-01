@@ -6,17 +6,17 @@
     "purs": "purs",
     "make-install": "make install",
     "make-watch": "inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make; done",
-    "parcel-build": "parcel build dist/bundle.js --out-file dist/app.min.js --public-url /static/js/"
+    "esbuild-bundle": "esbuild ./output/Main/index.js --bundle --format=iife --global-name=PS --target=chrome58,firefox57,edge18 --outfile=dist/app.js",
+    "esbuild-bundle-min": "esbuild ./output/Main/index.js --bundle --format=iife --global-name=PS --target=chrome58,firefox57,edge18  --minify --sourcemap --outfile=dist/app.min.js"
   },
   "devDependencies": {
-    "marked": "^3.0.2",
-    "moment": "^2.29.1",
-    "parcel-bundler": "^1.12.5",
-    "purescript": "^0.14.9",
-    "spago": "^0.20.7",
-    "terser": "^5.12.1"
+    "esbuild": "0.14.42",
+    "purescript": "0.15.2",
+    "spago": "0.20.9"
   },
   "dependencies": {
-    "dompurify": "^2.3.3"
+    "dompurify": "2.3.8",
+    "marked": "4.0.16",
+    "moment": "2.29.3"
   }
 }

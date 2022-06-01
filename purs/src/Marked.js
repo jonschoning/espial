@@ -1,12 +1,12 @@
-var marked = require("marked");
-var DOMPurify = require("dompurify");
+import { marked } from 'marked';
+import DOMPurify from "dompurify"
 
 marked.setOptions({
   pedantic: false,
   gfm: true
 });
 
-exports.markedImpl = function(str) {
+export const markedImpl = function(str) {
   if (!str) return "";
-  return DOMPurify.sanitize(marked(str));
+  return DOMPurify.sanitize(marked.parse(str));
 };

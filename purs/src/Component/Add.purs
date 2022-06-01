@@ -25,6 +25,7 @@ import Web.Event.Event (Event, preventDefault)
 import Web.HTML (window)
 import Web.HTML.HTMLDocument (referrer)
 import Web.HTML.Location (setHref, origin)
+import DOM.HTML.Indexed.AutocompleteType (AutocompleteType(..))
 
 data BAction
   = BEditField EditField
@@ -114,7 +115,7 @@ addbmark b' =
              ]
            , tr_
              [ td_ [ label [ for "tags" ] [ text "tags" ] ]
-             , td_ [ input [ type_ InputText , id "tags", class_ "w-100 mv1" , name "tags", autocomplete false, attr "autocapitalize" "off", autofocus (not $ null bm.url)
+             , td_ [ input [ type_ InputText , id "tags", class_ "w-100 mv1" , name "tags", autocomplete AutocompleteOff, attr "autocapitalize" "off", autofocus (not $ null bm.url)
                            , value (edit_bm.tags) , onValueChange (editField Etags)] ]
              ]
            , tr_

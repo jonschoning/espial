@@ -63,10 +63,10 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     |]
     toWidget [julius|
       setTimeout(() => {
-        PS['Main'].renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
+        PS.renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
       }, 0);
       setTimeout(() => {
-        PS['Main'].renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
+        PS.renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
       }, 0);
     |]
 

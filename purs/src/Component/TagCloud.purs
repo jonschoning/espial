@@ -21,7 +21,7 @@ import Halogen as H
 import Halogen.HTML (HTML, a, attr, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (ButtonType(..), href, title, type_)
-import Math (log)
+import Data.Number (log)
 import Model (TagCloud, TagCloudModeF(..), isExpanded, isRelated, setExpanded, tagCloudModeFromF)
 import Util (class_, encodeTag, fromNullableStr, ifElseA, whenH)
 

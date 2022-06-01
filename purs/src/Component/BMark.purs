@@ -27,6 +27,7 @@ import Model (Bookmark)
 import Type.Proxy (Proxy(..))
 import Util (attr, class_, encodeTag, fromNullableStr, ifElseH, whenA, whenH)
 import Web.Event.Event (Event, preventDefault)
+import DOM.HTML.Indexed.AutocompleteType (AutocompleteType(..))
 
 -- | UI Events
 data BAction
@@ -179,7 +180,7 @@ bmark b' =
          , div [ id "tags_input_box"]
            [ div_ [ text "tags" ]
              , input [ id (tagid edit_bm), type_ InputText , class_ "tags w-100 mb1 pt1 edit_form_input" , name "tags"
-                     , autocomplete false, attr "autocapitalize" "off"
+                     , autocomplete AutocompleteOff, attr "autocapitalize" "off"
                      , value (edit_bm.tags) , onValueChange (editField Etags) ]
            ]
          , div [ class_ "edit_form_checkboxes mv3"]
