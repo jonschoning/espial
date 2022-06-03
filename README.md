@@ -33,8 +33,6 @@ see https://github.com/jonschoning/espial-docker
     stack build
     ```
 
-	After editing `config/settings.yml`, be sure to run `stack build` again.
-
 3. Create the database
 
     ```
@@ -65,14 +63,18 @@ see https://github.com/jonschoning/espial-docker
     stack exec espial
     ```
 
-See `config/settings.yml` for changing default run-time parameters / environment variables.
+### Configuration
 
-default app http port: `3000`
+See `config/settings.yml` for changing default run-time parameters & environment variables.
+ - `config/settings.yml` is embedded into the app executable when compiled, so after changing `config/settings.yml`, run `stack build` again to apply the new settings.
+ - `config/settings.yml` values formatted like `_env:ENV_VAR_NAME:default_value` can be
+   overridden by the specified environment variable.
+ - Example
+    - `_env:PORT:3000`
+        - environment variable `PORT`
+        - default app http port: `3000`
 
-ssl: use reverse proxy
-
-After changing `config/settings.yml`, run `stack build` again to apply the
-new settings.
+SSL: use reverse proxy
 
 ## Development 
 
