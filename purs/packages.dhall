@@ -21,36 +21,37 @@ in  upstream
     }
 -}
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.2-20220531/src/packages.dhall
-        sha256:278d3608439187e51136251ebf12fabda62d41ceb4bec9769312a08b56f853e3
+      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.4-20220725/src/packages.dhall
+        sha256:e56fbdf33a5afd2a610c81f8b940b413a638931edb41532164e641bb2a9ec29c
+
 in  upstream
-with simple-json = {
-    dependencies= [
-      "arrays",
-      "exceptions",
-      "foreign",
-      "foreign-object",
-      "nullable",
-      "prelude",
-      "record",
-      "typelevel-prelude",
-      "variant"
-    ],
-    repo= "https://github.com/justinwoo/purescript-simple-json.git",
-    version= "v9.0.0"
-  }
-with simple-json = {
-    dependencies= [
-      "arrays",
-      "exceptions",
-      "foreign",
-      "foreign-object",
-      "nullable",
-      "prelude",
-      "record",
-      "typelevel-prelude",
-      "variant"
-    ],
-    repo= "https://github.com/justinwoo/purescript-simple-json.git",
-    version= "v9.0.0"
-  }
+  with simple-json =
+    { dependencies =
+      [ "arrays"
+      , "exceptions"
+      , "foreign"
+      , "foreign-object"
+      , "nullable"
+      , "prelude"
+      , "record"
+      , "typelevel-prelude"
+      , "variant"
+      ]
+    , repo = "https://github.com/justinwoo/purescript-simple-json.git"
+    , version = "v9.0.0"
+    }
+  with simple-json =
+    { dependencies =
+      [ "arrays"
+      , "exceptions"
+      , "foreign"
+      , "foreign-object"
+      , "nullable"
+      , "prelude"
+      , "record"
+      , "typelevel-prelude"
+      , "variant"
+      ]
+    , repo = "https://github.com/justinwoo/purescript-simple-json.git"
+    , version = "v9.0.0"
+    }
