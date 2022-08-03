@@ -32,8 +32,18 @@ $maybe route <- mroute
             <a .link.silver.hover-blue :filterp == FilterStarred:.nav-active 
                href="@{UserFilterR unamep FilterStarred}">starred
         <div .fr.f6.pr3.dib.mb2>
-            <a .link.gold.hover-orange
-               href="@{UserFeedR unamep}">RSS
+          $if sharedp == SharedPrivate
+            <a .link.gold.hover-orange href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">RSS
+          $elseif sharedp == SharedPublic
+            <a .link.gold.hover-orange href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">RSS
+          $elseif filterp == FilterUnread
+            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">RSS
+          $elseif filterp == FilterUntagged
+            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">RSS
+          $elseif filterp == FilterStarred
+            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">RSS
+          $else
+            <a .link.gold.hover-orange href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">RSS
   
       <div .cf>
       

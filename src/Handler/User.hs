@@ -8,9 +8,10 @@ import           Import
 import qualified Text.Blaze.Html5 as H
 import           Yesod.RssFeed
 import qualified Data.Map as Map
+import qualified Network.Wai.Internal as W
 
 getUserR :: UserNameP -> Handler Html
-getUserR uname@(UserNameP name) =
+getUserR uname=
   _getUser uname SharedAll FilterAll (TagsP [])
 
 getUserSharedR :: UserNameP -> SharedP -> Handler Html
@@ -110,30 +111,50 @@ bookmarkToRssEntry (Entity entryId entry, tags) =
   }
 
 getUserFeedR :: UserNameP -> Handler RepRss
-getUserFeedR unamep@(UserNameP uname) = do
+getUserFeedR unamep = do
+  _getUserFeed unamep SharedAll FilterAll (TagsP [])
+
+getUserFeedSharedR :: UserNameP -> SharedP -> Handler RepRss
+getUserFeedSharedR uname sharedp =
+  _getUserFeed uname sharedp FilterAll (TagsP [])
+
+getUserFeedFilterR :: UserNameP -> FilterP -> Handler RepRss
+getUserFeedFilterR uname filterp =
+  _getUserFeed uname SharedAll filterp (TagsP [])
+
+getUserFeedTagsR :: UserNameP -> TagsP -> Handler RepRss
+getUserFeedTagsR uname = _getUserFeed uname SharedAll FilterAll
+
+_getUserFeed :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler RepRss
+_getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
-      queryp = "query" :: Text
       isowner = Just uname == mauthuname
+      sharedp = if isowner then sharedp' else SharedPublic
+      filterp = case filterp' of
+        FilterSingle _ -> filterp'
+        _ -> if isowner then filterp' else FilterAll
+      -- isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
+      queryp = "query" :: Text
   mquery <- lookupGetParam queryp
   (_, btmarks) <- runDB $ do
        Entity userId user <- getBy404 (UniqueUserName uname)
        when (not isowner && userPrivacyLock user)
          (redirect (AuthR LoginR))
-       bookmarksTagsQuery userId SharedPublic FilterAll [] mquery limit page
+       bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO getCurrentTime
                 Just m ->  return m
-  render <- getUrlRender
+  (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
   rssFeedText $
     Feed
     { feedTitle = "espial " <> uname
-    , feedLinkSelf = render (UserFeedR unamep)
-    , feedLinkHome = render (UserR unamep)
+    , feedLinkSelf = feedLinkSelf
+    , feedLinkHome = feedLinkHome
     , feedAuthor = uname
     , feedDescription = descr
     , feedLanguage = "en"
@@ -141,3 +162,11 @@ getUserFeedR unamep@(UserNameP uname) = do
     , feedLogo = Nothing
     , feedEntries = entries
     }
+  where
+    getFeedLinkSelf = do
+      request <- getRequest
+      render <- getUrlRender
+      let rawRequest = reqWaiRequest request
+          feedLinkSelf = render HomeR <> (T.drop 1 (decodeUtf8 (W.rawPathInfo rawRequest <> W.rawQueryString rawRequest)))
+          feedLinkHome = render (UserR unamep)
+      pure (feedLinkSelf, feedLinkHome)

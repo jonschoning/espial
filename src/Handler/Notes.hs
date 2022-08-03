@@ -8,6 +8,7 @@ import qualified Data.Aeson as A
 import qualified Data.Text as T
 import           Yesod.RssFeed
 import qualified Text.Blaze.Html5 as H
+import qualified Network.Wai.Internal as W
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
@@ -172,10 +173,10 @@ _toNote userId NoteForm {..} = do
     , noteUpdated = maybe time unUTCTimeStr _updated
     }
 
-noteToRssEntry :: UserNameP -> Entity Note -> FeedEntry (Route App)
-noteToRssEntry usernamep (Entity entryId entry) =
+noteToRssEntry :: (Route App -> Text) -> UserNameP -> Entity Note -> FeedEntry Text
+noteToRssEntry render usernamep (Entity entryId entry) =
   FeedEntry
-  { feedEntryLink = NoteR usernamep (noteSlug entry)
+  { feedEntryLink = render $ NoteR usernamep (noteSlug entry)
   , feedEntryUpdated = noteUpdated entry
   , feedEntryTitle = noteTitle entry
   , feedEntryContent = toHtml (noteText entry)
@@ -191,21 +192,24 @@ getNotesFeedR unamep@(UserNameP uname) = do
   let limit = maybe 20 fromIntegral limit'
       page  = maybe 1   fromIntegral page'
       isowner = Just uname == mauthuname
+      sharedp = if isowner then SharedAll else SharedPublic
   (_, notes) <- runDB do
       Entity userId user <- getBy404 (UniqueUserName uname)
       when (not isowner && userPrivacyLock user)
         (redirect (AuthR LoginR))
-      getNoteList userId mquery SharedPublic limit page
+      getNoteList userId mquery sharedp limit page
+  render <- getUrlRender
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
-      entries = map (noteToRssEntry unamep) notes
+      entries = map (noteToRssEntry render unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
                 Nothing -> liftIO getCurrentTime
                 Just m ->  return m
-  rssFeed $
+  (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
+  rssFeedText $
     Feed
     { feedTitle = uname <> " notes"
-    , feedLinkSelf = NotesFeedR unamep
-    , feedLinkHome = NotesR unamep
+    , feedLinkSelf = feedLinkSelf
+    , feedLinkHome = feedLinkHome
     , feedAuthor = uname
     , feedDescription = descr
     , feedLanguage = "en"
@@ -213,3 +217,11 @@ getNotesFeedR unamep@(UserNameP uname) = do
     , feedLogo = Nothing
     , feedEntries = entries
     }
+  where
+    getFeedLinkSelf = do
+      request <- getRequest
+      render <- getUrlRender
+      let rawRequest = reqWaiRequest request
+          feedLinkSelf = render HomeR <> (T.drop 1 (decodeUtf8 (W.rawPathInfo rawRequest <> W.rawQueryString rawRequest)))
+          feedLinkHome = render (UserR unamep)
+      pure (feedLinkSelf, feedLinkHome)
