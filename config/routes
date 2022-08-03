@@ -20,7 +20,11 @@
 !/#UserNameP/#SharedP UserSharedR GET
 !/#UserNameP/#FilterP UserFilterR GET
 !/#UserNameP/#TagsP UserTagsR GET
+
 !/#UserNameP/feed.xml UserFeedR GET
+!/#UserNameP/#SharedP/feed.xml UserFeedSharedR GET
+!/#UserNameP/#FilterP/feed.xml UserFeedFilterR GET
+!/#UserNameP/#TagsP/feed.xml UserFeedTagsR GET
 
 -- settings
 /Settings AccountSettingsR GET
