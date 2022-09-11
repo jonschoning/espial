@@ -8,10 +8,8 @@ module Foundation where
 import Import.NoFoundation
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
-import Text.Jasmine         (minifym)
 import PathPiece()
 
-import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types
 import Yesod.Auth.Message
 import qualified Data.CaseInsensitive as CI
@@ -104,20 +102,6 @@ instance Yesod App where
             addStylesheet (StaticR css_main_css)
             $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
-
-    addStaticContent ext mime content = do
-        master <- getYesod
-        let staticDir = appStaticDir (appSettings master)
-        addStaticContentExternal
-            minifym
-            genFileName
-            staticDir
-            (StaticR . flip StaticRoute [])
-            ext
-            mime
-            content
-      where
-        genFileName lbs = "autogen-" ++ base64md5 lbs
 
     shouldLogIO app _source level =
         pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError

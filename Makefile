@@ -31,7 +31,6 @@ serve:
 
 _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')
-_EKG_ASSETS_PATH = $$(find ~/.stack -type d | grep ekg.*assets)
 
 docker-compose-build: build 
 	@rm -Rf dist && mkdir -p dist
@@ -39,8 +38,6 @@ docker-compose-build: build
 	@cp -R static dist
 	@rm -Rf dist/static/tmp
 	@cp -R config dist
-	@mkdir -p dist/ekg/assets
-	@cp -R $(_EKG_ASSETS_PATH) dist/ekg
 	@$(_DOCKER_COMPOSE) build espial
 docker-compose-up:
 	@$(_DOCKER_COMPOSE) up --no-deps --no-build espial

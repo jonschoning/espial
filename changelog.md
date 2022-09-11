@@ -1,3 +1,6 @@
+__v0.0.15__
+Avoid using external static/tmp folder for generated static files
+
 __v0.0.14__
 upgrade to purescript v0.15
 increase bookmarklet window height
