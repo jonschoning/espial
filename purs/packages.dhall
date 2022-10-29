@@ -21,25 +21,10 @@ in  upstream
     }
 -}
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.4-20220725/src/packages.dhall
-        sha256:e56fbdf33a5afd2a610c81f8b940b413a638931edb41532164e641bb2a9ec29c
+      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.4-20221026/src/packages.dhall
+        sha256:8dc0b394f5861bb0136f652f3f826a88eaffb2bc0ecf0251468ed668102f5d0c
 
 in  upstream
-  with simple-json =
-    { dependencies =
-      [ "arrays"
-      , "exceptions"
-      , "foreign"
-      , "foreign-object"
-      , "nullable"
-      , "prelude"
-      , "record"
-      , "typelevel-prelude"
-      , "variant"
-      ]
-    , repo = "https://github.com/justinwoo/purescript-simple-json.git"
-    , version = "v9.0.0"
-    }
   with simple-json =
     { dependencies =
       [ "arrays"
