@@ -20,21 +20,6 @@ in  upstream
     , repo = "https://github.com/justinwoo/purescript-simple-json.git"
     , version = "v9.0.0"
     }
-  with simple-json =
-    { dependencies =
-      [ "arrays"
-      , "exceptions"
-      , "foreign"
-      , "foreign-object"
-      , "nullable"
-      , "prelude"
-      , "record"
-      , "typelevel-prelude"
-      , "variant"
-      ]
-    , repo = "https://github.com/justinwoo/purescript-simple-json.git"
-    , version = "v9.0.0"
-    }
   with autocomplete =
     { dependencies =
       [ "aff"
