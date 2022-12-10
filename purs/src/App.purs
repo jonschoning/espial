@@ -2,14 +2,13 @@ module App where
 
 import Prelude
 
-import Affjax.Web (Response, Error)
-import Affjax.Web (defaultRequest) as AX
-import Affjax.Web as Ax
 import Affjax.RequestBody as AXReq
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as AXRes
 import Affjax.StatusCode (StatusCode(..))
-import Data.Argonaut (decodeJson)
+import Affjax.Web (Response, Error)
+import Affjax.Web (defaultRequest) as AX
+import Affjax.Web as Ax
 import Data.Array ((:))
 import Data.Either (Either(..), hush)
 import Data.FormURLEncoded (FormURLEncoded)
@@ -21,6 +20,7 @@ import Effect.Class (liftEffect)
 import Globals (app')
 import Model (Bookmark, Bookmark'(..), Note, Note'(..), AccountSettings, AccountSettings'(..), TagCloudMode, TagCloudMode'(..), TagCloud)
 import Simple.JSON as J
+import Unsafe.Coerce (unsafeCoerce)
 import Web.HTML (window)
 import Web.HTML.Location (reload)
 import Web.HTML.Window (location)
@@ -64,7 +64,7 @@ getTagCloud :: TagCloudMode -> Aff (Maybe TagCloud)
 getTagCloud mode = do
     eres <- fetchJson POST "api/tagcloud" (Just (TagCloudMode' mode)) AXRes.json
     pure $ hush eres >>= \res ->
-        hush (decodeJson res.body)
+        pure (unsafeCoerce res.body)
 
 updateTagCloudMode :: TagCloudMode -> Aff (Either Error (Response Unit))
 updateTagCloudMode mode = do
