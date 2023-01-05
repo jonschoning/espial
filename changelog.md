@@ -1,3 +1,7 @@
+__v0.0.16__
+Add SIGTERM handler on linux
+Adjust docker CMD entrypoint 
+
 __v0.0.15__
 Avoid using external static/tmp folder for generated static files
 
