@@ -144,6 +144,13 @@ dependencies:
 - base64
 - cryptohash-sha256
 
+when: 
+  - condition: "!os(windows)"
+    dependencies: 
+      - unix
+
+
+
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
 library:

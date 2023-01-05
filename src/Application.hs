@@ -29,6 +29,10 @@ import           Network.Wai.Middleware.Gzip
 import           Network.Wai.Middleware.MethodOverride
 import           Network.Wai.Middleware.RequestLogger (Destination(Logger), IPAddrSource(..), OutputFormat(..), destination, mkRequestLogger, outputFormat)
 import           System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)
+#ifndef mingw32_HOST_OS
+import qualified Control.Concurrent as CC (killThread, myThreadId)
+import qualified System.Posix.Signals as PS (installHandler, Handler(CatchOnce), sigTERM)
+#endif
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -136,8 +140,12 @@ appMain = do
   settings <- loadYamlSettingsArgs [configSettingsYmlValue] useEnv
   foundation <- makeFoundation settings
   app <- makeApplication foundation
+#ifndef mingw32_HOST_OS
+  mainThreadId <- CC.myThreadId
+  void $ PS.installHandler PS.sigTERM (PS.CatchOnce (CC.killThread mainThreadId)) Nothing
+#endif
   runSettings (warpSettings foundation) app
-
+  
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
   settings <- getAppSettings
