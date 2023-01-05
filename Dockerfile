@@ -3,4 +3,4 @@
 FROM jonschoning/espial:scratch
 WORKDIR /app
 COPY . .
-CMD ./espial +RTS -T
+CMD ["./espial", "+RTS", "-T"]
