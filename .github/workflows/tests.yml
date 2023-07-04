@@ -1,36 +1,34 @@
-name: Tests
-
-on:
-    pull_request:
-    push:
-        branches:
-        - master
-    workflow_dispatch:
-
+on: [push]
+name: CI
 jobs:
-  build:
-    name: CI
-    runs-on: ${{ matrix.os }}
+  stack:
+    name: Stack / GHC ${{ matrix.ghc }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: 
-        - ubuntu-latest
-        #-macos-latest
-        #-windows-latest
-        #resolver:
-        #- nightly
-        #- lts-18.7
-
+        include:
+        - ghc: "9.4.5"
+          yaml: "stack.yaml"
     steps:
-      - name: Clone project
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-      - name: Build and run tests
-        shell: bash
-        run: |
-            set -ex
-            mkdir -p ../_newstack
-            stack upgrade --force-download --local-bin-path ../_newstack
-            ../_newstack/stack --version
-            ../_newstack/stack test --fast --no-terminal
+    - uses: haskell/actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
+        stack-version: "latest"
+
+    - uses: actions/cache@v3
+      name: Cache ~/.stack
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-${{ matrix.ghc }}-${{ matrix.yaml }}
+
+    - name: Build
+      run: |
+        stack build --stack-yaml ${{matrix.yaml}} --system-ghc --test --bench --no-run-tests --no-run-benchmarks --fast
+
+    - name: Test
+      run: |
+        stack test --stack-yaml ${{matrix.yaml}} --system-ghc --fast
