@@ -32,7 +32,6 @@ import ModelCustom
 
 share [mkPersist sqlSettings, mkMigrate "migrateSchema"] [persistLowerCase|
 User json
-  Id Int64
   name Text
   passwordHash BCrypt
   apiToken HashedApiKey Maybe
@@ -43,7 +42,6 @@ User json
   deriving Show Eq Typeable Ord
 
 Bookmark json
-  Id Int64
   userId UserId OnDeleteCascade
   slug BmSlug default="(lower(hex(randomblob(6))))"
   href Text
@@ -59,7 +57,6 @@ Bookmark json
   deriving Show Eq Typeable Ord
 
 BookmarkTag json
-  Id Int64
   userId UserId OnDeleteCascade
   tag Text
   bookmarkId BookmarkId OnDeleteCascade
@@ -69,7 +66,6 @@ BookmarkTag json
   deriving Show Eq Typeable Ord
 
 Note json
-  Id Int64
   userId UserId  OnDeleteCascade
   slug NtSlug default="(lower(hex(randomblob(10))))"
   length Int
@@ -666,7 +662,7 @@ _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
   , _tags = Just $ fromMaybe "" tags
   , _private = Just $ not bookmarkShared
   , _toread = Just bookmarkToRead
-  , _bid = Just $ unBookmarkKey $ bid
+  , _bid = Just $ fromSqlKey $ bid
   , _slug = Just bookmarkSlug
   , _selected = Just bookmarkSelected
   , _time = Just $ UTCTimeStr $ bookmarkTime

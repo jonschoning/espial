@@ -72,7 +72,7 @@ _handleFormSuccess bookmarkForm = do
   case (appAllowNonHttpUrlSchemes appSettings, (parseRequest . unpack . _url) bookmarkForm) of
     (False, Nothing) -> pure $ Failed "Invalid URL"
     (_, _) -> do
-      let mkbid = BookmarkKey <$> _bid bookmarkForm
+      let mkbid = toSqlKey <$> _bid bookmarkForm
           tags = maybe [] (nub . words . T.replace "," " ") (_tags bookmarkForm)
       bm <- liftIO $ _toBookmark userId bookmarkForm
       res <- runDB (upsertBookmark userId mkbid bm tags)

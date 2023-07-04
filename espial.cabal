@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.16
+version:        0.0.17
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -194,14 +194,14 @@ library
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.14
+    , persistent >=2.8 && <2.15
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.13
     , pretty-show
     , safe
-    , shakespeare ==2.0.*
+    , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=0.11 && <2.0
+    , text >=0.11 && <3.0
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -310,14 +310,14 @@ executable espial
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.14
+    , persistent >=2.8 && <2.15
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.13
     , pretty-show
     , safe
-    , shakespeare ==2.0.*
+    , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=0.11 && <2.0
+    , text >=0.11 && <3.0
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -424,14 +424,14 @@ executable migration
     , optparse-applicative
     , optparse-generic >=1.2.3
     , parser-combinators
-    , persistent >=2.8 && <2.14
+    , persistent >=2.8 && <2.15
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.13
     , pretty-show
     , safe
-    , shakespeare ==2.0.*
+    , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=0.11 && <2.0
+    , text >=0.11 && <3.0
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -541,14 +541,14 @@ test-suite test
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent >=2.8 && <2.14
+    , persistent >=2.8 && <2.15
     , persistent-sqlite >=2.6.2
     , persistent-template >=2.5 && <2.13
     , pretty-show
     , safe
-    , shakespeare ==2.0.*
+    , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=0.11 && <2.0
+    , text >=0.11 && <3.0
     , time
     , transformers >=0.2.2
     , unordered-containers

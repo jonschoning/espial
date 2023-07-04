@@ -1,6 +1,6 @@
 name:    espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.16"
+version: "0.0.17"
 description: ! '
 
   Espial is an open-source, web-based bookmarking server.
@@ -95,12 +95,12 @@ dependencies:
 - classy-prelude-conduit >=1.4 && <1.6
 - classy-prelude-yesod >=1.4 && <1.6
 - bytestring >=0.9 && <0.14
-- text >=0.11 && <2.0
-- persistent >=2.8 && <2.14
+- text >=0.11 && <3.0
+- persistent >=2.8 && <2.15
 - blaze-html >= 0.9 && < 1.0
 - persistent-template >=2.5 && <2.13
 - template-haskell
-- shakespeare >=2.0 && <2.1
+- shakespeare >=2.0 && <2.2
 - hjsmin >=0.1 && <0.3
 - wai-extra >=3.0 && <3.2
 - yaml >=0.8 && <0.12

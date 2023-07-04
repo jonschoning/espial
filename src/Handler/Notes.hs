@@ -93,7 +93,7 @@ deleteDeleteNoteR :: Int64 -> Handler Html
 deleteDeleteNoteR nid = do
   userId <- requireAuthId
   runDB do
-    let k_nid = NoteKey nid
+    let k_nid = toSqlKey nid
     _ <- requireResource userId k_nid
     delete k_nid
   return ""
@@ -119,7 +119,7 @@ _handleFormSuccess noteForm = do
   note <- liftIO $ _toNote userId noteForm
   runDB (upsertNote userId knid note)
   where
-    knid = NoteKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
+    knid = toSqlKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
 
 data NoteForm = NoteForm
   { _id :: Maybe Int64

@@ -1,3 +1,6 @@
+__v0.0.17__
+update to GHC 9.4.5
+
 __v0.0.16__
 Add SIGTERM handler on linux
 Adjust docker CMD entrypoint 

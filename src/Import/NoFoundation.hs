@@ -24,6 +24,7 @@ import Types as Import
 import Pretty as Import
 import Data.Functor as Import
 import Generic as Import
+import Database.Persist.Sql as Import (fromSqlKey, toSqlKey)
 
 
 #if MIN_VERSION_base(4, 11, 0)

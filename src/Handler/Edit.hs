@@ -12,7 +12,7 @@ deleteDeleteR :: Int64 -> Handler Html
 deleteDeleteR bid = do
   userId <- requireAuthId
   runDB do
-    let k_bid = BookmarkKey bid
+    let k_bid = toSqlKey bid
     _ <- requireResource userId k_bid
     delete k_bid
   return ""
@@ -21,7 +21,7 @@ postReadR :: Int64 -> Handler Html
 postReadR bid = do
   userId <- requireAuthId
   runDB do
-    let k_bid = BookmarkKey bid
+    let k_bid = toSqlKey bid
     _ <- requireResource userId k_bid
     update k_bid [BookmarkToRead =. False]
   return ""
@@ -38,7 +38,7 @@ _setSelected :: Int64 -> Bool -> Handler Html
 _setSelected bid selected = do
   userId <- requireAuthId
   runDB do
-    let k_bid = BookmarkKey bid
+    let k_bid = toSqlKey bid
     bm <- requireResource userId k_bid
     update k_bid [BookmarkSelected =. selected]
   pure ""
