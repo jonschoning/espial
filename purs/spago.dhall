@@ -4,7 +4,6 @@
   [ "aff"
   , "affjax"
   , "affjax-web"
-  , "argonaut"
   , "arrays"
   , "console"
   , "const"

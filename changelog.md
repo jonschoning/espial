@@ -1,3 +1,6 @@
+__v0.0.18__
+update ghc & purescript dependencies to latest
+
 __v0.0.17__
 update to GHC 9.4.5
 
