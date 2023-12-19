@@ -1,3 +1,6 @@
+__v0.0.19__
+update ghc & purescript dependencies to latest
+
 __v0.0.18__
 update ghc & purescript dependencies to latest
 

@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.18
+version:        0.0.19
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -171,9 +171,9 @@ library
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
-    , connection
     , containers
     , cryptohash-sha256
+    , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -286,9 +286,9 @@ executable espial
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
-    , connection
     , containers
     , cryptohash-sha256
+    , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -398,9 +398,9 @@ executable migration
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
-    , connection
     , containers
     , cryptohash-sha256
+    , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
     , entropy
@@ -516,9 +516,9 @@ test-suite test
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2.0
-    , connection
     , containers
     , cryptohash-sha256
+    , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
     , entropy

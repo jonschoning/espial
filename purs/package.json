@@ -10,13 +10,13 @@
     "esbuild-bundle-min": "esbuild ./output/Main/index.js --bundle --format=iife --global-name=PS --target=chrome58,firefox57,edge18  --minify --sourcemap --outfile=dist/app.min.js"
   },
   "devDependencies": {
-    "esbuild": "^0.18.11",
+    "esbuild": "^0.19.10",
     "purescript": "^0.15.11",
-    "spago": "0.20.9"
+    "spago": "^0.21.0"
   },
   "dependencies": {
     "dompurify": "^3.0.4",
-    "marked": "^9.0.3",
+    "marked": "^11.1.0",
     "moment": "^2.29.4"
   }
 }

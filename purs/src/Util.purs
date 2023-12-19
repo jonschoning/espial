@@ -8,7 +8,6 @@ import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
 import Data.Nullable (Nullable, toMaybe)
 import Data.String (Pattern(..), Replacement(..), drop, replaceAll, split, take)
-import Data.String as S
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect (Effect)
 import Halogen (ClassName(..))
