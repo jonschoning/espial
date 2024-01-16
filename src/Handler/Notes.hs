@@ -39,8 +39,10 @@ getNotesR unamep@(UserNameP uname) = do
         app.dat.notes = #{ toJSON notes } || [];
         app.dat.isowner = #{ isowner };
     |]
-    toWidget [julius|
-      PS.renderNotes('##{rawJS renderEl}')(app.dat.notes)();
+    toWidget [hamlet|
+      <script type="module">
+        import { renderNotes } from '@{StaticR js_app_min_js}'
+        renderNotes('##{renderEl}')(app.dat.notes)();
     |]
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
@@ -63,8 +65,10 @@ getNoteR unamep@(UserNameP uname) slug = do
         app.dat.note = #{ toJSON note } || [];
         app.dat.isowner = #{ isowner };
     |]
-    toWidget [julius|
-      PS.renderNote('##{rawJS renderEl}')(app.dat.note)();
+    toWidget [hamlet|
+      <script type="module">
+        import { renderNote } from '@{StaticR js_app_min_js}'
+        renderNote('##{renderEl}')(app.dat.note)();
     |]
 
 getAddNoteSlimViewR :: Handler Html
@@ -85,8 +89,10 @@ getAddNoteViewR unamep@(UserNameP uname) = do
         app.noteR = "@{NoteR unamep (noteSlug (entityVal enote))}";
         app.dat.note = #{ toJSON enote } || [];
     |]
-    toWidget [julius|
-      PS.renderNote('##{rawJS renderEl}')(app.dat.note)();
+    toWidget [hamlet|
+      <script type="module">
+        import { renderNote } from '@{StaticR js_app_min_js}'
+        renderNote('##{renderEl}')(app.dat.note)();
     |]
 
 deleteDeleteNoteR :: Int64 -> Handler Html

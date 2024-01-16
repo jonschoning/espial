@@ -1,3 +1,6 @@
+__v0.0.21__
+switch to esm javascript module imports
+
 __v0.0.20__
 update version bounds for cabal deps
                                 

@@ -87,6 +87,8 @@ instance Yesod App where
              then sslOnlyMiddleware session_timeout_minutes
              else id) handler
 
+    jsAttributes _ = [("type", "module")]
+
     defaultLayout widget = do
         req <- getRequest
         master <- getYesod
@@ -123,14 +125,15 @@ instance Yesod App where
       |]
 
 
+
 isAuthenticated :: Handler AuthResult
 isAuthenticated = maybeAuthId >>= \case
                     Just authId -> pure Authorized
                     _ -> pure $ AuthenticationRequired
 
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
-addAppScripts = do
-  addScript (StaticR js_app_min_js) 
+addAppScripts = do pure ()
+  -- addScriptAttrs (StaticR js_app_min_js) [("type","module")] 
 
 
 -- popupLayout

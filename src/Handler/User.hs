@@ -62,13 +62,15 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
-    toWidget [julius|
-      setTimeout(() => {
-        PS.renderBookmarks('##{rawJS renderEl}')(app.dat.bmarks)();
-      }, 0);
-      setTimeout(() => {
-        PS.renderTagCloud('##{rawJS tagCloudRenderEl}')(app.tagCloudMode)();
-      }, 0);
+    toWidget [hamlet|
+      <script type="module">
+        import { renderBookmarks, renderTagCloud } from '@{StaticR js_app_min_js}'
+        setTimeout(() => {
+          renderBookmarks('##{renderEl}')(app.dat.bmarks)();
+        }, 0);
+        setTimeout(() => {
+          renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
+        }, 0);
     |]
 
 -- Form

@@ -6,8 +6,8 @@
     "purs": "purs",
     "make-install": "make install",
     "make-watch": "inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make; done",
-    "esbuild-bundle": "esbuild ./output/Main/index.js --bundle --format=iife --global-name=PS --target=chrome58,firefox57,edge18 --outfile=dist/app.js",
-    "esbuild-bundle-min": "esbuild ./output/Main/index.js --bundle --format=iife --global-name=PS --target=chrome58,firefox57,edge18  --minify --sourcemap --outfile=dist/app.min.js"
+    "esbuild-bundle": "esbuild ./output/Main/index.js --bundle --format=esm --target=chrome61,firefox60,edge18 --outfile=dist/app.js",
+    "esbuild-bundle-min": "esbuild ./output/Main/index.js --bundle --format=esm --target=chrome61,firefox60,edge18  --minify --sourcemap --outfile=dist/app.min.js"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",

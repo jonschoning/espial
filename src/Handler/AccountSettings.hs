@@ -14,8 +14,10 @@ getAccountSettingsR = do
         app.userR = "@{UserR (UserNameP $ userName user)}";
         app.dat.accountSettings = #{ toJSON accountSettings } || []; 
     |]
-    toWidget [julius|
-      PS.renderAccountSettings('##{rawJS accountSettingsEl}')(app.dat.accountSettings)();
+    toWidget [hamlet|
+      <script type="module">
+        import { renderAccountSettings } from '@{StaticR js_app_min_js}'
+        renderAccountSettings('##{accountSettingsEl}')(app.dat.accountSettings)();
     |]
 
 postEditAccountSettingsR :: Handler ()

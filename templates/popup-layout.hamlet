@@ -5,7 +5,7 @@
       - (#{userName})
   <div .fr>
     $maybe userName <- musername
-      <a .link onclick="PS.logoutE(event)()" href="@{AuthR LogoutR}">
+      <a .link.logout-btn href="@{AuthR LogoutR}">
         [log out]
     $nothing
       <a .link href="@{AuthR LoginR}">

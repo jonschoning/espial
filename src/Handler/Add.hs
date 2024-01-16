@@ -25,8 +25,10 @@ getAddViewR = do
     toWidgetBody [julius|
       app.dat.bmark = #{ toJSON (fromMaybe formurl mformdb) }; 
     |]
-    toWidget [julius|
-      PS.renderAddForm('##{rawJS renderEl}')(app.dat.bmark)();
+    toWidget [hamlet|
+      <script type="module">
+        import { renderAddForm } from '@{StaticR js_app_min_js}'
+        renderAddForm('##{renderEl}')(app.dat.bmark)();
     |]
 
 bookmarkFormUrl :: Handler BookmarkForm

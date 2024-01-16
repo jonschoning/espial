@@ -17,10 +17,6 @@ $newline never
 
     ^{pageHead pc}
 
-    \<!--[if lt IE 9]>
-    \<script src="@{StaticR js_html5shiv_min_js}"></script>
-    \<![endif]-->
-
     <script>document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/, 'js');
     <script src="@{StaticR js_js_cookie_2_2_0_min_js}">
     <script>
@@ -36,3 +32,7 @@ $newline never
         };
   <body .f6.dark-gray.helvetica>
     ^{pageBody pc}
+
+  <script type="module">
+    import { logoutE } from '@{StaticR js_app_min_js}';
+    Array.from(document.getElementsByClassName('logout-btn')).forEach(_ => _.addEventListener('click', (e) => logoutE(e)()));
