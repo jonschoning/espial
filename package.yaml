@@ -1,6 +1,6 @@
 name:    espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.19"
+version: "0.0.20"
 description: ! '
 
   Espial is an open-source, web-based bookmarking server.
@@ -81,10 +81,7 @@ default-extensions:
 
 dependencies:
 
-# Due to a bug in GHC 8.0.1, we block its usage
-# See: https://ghc.haskell.org/trac/ghc/ticket/12130
-- base >=4.8.2.0 && <4.9 || >=4.9.1.0 && <5
-
+- base >=4.18.1.0 && <5
 - yesod >=1.6 && <1.8
 - yesod-core >=1.6 && <1.8
 - yesod-auth >=1.6 && <1.8
@@ -94,11 +91,11 @@ dependencies:
 - classy-prelude >=1.4 && <1.6
 - classy-prelude-conduit >=1.4 && <1.6
 - classy-prelude-yesod >=1.4 && <1.6
-- bytestring >=0.9 && <0.14
-- text >=0.11 && <3.0
-- persistent >=2.8 && <2.15
+- bytestring >=0.11.5 && <0.12
+- text >=2 && <3.0
+- persistent >=2.14 && <2.15
 - blaze-html >= 0.9 && < 1.0
-- persistent-template >=2.5 && <2.13
+- persistent-template >=2.12 && <2.13
 - template-haskell
 - shakespeare >=2.0 && <2.2
 - hjsmin >=0.1 && <0.3
@@ -127,7 +124,7 @@ dependencies:
 - attoparsec
 - bcrypt >= 0.0.8
 - entropy
-- esqueleto
+- esqueleto >= 3.5.11.1 && < 3.5.12
 - hscolour
 - http-api-data >= 0.3.4
 - http-client
@@ -135,13 +132,13 @@ dependencies:
 - iso8601-time >=0.1.3
 - microlens
 - mtl
-- persistent-sqlite >=2.6.2
+- persistent-sqlite >=2.13.3 && < 2.14
 - pretty-show
 - transformers >= 0.2.2
 - parser-combinators
 - html-entities
 - crypton-connection
-- base64
+- base64 < 1
 - cryptohash-sha256
 
 when: 

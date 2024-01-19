@@ -1,3 +1,6 @@
+__v0.0.20__
+update version bounds for cabal deps
+                                
 __v0.0.19__
 update ghc & purescript dependencies to latest
 
