@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.21
+version:        0.0.22
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:    .
                 Espial is an open-source, web-based bookmarking server.
@@ -55,8 +55,8 @@ extra-source-files:
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     purs/Makefile
-    purs/packages.dhall
-    purs/spago.dhall
+    purs/spago.lock
+    purs/spago.yaml
     purs/src/App.purs
     purs/src/Globals.js
     purs/src/Globals.purs

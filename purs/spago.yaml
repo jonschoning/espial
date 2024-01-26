@@ -1,0 +1,45 @@
+package:
+  name: espial
+  dependencies:
+    - aff
+    - affjax
+    - affjax-web
+    - arrays
+    - console
+    - const
+    - dom-indexed
+    - effect
+    - either
+    - foldable-traversable
+    - foreign
+    - foreign-object
+    - form-urlencoded
+    - functions
+    - halogen
+    - http-methods
+    - integers
+    - js-uri
+    - maybe
+    - media-types
+    - newtype
+    - nullable
+    - numbers
+    - partial
+    - prelude
+    - profunctor-lenses
+    - simple-json
+    - strings
+    - transformers
+    - tuples
+    - unsafe-coerce
+    - web-dom
+    - web-events
+    - web-html
+    - web-xhr
+  test:
+    main: Test.Main
+    dependencies: []
+workspace:
+  package_set:
+    registry: 48.7.0
+  extra_packages: {}

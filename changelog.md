@@ -1,3 +1,6 @@
+__v0.0.22__
+use spago-next
+
 __v0.0.21__
 switch to esm javascript module imports
 

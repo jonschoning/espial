@@ -12,7 +12,7 @@
   "devDependencies": {
     "esbuild": "^0.19.11",
     "purescript": "^0.15.14",
-    "spago": "^0.21.0"
+    "spago": "^0.93.24"
   },
   "dependencies": {
     "dompurify": "^3.0.8",
