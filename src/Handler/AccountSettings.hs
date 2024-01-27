@@ -16,7 +16,7 @@ getAccountSettingsR = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderAccountSettings } from '@{StaticR js_app_min_js}'
+        import { renderAccountSettings } from '@{StaticR js_purs_AccountSettings_index_js}'
         renderAccountSettings('##{accountSettingsEl}')(app.dat.accountSettings)();
     |]
 

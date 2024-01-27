@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.36.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -48,23 +48,48 @@ extra-source-files:
     static/css/tachyons.min.css
     static/css/tachyons.min.css.gz
     static/images/bluepin.gif
-    static/js/app.min.js
-    static/js/app.min.js.gz
-    static/js/app.min.js.map
-    static/js/app.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
+    static/js/purs/chunk-C2VZJJ3O.js
+    static/js/purs/chunk-C2VZJJ3O.js.gz
+    static/js/purs/chunk-C2VZJJ3O.js.map
+    static/js/purs/chunk-C2VZJJ3O.js.map.gz
+    static/js/purs/chunk-HXAV7WCB.js
+    static/js/purs/chunk-HXAV7WCB.js.gz
+    static/js/purs/chunk-HXAV7WCB.js.map
+    static/js/purs/chunk-HXAV7WCB.js.map.gz
+    static/js/purs/chunk-YZW7HJVL.js
+    static/js/purs/chunk-YZW7HJVL.js.gz
+    static/js/purs/chunk-YZW7HJVL.js.map
+    static/js/purs/chunk-YZW7HJVL.js.map.gz
+    static/js/purs/AccountSettings/index.js
+    static/js/purs/AccountSettings/index.js.gz
+    static/js/purs/AccountSettings/index.js.map
+    static/js/purs/AccountSettings/index.js.map.gz
+    static/js/purs/Add/index.js
+    static/js/purs/Add/index.js.gz
+    static/js/purs/Add/index.js.map
+    static/js/purs/Add/index.js.map.gz
+    static/js/purs/Bookmarks/index.js
+    static/js/purs/Bookmarks/index.js.gz
+    static/js/purs/Bookmarks/index.js.map
+    static/js/purs/Bookmarks/index.js.map.gz
+    static/js/purs/Logout/index.js
+    static/js/purs/Logout/index.js.gz
+    static/js/purs/Logout/index.js.map
+    static/js/purs/Logout/index.js.map.gz
+    static/js/purs/Note/index.js
+    static/js/purs/Note/index.js.gz
+    static/js/purs/Note/index.js.map
+    static/js/purs/Note/index.js.map.gz
     purs/Makefile
     purs/spago.lock
     purs/spago.yaml
-    purs/src/App.purs
-    purs/src/Globals.js
-    purs/src/Globals.purs
-    purs/src/Main.purs
-    purs/src/Marked.js
-    purs/src/Marked.purs
-    purs/src/Model.purs
-    purs/src/Util.purs
+    purs/src/AccountSettings.purs
+    purs/src/Add.purs
+    purs/src/Bookmarks.purs
+    purs/src/Logout.purs
+    purs/src/Note.purs
     purs/src/Component/AccountSettings.purs
     purs/src/Component/Add.purs
     purs/src/Component/BList.purs

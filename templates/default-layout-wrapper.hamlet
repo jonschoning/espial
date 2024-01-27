@@ -34,5 +34,5 @@ $newline never
     ^{pageBody pc}
 
   <script type="module">
-    import { logoutE } from '@{StaticR js_app_min_js}';
+    import { logoutE } from '@{StaticR js_purs_Logout_index_js}';
     Array.from(document.getElementsByClassName('logout-btn')).forEach(_ => _.addEventListener('click', (e) => logoutE(e)()));

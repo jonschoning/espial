@@ -64,7 +64,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud } from '@{StaticR js_app_min_js}'
+        import { renderBookmarks, renderTagCloud } from '@{StaticR js_purs_Bookmarks_index_js}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);

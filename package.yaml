@@ -33,6 +33,8 @@ extra-source-files:
 - static/css/**
 - static/images/**
 - static/js/**
+- static/js/purs/**
+- static/js/purs/**/**
 - purs/Makefile
 - purs/spago.lock
 - purs/spago.yaml

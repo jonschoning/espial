@@ -27,7 +27,7 @@ getAddViewR = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderAddForm } from '@{StaticR js_app_min_js}'
+        import { renderAddForm } from '@{StaticR js_purs_Add_index_js}'
         renderAddForm('##{renderEl}')(app.dat.bmark)();
     |]
 

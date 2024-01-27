@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/Logout.purs"],
+  "sourcesContent": ["module Logout where\n\nimport Prelude\n\nimport App (logout)\nimport Effect (Effect)\nimport Effect.Aff (launchAff)\nimport Web.Event.Event (Event, preventDefault)\n\nlogoutE :: Event -> Effect Unit\nlogoutE e = void <<< launchAff <<< logout =<< preventDefault e"],
+  "mappings": "0GASAA,EAAA,SAAAC,EAAA,UACY,SAAAC,EAAA,cAAAA,CAAA,CAAA,CAAA,MAAiDD,CAAA,CAAA",
+  "names": ["logoutE", "e", "$3"]
+}

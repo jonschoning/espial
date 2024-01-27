@@ -41,7 +41,7 @@ getNotesR unamep@(UserNameP uname) = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderNotes } from '@{StaticR js_app_min_js}'
+        import { renderNotes } from '@{StaticR js_purs_Note_index_js}'
         renderNotes('##{renderEl}')(app.dat.notes)();
     |]
 
@@ -67,7 +67,7 @@ getNoteR unamep@(UserNameP uname) slug = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderNote } from '@{StaticR js_app_min_js}'
+        import { renderNote } from '@{StaticR js_purs_Note_index_js}'
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
@@ -91,7 +91,7 @@ getAddNoteViewR unamep@(UserNameP uname) = do
     |]
     toWidget [hamlet|
       <script type="module">
-        import { renderNote } from '@{StaticR js_app_min_js}'
+        import { renderNote } from '@{StaticR js_purs_Note_index_js}'
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
