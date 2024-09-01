@@ -31,3 +31,6 @@ tags
 purs/docset/purescript-local.docset/
 .ghc.environment.x86_64-linux-8.6.5
 .vscode
+*.sqlite3*
+*bookmarks*.json
+*.log

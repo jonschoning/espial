@@ -21,8 +21,8 @@ in  upstream
     }
 -}
 let upstream =
-      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.14-20240117/src/packages.dhall
-        sha256:2ca7a513183cb6273394fc328b0b891044c159af7d9bc11ee7c7e20c3e48e6dc
+      https://raw.githubusercontent.com/purescript/package-sets/psc-0.15.15-20240829/src/packages.dhall
+        sha256:5bab5469c75bd8c7bac517385e6dd66cca0b2651676b4a99b357753c80bbe673
 
 in  upstream
   with simple-json =

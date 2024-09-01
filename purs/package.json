@@ -10,13 +10,13 @@
     "esbuild-bundle-min": "esbuild ./output/Main/index.js --bundle --format=esm --target=chrome61,firefox60,edge18  --minify --sourcemap --outfile=dist/app.min.js"
   },
   "devDependencies": {
-    "esbuild": "^0.19.11",
-    "purescript": "^0.15.14",
+    "esbuild": "^0.23.1",
+    "purescript": "^0.15.15",
     "spago": "^0.21.0"
   },
   "dependencies": {
-    "dompurify": "^3.0.8",
-    "marked": "^11.1.1",
+    "dompurify": "^3.1.6",
+    "marked": "^14.1.0",
     "moment": "^2.30.1"
   }
 }
