@@ -124,7 +124,7 @@ dependencies:
 - attoparsec
 - bcrypt >= 0.0.8
 - entropy
-- esqueleto >= 3.5.11.1 && < 3.5.12
+- esqueleto >= 3.5.11.1 && < 3.5.14
 - hscolour
 - http-api-data >= 0.3.4
 - http-client
