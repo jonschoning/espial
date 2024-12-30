@@ -130,7 +130,7 @@ addbmark b' =
              ]
            , tr_
              [ td_ [ ]
-             , td_ [ input [ type_ InputSubmit , class_ "ph3 pv2 input-reset black-70 ba b--navy bg-transparent pointer f6 dib mt1 dim"
+             , td_ [ input [ type_ InputSubmit , class_ "ph3 pv2 input-reset black ba b--navy bg-transparent pointer f6 dib mt1 dim"
                            , value (if bm.bid > 0 then "update bookmark" else "add bookmark") ] ]
              ]
            ]
