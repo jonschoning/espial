@@ -130,14 +130,14 @@ addbmark b' =
              ]
            , tr_
              [ td_ [ ]
-             , td_ [ input [ type_ InputSubmit , class_ "ph3 pv2 input-reset ba b--navy bg-transparent pointer f6 dib mt1 dim"
+             , td_ [ input [ type_ InputSubmit , class_ "ph3 pv2 input-reset black ba b--navy bg-transparent pointer f6 dib mt1 dim"
                            , value (if bm.bid > 0 then "update bookmark" else "add bookmark") ] ]
              ]
            ]
          ]
        ]
 
-     display_exists _ = 
+     display_exists _ =
        div [ class_ "alert" ]
        [ text "previously saved "
        , span [ class_ "link f7 dib gray pr3" , title (maybe bm.time snd mmoment) ]
@@ -148,12 +148,12 @@ addbmark b' =
            , span ([ class_ "confirm red" ] <> guard (not s.deleteAsk) [ attr "hidden" "hidden" ])
              [ button [ type_ ButtonButton, onClick \_ -> BDeleteAsk false] [ text "cancel / " ]
              , button [ type_ ButtonButton, onClick \_ -> BDestroy, class_ "red" ] [ text "destroy" ]
-             ] 
+             ]
            ]
          ]
        ]
 
-     alert_notification alert_text _ = 
+     alert_notification alert_text _ =
        div [ class_ "alert alert-err" ] [ text alert_text ]
 
      display_destroyed _ = p [ class_ "red"] [text "you killed this bookmark"]
@@ -195,7 +195,7 @@ addbmark b' =
 
   handleAction (BEditSubmit e) = do
     liftEffect (preventDefault e)
-    edit_bm <- use _edit_bm 
+    edit_bm <- use _edit_bm
     _apiError .= Nothing
     H.liftAff (editBookmark edit_bm) >>= case _ of
       Left affErr -> do
