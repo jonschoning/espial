@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -54,27 +54,21 @@ extra-source-files:
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     purs/Makefile
-    purs/packages.dhall
-    purs/spago.dhall
-    purs/src/App.purs
-    purs/src/Globals.js
-    purs/src/Globals.purs
-    purs/src/Main.purs
-    purs/src/Marked.js
-    purs/src/Marked.purs
-    purs/src/Model.purs
-    purs/src/Util.purs
-    purs/src/Component/AccountSettings.purs
-    purs/src/Component/Add.purs
-    purs/src/Component/BList.purs
-    purs/src/Component/BMark.purs
-    purs/src/Component/Markdown.purs
-    purs/src/Component/NList.purs
-    purs/src/Component/NNote.purs
-    purs/src/Component/RawHtml.js
-    purs/src/Component/RawHtml.purs
-    purs/src/Component/TagCloud.purs
-    purs/test/Main.purs
+    purs/src/api.ts
+    purs/src/globals.ts
+    purs/src/index.tsx
+    purs/src/types.ts
+    purs/src/util.ts
+    purs/src/components/AccountSettings.tsx
+    purs/src/components/AddForm.tsx
+    purs/src/components/BList.tsx
+    purs/src/components/BMark.tsx
+    purs/src/components/Markdown.tsx
+    purs/src/components/NList.tsx
+    purs/src/components/NNote.tsx
+    purs/src/components/TagCloud.tsx
+    purs/src/stores/bookmarksStore.ts
+    purs/src/stores/tagCloudStore.ts
 
 source-repository head
   type: git

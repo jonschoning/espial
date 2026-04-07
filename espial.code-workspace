@@ -7,5 +7,7 @@
 			"path": "purs"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"makefile.configureOnOpen": false
+	}
 }

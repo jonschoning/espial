@@ -32,11 +32,9 @@ extra-source-files:
 - static/images/**
 - static/js/**
 - purs/Makefile
-- purs/packages.dhall
-- purs/spago.dhall
 - purs/src/**
-- purs/src/**/Component/**
-- purs/test/**
+- purs/src/**/components/**
+- purs/src/**/stores/**
 
 default-extensions:
 - BangPatterns

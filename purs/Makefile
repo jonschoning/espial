@@ -3,10 +3,10 @@
 all: bundle
 
 install: 
-	@npm run spago install
+	@npm ci
 
 build: 
-	@npm run spago build
+	@npm run typecheck
 
 bundle: build
 	@npm run esbuild-bundle
