@@ -1,8 +1,9 @@
-import React from "react";
-import type { Bookmark } from "../types";
-import { destroy, editBookmark, lookupTitle } from "../api";
-import { closeWindow, mmoment8601 } from "../globals";
-import { curQuerystring, lookupQueryStringValue } from "../util";
+import React from 'react';
+
+import { destroy, editBookmark, lookupTitle } from '../api';
+import { closeWindow, mmoment8601 } from '../globals';
+import type { Bookmark } from '../types';
+import { curQuerystring, lookupQueryStringValue } from '../util';
 
 export function AddForm({ initial }: { initial: Bookmark }) {
   const [bm, setBm] = React.useState<Bookmark>(initial);
@@ -29,7 +30,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
     setDestroyed(true);
   }
 
-  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = async function onSubmit(e) {
+  const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
     setApiError(null);
     const res = await editBookmark(editBm);
@@ -37,12 +38,12 @@ export function AddForm({ initial }: { initial: Bookmark }) {
       setBm(editBm);
 
       const qs = curQuerystring();
-      const next = lookupQueryStringValue(qs, "next");
+      const next = lookupQueryStringValue(qs, 'next');
       const ref = document.referrer;
       const org = window.location.origin;
 
-      if (next === "closeWindow") closeWindow(window);
-      else if (next === "back") {
+      if (next === 'closeWindow') closeWindow(window);
+      else if (next === 'back') {
         if (ref.startsWith(org)) window.location.href = ref;
         else window.location.href = org;
       } else {
@@ -50,15 +51,17 @@ export function AddForm({ initial }: { initial: Bookmark }) {
       }
     } else {
       setApiError(res.bodyText);
-      // eslint-disable-next-line no-console
-      console.log(res.bodyText);
     }
-  }
+  };
 
   if (destroyed) return <p className="red">you killed this bookmark</p>;
 
   return (
-    <form onSubmit={(e) => void onSubmit(e)}>
+    <form
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+    >
       <table className="w-100">
         <tbody>
           <tr>
@@ -68,20 +71,27 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 <div className="alert">
                   previously saved&nbsp;
                   <span className="link f7 dib gray pr3" title={mm?.[1] ?? bm.time}>
-                    {mm?.[0] ?? "\u00a0"}
+                    {mm?.[0] ?? '\u00a0'}
                   </span>
                   <div className="edit_links dib ml1">
                     <div className="delete_link di">
                       <button
                         type="button"
-                        onClick={() => setDeleteAsk(true)}
+                        onClick={() => {
+                          setDeleteAsk(true);
+                        }}
                         className="delete"
                         hidden={deleteAsk}
                       >
                         delete
                       </button>
                       <span className="confirm red" hidden={!deleteAsk}>
-                        <button type="button" onClick={() => setDeleteAsk(false)}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteAsk(false);
+                          }}
+                        >
                           cancel&nbsp;/&nbsp;
                         </button>
                         <button type="button" onClick={() => void onDestroy()} className="red">
@@ -107,9 +117,11 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 className="w-100 mv1"
                 required
                 name="url"
-                autoFocus={bm.url === ""}
+                autoFocus={bm.url === ''}
                 value={editBm.url}
-                onChange={(e) => setEditBm((x) => ({ ...x, url: e.target.value }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, url: e.target.value }));
+                }}
               />
             </td>
           </tr>
@@ -125,13 +137,15 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 className="w-100 mv1 flex-auto"
                 name="title"
                 value={editBm.title}
-                onChange={(e) => setEditBm((x) => ({ ...x, title: e.target.value }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, title: e.target.value }));
+                }}
               />
               <button
                 disabled={loading}
                 type="button"
                 onClick={() => void onFetchTitle()}
-                className={`ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0${loading ? "bg-light-silver" : ""}`}
+                className={`ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0${loading ? 'bg-light-silver' : ''}`}
               >
                 fetch
               </button>
@@ -149,7 +163,9 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 name="description"
                 rows={4}
                 value={editBm.description}
-                onChange={(e) => setEditBm((x) => ({ ...x, description: e.target.value }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, description: e.target.value }));
+                }}
               />
             </td>
           </tr>
@@ -166,9 +182,11 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 name="tags"
                 autoComplete="off"
                 autoCapitalize="off"
-                autoFocus={bm.url !== ""}
+                autoFocus={bm.url !== ''}
                 value={editBm.tags}
-                onChange={(e) => setEditBm((x) => ({ ...x, tags: e.target.value }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, tags: e.target.value }));
+                }}
               />
             </td>
           </tr>
@@ -184,7 +202,9 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 className="private pointer"
                 name="private"
                 checked={editBm.private}
-                onChange={(e) => setEditBm((x) => ({ ...x, private: e.target.checked }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, private: e.target.checked }));
+                }}
               />
             </td>
           </tr>
@@ -200,7 +220,9 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 className="toread pointer"
                 name="toread"
                 checked={editBm.toread}
-                onChange={(e) => setEditBm((x) => ({ ...x, toread: e.target.checked }))}
+                onChange={(e) => {
+                  setEditBm((x) => ({ ...x, toread: e.target.checked }));
+                }}
               />
             </td>
           </tr>
@@ -211,7 +233,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               <input
                 type="submit"
                 className="ph3 pv2 input-reset black ba b--navy bg-transparent pointer f6 dib mt1 dim"
-                value={bm.bid > 0 ? "update bookmark" : "add bookmark"}
+                value={bm.bid > 0 ? 'update bookmark' : 'add bookmark'}
               />
             </td>
           </tr>
@@ -220,4 +242,3 @@ export function AddForm({ initial }: { initial: Bookmark }) {
     </form>
   );
 }
-

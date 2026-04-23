@@ -1,10 +1,11 @@
-import React from "react";
-import type { Note } from "../types";
-import { app, mmoment8601 } from "../globals";
-import { fromNullableStr } from "../util";
+import React from 'react';
+
+import { app, mmoment8601 } from '../globals';
+import type { Note } from '../types';
+import { fromNullableStr } from '../util';
 
 function toTextareaPreview(input: string) {
-  const lines = input.split("\n");
+  const lines = input.split('\n');
   return (
     <>
       {lines.slice(1).map((x, idx) => (
@@ -29,16 +30,22 @@ export function NList({ initial }: { initial: Note[] }) {
           <div
             key={note.id}
             id={String(note.id)}
-            className={`note w-100 mw7 pa1 mb2${note.shared ? "" : " private"}`}
+            className={`note w-100 mw7 pa1 mb2${note.shared ? '' : ' private'}`}
           >
             <div className="display">
               <a href={linkToFilterSingle(note.slug)} className="link f5 lh-title">
-                {note.title === "" ? "[no title]" : note.title}
+                {note.title === '' ? '[no title]' : note.title}
               </a>
               <br />
-              <div className="description mt1 mid-gray">{toTextareaPreview(note.text.slice(0, 200))}</div>
-              <a className="link f7 dib gray w4" title={mm?.[1] ?? note.created} href={linkToFilterSingle(note.slug)}>
-                {mm?.[0] ?? "\u00a0"}
+              <div className="description mt1 mid-gray">
+                {toTextareaPreview(note.text.slice(0, 200))}
+              </div>
+              <a
+                className="link f7 dib gray w4"
+                title={mm?.[1] ?? note.created}
+                href={linkToFilterSingle(note.slug)}
+              >
+                {mm?.[0] ?? '\u00a0'}
               </a>
             </div>
           </div>
@@ -47,4 +54,3 @@ export function NList({ initial }: { initial: Note[] }) {
     </div>
   );
 }
-

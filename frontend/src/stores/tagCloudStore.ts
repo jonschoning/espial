@@ -1,5 +1,6 @@
-import { create } from "zustand";
-import type { TagCloud, TagCloudModeF } from "../types";
+import { create } from 'zustand';
+
+import type { TagCloud, TagCloudModeF } from '../types';
 
 export type TagCloudState = {
   mode: TagCloudModeF;
@@ -9,9 +10,12 @@ export type TagCloudState = {
 };
 
 export const useTagCloudStore = create<TagCloudState>((set) => ({
-  mode: { kind: "none" },
+  mode: { kind: 'none' },
   tagcloud: {},
-  setMode: (mode) => set({ mode }),
-  setTagCloud: (tagcloud) => set({ tagcloud }),
+  setMode: (mode) => {
+    set({ mode });
+  },
+  setTagCloud: (tagcloud) => {
+    set({ tagcloud });
+  },
 }));
-

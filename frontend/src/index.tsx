@@ -1,22 +1,22 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import type { AccountSettings, Bookmark, Note, TagCloudMode } from "./types";
-import { tagCloudModeToF } from "./types";
-import { logout } from "./api";
-import { AccountSettingsView } from "./components/AccountSettings";
-import { AddForm } from "./components/AddForm";
-import { BList } from "./components/BList";
-import { NList } from "./components/NList";
-import { NNote } from "./components/NNote";
-import { TagCloud } from "./components/TagCloud";
+import { createRoot } from 'react-dom/client';
+
+import { logout } from './api';
+import { AccountSettingsView } from './components/AccountSettings';
+import { AddForm } from './components/AddForm';
+import { BList } from './components/BList';
+import { NList } from './components/NList';
+import { NNote } from './components/NNote';
+import { TagCloud } from './components/TagCloud';
+import type { AccountSettings, Bookmark, Note, TagCloudMode } from './types';
+import { tagCloudModeToF } from './types';
 
 function selectEl(selector: string): Element | null {
   return document.querySelector(selector);
 }
 
 function viewRendered(): void {
-  const el = document.querySelector("#content");
-  if (el) el.setAttribute("view-rendered", "");
+  const el = document.querySelector('#content');
+  if (el) el.setAttribute('view-rendered', '');
 }
 
 export const logoutE = (e: Event) => () => {
@@ -58,10 +58,10 @@ export const renderNote = (renderElSelector: string) => (note: Note) => () => {
   viewRendered();
 };
 
-export const renderAccountSettings = (renderElSelector: string) => (accountSettings: AccountSettings) => () => {
-  const el = selectEl(renderElSelector);
-  if (!el) return;
-  createRoot(el).render(<AccountSettingsView initial={accountSettings} />);
-  viewRendered();
-};
-
+export const renderAccountSettings =
+  (renderElSelector: string) => (accountSettings: AccountSettings) => () => {
+    const el = selectEl(renderElSelector);
+    if (!el) return;
+    createRoot(el).render(<AccountSettingsView initial={accountSettings} />);
+    viewRendered();
+  };

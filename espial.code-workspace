@@ -8,6 +8,30 @@
 		}
 	],
 	"settings": {
-		"makefile.configureOnOpen": false
+		"makefile.configureOnOpen": false,
+		"editor.formatOnSave": true,
+		"eslint.useFlatConfig": true,
+		"eslint.workingDirectories": [
+			{
+				"directory": "frontend",
+				"changeProcessCWD": true
+			}
+		],
+		"eslint.validate": [
+			"typescript",
+			"typescriptreact"
+		],
+		"[typescript]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
+		"[typescriptreact]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode"
+		]
 	}
 }

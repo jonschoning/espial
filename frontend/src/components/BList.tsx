@@ -1,7 +1,8 @@
-import React from "react";
-import type { Bookmark } from "../types";
-import { useBookmarksStore } from "../stores/bookmarksStore";
-import { BMark } from "./BMark";
+import React from 'react';
+
+import { useBookmarksStore } from '../stores/bookmarksStore';
+import type { Bookmark } from '../types';
+import { BMark } from './BMark';
 
 export function BList({ initial }: { initial: Bookmark[] }) {
   const bmarks = useBookmarksStore((s) => s.bmarks);
@@ -19,11 +20,14 @@ export function BList({ initial }: { initial: Bookmark[] }) {
         <BMark
           key={b.bid}
           initial={b}
-          onNotifyRemove={() => removeById(b.bid)}
-          onUpdated={(bm) => upsert(bm)}
+          onNotifyRemove={() => {
+            removeById(b.bid);
+          }}
+          onUpdated={(bm) => {
+            upsert(bm);
+          }}
         />
       ))}
     </div>
   );
 }
-

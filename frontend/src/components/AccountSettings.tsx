@@ -1,6 +1,7 @@
-import React from "react";
-import type { AccountSettings } from "../types";
-import { editAccountSettings } from "../api";
+import React from 'react';
+
+import { editAccountSettings } from '../api';
+import type { AccountSettings } from '../types';
 
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const [us, setUs] = React.useState<AccountSettings>(initial);
@@ -58,4 +59,3 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
     </div>
   );
 }
-

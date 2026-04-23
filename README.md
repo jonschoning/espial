@@ -91,7 +91,7 @@ SSL: use reverse proxy
 
 ### Frontend
 
-- See `purs/` folder
+- See `frontend/` folder
 
 ## Import Bookmark file format (pinboard compatible format)
 
