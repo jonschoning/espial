@@ -2,20 +2,13 @@ on: [push]
 name: CI
 jobs:
   stack:
-    name: Stack / GHC ${{ matrix.ghc }}
+    name: Stack
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - ghc: "9.4.5"
-          yaml: "stack.yaml"
     steps:
     - uses: actions/checkout@v3
 
     - uses: haskell/actions/setup@v2
       with:
-        ghc-version: ${{ matrix.ghc }}
         enable-stack: true
         stack-version: "latest"
 
@@ -23,12 +16,12 @@ jobs:
       name: Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-${{ matrix.yaml }}
+        key: ${{ runner.os }}-stack-lts-24.37
 
     - name: Build
       run: |
-        stack build --stack-yaml ${{matrix.yaml}} --system-ghc --test --bench --no-run-tests --no-run-benchmarks --fast
+        stack build --stack-yaml stack.yaml --test --bench --no-run-tests --no-run-benchmarks --fast
 
     - name: Test
       run: |
-        stack test --stack-yaml ${{matrix.yaml}} --system-ghc --fast
+        stack test --stack-yaml stack.yaml --fast
