@@ -34,7 +34,7 @@ _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $
 
 docker-compose-build: build 
 	@rm -Rf dist && mkdir -p dist
-	@cp $(_LOCAL_INSTALL_PATH)/bin/* dist
+	@cp -R $(_LOCAL_INSTALL_PATH)/bin/. dist
 	@cp -R static dist
 	@rm -Rf dist/static/tmp
 	@cp -R config dist
