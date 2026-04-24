@@ -33,12 +33,14 @@ _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')
 
 docker-compose-build: build 
+	@$(_DOCKER_COMPOSE) build espial
+docker-compose-build-scratch: build
 	@rm -Rf dist && mkdir -p dist
 	@cp -R $(_LOCAL_INSTALL_PATH)/bin/. dist
 	@cp -R static dist
 	@rm -Rf dist/static/tmp
 	@cp -R config dist
-	@$(_DOCKER_COMPOSE) build espial
+	@$(_DOCKER) build -f Dockerfile.scratch -t localhost/espial:espial dist
 docker-compose-up:
 	@$(_DOCKER_COMPOSE) up --no-deps --no-build espial
 docker-compose-down:
