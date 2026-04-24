@@ -3,10 +3,10 @@
 all: bundle
 
 install: 
-	@npm run spago install
+	@npm ci
 
 build: 
-	@npm run spago build
+	@npm run typecheck
 
 bundle: build
 	@npm run esbuild-bundle
@@ -20,13 +20,5 @@ bundle: build
 	@cp dist/app.min.js.map ../static/js/app.min.js.map
 	@cp dist/app.min.js.map.gz ../static/js/app.min.js.map.gz
 
-docs:
-	@rm -Rf generated-docs
-	@npm run purs -- docs ".spago/*/*/src/**/*.purs" --format html
-
-docset: docs
-	@(cd docset; python3 ./gen-docset.py)
 clean:
 	rm -f dist/*
-
-# inotifywait -m -r -q -e close_write --format '%T %w%f' --timefmt '%T' src | while read FILE; do echo $FILE; make build; done

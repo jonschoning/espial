@@ -25,7 +25,7 @@ import           Network.Wai (Middleware)
 import           Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, runSettings, setHost, setOnException, setPort, getPort)
 import           Network.Wai.Middleware.AcceptOverride
 import           Network.Wai.Middleware.Autohead
-import           Network.Wai.Middleware.Gzip
+import           Network.Wai.Middleware.Gzip hiding (def)
 import           Network.Wai.Middleware.MethodOverride
 import           Network.Wai.Middleware.RequestLogger (Destination(Logger), IPAddrSource(..), OutputFormat(..), destination, mkRequestLogger, outputFormat)
 import           System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)

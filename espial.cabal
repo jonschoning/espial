@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.22
+version:        0.0.23
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + PureScript + sqlite3
@@ -53,28 +53,22 @@ extra-source-files:
     static/js/app.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
-    purs/Makefile
-    purs/packages.dhall
-    purs/spago.dhall
-    purs/src/App.purs
-    purs/src/Globals.js
-    purs/src/Globals.purs
-    purs/src/Main.purs
-    purs/src/Marked.js
-    purs/src/Marked.purs
-    purs/src/Model.purs
-    purs/src/Util.purs
-    purs/src/Component/AccountSettings.purs
-    purs/src/Component/Add.purs
-    purs/src/Component/BList.purs
-    purs/src/Component/BMark.purs
-    purs/src/Component/Markdown.purs
-    purs/src/Component/NList.purs
-    purs/src/Component/NNote.purs
-    purs/src/Component/RawHtml.js
-    purs/src/Component/RawHtml.purs
-    purs/src/Component/TagCloud.purs
-    purs/test/Main.purs
+    frontend/Makefile
+    frontend/src/api.ts
+    frontend/src/globals.ts
+    frontend/src/index.tsx
+    frontend/src/types.ts
+    frontend/src/util.ts
+    frontend/src/components/AccountSettings.tsx
+    frontend/src/components/AddForm.tsx
+    frontend/src/components/BList.tsx
+    frontend/src/components/BMark.tsx
+    frontend/src/components/Markdown.tsx
+    frontend/src/components/NList.tsx
+    frontend/src/components/NNote.tsx
+    frontend/src/components/TagCloud.tsx
+    frontend/src/stores/bookmarksStore.ts
+    frontend/src/stores/tagCloudStore.ts
 
 source-repository head
   type: git
@@ -174,7 +168,7 @@ library
     , data-default
     , directory >=1.1 && <1.4
     , entropy
-    , esqueleto >=3.5.11.1 && <3.5.15
+    , esqueleto >=3.5.11.1 && <3.7.0.0
     , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
@@ -191,7 +185,7 @@ library
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent ==2.14.*
+    , persistent >=2.14 && <2.18
     , persistent-sqlite >=2.13.3 && <2.14
     , persistent-template ==2.12.*
     , pretty-show
@@ -290,7 +284,7 @@ executable espial
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.5.15
+    , esqueleto >=3.5.11.1 && <3.7.0.0
     , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
@@ -307,7 +301,7 @@ executable espial
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent ==2.14.*
+    , persistent >=2.14 && <2.18
     , persistent-sqlite >=2.13.3 && <2.14
     , persistent-template ==2.12.*
     , pretty-show
@@ -402,7 +396,7 @@ executable migration
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.5.15
+    , esqueleto >=3.5.11.1 && <3.7.0.0
     , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
@@ -421,7 +415,7 @@ executable migration
     , optparse-applicative
     , optparse-generic >=1.2.3
     , parser-combinators
-    , persistent ==2.14.*
+    , persistent >=2.14 && <2.18
     , persistent-sqlite >=2.13.3 && <2.14
     , persistent-template ==2.12.*
     , pretty-show
@@ -520,7 +514,7 @@ test-suite test
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.5.15
+    , esqueleto >=3.5.11.1 && <3.7.0.0
     , fast-logger >=2.2 && <4
     , file-embed
     , foreign-store
@@ -538,7 +532,7 @@ test-suite test
     , monad-logger ==0.3.*
     , mtl
     , parser-combinators
-    , persistent ==2.14.*
+    , persistent >=2.14 && <2.18
     , persistent-sqlite >=2.13.3 && <2.14
     , persistent-template ==2.12.*
     , pretty-show

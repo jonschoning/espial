@@ -1,3 +1,7 @@
+__v0.0.23__
+migrate frontend code from purescript to typescript/react
+update stackage resolver: lts-24.37
+
 __v0.0.22__
 
 update to stackage LTS 23 (ghc-9.8.4); purs package-set update

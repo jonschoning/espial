@@ -1,21 +1,38 @@
 on: [push]
 name: CI
 jobs:
-  stack:
-    name: Stack / GHC ${{ matrix.ghc }}
+  frontend:
+    name: Frontend Lint and Format
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        - ghc: "9.4.5"
-          yaml: "stack.yaml"
+    defaults:
+      run:
+        working-directory: frontend
     steps:
     - uses: actions/checkout@v3
 
-    - uses: haskell/actions/setup@v2
+    - uses: actions/setup-node@v4
       with:
-        ghc-version: ${{ matrix.ghc }}
+        node-version: 20
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: ESLint
+      run: npm run lint
+
+    - name: Prettier check
+      run: npx prettier --check "src/**/*.{ts,tsx,js,json,md}"
+
+  stack:
+    name: Stack
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: haskell-actions/setup@v2
+      with:
         enable-stack: true
         stack-version: "latest"
 
@@ -23,12 +40,12 @@ jobs:
       name: Cache ~/.stack
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-${{ matrix.yaml }}
+        key: ${{ runner.os }}-stack-lts-24.37
 
     - name: Build
       run: |
-        stack build --stack-yaml ${{matrix.yaml}} --system-ghc --test --bench --no-run-tests --no-run-benchmarks --fast
+        stack build --stack-yaml stack.yaml --test --bench --no-run-tests --no-run-benchmarks --fast
 
     - name: Test
       run: |
-        stack test --stack-yaml ${{matrix.yaml}} --system-ghc --fast
+        stack test --stack-yaml stack.yaml --fast
