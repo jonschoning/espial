@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.23
+version:        0.0.24
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + PureScript + sqlite3
@@ -46,6 +46,10 @@ extra-source-files:
     static/css/popup.css
     static/css/tachyons.min.css
     static/css/tachyons.min.css.gz
+    static/fonts/glyphicons-halflings-regular.eot
+    static/fonts/glyphicons-halflings-regular.svg
+    static/fonts/glyphicons-halflings-regular.ttf
+    static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
     static/js/app.min.js
     static/js/app.min.js.gz
@@ -53,12 +57,15 @@ extra-source-files:
     static/js/app.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
+    frontend/.prettierignore
+    frontend/.prettierrc
+    frontend/eslint.config.mjs
     frontend/Makefile
+    frontend/package-lock.json
+    frontend/package.json
+    frontend/README.md
+    frontend/tsconfig.json
     frontend/src/api.ts
-    frontend/src/globals.ts
-    frontend/src/index.tsx
-    frontend/src/types.ts
-    frontend/src/util.ts
     frontend/src/components/AccountSettings.tsx
     frontend/src/components/AddForm.tsx
     frontend/src/components/BList.tsx
@@ -67,8 +74,12 @@ extra-source-files:
     frontend/src/components/NList.tsx
     frontend/src/components/NNote.tsx
     frontend/src/components/TagCloud.tsx
+    frontend/src/globals.ts
+    frontend/src/index.tsx
     frontend/src/stores/bookmarksStore.ts
     frontend/src/stores/tagCloudStore.ts
+    frontend/src/types.ts
+    frontend/src/util.ts
 
 source-repository head
   type: git

@@ -1,15 +1,16 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Import
-    ( module Import
-    ) where
+  ( module Import,
+  )
+where
 
-import Foundation            as Import
-import Import.NoFoundation   as Import
-
-import qualified Data.ByteString.Char8 as B8
 import qualified Data.Aeson as A
+import qualified Data.ByteString.Char8 as B8
+import Data.Type.Equality (type (~))
+import Foundation as Import
+import Import.NoFoundation as Import
 
 -- Forms
 
@@ -17,9 +18,9 @@ type MonadHandlerForm m = (RenderMessage App FormMessage, HandlerSite m ~ App, M
 
 type Form f = Html -> MForm Handler (FormResult f, Widget)
 
-runInputPostJSONResult
-  :: (FromJSON a, MonadHandlerForm m)
-  => FormInput m a -> m (FormResult a)
+runInputPostJSONResult ::
+  (FromJSON a, MonadHandlerForm m) =>
+  FormInput m a -> m (FormResult a)
 runInputPostJSONResult form = do
   mct <- lookupHeader "content-type"
   case fmap (B8.takeWhile (/= ';')) mct of
@@ -31,28 +32,28 @@ runInputPostJSONResult form = do
       runInputPostResult form
     _ -> pure FormMissing
 
-runInputPostJSON
-  :: (FromJSON a, MonadHandlerForm m)
-  => FormInput m a -> m a
+runInputPostJSON ::
+  (FromJSON a, MonadHandlerForm m) =>
+  FormInput m a -> m a
 runInputPostJSON form =
-  runInputPostJSONResult form >>=
-  \case
-    FormSuccess a -> pure a
-    FormFailure e -> invalidArgs e
-    FormMissing -> invalidArgs []
+  runInputPostJSONResult form
+    >>= \case
+      FormSuccess a -> pure a
+      FormFailure e -> invalidArgs e
+      FormMissing -> invalidArgs []
 
 class MkIForm a where
-  mkIForm :: MonadHandlerForm m => FormInput m a
+  mkIForm :: (MonadHandlerForm m) => FormInput m a
 
-aFormToMaybeGetSuccess
-  :: MonadHandler f
-  => AForm f a -> f (Maybe a)
+aFormToMaybeGetSuccess ::
+  (MonadHandler f) =>
+  AForm f a -> f (Maybe a)
 aFormToMaybeGetSuccess =
   fmap (maybeSuccess . fst) . runFormGet . const . fmap fst . aFormToForm
 
-aFormToMaybePostSuccess
-  :: MonadHandlerForm f
-  => AForm f a -> f (Maybe a)
+aFormToMaybePostSuccess ::
+  (MonadHandlerForm f) =>
+  AForm f a -> f (Maybe a)
 aFormToMaybePostSuccess =
   fmap (maybeSuccess . fst) . runFormPostNoToken . const . fmap fst . aFormToForm
 
@@ -60,27 +61,26 @@ maybeSuccess :: FormResult a -> Maybe a
 maybeSuccess (FormSuccess a) = Just a
 maybeSuccess _ = Nothing
 
-
 -- FieldSettings
 
 named :: Text -> FieldSettings master -> FieldSettings master
 named n f =
   f
-  { fsName = Just n
-  , fsId = Just n
-  }
+    { fsName = Just n,
+      fsId = Just n
+    }
 
-attr :: (Text,Text) -> FieldSettings master -> FieldSettings master
+attr :: (Text, Text) -> FieldSettings master -> FieldSettings master
 attr n f =
   f
-  { fsAttrs = n : fsAttrs f
-  }
+    { fsAttrs = n : fsAttrs f
+    }
 
-attrs :: [(Text,Text)] -> FieldSettings master -> FieldSettings master
+attrs :: [(Text, Text)] -> FieldSettings master -> FieldSettings master
 attrs n f =
   f
-  { fsAttrs = n ++ fsAttrs f
-  }
+    { fsAttrs = n ++ fsAttrs f
+    }
 
 cls :: [Text] -> FieldSettings master -> FieldSettings master
 cls n = attrs [("class", unwords n)]

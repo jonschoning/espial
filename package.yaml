@@ -1,6 +1,6 @@
 name:    espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.23"
+version: "0.0.24"
 description: ! '
   Espial is an open-source, web-based bookmarking server.
 
@@ -29,12 +29,18 @@ extra-source-files:
 - config/test-settings.yml
 - templates/**
 - static/css/**
+- static/fonts/**
 - static/images/**
 - static/js/**
+- frontend/.prettierignore
+- frontend/.prettierrc
+- frontend/eslint.config.mjs
 - frontend/Makefile
-- frontend/src/**
-- frontend/src/**/components/**
-- frontend/src/**/stores/**
+- frontend/package-lock.json
+- frontend/package.json
+- frontend/README.md
+- frontend/tsconfig.json
+- frontend/src/**/*
 
 default-extensions:
 - BangPatterns

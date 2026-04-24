@@ -1,45 +1,49 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Foundation where
 
-import Import.NoFoundation
-import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Text.Hamlet          (hamletFile)
-import PathPiece()
-
-import Yesod.Core.Types
-import Yesod.Auth.Message
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
-import qualified Yesod.Core.Unsafe as Unsafe
+import Data.Type.Equality (type (~))
+import Database.Persist.Sql (ConnectionPool, runSqlPool)
+import Import.NoFoundation
 import qualified Network.Wai as Wai
+import PathPiece ()
+import Text.Hamlet (hamletFile)
+import Yesod.Auth.Message
+import Yesod.Core.Types
+import qualified Yesod.Core.Unsafe as Unsafe
 
 data App = App
-    { appSettings    :: AppSettings
-    , appStatic      :: Static -- ^ Settings for static file serving.
-    , appConnPool    :: ConnectionPool -- ^ Database connection pool.
-    , appHttpManager :: Manager
-    , appLogger      :: Logger
-    } deriving (Typeable)
+  { appSettings :: AppSettings,
+    -- | Settings for static file serving.
+    appStatic :: Static,
+    -- | Database connection pool.
+    appConnPool :: ConnectionPool,
+    appHttpManager :: Manager,
+    appLogger :: Logger
+  }
+  deriving (Typeable)
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
 
-deriving instance Typeable Route 
+deriving instance Typeable Route
+
 deriving instance Generic (Route App)
 
 -- YesodPersist
 
 instance YesodPersist App where
-    type YesodPersistBackend App = SqlBackend
-    runDB action = do
-        master <- getYesod
-        runSqlPool action (appConnPool master)
+  type YesodPersistBackend App = SqlBackend
+  runDB action = do
+    master <- getYesod
+    runSqlPool action (appConnPool master)
 
 instance YesodPersistRunner App where
-    getDBRunner = defaultGetDBRunner appConnPool
+  getDBRunner = defaultGetDBRunner appConnPool
 
 session_timeout_minutes :: Int
 session_timeout_minutes = 10080 -- (7 days)
@@ -47,76 +51,79 @@ session_timeout_minutes = 10080 -- (7 days)
 -- Yesod
 
 instance Yesod App where
-    approot = ApprootRequest \app req ->
-        case appRoot (appSettings app) of
-            Nothing -> getApprootText guessApproot app req
-            Just root -> root
+  approot = ApprootRequest \app req ->
+    case appRoot (appSettings app) of
+      Nothing -> getApprootText guessApproot app req
+      Just root -> root
 
-    makeSessionBackend :: App -> IO (Maybe SessionBackend)
-    makeSessionBackend App {appSettings} = do
-      backend <-
-        defaultClientSessionBackend
-          session_timeout_minutes
-          "config/client_session_key.aes"
-      maybeSSLOnly $ pure (Just backend)
-      where
-        maybeSSLOnly =
-          if appSSLOnly appSettings
-            then sslOnlySessions
+  makeSessionBackend :: App -> IO (Maybe SessionBackend)
+  makeSessionBackend App {appSettings} = do
+    backend <-
+      defaultClientSessionBackend
+        session_timeout_minutes
+        "config/client_session_key.aes"
+    maybeSSLOnly $ pure (Just backend)
+    where
+      maybeSSLOnly =
+        if appSSLOnly appSettings
+          then sslOnlySessions
+          else id
+
+  yesodMiddleware :: HandlerFor App res -> HandlerFor App res
+  yesodMiddleware = customMiddleware . defaultYesodMiddleware . customCsrfMiddleware
+    where
+      customCsrfMiddleware handler = do
+        maybeRoute <- getCurrentRoute
+        dontCheckCsrf <- case maybeRoute of
+          -- `maybeAuthId` checks for the validity of the Authorization
+          -- header anyway, but it is still a good idea to limit this
+          -- flexibility to designated routes.
+          -- For the time being, `AddR` is the only route that accepts an
+          -- authentication token.
+          Just AddR -> isJust <$> lookupHeader "Authorization"
+          _ -> pure False
+        (if dontCheckCsrf then id else defaultCsrfMiddleware) handler
+
+      customMiddleware handler = do
+        addHeader "X-Frame-Options" "DENY"
+        yesod <- getYesod
+        ( if appSSLOnly (appSettings yesod)
+            then sslOnlyMiddleware session_timeout_minutes
             else id
+          )
+          handler
 
-    yesodMiddleware :: HandlerFor App res -> HandlerFor App res
-    yesodMiddleware = customMiddleware . defaultYesodMiddleware . customCsrfMiddleware
-      where
-        customCsrfMiddleware handler = do
-          maybeRoute <- getCurrentRoute
-          dontCheckCsrf <- case maybeRoute of
-            -- `maybeAuthId` checks for the validity of the Authorization
-            -- header anyway, but it is still a good idea to limit this
-            -- flexibility to designated routes.
-            -- For the time being, `AddR` is the only route that accepts an
-            -- authentication token.
-            Just AddR -> isJust <$> lookupHeader "Authorization"
-            _ -> pure False
-          (if dontCheckCsrf then id else defaultCsrfMiddleware) handler
+  jsAttributes _ = [("type", "module")]
 
-        customMiddleware handler = do
-          addHeader "X-Frame-Options" "DENY"
-          yesod <- getYesod
-          (if appSSLOnly (appSettings yesod)
-             then sslOnlyMiddleware session_timeout_minutes
-             else id) handler
+  defaultLayout widget = do
+    req <- getRequest
+    master <- getYesod
+    urlrender <- getUrlRender
+    mmsg <- getMessage
+    musername <- maybeAuthUsername
+    muser <- (fmap . fmap) snd maybeAuthPair
+    let msourceCodeUri = appSourceCodeUri (appSettings master)
+    pc <- widgetToPageContent do
+      setTitle "Espial"
+      addAppScripts
+      addStylesheet (StaticR css_tachyons_min_css)
+      addStylesheet (StaticR css_main_css)
+      $(widgetFile "default-layout")
+    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-    jsAttributes _ = [("type", "module")]
+  shouldLogIO app _source level =
+    pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
+  makeLogger = return . appLogger
 
-    defaultLayout widget = do
-        req <- getRequest
-        master <- getYesod
-        urlrender <- getUrlRender
-        mmsg <- getMessage
-        musername <- maybeAuthUsername
-        muser <- (fmap.fmap) snd maybeAuthPair
-        let msourceCodeUri = appSourceCodeUri (appSettings master)
-        pc <- widgetToPageContent do
-            setTitle "Espial"
-            addAppScripts
-            addStylesheet (StaticR css_tachyons_min_css)
-            addStylesheet (StaticR css_main_css)
-            $(widgetFile "default-layout")
-        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+  authRoute _ = Just (AuthR LoginR)
 
-    shouldLogIO app _source level =
-        pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
-    makeLogger = return . appLogger
+  isAuthorized (AuthR _) _ = pure Authorized
+  isAuthorized _ _ = pure Authorized
 
-    authRoute _ = Just (AuthR LoginR)
-
-    isAuthorized (AuthR _) _ = pure Authorized
-    isAuthorized _ _ = pure Authorized
-
-    defaultMessageWidget title body = do
-      setTitle title
-      toWidget [hamlet|
+  defaultMessageWidget title body = do
+    setTitle title
+    toWidget
+      [hamlet|
         <main .pv2.ph3.mh1>
           <div .w-100.mw8.center>
             <div .pa3.bg-near-white>
@@ -124,34 +131,32 @@ instance Yesod App where
               ^{body}
       |]
 
-
-
 isAuthenticated :: Handler AuthResult
-isAuthenticated = maybeAuthId >>= \case
-                    Just authId -> pure Authorized
-                    _ -> pure $ AuthenticationRequired
+isAuthenticated =
+  maybeAuthId >>= \case
+    Just authId -> pure Authorized
+    _ -> pure $ AuthenticationRequired
 
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 addAppScripts = do pure ()
-  -- addScriptAttrs (StaticR js_app_min_js) [("type","module")] 
 
+-- addScriptAttrs (StaticR js_app_min_js) [("type","module")]
 
 -- popupLayout
 
 popupLayout :: Widget -> Handler Html
 popupLayout widget = do
-    req <- getRequest
-    master <- getYesod
-    mmsg <- getMessage
-    musername <- maybeAuthUsername
-    let msourceCodeUri = appSourceCodeUri (appSettings master)
-    pc <- widgetToPageContent do
-      addAppScripts
-      addStylesheet (StaticR css_tachyons_min_css)
-      addStylesheet (StaticR css_popup_css)
-      $(widgetFile "popup-layout")
-    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
-
+  req <- getRequest
+  master <- getYesod
+  mmsg <- getMessage
+  musername <- maybeAuthUsername
+  let msourceCodeUri = appSourceCodeUri (appSettings master)
+  pc <- widgetToPageContent do
+    addAppScripts
+    addStylesheet (StaticR css_tachyons_min_css)
+    addStylesheet (StaticR css_popup_css)
+    $(widgetFile "popup-layout")
+  withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 -- YesodAuth
 
@@ -161,9 +166,10 @@ instance YesodAuth App where
   authenticate = authenticateCreds
   loginDest = const HomeR
   logoutDest = const HomeR
-  onLogin = maybeAuth >>= \case
-    Nothing -> cpprint ("onLogin: could not find user" :: Text)
-    Just (Entity _ uname) -> setSession userNameKey (userName uname)
+  onLogin =
+    maybeAuth >>= \case
+      Nothing -> cpprint ("onLogin: could not find user" :: Text)
+      Just (Entity _ uname) -> setSession userNameKey (userName uname)
   onLogout =
     deleteSession userNameKey
   redirectToReferer = const True
@@ -222,11 +228,14 @@ dbAuthPlugin = AuthPlugin dbAuthPluginName dbDispatch dbLoginHandler
 dbLoginR :: AuthRoute
 dbLoginR = PluginR dbAuthPluginName ["login"]
 
-dbPostLoginR ::  AuthHandler master TypedContent
+dbPostLoginR :: AuthHandler master TypedContent
 dbPostLoginR = do
-  mresult <- runInputPostResult (dbLoginCreds
-               <$> ireq textField "username"
-               <*> ireq textField "password")
+  mresult <-
+    runInputPostResult
+      ( dbLoginCreds
+          <$> ireq textField "username"
+          <*> ireq textField "password"
+      )
   case mresult of
     FormSuccess creds -> setCredsRedirect creds
     _ -> loginErrorMessageI LoginR InvalidUsernamePass
@@ -234,20 +243,23 @@ dbPostLoginR = do
 dbLoginCreds :: Text -> Text -> Creds master
 dbLoginCreds username password =
   Creds
-  { credsPlugin = dbAuthPluginName
-  , credsIdent = username
-  , credsExtra = [("password", password)]
-  }
+    { credsPlugin = dbAuthPluginName,
+      credsIdent = username,
+      credsExtra = [("password", password)]
+    }
 
 authenticateCreds ::
-     (MonadHandler m, HandlerSite m ~ App)
-  => Creds App
-  -> m (AuthenticationResult App)
+  (MonadHandler m, HandlerSite m ~ App) =>
+  Creds App ->
+  m (AuthenticationResult App)
 authenticateCreds Creds {..} = do
   muser <-
     case credsPlugin of
-      p | p == dbAuthPluginName -> liftHandler $ runDB $
-        join <$> mapM (\pwd -> authenticatePassword credsIdent pwd) (lookup "password" credsExtra)
+      p
+        | p == dbAuthPluginName ->
+            liftHandler $
+              runDB $
+                join <$> mapM (\pwd -> authenticatePassword credsIdent pwd) (lookup "password" credsExtra)
       _ -> pure Nothing
   case muser of
     Nothing -> pure (UserError InvalidUsernamePass)
@@ -256,13 +268,12 @@ authenticateCreds Creds {..} = do
 -- Util
 
 instance RenderMessage App FormMessage where
-    renderMessage :: App -> [Lang] -> FormMessage -> Text
-    renderMessage _ _ = defaultFormMessage
+  renderMessage :: App -> [Lang] -> FormMessage -> Text
+  renderMessage _ _ = defaultFormMessage
 
 instance HasHttpManager App where
-    getHttpManager :: App -> Manager
-    getHttpManager = appHttpManager
+  getHttpManager :: App -> Manager
+  getHttpManager = appHttpManager
 
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
-
