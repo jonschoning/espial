@@ -3,6 +3,7 @@ import React from 'react';
 import { editAccountSettings } from '../api';
 import type { AccountSettings } from '../types';
 
+/** Displays and edits the current user's account settings. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const [us, setUs] = React.useState<AccountSettings>(initial);
   const archiveDisabled = !us.archiveBackendEnabled;

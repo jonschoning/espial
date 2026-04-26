@@ -80,6 +80,7 @@ function toArray(curtags: string[], n: number, m: number, tagcloud: TagCloudT) {
   return out;
 }
 
+/** Displays the tag cloud, with controls to filter by top tags, frequency, or related tags. */
 export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
   const mode = useTagCloudStore((s) => s.mode);
   const tagcloud = useTagCloudStore((s) => s.tagcloud);

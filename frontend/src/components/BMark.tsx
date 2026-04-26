@@ -8,6 +8,7 @@ import { encodeTag, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
 import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
+/** Displays a single bookmark with inline editing, starring, and deletion. */
 export function BMark({
   initial,
   onNotifyRemove,

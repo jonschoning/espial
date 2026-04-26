@@ -7,6 +7,7 @@ import type { Bookmark } from '../types';
 import { curQuerystring, lookupQueryStringValue } from '../util';
 import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
+/** Form for adding or editing a single bookmark, used in the popup window. */
 export function AddForm({ initial }: { initial: Bookmark }) {
   const a = app();
   const [bm, setBm] = React.useState<Bookmark>(initial);
