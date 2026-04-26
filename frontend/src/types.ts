@@ -35,6 +35,7 @@ export type AccountSettings = {
   privateDefault: boolean;
   suggestTags: boolean;
   privacyLock: boolean;
+  archiveBackendEnabled: boolean;
 };
 
 export type TagCloudMode = {

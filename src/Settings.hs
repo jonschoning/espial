@@ -6,8 +6,9 @@
 module Settings where
 
 import ClassyPrelude.Yesod
+
 import qualified Control.Exception as Exception
-import Data.Aeson                  (Result (..), fromJSON, withObject, (.!=),
+import Data.Aeson                  (Result (..), fromJSON, withObject, withText, (.!=),
                                     (.:?))
 import Data.FileEmbed              (embedFile)
 import Data.Yaml                   (decodeEither')
@@ -62,6 +63,9 @@ data AppSettings = AppSettings
     , appArchiveSocksProxyPort   :: Maybe Int
     -- ^ Socks proxy port to use when making archive requests
 
+    , appArchiveBackend          :: ArchiveBackend
+    -- ^ Which archiver backend to use (or disabled)
+
     , appSourceCodeUri                :: Maybe Text
     -- ^ Uri to app source code
 
@@ -100,6 +104,7 @@ instance FromJSON AppSettings where
 
         appArchiveSocksProxyHost   <- o .:? "archive-socks-proxy-host"
         appArchiveSocksProxyPort   <- o .:? "archive-socks-proxy-port"
+        appArchiveBackend          <- fromMaybe ArchiveDisabled <$> o .:? "archive-backend"
         appSourceCodeUri           <- o .:? "source-code-uri"
 
         appSSLOnly                 <- fromMaybe False <$> o .:? "ssl-only"
@@ -161,3 +166,13 @@ combineScripts :: Name -> [Route Static] -> Q Exp
 combineScripts = combineScripts'
     (appSkipCombining compileTimeAppSettings)
     combineSettings
+
+-- | Selects which archive backend is active.
+data ArchiveBackend = ArchiveLi | ArchiveDisabled
+  deriving (Show, Eq)
+
+instance FromJSON ArchiveBackend where
+  parseJSON = withText "ArchiveBackend" $ \case
+    "archive-li" -> pure ArchiveLi
+    "disabled"   -> pure ArchiveDisabled
+    _            -> mzero

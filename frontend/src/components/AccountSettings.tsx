@@ -5,6 +5,8 @@ import type { AccountSettings } from '../types';
 
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const [us, setUs] = React.useState<AccountSettings>(initial);
+  const archiveDisabled = !us.archiveBackendEnabled;
+  const archiveDisabledTitle = archiveDisabled ? 'Archiving Disabled' : undefined;
 
   async function update(next: AccountSettings) {
     setUs(next);
@@ -15,17 +17,26 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
     <div className="settings-form">
       <div className="fw7 mb2">Account Settings</div>
 
-      <div className="flex items-center mb2">
+      <div
+        className={`flex items-center mb2${archiveDisabled ? ' o-50' : ''}`}
+        title={archiveDisabledTitle}
+      >
         <input
           type="checkbox"
-          className="pointer mr2"
+          className={`mr2${archiveDisabled ? '' : ' pointer'}`}
           id="archiveDefault"
           name="archiveDefault"
           checked={us.archiveDefault}
+          disabled={archiveDisabled}
+          title={archiveDisabledTitle}
           onChange={(e) => void update({ ...us, archiveDefault: e.target.checked })}
         />
-        <label htmlFor="archiveDefault" className="lh-copy">
-          Archive Non-Private Bookmarks (archive.li)
+        <label
+          htmlFor="archiveDefault"
+          className={`lh-copy${archiveDisabled ? ' gray' : ''}`}
+          title={archiveDisabledTitle}
+        >
+          Archive Non-Private Bookmarks
         </label>
       </div>
 

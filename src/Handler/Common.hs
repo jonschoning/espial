@@ -1,31 +1,40 @@
 -- | Common handler functions.
 module Handler.Common where
 
-import Import
-
-import Data.FileEmbed (embedFile)
-import Text.Read
 import Data.Aeson as A
+import qualified Data.ByteString.Char8 as BS8
+import Data.FileEmbed (embedFile)
+import Import
+import Network.Wai (requestHeaderHost)
+import Text.Read
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
 
 getFaviconR :: Handler TypedContent
-getFaviconR = do cacheSeconds $ 60 * 5
-                 --cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
-                 return $ TypedContent "image/x-icon"
-                        $ toContent $(embedFile "config/favicon.ico")
+getFaviconR = do
+  cacheSeconds $ 60 * 5
+  -- cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
+  return
+    $ TypedContent "image/x-icon"
+    $ toContent $(embedFile "config/favicon.ico")
 
 getRobotsR :: Handler TypedContent
-getRobotsR = return $ TypedContent typePlain
-                    $ toContent $(embedFile "config/robots.txt")
-
+getRobotsR =
+  return
+    $ TypedContent typePlain
+    $ toContent $(embedFile "config/robots.txt")
 
 lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
 lookupPagingParams =
   (,)
-  <$> getUrlSessionParam "count"
-  <*> getUrlParam "page"
+    <$> getUrlSessionParam "count"
+    <*> getUrlParam "page"
+
+espialUserAgent :: Handler UserAgent
+espialUserAgent = do
+  mHost <- requestHeaderHost . reqWaiRequest <$> getRequest
+  pure $ UserAgent $ pack $ "espial-" <> maybe "" (BS8.unpack . BS8.takeWhile (/= ':')) mHost
 
 getUrlParam :: (Read a) => Text -> Handler (Maybe a)
 getUrlParam name = do
@@ -33,10 +42,11 @@ getUrlParam name = do
   where
     parseMaybe x = readMaybe . unpack =<< x
 
-getUrlSessionParam :: forall a.
-  (Show a, Read a)
-  => Text
-  -> Handler (Maybe a)
+getUrlSessionParam ::
+  forall a.
+  (Show a, Read a) =>
+  Text ->
+  Handler (Maybe a)
 getUrlSessionParam name = do
   p <- fmap parseMaybe (lookupGetParam name)
   s <- fmap parseMaybe (lookupSession name)
@@ -46,25 +56,24 @@ getUrlSessionParam name = do
     parseMaybe :: Maybe Text -> Maybe a
     parseMaybe x = readMaybe . unpack =<< x
 
-lookupTagCloudMode :: MonadHandler m => m (Maybe TagCloudMode)
+lookupTagCloudMode :: (MonadHandler m) => m (Maybe TagCloudMode)
 lookupTagCloudMode = do
   (A.decode . fromStrict =<<) <$> lookupSessionBS "tagCloudMode"
 
-setTagCloudMode :: MonadHandler m => TagCloudMode -> m ()
+setTagCloudMode :: (MonadHandler m) => TagCloudMode -> m ()
 setTagCloudMode = setSessionBS "tagCloudMode" . toStrict . A.encode
 
-getTagCloudMode :: MonadHandler m => Bool -> [Tag] -> m TagCloudMode
+getTagCloudMode :: (MonadHandler m) => Bool -> [Tag] -> m TagCloudMode
 getTagCloudMode isowner tags = do
   ms <- lookupTagCloudMode
   let expanded = maybe False isExpanded ms
-  pure $
-    if not isowner
+  pure
+    $ if not isowner
       then TagCloudModeNone
-      else if not (null tags)
-             then TagCloudModeRelated expanded tags
-             else case ms of
-                    Nothing -> TagCloudModeTop expanded 200
-                    Just (TagCloudModeRelated e _) -> TagCloudModeTop e 200
-                    Just m -> m
-
-
+      else
+        if not (null tags)
+          then TagCloudModeRelated expanded tags
+          else case ms of
+            Nothing -> TagCloudModeTop expanded 200
+            Just (TagCloudModeRelated e _) -> TagCloudModeTop e 200
+            Just m -> m

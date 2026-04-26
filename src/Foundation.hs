@@ -5,6 +5,7 @@
 
 module Foundation where
 
+import Archiver.Backend (ArchiverBackend)
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 import Data.Type.Equality (type (~))
@@ -26,7 +27,9 @@ data App = App
     -- | Database connection pool.
     appConnPool :: ConnectionPool,
     appHttpManager :: Manager,
-    appLogger :: Logger
+    appLogger :: Logger,
+    -- | Active archiver plugin; 'Nothing' disables archiving.
+    appArchiver :: Maybe ArchiverBackend
   }
   deriving (Typeable)
 

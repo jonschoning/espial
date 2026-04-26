@@ -22,6 +22,8 @@ import           Import
 import           Language.Haskell.TH.Syntax (qLocation)
 import           Lens.Micro
 import           Network.HTTP.Client.TLS
+import qualified Network.HTTP.Client.TLS as NHT
+import qualified Network.Connection as NC
 import           Network.Wai (Middleware)
 import           Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, runSettings, setHost, setOnException, setPort, getPort)
 import           Network.Wai.Middleware.AcceptOverride
@@ -45,6 +47,7 @@ import           Handler.Add
 import           Handler.Edit
 import           Handler.Notes
 import           Handler.Docs
+import           Archiver.ArchiveLi (archiveLiBackend)
 
 mkYesodDispatch "App" resourcesApp
 
@@ -58,13 +61,25 @@ makeFoundation appSettings = do
        then staticDevel
        else static)
       (appStaticDir appSettings)
-  let mkFoundation appConnPool = App {..}
-      tempFoundation = mkFoundation (error "connPool forced in tempFoundation")
+  let mkFoundation appConnPool appArchiver = App {..}
+      tempFoundation = mkFoundation (error "connPool forced in tempFoundation") Nothing
       logFunc = messageLoggerSource tempFoundation appLogger
   pool <- mkPool logFunc True
   poolMigrations <- mkPool logFunc False
-  runLoggingT (runSqlPool runMigrations poolMigrations) logFunc
-  return (mkFoundation pool)
+  flip runLoggingT logFunc $ runSqlPool runMigrations poolMigrations
+  appArchiver <-
+    case appArchiveBackend appSettings of
+      ArchiveDisabled -> pure Nothing
+      ArchiveLi -> do
+        let mSocks =
+              NC.SockSettingsSimple
+                <$> fmap unpack (appArchiveSocksProxyHost appSettings)
+                <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
+        archiveManager <- NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
+        pure $ Just $ archiveLiBackend pool archiveManager logFunc 
+  flip runLoggingT logFunc 
+    ($(logInfo) $ "Archive backend: " <> tshow (appArchiveBackend appSettings)) 
+  return (mkFoundation pool appArchiver)
   where
     mkPool :: _ -> Bool -> IO ConnectionPool
     mkPool logFunc isFkEnabled =
@@ -163,7 +178,7 @@ appMain = do
   void $ PS.installHandler PS.sigTERM (PS.CatchOnce (CC.killThread mainThreadId)) Nothing
 #endif
   runSettings (warpSettings foundation) app
-  
+
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
   settings <- getAppSettings

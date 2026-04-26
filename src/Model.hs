@@ -112,6 +112,14 @@ newtype UnreadOnly
   = UnreadOnly {unUnreadOnly :: Bool}
   deriving (Eq, Show, Read)
 
+newtype UserAgent
+  = UserAgent {unUserAgent :: Text}
+  deriving (Eq, Show, Read)
+
+newtype Url
+  = Url {unUrl :: Text}
+  deriving (Eq, Show, Read)
+
 type Limit = Int64
 
 type Page = Int64
@@ -656,7 +664,8 @@ data AccountSettingsForm = AccountSettingsForm
   { _privateDefault :: Bool,
     _archiveDefault :: Bool,
     _suggestTags :: Bool,
-    _privacyLock :: Bool
+    _privacyLock :: Bool,
+    _archiveBackendEnabled :: Bool
   }
   deriving (Show, Eq, Read, Generic)
 
@@ -664,13 +673,14 @@ instance FromJSON AccountSettingsForm where parseJSON = A.genericParseJSON gDefa
 
 instance ToJSON AccountSettingsForm where toJSON = A.genericToJSON gDefaultFormOptions
 
-toAccountSettingsForm :: User -> AccountSettingsForm
-toAccountSettingsForm User {..} =
+toAccountSettingsForm :: Bool -> User -> AccountSettingsForm
+toAccountSettingsForm archiveBackendEnabled User {..} =
   AccountSettingsForm
     { _privateDefault = userPrivateDefault,
       _archiveDefault = userArchiveDefault,
       _suggestTags = userSuggestTags,
-      _privacyLock = userPrivacyLock
+      _privacyLock = userPrivacyLock,
+      _archiveBackendEnabled = archiveBackendEnabled
     }
 
 updateUserFromAccountSettingsForm :: Key User -> AccountSettingsForm -> DB ()

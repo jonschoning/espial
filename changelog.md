@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.28 (2026-05-06)
+
+- add new app setting: `archive-backend: "_env:ARCHIVE_BACKEND:disabled"`
+  - default to `disabled`, since `archive-li` appears to no longer be working due to added captchas
+  - when archiving is disabled, the `Archive Non-Private Bookmarks` Account Setting is also disabled in the UI
+
 ## v0.0.27 (2026-05-05)
 
 - prevent private tags (starts with ".") from showing on public bookmark listing for a user if not owned

@@ -5,10 +5,12 @@ import Import
 
 getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
-  frontendBundleName <- appFrontendBundleName <$> getYesod
+  app <- getYesod
+  let frontendBundleName = appFrontendBundleName app
+      archiveBackendEnabled = isJust (appArchiver app)
   (_, user) <- requireAuthPair
   let accountSettingsEl = "accountSettings" :: Text
-  let accountSettings = toAccountSettingsForm user
+  let accountSettings = toAccountSettingsForm archiveBackendEnabled user
   defaultLayout do
     $(widgetFile "user-settings")
     toWidgetBody

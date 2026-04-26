@@ -1,9 +1,18 @@
 module Handler.Add where
 
+import qualified Data.Attoparsec.ByteString as AP
+import qualified Data.ByteString.Lazy as LBS
+import Data.Char (ord)
+import Data.Function ((&))
 import Data.List (nub)
 import qualified Data.Text as T (replace)
+import Data.Text.Lazy.Builder (toLazyText)
+import HTMLEntities.Decoder (htmlEncodedText)
 import Handler.Archive
+import Handler.Common (espialUserAgent)
 import Import
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Client.TLS as NHT
 
 -- View
 
@@ -86,16 +95,46 @@ _handleFormSuccess bookmarkForm = do
       forM_ (maybeUpsertResult res) $ \kbid ->
         whenM (shouldArchiveBookmark user kbid)
           $ void
-          $ async (archiveBookmarkUrl kbid (unpack (bookmarkHref bm)))
+          $ async (archiveBookmarkUrl kbid (Url (bookmarkHref bm)))
       pure res
 
 postLookupTitleR :: Handler ()
 postLookupTitleR = do
   void requireAuthId
   bookmarkForm <- (requireCheckJsonBody :: Handler BookmarkForm)
-  fetchPageTitle (unpack (_url bookmarkForm)) >>= \case
+  fetchPageTitle (Url (_url bookmarkForm)) >>= \case
     Left _ -> sendResponseStatus noContent204 ()
     Right title -> sendResponseStatus ok200 title
+  where
+    fetchPageTitle :: Url -> Handler (Either String Text)
+    fetchPageTitle url =
+      do
+        req <- buildPageTitleRequest
+        res <- liftIO $ NH.httpLbs req =<< NHT.getGlobalManager
+        let body = LBS.toStrict (responseBody res)
+        pure (decodeHtmlBs <$> parseTitle body)
+        `catch` ( \(e :: SomeException) -> do
+                    $(logError) $ (pack . show) e
+                    pure (Left (show e))
+                )
+      where
+        parseTitle bs =
+          flip AP.parseOnly bs do
+            _ <- skipAnyTill (AP.string "<title")
+            _ <- skipAnyTill (AP.string ">")
+            let lt = toEnum (ord '<')
+            AP.takeTill (== lt)
+        decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
+        skipAnyTill end = go where go = end $> () <|> AP.anyWord8 *> go
+        buildPageTitleRequest = do
+          (UserAgent ua) <- espialUserAgent
+          pure $ NH.parseRequest_ (unpack (unUrl url)) & \r ->
+            r
+              { NH.requestHeaders =
+                  [ ("Cache-Control", "max-age=0"),
+                    ("User-Agent", encodeUtf8 ua)
+                  ]
+              }
 
 postTagSuggestionsR :: Handler Text
 postTagSuggestionsR = do
