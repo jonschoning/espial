@@ -1,17 +1,39 @@
 import React from 'react';
 
 import { destroy, editBookmark, lookupTitle } from '../api';
-import { closeWindow, mmoment8601 } from '../globals';
+import { app, closeWindow, mmoment8601 } from '../globals';
 import type { Bookmark } from '../types';
 import { curQuerystring, lookupQueryStringValue } from '../util';
+import { TagSuggestionsDropdown } from './TagSuggestions';
+import { useTagSuggestions } from './useTagSuggestions';
 
 export function AddForm({ initial }: { initial: Bookmark }) {
+  const a = app();
   const [bm, setBm] = React.useState<Bookmark>(initial);
   const [editBm, setEditBm] = React.useState<Bookmark>(initial);
   const [deleteAsk, setDeleteAsk] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [destroyed, setDestroyed] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const suggestEnabled = a.dat.suggestTags === true;
+
+  const {
+    tagInputRef,
+    suggestionState,
+    closeSuggestions,
+    onTagsChange,
+    onTagsKeyDown,
+    onTagsSelect,
+    onSuggestionHover,
+    onSuggestionPick,
+  } = useTagSuggestions({
+    enabled: suggestEnabled,
+    tags: editBm.tags,
+    maxSuggestions: 4,
+    onTagsUpdate: (tags) => {
+      setEditBm((x) => ({ ...x, tags }));
+    },
+  });
 
   const mm = mmoment8601(bm.time);
 
@@ -175,19 +197,35 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               <label htmlFor="tags">tags</label>
             </td>
             <td>
-              <input
-                type="text"
-                id="tags"
-                className="w-100 mv1"
-                name="tags"
-                autoComplete="off"
-                autoCapitalize="off"
-                autoFocus={bm.url !== ''}
-                value={editBm.tags}
-                onChange={(e) => {
-                  setEditBm((x) => ({ ...x, tags: e.target.value }));
-                }}
-              />
+              <div className="relative">
+                <input
+                  ref={tagInputRef}
+                  type="text"
+                  id="tags"
+                  className="w-100 mv1"
+                  name="tags"
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoFocus={bm.url !== ''}
+                  value={editBm.tags}
+                  onChange={onTagsChange}
+                  onKeyDown={onTagsKeyDown}
+                  onClick={onTagsSelect}
+                  onSelect={onTagsSelect}
+                  onBlur={() => {
+                    window.setTimeout(() => {
+                      closeSuggestions();
+                    }, 0);
+                  }}
+                />
+                {suggestionState != null ? (
+                  <TagSuggestionsDropdown
+                    suggestionState={suggestionState}
+                    onHover={onSuggestionHover}
+                    onPick={onSuggestionPick}
+                  />
+                ) : null}
+              </div>
             </td>
           </tr>
 

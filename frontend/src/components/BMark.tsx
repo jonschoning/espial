@@ -1,26 +1,12 @@
 import React from 'react';
 
-import {
-  destroy,
-  editBookmark,
-  fetchTagSuggestions,
-  lookupTitle,
-  markRead,
-  toggleStar,
-} from '../api';
+import { destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
 import { app, setFocus, toLocaleDateString } from '../globals';
-import type { Bookmark, TSuggestion } from '../types';
+import type { Bookmark } from '../types';
 import { encodeTag, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
-import type { SuggestionState } from './TagSuggestions';
-import {
-  getActiveTagToken,
-  measureCaretPosition,
-  replaceTokenAtRange,
-  TagSuggestionsDropdown,
-} from './TagSuggestions';
-
-const TAG_SUGGESTION_DEBOUNCE_MS = 180;
+import { TagSuggestionsDropdown } from './TagSuggestions';
+import { useTagSuggestions } from './useTagSuggestions';
 
 export function BMark({
   initial,
@@ -38,10 +24,6 @@ export function BMark({
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
-  const [suggestionState, setSuggestionState] = React.useState<SuggestionState | null>(null);
-  const tagSuggestionRequestId = React.useRef(0);
-  const tagSuggestionDebounceRef = React.useRef<number | null>(null);
-  const tagInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const tagInputId = `${bm.bid.toString()}_tags`;
 
@@ -51,6 +33,23 @@ export function BMark({
   const shdate = toLocaleDateString(bm.time);
   const shdatetime = `${bm.time.slice(0, 16)}Z`;
   const suggestEnabled = a.dat.suggestTags === true;
+
+  const {
+    tagInputRef,
+    suggestionState,
+    closeSuggestions,
+    onTagsChange,
+    onTagsKeyDown,
+    onTagsSelect,
+    onSuggestionHover,
+    onSuggestionPick,
+  } = useTagSuggestions({
+    enabled: suggestEnabled,
+    tags: editBm.tags,
+    onTagsUpdate: (tags) => {
+      setEditBm((x) => ({ ...x, tags }));
+    },
+  });
 
   async function onStar(next: boolean) {
     await toggleStar(bm.bid, next ? 'star' : 'unstar');
@@ -80,25 +79,6 @@ export function BMark({
     if (next) setFocus(tagInputId);
   }
 
-  function cancelPendingSuggestions() {
-    if (tagSuggestionDebounceRef.current != null) {
-      window.clearTimeout(tagSuggestionDebounceRef.current);
-      tagSuggestionDebounceRef.current = null;
-    }
-    tagSuggestionRequestId.current += 1;
-  }
-
-  function closeSuggestions() {
-    cancelPendingSuggestions();
-    setSuggestionState(null);
-  }
-
-  React.useEffect(() => {
-    return () => {
-      cancelPendingSuggestions();
-    };
-  }, []);
-
   async function onFetchTitle() {
     setLoading(true);
     try {
@@ -106,153 +86,6 @@ export function BMark({
       if (title != null) setEditBm((x) => ({ ...x, title }));
     } finally {
       setLoading(false);
-    }
-  }
-
-  function onTagsChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { value, selectionStart, selectionEnd } = e.target;
-
-    setEditBm((x) => ({ ...x, tags: value }));
-
-    if (!suggestEnabled) {
-      closeSuggestions();
-      return;
-    }
-
-    if (selectionStart == null || selectionEnd == null || selectionStart !== selectionEnd) {
-      closeSuggestions();
-      return;
-    }
-
-    const activeToken = getActiveTagToken(value, selectionStart);
-    if (activeToken == null || activeToken.token.length < 2) {
-      closeSuggestions();
-      return;
-    }
-
-    const payload: { query: string; suggestions: TSuggestion[] } = {
-      query: activeToken.token,
-      suggestions: [],
-    };
-
-    cancelPendingSuggestions();
-    tagSuggestionDebounceRef.current = window.setTimeout(() => {
-      const requestId = tagSuggestionRequestId.current + 1;
-      tagSuggestionRequestId.current = requestId;
-
-      void (async () => {
-        const response: { query: string; suggestions: TSuggestion[] } | null =
-          await fetchTagSuggestions(payload);
-
-        if (
-          requestId !== tagSuggestionRequestId.current ||
-          response == null ||
-          tagInputRef.current == null
-        ) {
-          return;
-        }
-
-        const items = [...response.suggestions].slice(0, 10);
-        if (items.length === 0) {
-          closeSuggestions();
-          return;
-        }
-
-        const anchor = measureCaretPosition(tagInputRef.current, selectionStart);
-
-        setSuggestionState({
-          items,
-          selectedIndex: 0,
-          tokenRange: activeToken,
-          anchorLeft: anchor.left,
-          anchorTop: anchor.top,
-        });
-      })();
-    }, TAG_SUGGESTION_DEBOUNCE_MS);
-  }
-
-  function applySuggestion(term: string) {
-    const input = tagInputRef.current;
-    if (input == null || suggestionState == null) return;
-
-    const next = replaceTokenAtRange(editBm.tags, suggestionState.tokenRange, term);
-    setEditBm((x) => ({ ...x, tags: next.value }));
-    closeSuggestions();
-
-    requestAnimationFrame(() => {
-      input.focus();
-      input.setSelectionRange(next.caret, next.caret);
-    });
-  }
-
-  function onTagsKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Escape') {
-      if (suggestionState != null) {
-        e.preventDefault();
-        closeSuggestions();
-      }
-      return;
-    }
-
-    if (e.key === ' ') {
-      closeSuggestions();
-      return;
-    }
-
-    if (suggestionState == null) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSuggestionState((current) => {
-        if (current == null) return current;
-        return {
-          ...current,
-          selectedIndex: (current.selectedIndex + 1) % current.items.length,
-        };
-      });
-      return;
-    }
-
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSuggestionState((current) => {
-        if (current == null) return current;
-        return {
-          ...current,
-          selectedIndex: (current.selectedIndex - 1 + current.items.length) % current.items.length,
-        };
-      });
-      return;
-    }
-
-    if (e.key === 'Enter' || e.key === 'Tab') {
-      e.preventDefault();
-      const selected = suggestionState.items[suggestionState.selectedIndex];
-      applySuggestion(selected.term);
-    }
-  }
-
-  function onTagsSelect(e: React.SyntheticEvent<HTMLInputElement>) {
-    if (suggestionState == null) return;
-
-    const input = e.currentTarget;
-    const { selectionStart, selectionEnd, value } = input;
-    if (selectionStart == null || selectionEnd == null || selectionStart !== selectionEnd) {
-      closeSuggestions();
-      return;
-    }
-
-    const activeToken = getActiveTagToken(value, selectionStart);
-    if (activeToken == null) {
-      closeSuggestions();
-      return;
-    }
-
-    if (
-      activeToken.start !== suggestionState.tokenRange.start ||
-      activeToken.end !== suggestionState.tokenRange.end
-    ) {
-      closeSuggestions();
     }
   }
 
@@ -451,15 +284,8 @@ export function BMark({
                 {suggestionState != null ? (
                   <TagSuggestionsDropdown
                     suggestionState={suggestionState}
-                    onHover={(index) => {
-                      setSuggestionState((current) => {
-                        if (current == null) return current;
-                        return { ...current, selectedIndex: index };
-                      });
-                    }}
-                    onPick={(term) => {
-                      applySuggestion(term);
-                    }}
+                    onHover={onSuggestionHover}
+                    onPick={onSuggestionPick}
                   />
                 ) : null}
               </div>

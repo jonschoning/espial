@@ -9,7 +9,7 @@ import Import
 
 getAddViewR :: Handler Html
 getAddViewR = do
-  userId <- requireAuthId
+  Entity userId user <- requireAuth
 
   murl <- lookupGetParam "url"
   mBookmarkDb <- runDB (fetchBookmarkByUrl userId murl)
@@ -26,6 +26,7 @@ getAddViewR = do
     toWidgetBody
       [julius|
       app.dat.bmark = #{ toJSON (fromMaybe formurl mformdb) }; 
+      app.dat.suggestTags = #{ userSuggestTags user };
     |]
     toWidget
       [hamlet|
