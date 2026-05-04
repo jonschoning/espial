@@ -1,0 +1,31 @@
+cradle:
+  multi:
+    - path: "./app/devel.hs"
+      config:
+        cradle:
+          stack:
+            component: "espial:exe:espial"
+
+    - path: "./app/migration"
+      config:
+        cradle:
+          stack:
+            component: "espial:exe:migration"
+
+    - path: "./app"
+      config:
+        cradle:
+          stack:
+            component: "espial:exe:espial"
+
+    - path: "./src"
+      config:
+        cradle:
+          stack:
+            component: "espial:lib"
+
+    - path: "./test"
+      config:
+        cradle:
+          stack:
+            component: "espial:test:test"
