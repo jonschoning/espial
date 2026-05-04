@@ -72,6 +72,14 @@ export function useTagSuggestions({
         return;
       }
 
+      // If the user backspaced from a space (or end of string) into the end of
+      // a token without editing it, don't open suggestions.
+      const isDeletion = value.length < tags.length;
+      if (isDeletion && selectionStart === activeToken.end && tags[selectionStart] === ' ') {
+        closeSuggestions();
+        return;
+      }
+
       const payload: TagSuggestions = {
         query: activeToken.token,
         suggestions: [],
@@ -199,10 +207,7 @@ export function useTagSuggestions({
         return;
       }
 
-      if (
-        activeToken.start !== suggestionState.tokenRange.start ||
-        activeToken.end !== suggestionState.tokenRange.end
-      ) {
+      if (activeToken.start !== suggestionState.tokenRange.start) {
         closeSuggestions();
       }
     },
