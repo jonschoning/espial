@@ -44,6 +44,16 @@ export type TagCloudMode = {
 
 export type TagCloud = Record<string, number>;
 
+export type TSuggestion = {
+  term: string;
+  count: number;
+};
+
+export type TagSuggestions = {
+  query: string;
+  suggestions: TSuggestion[];
+};
+
 export type TagCloudModeF =
   | { kind: 'top'; expanded: boolean; value: number }
   | { kind: 'lowerBound'; expanded: boolean; value: number }

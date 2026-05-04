@@ -40,6 +40,6 @@ export function fromNullableStr(s: string | null | undefined): string {
   return s ?? '';
 }
 
-export function whenA<T>(b: boolean, k: () => T[]): T[] {
-  return b ? k() : [];
+export function normalizeTags(tags: string): string {
+  return tags.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
 }

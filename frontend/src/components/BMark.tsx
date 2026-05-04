@@ -1,10 +1,26 @@
 import React from 'react';
 
-import { destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
+import {
+  destroy,
+  editBookmark,
+  fetchTagSuggestions,
+  lookupTitle,
+  markRead,
+  toggleStar,
+} from '../api';
 import { app, setFocus, toLocaleDateString } from '../globals';
-import type { Bookmark } from '../types';
-import { encodeTag, fromNullableStr } from '../util';
+import type { Bookmark, TSuggestion } from '../types';
+import { encodeTag, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
+import type { SuggestionState } from './TagSuggestions';
+import {
+  getActiveTagToken,
+  measureCaretPosition,
+  replaceTokenAtRange,
+  TagSuggestionsDropdown,
+} from './TagSuggestions';
+
+const TAG_SUGGESTION_DEBOUNCE_MS = 180;
 
 export function BMark({
   initial,
@@ -22,6 +38,10 @@ export function BMark({
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const [suggestionState, setSuggestionState] = React.useState<SuggestionState | null>(null);
+  const tagSuggestionRequestId = React.useRef(0);
+  const tagSuggestionDebounceRef = React.useRef<number | null>(null);
+  const tagInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const tagInputId = `${bm.bid.toString()}_tags`;
 
@@ -55,8 +75,28 @@ export function BMark({
     setEditBm(bm);
     setEdit(next);
     setApiError(null);
+    closeSuggestions();
     if (next) setFocus(tagInputId);
   }
+
+  function cancelPendingSuggestions() {
+    if (tagSuggestionDebounceRef.current != null) {
+      window.clearTimeout(tagSuggestionDebounceRef.current);
+      tagSuggestionDebounceRef.current = null;
+    }
+    tagSuggestionRequestId.current += 1;
+  }
+
+  function closeSuggestions() {
+    cancelPendingSuggestions();
+    setSuggestionState(null);
+  }
+
+  React.useEffect(() => {
+    return () => {
+      cancelPendingSuggestions();
+    };
+  }, []);
 
   async function onFetchTitle() {
     setLoading(true);
@@ -68,10 +108,152 @@ export function BMark({
     }
   }
 
+  function onTagsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { value, selectionStart, selectionEnd } = e.target;
+
+    setEditBm((x) => ({ ...x, tags: value }));
+
+    if (selectionStart == null || selectionEnd == null || selectionStart !== selectionEnd) {
+      closeSuggestions();
+      return;
+    }
+
+    const activeToken = getActiveTagToken(value, selectionStart);
+    if (activeToken == null || activeToken.token.length < 2) {
+      closeSuggestions();
+      return;
+    }
+
+    const payload: { query: string; suggestions: TSuggestion[] } = {
+      query: activeToken.token,
+      suggestions: [],
+    };
+
+    cancelPendingSuggestions();
+    tagSuggestionDebounceRef.current = window.setTimeout(() => {
+      const requestId = tagSuggestionRequestId.current + 1;
+      tagSuggestionRequestId.current = requestId;
+
+      void (async () => {
+        const response: { query: string; suggestions: TSuggestion[] } | null =
+          await fetchTagSuggestions(payload);
+
+        if (
+          requestId !== tagSuggestionRequestId.current ||
+          response == null ||
+          tagInputRef.current == null
+        ) {
+          return;
+        }
+
+        const items = [...response.suggestions].slice(0, 10);
+        if (items.length === 0) {
+          closeSuggestions();
+          return;
+        }
+
+        const anchor = measureCaretPosition(tagInputRef.current, selectionStart);
+
+        setSuggestionState({
+          items,
+          selectedIndex: 0,
+          tokenRange: activeToken,
+          anchorLeft: anchor.left,
+          anchorTop: anchor.top,
+        });
+      })();
+    }, TAG_SUGGESTION_DEBOUNCE_MS);
+  }
+
+  function applySuggestion(term: string) {
+    const input = tagInputRef.current;
+    if (input == null || suggestionState == null) return;
+
+    const next = replaceTokenAtRange(editBm.tags, suggestionState.tokenRange, term);
+    setEditBm((x) => ({ ...x, tags: next.value }));
+    closeSuggestions();
+
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(next.caret, next.caret);
+    });
+  }
+
+  function onTagsKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Escape') {
+      if (suggestionState != null) {
+        e.preventDefault();
+        closeSuggestions();
+      }
+      return;
+    }
+
+    if (e.key === ' ') {
+      closeSuggestions();
+      return;
+    }
+
+    if (suggestionState == null) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSuggestionState((current) => {
+        if (current == null) return current;
+        return {
+          ...current,
+          selectedIndex: (current.selectedIndex + 1) % current.items.length,
+        };
+      });
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSuggestionState((current) => {
+        if (current == null) return current;
+        return {
+          ...current,
+          selectedIndex: (current.selectedIndex - 1 + current.items.length) % current.items.length,
+        };
+      });
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      const selected = suggestionState.items[suggestionState.selectedIndex];
+      applySuggestion(selected.term);
+    }
+  }
+
+  function onTagsSelect(e: React.SyntheticEvent<HTMLInputElement>) {
+    if (suggestionState == null) return;
+
+    const input = e.currentTarget;
+    const { selectionStart, selectionEnd, value } = input;
+    if (selectionStart == null || selectionEnd == null || selectionStart !== selectionEnd) {
+      closeSuggestions();
+      return;
+    }
+
+    const activeToken = getActiveTagToken(value, selectionStart);
+    if (activeToken == null) {
+      closeSuggestions();
+      return;
+    }
+
+    if (
+      activeToken.start !== suggestionState.tokenRange.start ||
+      activeToken.end !== suggestionState.tokenRange.end
+    ) {
+      closeSuggestions();
+    }
+  }
+
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
     setApiError(null);
-    const editBm2 = { ...editBm, tags: editBm.tags.replace(/,/g, ' ') };
+    const editBm2 = { ...editBm, tags: normalizeTags(editBm.tags) };
 
     const res = await editBookmark(editBm2);
     if (res.ok && res.status >= 200 && res.status < 300) {
@@ -240,18 +422,41 @@ export function BMark({
             />
             <div id="tags_input_box">
               <div>tags</div>
-              <input
-                id={tagInputId}
-                type="text"
-                className="tags w-100 mb1 pt1 edit_form_input"
-                name="tags"
-                autoComplete="off"
-                autoCapitalize="off"
-                value={editBm.tags}
-                onChange={(e) => {
-                  setEditBm((x) => ({ ...x, tags: e.target.value }));
-                }}
-              />
+              <div className="relative">
+                <input
+                  id={tagInputId}
+                  ref={tagInputRef}
+                  type="text"
+                  className="tags w-100 mb1 pt1 edit_form_input"
+                  name="tags"
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  value={editBm.tags}
+                  onChange={onTagsChange}
+                  onKeyDown={onTagsKeyDown}
+                  onClick={onTagsSelect}
+                  onSelect={onTagsSelect}
+                  onBlur={() => {
+                    window.setTimeout(() => {
+                      closeSuggestions();
+                    }, 0);
+                  }}
+                />
+                {suggestionState != null ? (
+                  <TagSuggestionsDropdown
+                    suggestionState={suggestionState}
+                    onHover={(index) => {
+                      setSuggestionState((current) => {
+                        if (current == null) return current;
+                        return { ...current, selectedIndex: index };
+                      });
+                    }}
+                    onPick={(term) => {
+                      applySuggestion(term);
+                    }}
+                  />
+                ) : null}
+              </div>
             </div>
             <div className="edit_form_checkboxes mv3">
               <input
