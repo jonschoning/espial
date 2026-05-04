@@ -1,3 +1,9 @@
+__v0.0.26__
+
+add tag suggestion when editing bookmarks
+add account settings controls for suggestTags (default True)
+extend migration createuser with suggestTags setting
+
 __v0.0.25__
 
 fix display bug for non-markdown notes
