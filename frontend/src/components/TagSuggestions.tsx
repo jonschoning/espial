@@ -124,12 +124,12 @@ export function TagSuggestionsDropdown({
 }) {
   return (
     <div
-      className="absolute z-5 bg-white ba b--black-10 br2 shadow-4 overflow-hidden"
+      className="absolute z-5 bg-near-white dark-gray ba b--moon-gray br2 shadow-4 overflow-hidden f6"
       style={{
         left: suggestionState.anchorLeft,
         top: suggestionState.anchorTop,
         width: 'max-content',
-        maxWidth: '24rem',
+        maxWidth: '22rem',
       }}
     >
       {suggestionState.items.map((item, index) => {
@@ -139,7 +139,7 @@ export function TagSuggestionsDropdown({
           <button
             key={`${item.term}-${item.count.toString()}`}
             type="button"
-            className={`flex items-center justify-between w-100 bn bg-transparent tl ph2 pv2 pointer nowrap ${selected ? 'bg-light-blue' : ''}`}
+            className={`flex items-center justify-between w-100 bn bg-transparent tl ph2 pv1 pointer nowrap dark-gray hover-blue ${selected ? 'bg-light-blue dark-blue' : ''}`}
             onMouseEnter={() => {
               onHover(index);
             }}
@@ -154,7 +154,7 @@ export function TagSuggestionsDropdown({
             <span className="mr2">
               {renderHighlightedSuggestion(displayTerm, suggestionState.tokenRange.token)}
             </span>
-            <span className="gray f7 tr" style={{ minWidth: '3ch' }}>
+            <span className="gray f6 tr" style={{ minWidth: '3ch' }}>
               {item.count}
             </span>
           </button>
