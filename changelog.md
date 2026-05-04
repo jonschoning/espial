@@ -1,3 +1,7 @@
+__v0.0.25__
+
+fix display bug for non-markdown notes
+
 __v0.0.24__
 
 correct extra-source-files in package.yaml

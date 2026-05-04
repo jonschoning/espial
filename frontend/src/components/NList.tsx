@@ -8,6 +8,7 @@ function toTextareaPreview(input: string) {
   const lines = input.split('\n');
   return (
     <>
+      {lines[0]}
       {lines.slice(1).map((x, idx) => (
         <React.Fragment key={idx}>
           <br />
