@@ -47,6 +47,20 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         <input
           type="checkbox"
           className="pointer mr2"
+          id="suggestTags"
+          name="suggestTags"
+          checked={us.suggestTags}
+          onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
+        />
+        <label htmlFor="suggestTags" className="lh-copy">
+          Enable tag suggestions
+        </label>
+      </div>
+
+      <div className="flex items-center mb2">
+        <input
+          type="checkbox"
+          className="pointer mr2"
           id="privacyLock"
           name="privacyLock"
           checked={us.privacyLock}

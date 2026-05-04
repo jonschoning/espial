@@ -36,6 +36,7 @@ User json
   apiToken HashedApiKey Maybe
   privateDefault Bool
   archiveDefault Bool
+  suggestTags Bool default=True
   privacyLock Bool
   UniqueUserName name
   deriving Show Eq Typeable Ord
@@ -650,6 +651,7 @@ insertDirFileNotes userId noteDirectory = do
 data AccountSettingsForm = AccountSettingsForm
   { _privateDefault :: Bool,
     _archiveDefault :: Bool,
+    _suggestTags :: Bool,
     _privacyLock :: Bool
   }
   deriving (Show, Eq, Read, Generic)
@@ -663,6 +665,7 @@ toAccountSettingsForm User {..} =
   AccountSettingsForm
     { _privateDefault = userPrivateDefault,
       _archiveDefault = userArchiveDefault,
+      _suggestTags = userSuggestTags,
       _privacyLock = userPrivacyLock
     }
 
@@ -672,6 +675,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
     userId
     [ UserPrivateDefault CP.=. _privateDefault,
       UserArchiveDefault CP.=. _archiveDefault,
+      UserSuggestTags CP.=. _suggestTags,
       UserPrivacyLock CP.=. _privacyLock
     ]
 

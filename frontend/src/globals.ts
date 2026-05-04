@@ -6,6 +6,7 @@ export type AppData = {
   bmarks: Bookmark[];
   bmark: Bookmark;
   isowner: boolean;
+  suggestTags?: boolean;
   // notes, note, accountSettings, tagCloudMode are present on some pages, but not always.
   // We keep this permissive to avoid breaking server-provided shapes.
   [k: string]: unknown;

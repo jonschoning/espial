@@ -1,17 +1,18 @@
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+
 module Handler.User where
 
-import qualified Data.Text as T
-import           Handler.Common
-import           Import
-import qualified Text.Blaze.Html5 as H
-import           Yesod.RssFeed
 import qualified Data.Map as Map
+import qualified Data.Text as T
+import Handler.Common
+import Import
 import qualified Network.Wai.Internal as W
+import qualified Text.Blaze.Html5 as H
+import Yesod.RssFeed
 
 getUserR :: UserNameP -> Handler Html
-getUserR uname=
+getUserR uname =
   _getUser uname SharedAll FilterAll (TagsP [])
 
 getUserSharedR :: UserNameP -> SharedP -> Handler Html
@@ -30,7 +31,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
-      page  = maybe 1   fromIntegral page'
+      page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
       filterp = case filterp' of
@@ -40,11 +41,12 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
   mquery <- lookupGetParam queryp
   let mqueryp = fmap (queryp,) mquery
-  (bcount, btmarks) <- runDB $ do
-       Entity userId user <- getBy404 (UniqueUserName uname)
-       when (not isowner && userPrivacyLock user)
-         (redirect (AuthR LoginR))
-       bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
+  (suggestTags, (bcount, btmarks)) <- runDB $ do
+    Entity userId user <- getBy404 (UniqueUserName uname)
+    when
+      (not isowner && userPrivacyLock user)
+      (redirect (AuthR LoginR))
+    (userSuggestTags user,) <$> bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
@@ -56,13 +58,16 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         tagCloudRenderEl = "tagCloud" :: Text
     rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")
-    toWidgetBody [julius|
+    toWidgetBody
+      [julius|
         app.dat.bmarks = #{ toJSON $ toBookmarkFormList btmarks } || [];
         app.dat.isowner = #{ isowner };
+      app.dat.suggestTags = #{ suggestTags };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
-    toWidget [hamlet|
+    toWidget
+      [hamlet|
       <script type="module">
         import { renderBookmarks, renderTagCloud } from '@{StaticR js_app_min_js}'
         setTimeout(() => {
@@ -83,7 +88,7 @@ postUserTagCloudR = do
   tc <- runDB $ case mode of
     TagCloudModeTop _ n -> tagCountTop userId n
     TagCloudModeLowerBound _ n -> tagCountLowerBound userId n
-    TagCloudModeRelated _ tags ->  tagCountRelated userId tags
+    TagCloudModeRelated _ tags -> tagCountRelated userId tags
     TagCloudModeNone -> notFound
   sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
 
@@ -104,13 +109,13 @@ _updateTagCloudMode mode =
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
 bookmarkToRssEntry (Entity entryId entry, tags) =
   FeedEntry
-  { feedEntryLink = bookmarkHref entry
-  , feedEntryUpdated = bookmarkTime entry
-  , feedEntryTitle = bookmarkDescription entry
-  , feedEntryContent = toHtml (bookmarkExtended entry)
-  , feedEntryCategories = map (EntryCategory Nothing Nothing) (maybe [] words tags)
-  , feedEntryEnclosure = Nothing
-  }
+    { feedEntryLink = bookmarkHref entry,
+      feedEntryUpdated = bookmarkTime entry,
+      feedEntryTitle = bookmarkDescription entry,
+      feedEntryContent = toHtml (bookmarkExtended entry),
+      feedEntryCategories = map (EntryCategory Nothing Nothing) (maybe [] words tags),
+      feedEntryEnclosure = Nothing
+    }
 
 getUserFeedR :: UserNameP -> Handler RepRss
 getUserFeedR unamep = do
@@ -132,7 +137,7 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
-      page  = maybe 1   fromIntegral page'
+      page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
       filterp = case filterp' of
@@ -142,28 +147,29 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
   mquery <- lookupGetParam queryp
   (_, btmarks) <- runDB $ do
-       Entity userId user <- getBy404 (UniqueUserName uname)
-       when (not isowner && userPrivacyLock user)
-         (redirect (AuthR LoginR))
-       bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
+    Entity userId user <- getBy404 (UniqueUserName uname)
+    when
+      (not isowner && userPrivacyLock user)
+      (redirect (AuthR LoginR))
+    bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
-                Nothing -> liftIO getCurrentTime
-                Just m ->  return m
+    Nothing -> liftIO getCurrentTime
+    Just m -> return m
   (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
-  rssFeedText $
-    Feed
-    { feedTitle = "espial " <> uname
-    , feedLinkSelf = feedLinkSelf
-    , feedLinkHome = feedLinkHome
-    , feedAuthor = uname
-    , feedDescription = descr
-    , feedLanguage = "en"
-    , feedUpdated = updated
-    , feedLogo = Nothing
-    , feedEntries = entries
-    }
+  rssFeedText
+    $ Feed
+      { feedTitle = "espial " <> uname,
+        feedLinkSelf = feedLinkSelf,
+        feedLinkHome = feedLinkHome,
+        feedAuthor = uname,
+        feedDescription = descr,
+        feedLanguage = "en",
+        feedUpdated = updated,
+        feedLogo = Nothing,
+        feedEntries = entries
+      }
   where
     getFeedLinkSelf = do
       request <- getRequest

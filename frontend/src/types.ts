@@ -33,6 +33,7 @@ export type Note = {
 export type AccountSettings = {
   archiveDefault: boolean;
   privateDefault: boolean;
+  suggestTags: boolean;
   privacyLock: boolean;
 };
 

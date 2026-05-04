@@ -50,6 +50,7 @@ export function BMark({
 
   const shdate = toLocaleDateString(bm.time);
   const shdatetime = `${bm.time.slice(0, 16)}Z`;
+  const suggestEnabled = a.dat.suggestTags === true;
 
   async function onStar(next: boolean) {
     await toggleStar(bm.bid, next ? 'star' : 'unstar');
@@ -112,6 +113,11 @@ export function BMark({
     const { value, selectionStart, selectionEnd } = e.target;
 
     setEditBm((x) => ({ ...x, tags: value }));
+
+    if (!suggestEnabled) {
+      closeSuggestions();
+      return;
+    }
 
     if (selectionStart == null || selectionEnd == null || selectionStart !== selectionEnd) {
       closeSuggestions();
