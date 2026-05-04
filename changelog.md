@@ -1,82 +1,85 @@
-__v0.0.26__
+# Changelog
 
-add tag suggestion when editing bookmarks
-add account settings controls for suggestTags (default True)
-extend migration createuser with suggestTags setting
+## v0.0.26 (2026-05-04)
 
-__v0.0.25__
+- Add Tag Suggestion when adding/editing bookmarks.
+- Add account settings controls for `suggestTags` (default `True`).
+- Extend migration `createuser` with `suggestTags` setting.
 
-fix display bug for non-markdown notes
+## v0.0.25 (2026-05-03)
 
-__v0.0.24__
+- Fix display bug for non-markdown notes.
 
-correct extra-source-files in package.yaml
-correct ghc warnings
+## v0.0.24 (2026-04-24)
 
-__v0.0.23__
+- Correct `extra-source-files` in `package.yaml`.
+- Correct GHC warnings.
 
-migrate frontend code from purescript to typescript/react
-update stackage resolver: lts-24.37
+## v0.0.23 (2026-04-24)
 
-__v0.0.22__
+- Migrate frontend code from PureScript to TypeScript/React.
+- Update Stackage resolver: `lts-24.37`.
 
-update to stackage LTS 23 (ghc-9.8.4); purs package-set update
+## v0.0.22 (2025-05-23)
 
-__v0.0.21__
+- Update to Stackage LTS 23 (`ghc-9.8.4`).
+- Purs package-set update.
 
-switch to esm javascript module imports
+## v0.0.21 (2024-01-15)
 
-__v0.0.20__
+- Switch to ESM JavaScript module imports.
 
-update version bounds for cabal deps
-                                
-__v0.0.19__
+## v0.0.20 (2024-01-18)
 
-update ghc & purescript dependencies to latest
+- Update version bounds for Cabal dependencies.
 
-__v0.0.18__
+## v0.0.19 (2023-12-19)
 
-update ghc & purescript dependencies to latest
+- Update GHC and PureScript dependencies to latest.
 
-__v0.0.17__
+## v0.0.18 (2023-10-02)
 
-update to GHC 9.4.5
+- Update GHC and PureScript dependencies to latest.
 
-__v0.0.16__
+## v0.0.17 (2023-07-04)
 
-Add SIGTERM handler on linux
-Adjust docker CMD entrypoint 
+- Update to GHC 9.4.5.
 
-__v0.0.15__
+## v0.0.16 (2023-01-05)
 
-Avoid using external static/tmp folder for generated static files
+- Add SIGTERM handler on Linux.
+- Adjust Docker CMD entrypoint.
 
-__v0.0.14__
+## v0.0.15 (2022-09-11)
 
-upgrade to purescript v0.15
-increase bookmarklet window height
+- Avoid using external `static/tmp` folder for generated static files.
 
-__v0.0.13__
+## v0.0.14 (2022-06-01)
 
-add setting ALLOW_NON_HTTP_URL_SCHEMES (default false)
+- Upgrade to PureScript v0.15.
+- Increase bookmarklet window height.
 
-__v0.0.12__
+## v0.0.13 (2022-04-26)
 
-update to ghc9
+- Add setting `ALLOW_NON_HTTP_URL_SCHEMES` (default `false`).
 
-__v0.0.11__
+## v0.0.12 (2022-04-17)
 
-add api key auth. 
-add CreateApiKey/DeleteApiKey commands to executable 'migration' 
+- Update to GHC 9.
 
-__v0.0.10__
+## v0.0.11 (2022-04-16)
 
-update purescript&package versions
+- Add API key auth.
+- Add `CreateApiKey`/`DeleteApiKey` commands to executable `migration`.
 
-__v0.0.9__
+## v0.0.10 (2022-04-05)
 
-(rolling releases)
+- Update PureScript and package versions.
 
-__v0.0.7__
+## v0.0.9 (2022-04-05)
 
-init
+- Rolling releases.
+
+## v0.0.7 (2019-01-30)
+
+- Init.
