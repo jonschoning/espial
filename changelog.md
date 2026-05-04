@@ -5,6 +5,8 @@
 - Add Tag Suggestion when adding/editing bookmarks.
 - Add account settings controls for `suggestTags` (default `True`).
 - Extend migration `createuser` with `suggestTags` setting.
+- Extend migration to add `showuser` command
+- Extend migration to load sql connection from yaml settings if not provided
 
 ## v0.0.25 (2026-05-03)
 

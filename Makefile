@@ -52,6 +52,9 @@ docker-compose-pull:
 docker-compose-push:
 	@docker tag localhost/espial:espial $(HUB_REPO)/espial:espial
 	@$(_DOCKER_COMPOSE) push espial
+docker-compose-push-beta:
+	@docker tag localhost/espial:espial $(_HUB_REPO)/espial:beta
+	@$(_DOCKER) push $(_HUB_REPO)/espial:beta
 docker-espial-logs:
 	@$(_DOCKER) logs -f --since `date -u +%FT%TZ` $(_ESPIAL_PS_ID)
 docker-espial-shell:
