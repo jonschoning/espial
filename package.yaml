@@ -4,7 +4,7 @@ version: "0.0.26"
 description: ! '
   Espial is an open-source, web-based bookmarking server.
 
-  - Yesod + PureScript + sqlite3
+  - Yesod + TypeScript + sqlite3
 
   - multi-user (w/ privacy scopes)
   

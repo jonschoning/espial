@@ -7,9 +7,6 @@ export type AppData = {
   bmark: Bookmark;
   isowner: boolean;
   suggestTags?: boolean;
-  // notes, note, accountSettings, tagCloudMode are present on some pages, but not always.
-  // We keep this permissive to avoid breaking server-provided shapes.
-  [k: string]: unknown;
 };
 
 export type App = {
@@ -22,7 +19,6 @@ export type App = {
   userR: string | null;
   noteR: string | null;
   dat: AppData;
-  [k: string]: unknown;
 };
 
 declare global {
