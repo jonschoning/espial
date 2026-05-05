@@ -74,9 +74,9 @@ extra-source-files:
     frontend/src/components/NList.tsx
     frontend/src/components/NNote.tsx
     frontend/src/components/TagCloud.tsx
-    frontend/src/components/TagSuggestions.tsx
-    frontend/src/components/useTagSuggestions.ts
+    frontend/src/components/TagSuggestionsDropdown.tsx
     frontend/src/globals.ts
+    frontend/src/hooks/useTagSuggestions.ts
     frontend/src/index.tsx
     frontend/src/stores/bookmarksStore.ts
     frontend/src/stores/tagCloudStore.ts

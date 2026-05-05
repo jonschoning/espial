@@ -2,11 +2,11 @@ import React from 'react';
 
 import { destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
 import { app, setFocus, toLocaleDateString } from '../globals';
+import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
 import { encodeTag, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
-import { TagSuggestionsDropdown } from './TagSuggestions';
-import { useTagSuggestions } from './useTagSuggestions';
+import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
 export function BMark({
   initial,

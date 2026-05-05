@@ -2,10 +2,10 @@ import React from 'react';
 
 import { destroy, editBookmark, lookupTitle } from '../api';
 import { app, closeWindow, mmoment8601 } from '../globals';
+import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
 import { curQuerystring, lookupQueryStringValue } from '../util';
-import { TagSuggestionsDropdown } from './TagSuggestions';
-import { useTagSuggestions } from './useTagSuggestions';
+import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
 export function AddForm({ initial }: { initial: Bookmark }) {
   const a = app();
