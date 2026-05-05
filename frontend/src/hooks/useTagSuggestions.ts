@@ -74,16 +74,13 @@ export function useTagSuggestions({
         return;
       }
 
-      const activeToken = getActiveTagToken(value, selectionStart);
-      if (activeToken == null || activeToken.token.length < 2) {
+      if (isWhitespaceOnlyEdit(tags, value)) {
         closeSuggestions();
         return;
       }
 
-      // If the user backspaced from a space (or end of string) into the end of
-      // a token without editing it, don't open suggestions.
-      const isDeletion = value.length < tags.length;
-      if (isDeletion && selectionStart === activeToken.end && tags[selectionStart] === ' ') {
+      const activeToken = getActiveTagToken(value, selectionStart);
+      if (activeToken == null || activeToken.token.length < 2) {
         closeSuggestions();
         return;
       }
@@ -310,4 +307,29 @@ function replaceTokenAtRange(
     value: `${prefix}${inserted}${suffix}`,
     caret: prefix.length + inserted.length,
   };
+}
+
+function isWhitespaceOnlyEdit(previous: string, next: string): boolean {
+  if (previous === next) return false;
+
+  let start = 0;
+  while (start < previous.length && start < next.length && previous[start] === next[start]) {
+    start += 1;
+  }
+
+  let prevEnd = previous.length;
+  let nextEnd = next.length;
+  while (prevEnd > start && nextEnd > start && previous[prevEnd - 1] === next[nextEnd - 1]) {
+    prevEnd -= 1;
+    nextEnd -= 1;
+  }
+
+  const removed = previous.slice(start, prevEnd);
+  const added = next.slice(start, nextEnd);
+  if (removed === '' && added === '') return false;
+  return isSpacesOnly(removed) && isSpacesOnly(added);
+}
+
+function isSpacesOnly(value: string): boolean {
+  return value === '' || /^ *$/.test(value);
 }
