@@ -28,6 +28,7 @@ getUserTagsR uname = _getUser uname SharedAll FilterAll
 
 _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
+  frontendBundleName <- appFrontendBundleName <$> getYesod
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
@@ -69,7 +70,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toWidget
       [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud } from '@{StaticR js_app_min_js}'
+        import { renderBookmarks, renderTagCloud } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);

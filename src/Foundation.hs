@@ -21,6 +21,8 @@ data App = App
   { appSettings :: AppSettings,
     -- | Settings for static file serving.
     appStatic :: Static,
+    -- | Frontend ESM bundle filename under static/js.
+    appFrontendBundleName :: Text,
     -- | Database connection pool.
     appConnPool :: ConnectionPool,
     appHttpManager :: Manager,
@@ -103,6 +105,7 @@ instance Yesod App where
     musername <- maybeAuthUsername
     muser <- (fmap . fmap) snd maybeAuthPair
     let msourceCodeUri = appSourceCodeUri (appSettings master)
+        frontendBundleName = appFrontendBundleName master
     pc <- widgetToPageContent do
       setTitle "Espial"
       addAppScripts
@@ -140,8 +143,6 @@ isAuthenticated =
 addAppScripts :: (MonadWidget m, HandlerSite m ~ App) => m ()
 addAppScripts = do pure ()
 
--- addScriptAttrs (StaticR js_app_min_js) [("type","module")]
-
 -- popupLayout
 
 popupLayout :: Widget -> Handler Html
@@ -151,6 +152,7 @@ popupLayout widget = do
   mmsg <- getMessage
   musername <- maybeAuthUsername
   let msourceCodeUri = appSourceCodeUri (appSettings master)
+      frontendBundleName = appFrontendBundleName master
   pc <- widgetToPageContent do
     addAppScripts
     addStylesheet (StaticR css_tachyons_min_css)

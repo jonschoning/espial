@@ -10,6 +10,7 @@ import Import
 getAddViewR :: Handler Html
 getAddViewR = do
   Entity userId user <- requireAuth
+  frontendBundleName <- appFrontendBundleName <$> getYesod
 
   murl <- lookupGetParam "url"
   mBookmarkDb <- runDB (fetchBookmarkByUrl userId murl)
@@ -31,7 +32,7 @@ getAddViewR = do
     toWidget
       [hamlet|
       <script type="module">
-        import { renderAddForm } from '@{StaticR js_app_min_js}'
+        import { renderAddForm } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderAddForm('##{renderEl}')(app.dat.bmark)();
     |]
 

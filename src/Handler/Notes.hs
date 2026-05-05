@@ -1,29 +1,32 @@
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+
 module Handler.Notes where
 
-import Import
-import Handler.Common (lookupPagingParams)
 import qualified Data.Aeson as A
 import qualified Data.Text as T
-import           Yesod.RssFeed
-import qualified Text.Blaze.Html5 as H
+import Handler.Common (lookupPagingParams)
+import Import
 import qualified Network.Wai.Internal as W
+import qualified Text.Blaze.Html5 as H
+import Yesod.RssFeed
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
+  frontendBundleName <- appFrontendBundleName <$> getYesod
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let queryp = "query"
   mquery <- lookupGetParam queryp
   let limit = maybe 20 fromIntegral limit'
-      page  = maybe 1  fromIntegral page'
+      page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
       isowner = Just uname == mauthuname
   (bcount, notes) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     let sharedp = if isowner then SharedAll else SharedPublic
-    when (not isowner && userPrivacyLock user)
+    when
+      (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     getNoteList userId mquery sharedp limit page
   req <- getRequest
@@ -34,40 +37,47 @@ getNotesR unamep@(UserNameP uname) = do
         search = $(widgetFile "search")
         renderEl = "notes" :: Text
     $(widgetFile "notes")
-    toWidgetBody [julius|
+    toWidgetBody
+      [julius|
         app.userR = "@{UserR unamep}";
         app.dat.notes = #{ toJSON notes } || [];
         app.dat.isowner = #{ isowner };
     |]
-    toWidget [hamlet|
+    toWidget
+      [hamlet|
       <script type="module">
-        import { renderNotes } from '@{StaticR js_app_min_js}'
+        import { renderNotes } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderNotes('##{renderEl}')(app.dat.notes)();
     |]
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
 getNoteR unamep@(UserNameP uname) slug = do
+  frontendBundleName <- appFrontendBundleName <$> getYesod
   mauthuname <- maybeAuthUsername
   let renderEl = "note" :: Text
       isowner = Just uname == mauthuname
   note <-
-    runDB $
-    do Entity userId user <- getBy404 (UniqueUserName uname)
-       mnote <- getNote userId slug
-       note <- maybe notFound pure mnote
-       when (not isowner && (userPrivacyLock user || (not . noteShared . entityVal) note))
-         (redirect (AuthR LoginR))
-       pure note
+    runDB
+      $ do
+        Entity userId user <- getBy404 (UniqueUserName uname)
+        mnote <- getNote userId slug
+        note <- maybe notFound pure mnote
+        when
+          (not isowner && (userPrivacyLock user || (not . noteShared . entityVal) note))
+          (redirect (AuthR LoginR))
+        pure note
   defaultLayout do
     $(widgetFile "note")
-    toWidgetBody [julius|
+    toWidgetBody
+      [julius|
         app.userR = "@{UserR unamep}";
         app.dat.note = #{ toJSON note } || [];
         app.dat.isowner = #{ isowner };
     |]
-    toWidget [hamlet|
+    toWidget
+      [hamlet|
       <script type="module">
-        import { renderNote } from '@{StaticR js_app_min_js}'
+        import { renderNote } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
@@ -78,20 +88,23 @@ getAddNoteSlimViewR = do
 
 getAddNoteViewR :: UserNameP -> Handler Html
 getAddNoteViewR unamep@(UserNameP uname) = do
+  frontendBundleName <- appFrontendBundleName <$> getYesod
   userId <- requireAuthId
   note <- liftIO . _toNote userId =<< noteFormUrl
   let renderEl = "note" :: Text
       enote = Entity (NoteKey 0) note
   defaultLayout do
     $(widgetFile "note")
-    toWidgetBody [julius|
+    toWidgetBody
+      [julius|
         app.userR = "@{UserR unamep}";
         app.noteR = "@{NoteR unamep (noteSlug (entityVal enote))}";
         app.dat.note = #{ toJSON enote } || [];
     |]
-    toWidget [hamlet|
+    toWidget
+      [hamlet|
       <script type="module">
-        import { renderNote } from '@{StaticR js_app_min_js}'
+        import { renderNote } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
@@ -128,37 +141,40 @@ _handleFormSuccess noteForm = do
     knid = toSqlKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
 
 data NoteForm = NoteForm
-  { _id :: Maybe Int64
-  , _slug :: Maybe NtSlug
-  , _title :: Maybe Text
-  , _text :: Maybe Textarea
-  , _isMarkdown :: Maybe Bool
-  , _shared :: Maybe Bool
-  , _created :: Maybe UTCTimeStr
-  , _updated :: Maybe UTCTimeStr
-  } deriving (Show, Eq, Read, Generic)
+  { _id :: Maybe Int64,
+    _slug :: Maybe NtSlug,
+    _title :: Maybe Text,
+    _text :: Maybe Textarea,
+    _isMarkdown :: Maybe Bool,
+    _shared :: Maybe Bool,
+    _created :: Maybe UTCTimeStr,
+    _updated :: Maybe UTCTimeStr
+  }
+  deriving (Show, Eq, Read, Generic)
 
 instance FromJSON NoteForm where parseJSON = A.genericParseJSON gNoteFormOptions
+
 instance ToJSON NoteForm where toJSON = A.genericToJSON gNoteFormOptions
 
 gNoteFormOptions :: A.Options
-gNoteFormOptions = A.defaultOptions { A.fieldLabelModifier = drop 1 }
+gNoteFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
 
 noteFormUrl :: Handler NoteForm
 noteFormUrl = do
   title <- lookupGetParam "title"
   description <- lookupGetParam "description" <&> fmap Textarea
   isMarkdown <- lookupGetParam "isMarkdown" <&> fmap parseChk
-  pure $ NoteForm
-    { _id = Nothing
-    , _slug = Nothing
-    , _title = title
-    , _text = description
-    , _isMarkdown = isMarkdown
-    , _shared = Nothing
-    , _created = Nothing
-    , _updated = Nothing
-    }
+  pure
+    $ NoteForm
+      { _id = Nothing,
+        _slug = Nothing,
+        _title = title,
+        _text = description,
+        _isMarkdown = isMarkdown,
+        _shared = Nothing,
+        _created = Nothing,
+        _updated = Nothing
+      }
   where
     parseChk s = s == "yes" || s == "on" || s == "true" || s == "1"
 
@@ -166,29 +182,29 @@ _toNote :: UserId -> NoteForm -> IO Note
 _toNote userId NoteForm {..} = do
   time <- liftIO getCurrentTime
   slug <- maybe mkNtSlug pure _slug
-  pure $
-    Note
-    { noteUserId = userId
-    , noteSlug = slug
-    , noteLength = length _text
-    , noteTitle = fromMaybe "" _title
-    , noteText = maybe "" unTextarea _text
-    , noteIsMarkdown = Just True == _isMarkdown
-    , noteShared = Just True == _shared
-    , noteCreated = maybe time unUTCTimeStr _created
-    , noteUpdated = maybe time unUTCTimeStr _updated
-    }
+  pure
+    $ Note
+      { noteUserId = userId,
+        noteSlug = slug,
+        noteLength = length _text,
+        noteTitle = fromMaybe "" _title,
+        noteText = maybe "" unTextarea _text,
+        noteIsMarkdown = Just True == _isMarkdown,
+        noteShared = Just True == _shared,
+        noteCreated = maybe time unUTCTimeStr _created,
+        noteUpdated = maybe time unUTCTimeStr _updated
+      }
 
 noteToRssEntry :: (Route App -> Text) -> UserNameP -> Entity Note -> FeedEntry Text
 noteToRssEntry render usernamep (Entity entryId entry) =
   FeedEntry
-  { feedEntryLink = render $ NoteR usernamep (noteSlug entry)
-  , feedEntryUpdated = noteUpdated entry
-  , feedEntryTitle = noteTitle entry
-  , feedEntryContent = toHtml (noteText entry)
-  , feedEntryEnclosure = Nothing
-  , feedEntryCategories = []
-  }
+    { feedEntryLink = render $ NoteR usernamep (noteSlug entry),
+      feedEntryUpdated = noteUpdated entry,
+      feedEntryTitle = noteTitle entry,
+      feedEntryContent = toHtml (noteText entry),
+      feedEntryEnclosure = Nothing,
+      feedEntryCategories = []
+    }
 
 getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
@@ -196,33 +212,34 @@ getNotesFeedR unamep@(UserNameP uname) = do
   (limit', page') <- lookupPagingParams
   mquery <- lookupGetParam "query"
   let limit = maybe 20 fromIntegral limit'
-      page  = maybe 1   fromIntegral page'
+      page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then SharedAll else SharedPublic
   (_, notes) <- runDB do
-      Entity userId user <- getBy404 (UniqueUserName uname)
-      when (not isowner && userPrivacyLock user)
-        (redirect (AuthR LoginR))
-      getNoteList userId mquery sharedp limit page
+    Entity userId user <- getBy404 (UniqueUserName uname)
+    when
+      (not isowner && userPrivacyLock user)
+      (redirect (AuthR LoginR))
+    getNoteList userId mquery sharedp limit page
   render <- getUrlRender
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
       entries = map (noteToRssEntry render unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
-                Nothing -> liftIO getCurrentTime
-                Just m ->  return m
+    Nothing -> liftIO getCurrentTime
+    Just m -> return m
   (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
-  rssFeedText $
-    Feed
-    { feedTitle = uname <> " notes"
-    , feedLinkSelf = feedLinkSelf
-    , feedLinkHome = feedLinkHome
-    , feedAuthor = uname
-    , feedDescription = descr
-    , feedLanguage = "en"
-    , feedUpdated = updated
-    , feedLogo = Nothing
-    , feedEntries = entries
-    }
+  rssFeedText
+    $ Feed
+      { feedTitle = uname <> " notes",
+        feedLinkSelf = feedLinkSelf,
+        feedLinkHome = feedLinkHome,
+        feedAuthor = uname,
+        feedDescription = descr,
+        feedLanguage = "en",
+        feedUpdated = updated,
+        feedLogo = Nothing,
+        feedEntries = entries
+      }
   where
     getFeedLinkSelf = do
       request <- getRequest

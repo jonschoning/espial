@@ -4,8 +4,11 @@
   "scripts": {
     "make-install": "make install",
     "typecheck": "tsc -p tsconfig.json",
-    "esbuild-bundle": "esbuild ./src/index.tsx --bundle --format=esm --target=chrome61,firefox60,edge18 --outfile=dist/app.js",
-    "esbuild-bundle-min": "esbuild ./src/index.tsx --bundle --format=esm --target=chrome61,firefox60,edge18 --minify --sourcemap --outfile=dist/app.min.js",
+    "bundle:prep": "shx rm -f dist/app.js dist/app.min.js dist/app.min.js.map dist/app-*.min.js dist/app-*.min.js.map dist/app-*.min.js.gz dist/app-*.min.js.map.gz",
+    "bundle:build": "esbuild ./src/index.tsx --bundle --format=esm --target=chrome61,firefox60,edge18 --minify --sourcemap --entry-names=app-[hash].min --outdir=dist",
+    "bundle:publish": "node ./scripts/publish-bundle.mjs",
+    "bundle:report": "node ./scripts/report-dist.mjs",
+    "bundle": "npm run bundle:prep && npm run bundle:build && npm run bundle:publish && npm run bundle:report",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,json,md}\""

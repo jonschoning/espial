@@ -16,6 +16,7 @@ module Application
   ) where
 
 import           Control.Monad.Logger (liftLoc, runLoggingT)
+import qualified Data.Aeson as A
 import           Database.Persist.Sqlite (ConnectionPool, mkSqliteConnectionInfo, createSqlitePoolFromInfo, fkEnabled, runSqlPool, sqlDatabase, sqlPoolSize)
 import           Import
 import           Language.Haskell.TH.Syntax (qLocation)
@@ -51,6 +52,7 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
   appHttpManager <- getGlobalManager
   appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
+  appFrontendBundleName <- loadFrontendBundleName (appStaticDir appSettings)
   appStatic <-
     (if appMutableStatic appSettings
        then staticDevel
@@ -72,6 +74,22 @@ makeFoundation appSettings = do
             connInfo = mkSqliteConnectionInfo dbPath &
                        set fkEnabled isFkEnabled
         createSqlitePoolFromInfo connInfo poolSize
+
+loadFrontendBundleName :: FilePath -> IO Text
+loadFrontendBundleName staticDir = do
+  let manifestPath = staticDir <> "/js/manifest.json"
+      fallbackName = "app.min.js"
+  mManifest <- A.decodeFileStrict' manifestPath
+  pure $ maybe fallbackName appBundle mManifest
+
+newtype FrontendBundleManifest = FrontendBundleManifest
+  { appBundle :: Text
+  }
+
+instance A.FromJSON FrontendBundleManifest where
+  parseJSON = A.withObject "FrontendBundleManifest" $ \o -> do
+    appBundle <- o A..: "appBundle"
+    pure FrontendBundleManifest {..}
 
 
 makeApplication :: App -> IO Application

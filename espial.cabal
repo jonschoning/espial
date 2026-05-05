@@ -51,12 +51,13 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app.min.js
-    static/js/app.min.js.gz
-    static/js/app.min.js.map
-    static/js/app.min.js.map.gz
+    static/js/app-OTQLPXA7.min.js
+    static/js/app-OTQLPXA7.min.js.gz
+    static/js/app-OTQLPXA7.min.js.map
+    static/js/app-OTQLPXA7.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
+    static/js/manifest.json
     frontend/.prettierignore
     frontend/.prettierrc
     frontend/eslint.config.mjs
@@ -82,6 +83,8 @@ extra-source-files:
     frontend/src/stores/tagCloudStore.ts
     frontend/src/types.ts
     frontend/src/util.ts
+    frontend/scripts/publish-bundle.mjs
+    frontend/scripts/report-dist.mjs
 
 source-repository head
   type: git

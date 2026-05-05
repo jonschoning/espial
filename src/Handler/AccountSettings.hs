@@ -1,22 +1,25 @@
 module Handler.AccountSettings where
 
-import Import
 import qualified ClassyPrelude.Yesod as CP
+import Import
 
 getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
+  frontendBundleName <- appFrontendBundleName <$> getYesod
   (_, user) <- requireAuthPair
   let accountSettingsEl = "accountSettings" :: Text
   let accountSettings = toAccountSettingsForm user
   defaultLayout do
     $(widgetFile "user-settings")
-    toWidgetBody [julius|
+    toWidgetBody
+      [julius|
         app.userR = "@{UserR (UserNameP $ userName user)}";
         app.dat.accountSettings = #{ toJSON accountSettings } || []; 
     |]
-    toWidget [hamlet|
+    toWidget
+      [hamlet|
       <script type="module">
-        import { renderAccountSettings } from '@{StaticR js_app_min_js}'
+        import { renderAccountSettings } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderAccountSettings('##{accountSettingsEl}')(app.dat.accountSettings)();
     |]
 
@@ -26,13 +29,12 @@ postEditAccountSettingsR = do
   accountSettingsForm <- requireCheckJsonBody
   runDB (updateUserFromAccountSettingsForm userId accountSettingsForm)
 
-
 getChangePasswordR :: Handler Html
 getChangePasswordR = do
   void requireAuthId
   req <- getRequest
-  defaultLayout $
-    $(widgetFile "change-password")
+  defaultLayout
+    $ $(widgetFile "change-password")
 
 postChangePasswordR :: Handler Html
 postChangePasswordR = do
@@ -41,18 +43,19 @@ postChangePasswordR = do
     FormSuccess (old, new) -> do
       runDB (authenticatePassword (userName user) old) >>= \case
         Nothing -> setMessage "Incorrect Old Password"
-        Just _ -> validateNewPassword new >>= \case
-          Just newValid -> do
-            newHash <- liftIO (hashPassword newValid)
-            void $ runDB (update userId [UserPasswordHash CP.=. newHash])
-            setMessage "Password Changed Successfully"
-          _ -> pure ()
+        Just _ ->
+          validateNewPassword new >>= \case
+            Just newValid -> do
+              newHash <- liftIO (hashPassword newValid)
+              void $ runDB (update userId [UserPasswordHash CP.=. newHash])
+              setMessage "Password Changed Successfully"
+            _ -> pure ()
     _ -> setMessage "Missing Required Fields"
   redirect ChangePasswordR
 
 validateNewPassword :: Text -> Handler (Maybe Text)
 validateNewPassword = \case
-    new | length new < 6 -> do
-          setMessage "Password must be at least 6 characters long"
-          pure Nothing
-    new -> pure $ Just new
+  new | length new < 6 -> do
+    setMessage "Password must be at least 6 characters long"
+    pure Nothing
+  new -> pure $ Just new

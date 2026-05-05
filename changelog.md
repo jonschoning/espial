@@ -7,6 +7,7 @@
 - Extend migration `createuser` with `suggestTags` setting.
 - Extend migration to add `showuser` command
 - Extend migration to load sql connection from yaml settings if not provided
+- use hashed js output + manifest.json in frontend build
 
 ## v0.0.25 (2026-05-03)
 
