@@ -1,2 +1,24 @@
+.git
+.github
+.vscode
+
+# Haskell build artifacts
 .stack
 .stack-work
+dist
+
+# Frontend dependencies and build output
+frontend/node_modules
+frontend/dist
+frontend/.cache
+
+# Logs and local env files
+*.log
+.env
+.env.*
+
+# Local databases and runtime files
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+tmp
