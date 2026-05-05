@@ -163,6 +163,7 @@ getApiKeyUser apiKey =
 -- returns a list of pair of bookmark with tags merged into a string
 bookmarksTagsQuery ::
   Key User ->
+  Bool ->
   SharedP ->
   FilterP ->
   [Tag] ->
@@ -170,7 +171,7 @@ bookmarksTagsQuery ::
   Limit ->
   Page ->
   DB (Int, [(Entity Bookmark, Maybe Text)])
-bookmarksTagsQuery userId sharedp filterp tags mquery limit' page =
+bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
   (,) -- total count
     <$> fmap
       (sum . fmap unValue)
@@ -190,6 +191,9 @@ bookmarksTagsQuery userId sharedp filterp tags mquery limit' page =
             ( b,
               subSelect $ from (table @BookmarkTag) >>= \t -> do
                 where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+                when
+                  (not isowner)
+                  (where_ (not_ (t ^. BookmarkTagTag `like` val ".%")))
                 groupBy (t ^. BookmarkTagBookmarkId)
                 orderBy [asc (t ^. BookmarkTagSeq)]
                 pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")

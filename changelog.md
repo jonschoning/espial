@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.27 (2026-05-05)
+
+- prevent private tags (starts with ".") from showing on public bookmark listing for a user if not owned
+
 ## v0.0.26 (2026-05-04)
 
 - Add Tag Suggestion when adding/editing bookmarks.

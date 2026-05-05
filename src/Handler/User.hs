@@ -47,7 +47,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (userSuggestTags user,) <$> bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
+    (userSuggestTags user,) <$> bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
@@ -152,7 +152,7 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId sharedp filterp pathtags mquery limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
