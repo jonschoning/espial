@@ -7,7 +7,8 @@ import type {
   Note,
   TagCloud,
   TagCloudMode,
-  TagSuggestions,
+  TagSuggestionRequest,
+  TagSuggestionResponse,
 } from './types';
 
 export type StarAction = 'star' | 'unstar';
@@ -115,14 +116,16 @@ export async function updateTagCloudMode(mode: TagCloudMode): Promise<void> {
   });
 }
 
-export async function fetchTagSuggestions(data: TagSuggestions): Promise<TagSuggestions | null> {
+export async function fetchTagSuggestions(
+  data: TagSuggestionRequest,
+): Promise<TagSuggestionResponse | null> {
   const res = await request('POST', 'api/tagSuggestions', {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
   });
   if (!res.ok) return null;
   try {
-    return await res.json<TagSuggestions>();
+    return await res.json<TagSuggestionResponse>();
   } catch {
     return null;
   }

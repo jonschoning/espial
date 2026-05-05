@@ -99,7 +99,7 @@ postLookupTitleR = do
 postTagSuggestionsR :: Handler Text
 postTagSuggestionsR = do
   userId <- requireAuthId
-  tagSuggestionForm <- requireCheckJsonBody
+  tagSuggestionRequest <- requireCheckJsonBody
   let suggestion_limit = 10
-  tagSuggestions <- runDB $ getTagSuggestions userId tagSuggestionForm suggestion_limit
+  tagSuggestions <- runDB $ getTagSuggestions userId tagSuggestionRequest suggestion_limit
   sendStatusJSON ok200 tagSuggestions

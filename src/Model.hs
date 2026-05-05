@@ -911,9 +911,14 @@ readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
 showFileNoteTime :: UTCTime -> String
 showFileNoteTime = formatTime defaultTimeLocale "%F %T"
 
-data TagSuggestionForm = TagSuggestionForm
+data TagSuggestionRequest = TagSuggestionRequest
   { _query :: Text,
-    _suggestions :: [Suggestion]
+    _currentTags :: Maybe [Text]
+  }
+  deriving (Show, Eq, Read, Generic)
+
+data TagSuggestionResponse = TagSuggestionResponse
+  { _suggestions :: [Suggestion]
   }
   deriving (Show, Eq, Read, Generic)
 
@@ -923,16 +928,20 @@ data Suggestion = Suggestion
   }
   deriving (Show, Eq, Read, Generic)
 
-instance FromJSON TagSuggestionForm where parseJSON = A.genericParseJSON gDefaultFormOptions
+instance FromJSON TagSuggestionRequest where parseJSON = A.genericParseJSON gDefaultFormOptions
 
-instance ToJSON TagSuggestionForm where toJSON = A.genericToJSON gDefaultFormOptions
+instance ToJSON TagSuggestionRequest where toJSON = A.genericToJSON gDefaultFormOptions
+
+instance FromJSON TagSuggestionResponse where parseJSON = A.genericParseJSON gDefaultFormOptions
+
+instance ToJSON TagSuggestionResponse where toJSON = A.genericToJSON gDefaultFormOptions
 
 instance FromJSON Suggestion where parseJSON = A.genericParseJSON gDefaultFormOptions
 
 instance ToJSON Suggestion where toJSON = A.genericToJSON gDefaultFormOptions
 
-getTagSuggestions :: Key User -> TagSuggestionForm -> Int -> DB TagSuggestionForm
-getTagSuggestions user f@TagSuggestionForm {_query = query} top = do
+getTagSuggestions :: Key User -> TagSuggestionRequest -> Int -> DB TagSuggestionResponse
+getTagSuggestions user TagSuggestionRequest {_query = query, _currentTags = currentTags} top = do
   values <-
     fmap (bimap unValue unValue)
       <$> ( select $ do
@@ -942,13 +951,16 @@ getTagSuggestions user f@TagSuggestionForm {_query = query} top = do
               pure (tag, countRows')
           )
   pure
-    $ f
+    TagSuggestionResponse
       { _suggestions = uncurry Suggestion <$> values
       }
   where
+    excludedTags = take 400 $ map toLower (fromMaybe ([] :: [Text]) currentTags)
+
     prefixQuery = do
       t <- from (table @BookmarkTag)
       where_ (t ^. BookmarkTagUserId ==. val user &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%))))
+      unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
       let countRows' = countRows
       groupBy (lower_ $ t ^. BookmarkTagTag)
       pure (t ^. BookmarkTagTag, countRows', val (0 :: Int))
@@ -960,6 +972,7 @@ getTagSuggestions user f@TagSuggestionForm {_query = query} top = do
             &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ ((%) ++. val query ++. (%)))
             &&. not_ (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%)))
         )
+      unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
       let countRows' = countRows
       groupBy (lower_ $ t ^. BookmarkTagTag)
       pure (t ^. BookmarkTagTag, countRows', val (1 :: Int))

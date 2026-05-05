@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { fetchTagSuggestions } from '../api';
-import type { TagSuggestions, TSuggestion } from '../types';
+import type { TagSuggestionRequest, TSuggestion } from '../types';
 
 export type SuggestionState = {
   items: TSuggestion[];
@@ -85,9 +85,21 @@ export function useTagSuggestions({
         return;
       }
 
-      const payload: TagSuggestions = {
+      const normalizedTagTerms = getNormalizedTagTerms(value);
+      const activeTokenNormalized = activeToken.token.toLowerCase();
+      const activeTokenOccurrences = normalizedTagTerms.filter(
+        (tag) => tag === activeTokenNormalized,
+      ).length;
+      const shouldExcludeActiveToken = activeTokenOccurrences > 1;
+      const payload: TagSuggestionRequest = {
         query: activeToken.token,
-        suggestions: [],
+        currentTags: Array.from(
+          new Set(
+            normalizedTagTerms.filter(
+              (tag) => shouldExcludeActiveToken || tag !== activeTokenNormalized,
+            ),
+          ),
+        ),
       };
 
       cancelPendingSuggestions();
@@ -106,7 +118,7 @@ export function useTagSuggestions({
             return;
           }
 
-          const items = [...response.suggestions].slice(0, maxSuggestions);
+          const items = response.suggestions.slice(0, maxSuggestions);
           if (items.length === 0) {
             closeSuggestions();
             return;
@@ -300,9 +312,11 @@ function replaceTokenAtRange(
   replacement: string,
 ): { value: string; caret: number } {
   const prefix = value.slice(0, range.start);
-  const suffix = value.slice(range.end);
-  const needsTrailingSpace = suffix === '' || !suffix.startsWith(' ');
-  const inserted = `${replacement}${needsTrailingSpace ? ' ' : ''}`;
+  // Consume any existing leading space from the suffix so we always own the
+  // separator. This lets us unconditionally append a trailing space and place
+  // the caret after it, whether the accepted tag is in the middle or at the end.
+  const suffix = value.slice(range.end).replace(/^ /, '');
+  const inserted = `${replacement} `;
   return {
     value: `${prefix}${inserted}${suffix}`,
     caret: prefix.length + inserted.length,
@@ -332,4 +346,11 @@ function isWhitespaceOnlyEdit(previous: string, next: string): boolean {
 
 function isSpacesOnly(value: string): boolean {
   return value === '' || /^ *$/.test(value);
+}
+
+function getNormalizedTagTerms(value: string): string[] {
+  return value
+    .split(' ')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter((tag) => tag !== '');
 }

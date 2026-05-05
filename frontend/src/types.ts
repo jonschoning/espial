@@ -50,8 +50,12 @@ export type TSuggestion = {
   count: number;
 };
 
-export type TagSuggestions = {
+export type TagSuggestionRequest = {
   query: string;
+  currentTags: string[];
+};
+
+export type TagSuggestionResponse = {
   suggestions: TSuggestion[];
 };
 
