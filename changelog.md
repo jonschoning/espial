@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.29
+
+- tag suggestions: when a tag exactly matches an existing tag, it will appear first in the suggestion list
+
 ## v0.0.28 (2026-05-06)
 
 - add new app setting: `archive-backend: "_env:ARCHIVE_BACKEND:disabled"`

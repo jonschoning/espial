@@ -959,7 +959,7 @@ getTagSuggestions user TagSuggestionRequest {_query = query, _currentTags = curr
   values <-
     fmap (bimap unValue unValue)
       <$> ( select $ do
-              (tag, countRows', matchPriority) <- from $ unionAll_ prefixQuery containsOnlyQuery
+              (tag, countRows', matchPriority) <- from suggestionsQuery
               orderBy [asc matchPriority, desc countRows', asc $ lower_ tag]
               limit (fromIntegral top)
               pure (tag, countRows')
@@ -971,22 +971,19 @@ getTagSuggestions user TagSuggestionRequest {_query = query, _currentTags = curr
   where
     excludedTags = take 400 $ map toLower (fromMaybe ([] :: [Text]) currentTags)
 
-    prefixQuery = do
-      t <- from (table @BookmarkTag)
-      where_ (t ^. BookmarkTagUserId ==. val user &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%))))
-      unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
-      let countRows' = countRows
-      groupBy (lower_ $ t ^. BookmarkTagTag)
-      pure (t ^. BookmarkTagTag, countRows', val (0 :: Int))
-
-    containsOnlyQuery = do
+    suggestionsQuery = do
       t <- from (table @BookmarkTag)
       where_
         ( t ^. BookmarkTagUserId ==. val user
             &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ ((%) ++. val query ++. (%)))
-            &&. not_ (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%)))
         )
       unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
       let countRows' = countRows
-      groupBy (lower_ $ t ^. BookmarkTagTag)
-      pure (t ^. BookmarkTagTag, countRows', val (1 :: Int))
+          matchPriority =
+            case_
+              [ when_ (lower_ (t ^. BookmarkTagTag) ==. lower_ (val query)) then_ (val (0 :: Int)),
+                when_ (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%))) then_ (val (1 :: Int))
+              ]
+              (else_ (val (2 :: Int)))
+      groupBy (lower_ (t ^. BookmarkTagTag))
+      pure (t ^. BookmarkTagTag, countRows', matchPriority)
