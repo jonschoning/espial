@@ -844,8 +844,7 @@ instance FromJSON FileBookmark where
     FileBookmark
       <$> o
       .: "href"
-      <*> o
-      .: "description"
+      <*> (parseDescriptionValue =<< o .: "description")
       <*> o
       .: "extended"
       <*> o
@@ -855,6 +854,10 @@ instance FromJSON FileBookmark where
       <*> (o A..:? "selected")
       <*> (o A..:? "archive_url")
       <*> (o .: "tags")
+    where
+      parseDescriptionValue (String t) = pure t
+      parseDescriptionValue (Bool _) = pure ""
+      parseDescriptionValue _ = A.parseFail "bad parse"
   parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON FileBookmark where
