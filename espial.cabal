@@ -119,7 +119,13 @@ library
       Import
       Import.NoFoundation
       Model
-      ModelCustom
+      Model.Custom
+      Model.File
+      Model.FileBookmark
+      Model.FileFirefox
+      Model.FileNetscape
+      Model.FileNote
+      Model.Form
       PathPiece
       Pretty
       Settings

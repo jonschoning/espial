@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Handler.Notes where

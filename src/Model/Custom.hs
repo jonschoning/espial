@@ -1,5 +1,5 @@
 
-module ModelCustom where
+module Model.Custom where
 
 import Prelude
 

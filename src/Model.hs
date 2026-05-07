@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveFunctor #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module Model where
 
@@ -9,22 +8,18 @@ import qualified Control.Monad.Combinators as PC (between)
 import Control.Monad.Fail (MonadFail)
 import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
 import Control.Monad.Writer (tell)
-import qualified Data.Aeson as A
 import qualified Data.Aeson.KeyMap as KM
 import qualified Data.Aeson.Types as A (parseFail)
 import qualified Data.Attoparsec.Text as P
 import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
-import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Time as TI (ParseTime)
-import qualified Data.Time.Clock.POSIX as TI (POSIXTime, posixSecondsToUTCTime)
-import qualified Data.Time.ISO8601 as TI (formatISO8601Millis, parseISO8601)
+import qualified Data.Time.ISO8601 as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
-import ModelCustom
+import Model.Custom
 import Pretty ()
-import System.Directory (listDirectory)
 import Types
 
 share
@@ -83,8 +78,8 @@ newtype UTCTimeStr
   deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
 
 instance PathPiece UTCTimeStr where
-  toPathPiece (UTCTimeStr u) = pack (TI.formatISO8601Millis u)
-  fromPathPiece s = UTCTimeStr <$> TI.parseISO8601 (unpack s)
+  toPathPiece (UTCTimeStr u) = pack (TISO.formatISO8601Millis u)
+  fromPathPiece s = UTCTimeStr <$> TISO.parseISO8601 (unpack s)
 
 newtype UserNameP
   = UserNameP {unUserNameP :: Text}
@@ -376,150 +371,11 @@ getNoteList key mquery sharedp limit' page =
             p_after = "after:" *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = "before:" *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
 
--- Bookmark Files
-
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =
   (\(i, tag) -> BookmarkTag userId tag bookmarkId i) <$> zip [1 ..] tags
 
-fileBookmarkToBookmark :: UserId -> FileBookmark -> IO Bookmark
-fileBookmarkToBookmark user FileBookmark {..} = do
-  slug <- mkBmSlug
-  pure
-    $ Bookmark
-      { bookmarkUserId = user,
-        bookmarkSlug = slug,
-        bookmarkHref = fileBookmarkHref,
-        bookmarkDescription = fileBookmarkDescription,
-        bookmarkExtended = fileBookmarkExtended,
-        bookmarkTime = fileBookmarkTime,
-        bookmarkShared = fileBookmarkShared,
-        bookmarkToRead = fileBookmarkToRead,
-        bookmarkSelected = Just True == fileBookmarkSelected,
-        bookmarkArchiveHref = fileBookmarkArchiveHref
-      }
-
-bookmarkTofileBookmark :: Bookmark -> Text -> FileBookmark
-bookmarkTofileBookmark Bookmark {..} tags =
-  FileBookmark
-    { fileBookmarkHref = bookmarkHref,
-      fileBookmarkDescription = bookmarkDescription,
-      fileBookmarkExtended = bookmarkExtended,
-      fileBookmarkTime = bookmarkTime,
-      fileBookmarkShared = bookmarkShared,
-      fileBookmarkToRead = bookmarkToRead,
-      fileBookmarkSelected = Just bookmarkSelected,
-      fileBookmarkArchiveHref = bookmarkArchiveHref,
-      fileBookmarkTags = tags
-    }
-
-data FFBookmarkNode = FFBookmarkNode
-  { firefoxBookmarkChildren :: Maybe [FFBookmarkNode],
-    firefoxBookmarkDateAdded :: !TI.POSIXTime,
-    firefoxBookmarkGuid :: !Text,
-    firefoxBookmarkIconUri :: !(Maybe Text),
-    firefoxBookmarkId :: !Int,
-    firefoxBookmarkIndex :: !Int,
-    firefoxBookmarkLastModified :: !TI.POSIXTime,
-    firefoxBookmarkRoot :: !(Maybe Text),
-    firefoxBookmarkTitle :: !Text,
-    firefoxBookmarkType :: !Text,
-    firefoxBookmarkTypeCode :: !Int,
-    firefoxBookmarkUri :: !(Maybe Text)
-  }
-  deriving (Show, Eq, Typeable, Ord)
-
-instance FromJSON FFBookmarkNode where
-  parseJSON (Object o) =
-    FFBookmarkNode
-      <$> (o A..:? "children")
-      <*> (o .: "dateAdded")
-      <*> o
-      .: "guid"
-      <*> (o A..:? "iconUri")
-      <*> o
-      .: "id"
-      <*> o
-      .: "index"
-      <*> (o .: "lastModified")
-      <*> (o A..:? "root")
-      <*> (o .: "title")
-      <*> (o .: "type")
-      <*> (o .: "typeCode")
-      <*> (o A..:? "uri")
-  parseJSON _ = A.parseFail "bad parse"
-
-firefoxBookmarkNodeToBookmark :: UserId -> FFBookmarkNode -> IO [Bookmark]
-firefoxBookmarkNodeToBookmark user FFBookmarkNode {..} =
-  case firefoxBookmarkTypeCode of
-    1 -> do
-      slug <- mkBmSlug
-      pure
-        $ [ Bookmark
-              { bookmarkUserId = user,
-                bookmarkSlug = slug,
-                bookmarkHref = fromMaybe "" firefoxBookmarkUri,
-                bookmarkDescription = firefoxBookmarkTitle,
-                bookmarkExtended = "",
-                bookmarkTime = TI.posixSecondsToUTCTime (firefoxBookmarkDateAdded / 1000000),
-                bookmarkShared = True,
-                bookmarkToRead = False,
-                bookmarkSelected = False,
-                bookmarkArchiveHref = Nothing
-              }
-          ]
-    2 ->
-      join
-        <$> mapM
-          (firefoxBookmarkNodeToBookmark user)
-          (fromMaybe [] firefoxBookmarkChildren)
-    _ -> pure []
-
-insertFileBookmarks :: Key User -> FilePath -> DB (Either String Int)
-insertFileBookmarks userId bookmarkFile = do
-  mfmarks <- liftIO $ readFileBookmarks bookmarkFile
-  case mfmarks of
-    Left e -> pure $ Left e
-    Right fmarks -> do
-      bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
-      mbids <- mapM insertUnique bmarks
-      mapM_ (void . insertUnique)
-        $ concatMap (uncurry (mkBookmarkTags userId))
-        $ catMaybes
-        $ zipWith
-          (\mbid tags -> (,tags) <$> mbid)
-          mbids
-          (extractTags <$> fmarks)
-      pure $ Right (length bmarks)
-  where
-    extractTags = words . fileBookmarkTags
-
-insertFFBookmarks :: Key User -> FilePath -> DB (Either String Int)
-insertFFBookmarks userId bookmarkFile = do
-  mfmarks <- liftIO $ readFFBookmarks bookmarkFile
-  case mfmarks of
-    Left e -> pure $ Left e
-    Right fmarks -> do
-      bmarks <- liftIO $ firefoxBookmarkNodeToBookmark userId fmarks
-      mapM_ (void . insertUnique) bmarks
-      pure $ Right (length bmarks)
-
-readFileBookmarks :: (MonadIO m) => FilePath -> m (Either String [FileBookmark])
-readFileBookmarks fpath =
-  A.eitherDecode' . fromStrict <$> readFile fpath
-
-readFFBookmarks :: (MonadIO m) => FilePath -> m (Either String FFBookmarkNode)
-readFFBookmarks fpath =
-  A.eitherDecode' . fromStrict <$> readFile fpath
-
-exportFileBookmarks :: Key User -> FilePath -> DB ()
-exportFileBookmarks user fpath =
-  liftIO . A.encodeFile fpath =<< getFileBookmarks user
-
-getFileBookmarks :: Key User -> DB [FileBookmark]
-getFileBookmarks user = do
-  marks <- allUserBookmarks user
-  pure $ fmap (\(bm, t) -> bookmarkTofileBookmark (entityVal bm) t) marks
+-- * Bookmark Tag Cloud
 
 data TagCloudMode
   = TagCloudModeTop Bool Int -- { mode: "top", value: 200 }
@@ -625,139 +481,6 @@ tagCountRelated user tags =
             pure (t ^. BookmarkTagTag, countRows')
         )
 
--- Notes
-
-fileNoteToNote :: UserId -> FileNote -> IO Note
-fileNoteToNote user FileNote {..} = do
-  slug <- mkNtSlug
-  pure
-    $ Note
-      { noteUserId = user,
-        noteSlug = slug,
-        noteLength = fileNoteLength,
-        noteTitle = fileNoteTitle,
-        noteText = fileNoteText,
-        noteIsMarkdown = False,
-        noteShared = False,
-        noteCreated = fileNoteCreatedAt,
-        noteUpdated = fileNoteUpdatedAt
-      }
-
-insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
-insertDirFileNotes userId noteDirectory = do
-  mfnotes <- liftIO $ readFileNotes noteDirectory
-  case mfnotes of
-    Left e -> pure $ Left e
-    Right fnotes -> do
-      notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
-      void $ mapM insertUnique notes
-      pure $ Right (length notes)
-  where
-    readFileNotes :: (MonadIO m) => FilePath -> m (Either String [FileNote])
-    readFileNotes fdir = do
-      files <- liftIO (listDirectory fdir)
-      noteBSS <- mapM (readFile . (fdir </>)) files
-      pure (mapM (A.eitherDecode' . fromStrict) noteBSS)
-
--- AccountSettingsForm
-data AccountSettingsForm = AccountSettingsForm
-  { _privateDefault :: Bool,
-    _archiveDefault :: Bool,
-    _suggestTags :: Bool,
-    _privacyLock :: Bool,
-    _archiveBackendEnabled :: Bool
-  }
-  deriving (Show, Eq, Read, Generic)
-
-instance FromJSON AccountSettingsForm where parseJSON = A.genericParseJSON gDefaultFormOptions
-
-instance ToJSON AccountSettingsForm where toJSON = A.genericToJSON gDefaultFormOptions
-
-toAccountSettingsForm :: Bool -> User -> AccountSettingsForm
-toAccountSettingsForm archiveBackendEnabled User {..} =
-  AccountSettingsForm
-    { _privateDefault = userPrivateDefault,
-      _archiveDefault = userArchiveDefault,
-      _suggestTags = userSuggestTags,
-      _privacyLock = userPrivacyLock,
-      _archiveBackendEnabled = archiveBackendEnabled
-    }
-
-updateUserFromAccountSettingsForm :: Key User -> AccountSettingsForm -> DB ()
-updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
-  CP.update
-    userId
-    [ UserPrivateDefault CP.=. _privateDefault,
-      UserArchiveDefault CP.=. _archiveDefault,
-      UserSuggestTags CP.=. _suggestTags,
-      UserPrivacyLock CP.=. _privacyLock
-    ]
-
--- BookmarkForm
-
-data BookmarkForm = BookmarkForm
-  { _url :: Text,
-    _title :: Maybe Text,
-    _description :: Maybe Textarea,
-    _tags :: Maybe Text,
-    _private :: Maybe Bool,
-    _toread :: Maybe Bool,
-    _bid :: Maybe Int64,
-    _slug :: Maybe BmSlug,
-    _selected :: Maybe Bool,
-    _time :: Maybe UTCTimeStr,
-    _archiveUrl :: Maybe Text
-  }
-  deriving (Show, Eq, Read, Generic)
-
-instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultFormOptions
-
-instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
-
-gDefaultFormOptions :: A.Options
-gDefaultFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
-
-toBookmarkFormList :: [(Entity Bookmark, Maybe Text)] -> [BookmarkForm]
-toBookmarkFormList = fmap _toBookmarkForm'
-
-_toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
-_toBookmarkForm (bm, tags) =
-  _toBookmarkForm' (bm, Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags)
-
-_toBookmarkForm' :: (Entity Bookmark, Maybe Text) -> BookmarkForm
-_toBookmarkForm' (Entity bid Bookmark {..}, tags) =
-  BookmarkForm
-    { _url = bookmarkHref,
-      _title = Just bookmarkDescription,
-      _description = Just $ Textarea $ bookmarkExtended,
-      _tags = Just $ fromMaybe "" tags,
-      _private = Just $ not bookmarkShared,
-      _toread = Just bookmarkToRead,
-      _bid = Just $ fromSqlKey $ bid,
-      _slug = Just bookmarkSlug,
-      _selected = Just bookmarkSelected,
-      _time = Just $ UTCTimeStr $ bookmarkTime,
-      _archiveUrl = bookmarkArchiveHref
-    }
-
-_toBookmark :: UserId -> BookmarkForm -> IO Bookmark
-_toBookmark userId BookmarkForm {..} = do
-  time <- liftIO getCurrentTime
-  slug <- maybe mkBmSlug pure _slug
-  pure
-    $ Bookmark
-      { bookmarkUserId = userId,
-        bookmarkSlug = slug,
-        bookmarkHref = _url,
-        bookmarkDescription = fromMaybe "" _title,
-        bookmarkExtended = maybe "" unTextarea _description,
-        bookmarkTime = maybe time unUTCTimeStr _time,
-        bookmarkShared = maybe True not _private,
-        bookmarkToRead = Just True == _toread,
-        bookmarkSelected = Just True == _selected,
-        bookmarkArchiveHref = _archiveUrl
-      }
-
 fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
 fetchBookmarkByUrl userId murl = runMaybeT do
   bmark <- MaybeT . getBy . UniqueUserHref userId =<< MaybeT (pure murl)
@@ -823,170 +546,3 @@ upsertNote userId mnid note =
         _ -> throwString "not found"
     Nothing -> do
       Created <$> insert note
-
--- * FileBookmarks
-
-data FileBookmark = FileBookmark
-  { fileBookmarkHref :: !Text,
-    fileBookmarkDescription :: !Text,
-    fileBookmarkExtended :: !Text,
-    fileBookmarkTime :: !UTCTime,
-    fileBookmarkShared :: !Bool,
-    fileBookmarkToRead :: !Bool,
-    fileBookmarkSelected :: !(Maybe Bool),
-    fileBookmarkArchiveHref :: !(Maybe Text),
-    fileBookmarkTags :: !Text
-  }
-  deriving (Show, Eq, Typeable, Ord)
-
-instance FromJSON FileBookmark where
-  parseJSON (Object o) =
-    FileBookmark
-      <$> o
-      .: "href"
-      <*> (parseDescriptionValue =<< o .: "description")
-      <*> o
-      .: "extended"
-      <*> o
-      .: "time"
-      <*> (boolFromYesNo <$> o .: "shared")
-      <*> (boolFromYesNo <$> o .: "toread")
-      <*> (o A..:? "selected")
-      <*> (o A..:? "archive_url")
-      <*> (o .: "tags")
-    where
-      parseDescriptionValue (String t) = pure t
-      parseDescriptionValue (Bool _) = pure ""
-      parseDescriptionValue _ = A.parseFail "bad parse"
-  parseJSON _ = A.parseFail "bad parse"
-
-instance ToJSON FileBookmark where
-  toJSON FileBookmark {..} =
-    object
-      [ "href" .= toJSON fileBookmarkHref,
-        "description" .= toJSON fileBookmarkDescription,
-        "extended" .= toJSON fileBookmarkExtended,
-        "time" .= toJSON fileBookmarkTime,
-        "shared" .= toJSON (boolToYesNo fileBookmarkShared),
-        "toread" .= toJSON (boolToYesNo fileBookmarkToRead),
-        "selected" .= toJSON fileBookmarkSelected,
-        "archive_url" .= toJSON fileBookmarkArchiveHref,
-        "tags" .= toJSON fileBookmarkTags
-      ]
-
-boolFromYesNo :: Text -> Bool
-boolFromYesNo "yes" = True
-boolFromYesNo _ = False
-
-boolToYesNo :: Bool -> Text
-boolToYesNo True = "yes"
-boolToYesNo _ = "no"
-
--- * FileNotes
-
-data FileNote = FileNote
-  { fileNoteId :: !Text,
-    fileNoteTitle :: !Text,
-    fileNoteText :: !Text,
-    fileNoteLength :: !Int,
-    fileNoteCreatedAt :: !UTCTime,
-    fileNoteUpdatedAt :: !UTCTime
-  }
-  deriving (Show, Eq, Typeable, Ord)
-
-instance FromJSON FileNote where
-  parseJSON (Object o) =
-    FileNote
-      <$> o
-      .: "id"
-      <*> o
-      .: "title"
-      <*> o
-      .: "text"
-      <*> o
-      .: "length"
-      <*> (readFileNoteTime =<< o .: "created_at")
-      <*> (readFileNoteTime =<< o .: "updated_at")
-  parseJSON _ = A.parseFail "bad parse"
-
-instance ToJSON FileNote where
-  toJSON FileNote {..} =
-    object
-      [ "id" .= toJSON fileNoteId,
-        "title" .= toJSON fileNoteTitle,
-        "text" .= toJSON fileNoteText,
-        "length" .= toJSON fileNoteLength,
-        "created_at" .= toJSON (showFileNoteTime fileNoteCreatedAt),
-        "updated_at" .= toJSON (showFileNoteTime fileNoteUpdatedAt)
-      ]
-
-readFileNoteTime ::
-  (MonadFail m) =>
-  String -> m UTCTime
-readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
-
-showFileNoteTime :: UTCTime -> String
-showFileNoteTime = formatTime defaultTimeLocale "%F %T"
-
-data TagSuggestionRequest = TagSuggestionRequest
-  { _query :: Text,
-    _currentTags :: Maybe [Text]
-  }
-  deriving (Show, Eq, Read, Generic)
-
-data TagSuggestionResponse = TagSuggestionResponse
-  { _suggestions :: [Suggestion]
-  }
-  deriving (Show, Eq, Read, Generic)
-
-data Suggestion = Suggestion
-  { _term :: Text,
-    _count :: Int
-  }
-  deriving (Show, Eq, Read, Generic)
-
-instance FromJSON TagSuggestionRequest where parseJSON = A.genericParseJSON gDefaultFormOptions
-
-instance ToJSON TagSuggestionRequest where toJSON = A.genericToJSON gDefaultFormOptions
-
-instance FromJSON TagSuggestionResponse where parseJSON = A.genericParseJSON gDefaultFormOptions
-
-instance ToJSON TagSuggestionResponse where toJSON = A.genericToJSON gDefaultFormOptions
-
-instance FromJSON Suggestion where parseJSON = A.genericParseJSON gDefaultFormOptions
-
-instance ToJSON Suggestion where toJSON = A.genericToJSON gDefaultFormOptions
-
-getTagSuggestions :: Key User -> TagSuggestionRequest -> Int -> DB TagSuggestionResponse
-getTagSuggestions user TagSuggestionRequest {_query = query, _currentTags = currentTags} top = do
-  values <-
-    fmap (bimap unValue unValue)
-      <$> ( select $ do
-              (tag, countRows', matchPriority) <- from suggestionsQuery
-              orderBy [asc matchPriority, desc countRows', asc $ lower_ tag]
-              limit (fromIntegral top)
-              pure (tag, countRows')
-          )
-  pure
-    TagSuggestionResponse
-      { _suggestions = uncurry Suggestion <$> values
-      }
-  where
-    excludedTags = take 400 $ map toLower (fromMaybe ([] :: [Text]) currentTags)
-
-    suggestionsQuery = do
-      t <- from (table @BookmarkTag)
-      where_
-        ( t ^. BookmarkTagUserId ==. val user
-            &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ ((%) ++. val query ++. (%)))
-        )
-      unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
-      let countRows' = countRows
-          matchPriority =
-            case_
-              [ when_ (lower_ (t ^. BookmarkTagTag) ==. lower_ (val query)) then_ (val (0 :: Int)),
-                when_ (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%))) then_ (val (1 :: Int))
-              ]
-              (else_ (val (2 :: Int)))
-      groupBy (lower_ (t ^. BookmarkTagTag))
-      pure (t ^. BookmarkTagTag, countRows', matchPriority)

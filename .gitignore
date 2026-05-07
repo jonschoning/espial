@@ -34,3 +34,4 @@ purs/docset/purescript-local.docset/
 *.sqlite3*
 *bookmarks*.json
 *.log
+*.html

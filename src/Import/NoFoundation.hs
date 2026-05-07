@@ -19,7 +19,8 @@ import Yesod.Default.Config2 as Import
 import Text.Julius           as Import
 
 import Model as Import
-import ModelCustom as Import
+import Model.Form as Import
+import Model.Custom as Import
 import Types as Import
 import Pretty as Import
 import Data.Functor as Import hiding (unzip)

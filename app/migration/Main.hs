@@ -8,7 +8,9 @@ import qualified Database.Persist as P
 import qualified Database.Persist.Sqlite as P
 import Lens.Micro
 import Model
-import ModelCustom
+import Model.Custom
+import Model.File
+import Model.FileNetscape (exportNetscapeBookmarks)
 import qualified Options.Applicative as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
@@ -58,10 +60,20 @@ data MigrationOpts
         userName :: Text,
         bookmarkFile :: FilePath
       }
+  | ExportNetscapeBookmarks
+      { conn :: Maybe Text,
+        userName :: Text,
+        bookmarkFile :: FilePath
+      }
   | ImportNotes
       { conn :: Maybe Text,
         userName :: Text,
         noteDirectory :: FilePath
+      }
+  | ImportNetscapeBookmarks
+      { conn :: Maybe Text,
+        userName :: Text,
+        bookmarkFile :: FilePath
       }
   | PrintMigrateDB {conn :: Maybe Text}
   deriving (Generic, Show)
@@ -71,20 +83,18 @@ instance ParseRecord MigrationOpts
 main :: IO ()
 main = do
   args <- getRecord "Migrations"
-  connText <-
-    maybe
-      (P.sqlDatabase . appDatabaseConf <$> loadYamlSettings [configSettingsYml] [] useEnv)
-      pure
-      (conn args)
   case args of
-    PrintMigrateDB {..} ->
+    PrintMigrateDB {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText dumpMigration
     CreateDB {..} -> do
+      connText <- getConnText conn
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
       P.runSqliteInfo connInfo runMigrations
-    CreateUser {..} ->
+    CreateUser {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         passwordText <- liftIO . fmap T.strip $ case userPassword of
           PasswordText s -> pure s
@@ -101,13 +111,15 @@ main = do
               UserPrivacyLock P.=. fromMaybe False privacyLock
             ]
         pure () :: DB ()
-    ShowUser {..} ->
+    ShowUser {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
           Nothing -> liftIO (print (userName ++ " not found"))
           Just (P.Entity _ user) -> liftIO (putStrLn (formatUserSummary user))
-    CreateApiKey {..} ->
+    CreateApiKey {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         apiKey@(ApiKey plainKey) <- liftIO generateApiKey
         muser <- P.getBy (UniqueUserName userName)
@@ -119,14 +131,16 @@ main = do
             let hashedKey = hashApiKey apiKey
             P.update uid [UserApiToken P.=. Just hashedKey]
             liftIO $ print plainKey
-    DeleteApiKey {..} ->
+    DeleteApiKey {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
           Nothing -> liftIO (print (userName ++ " not found"))
           Just (P.Entity uid _) -> do
             P.update uid [UserApiToken P.=. Nothing]
-    DeleteUser {..} ->
+    DeleteUser {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
@@ -134,13 +148,15 @@ main = do
           Just (P.Entity uid _) -> do
             P.delete uid
             pure () :: DB ()
-    ExportBookmarks {..} ->
+    ExportBookmarks {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
           Just (P.Entity uid _) -> exportFileBookmarks uid bookmarkFile
           Nothing -> liftIO (print (userName ++ "not found"))
-    ImportBookmarks {..} ->
+    ImportBookmarks {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
@@ -150,17 +166,19 @@ main = do
               Left e -> liftIO (print e)
               Right n -> liftIO (print (show n ++ " bookmarks imported."))
           Nothing -> liftIO (print (userName ++ "not found"))
-    ImportFirefoxBookmarks {..} ->
+    ImportFirefoxBookmarks {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
           Just (P.Entity uid _) -> do
-            result <- insertFFBookmarks uid bookmarkFile
+            result <- insertFirefoxBookmarks uid bookmarkFile
             case result of
               Left e -> liftIO (print e)
               Right n -> liftIO (print (show n ++ " bookmarks imported."))
           Nothing -> liftIO (print (userName ++ "not found"))
-    ImportNotes {..} ->
+    ImportNotes {..} -> do
+      connText <- getConnText conn
       P.runSqlite connText $ do
         muser <- P.getBy (UniqueUserName userName)
         case muser of
@@ -170,7 +188,32 @@ main = do
               Left e -> liftIO (print e)
               Right n -> liftIO (print (show n ++ " notes imported."))
           Nothing -> liftIO (print (userName ++ "not found"))
+    ImportNetscapeBookmarks {..} -> do
+      connText <- getConnText conn
+      P.runSqlite connText $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> do
+            result <- insertNetscapeBookmarks uid bookmarkFile
+            case result of
+              Left e -> liftIO (print e)
+              Right n -> liftIO (print (show n ++ " bookmarks imported."))
+          Nothing -> liftIO (print (userName ++ "not found"))
+    ExportNetscapeBookmarks {..} -> do
+      connText <- getConnText conn
+      P.runSqlite connText $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> exportNetscapeBookmarks uid bookmarkFile
+          Nothing -> liftIO (print (userName ++ "not found"))
   where
+    getConnText :: Maybe Text -> IO Text
+    getConnText mconn =
+      maybe
+        (P.sqlDatabase . appDatabaseConf <$> loadYamlSettings [configSettingsYml] [] useEnv)
+        pure
+        mconn
+
     formatUserSummary :: User -> Text
     formatUserSummary User {..} =
       intercalate

@@ -2,8 +2,9 @@
 
 ## v0.0.29
 
+- Extend migration to add commands: `importnetscapebookmarks`, `exportnetscapebookmarks` (fixes #30)
+- fix migration command `ImportBookmarks` (pinboard import file) parsing bug to handle when the description is a boolean (fixes #32)
 - tag suggestions: when a tag exactly matches an existing tag, it will appear first in the suggestion list
-- fix pinboard import file parsing bug to handle when the description is a boolean (fixes #32)
 
 ## v0.0.28 (2026-05-06)
 
