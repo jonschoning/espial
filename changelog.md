@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.29
+## v0.0.29 (2026-05-07)
 
 - Extend migration to add commands: `importnetscapebookmarks`, `exportnetscapebookmarks` (fixes #30)
 - fix migration command `ImportBookmarks` (pinboard import file) parsing bug to handle when the description is a boolean (fixes #32)
