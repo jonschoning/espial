@@ -73,7 +73,7 @@ _parseNetscapeLink line = do
                     Just ltidx -> take ltidx afterGt
                   title = strip (decodeHtml (pack titleStr))
                in do
-                    guard (not (null title) && not (null href))
+                    guard (not (null href))
                     let tags = fromMaybe "" (decodeHtml <$> extractAttr "TAGS")
                         timeStr = fromMaybe "" (extractAttr "ADD_DATE")
                         timeInt = readMay timeStr :: Maybe Int
