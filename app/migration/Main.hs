@@ -50,12 +50,17 @@ data MigrationOpts
         userName :: Text,
         bookmarkFile :: FilePath
       }
+  | ExportBookmarks
+      { conn :: Maybe Text,
+        userName :: Text,
+        bookmarkFile :: FilePath
+      }
   | ImportFirefoxBookmarks
       { conn :: Maybe Text,
         userName :: Text,
         bookmarkFile :: FilePath
       }
-  | ExportBookmarks
+  | ImportNetscapeBookmarks
       { conn :: Maybe Text,
         userName :: Text,
         bookmarkFile :: FilePath
@@ -69,11 +74,6 @@ data MigrationOpts
       { conn :: Maybe Text,
         userName :: Text,
         noteDirectory :: FilePath
-      }
-  | ImportNetscapeBookmarks
-      { conn :: Maybe Text,
-        userName :: Text,
-        bookmarkFile :: FilePath
       }
   | PrintMigrateDB {conn :: Maybe Text}
   deriving (Generic, Show)
