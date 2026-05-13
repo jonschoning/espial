@@ -14,36 +14,36 @@ $maybe route <- mroute
           <span .f7.silver>#{bcount}</span>
         $if isowner
           <div .fl.pr3.dib.mb2>
-            <a .link.silver.hover-blue :isAll:.nav-active 
+            <a .link.silver.hover-alt :isAll:.nav-active 
                href="@{UserR unamep}">all
             ‧  
-            <a .link.silver.hover-blue :sharedp == SharedPrivate:.nav-active 
+            <a .link.silver.hover-alt :sharedp == SharedPrivate:.nav-active 
                href="@{UserSharedR unamep SharedPrivate}">private
             ‧  
-            <a .link.silver.hover-blue :sharedp == SharedPublic:.nav-active 
+            <a .link.silver.hover-alt :sharedp == SharedPublic:.nav-active 
                href="@{UserSharedR unamep SharedPublic}">public
             ‧  
-            <a .link.silver.hover-blue :filterp == FilterUnread:.nav-active 
+            <a .link.silver.hover-alt :filterp == FilterUnread:.nav-active 
                href="@{UserFilterR unamep FilterUnread}">unread
             ‧  
-            <a .link.silver.hover-blue :filterp == FilterUntagged:.nav-active 
+            <a .link.silver.hover-alt :filterp == FilterUntagged:.nav-active 
                href="@{UserFilterR unamep FilterUntagged}">untagged
             ‧  
-            <a .link.silver.hover-blue :filterp == FilterStarred:.nav-active 
+            <a .link.silver.hover-alt :filterp == FilterStarred:.nav-active 
                href="@{UserFilterR unamep FilterStarred}">starred
         <div .fr.f6.pr3.dib.mb2>
           $if sharedp == SharedPrivate
-            <a .link.gold.hover-orange href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">RSS
           $elseif sharedp == SharedPublic
-            <a .link.gold.hover-orange href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">RSS
           $elseif filterp == FilterUnread
-            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">RSS
           $elseif filterp == FilterUntagged
-            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">RSS
           $elseif filterp == FilterStarred
-            <a .link.gold.hover-orange href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">RSS
           $else
-            <a .link.gold.hover-orange href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">RSS
+            <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">RSS
   
       <div .cf>
       
@@ -63,9 +63,9 @@ $maybe route <- mroute
         $if (fromIntegral bcount >= limit) || (page > 1)
           <div .dib.ml5>
             <span .silver.mr1>per page:
-            <a .link.light-silver :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
-            <a .link.light-silver :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
-            <a .link.light-silver :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
-            <a .link.light-silver :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
-            <a .link.light-silver :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
   

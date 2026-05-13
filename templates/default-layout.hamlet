@@ -1,7 +1,7 @@
 <div #content>
   <header #banner .pv2.ph3.mh1>
-    <div .mw8.center.pb2.bb.br-0.bl-0.bt-0.b--dotted.b--light-silver>
-      <div #logo .fl.light-silver>
+    <div .mw8.center.pb2.bb.br-0.bl-0.bt-0.b--dotted.thm-border-dotted>
+      <div #logo .fl.logo-div>
           <a #espial_name .link.f4>espial
           $maybe userName <- musername
             <span>
@@ -27,7 +27,7 @@
 
   $maybe msg <- mmsg
     <div .pv2.ph3.mh1>
-      <div .pa2.mw8.center.flex.items-center.justify-center.navy.bg-washed-yellow.ba.b--navy>
+      <div .pa2.mw8.center.flex.items-center.justify-center.navy.ba.layout-msg>
         #{preEscapedToMarkup msg}
 
   ^{widget}

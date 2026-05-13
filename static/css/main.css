@@ -1,235 +1,174 @@
 html {
-    height: 102%;
+  height: 102%;
 }
 
 body {
-    height: 102%;
-    word-wrap: break-word;
-}
-
-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-}
-
-button:focus {
-    outline: none;
-}
-
-[hidden] {
-    display: none !important;
-}
-
-input::placeholder {
-    color: lightgray;
-}
-
-input[type="text"],
-input[type="url"],
-input[type="password"],
-textarea {
-    font-size: 16px;
+  height: 102%;
+  word-wrap: break-word;
 }
 
 .queryInput {
-    width: 128px;
-    padding: 0 22px 0 2px;
-    border-radius: 3px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: gray;
-    height: 22px;
-    line-height: 22px;
-    transition: width 0.1s ease-in-out;
+  width: 128px;
+  padding: 0 22px 0 2px;
+  border-radius: 3px;
+  border-style: solid;
+  border-width: 1px;
+  height: 22px;
+  line-height: 22px;
+  transition: width 0.1s ease-in-out;
 }
+
 .queryInput.search-inactive {
 }
+
 .queryInput:focus {
-    width: 175px;
+  width: 175px;
 }
+
 .submitting .queryInput,
 .queryInput.search-active {
-    border-color: #990;
-    border-width: 2px;
-    background-color: #ff9;
-    width: 175px;
+  border-width: 2px;
+  width: 175px;
 }
+
 .queryIcon {
-    position: absolute;
-    right: 0;
-    top: 1px;
-    cursor: pointer;
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
+  position: absolute;
+  right: 0;
+  top: 1px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
 }
-label {
-    cursor: pointer;
-}
+
 .close-x-wrap {
-    float: left;
-    width: 17px;
-    height: 17px;
-    top: 2px;
-    position: relative;
-    right: 2px;
+  float: left;
+  width: 17px;
+  height: 17px;
+  top: 2px;
+  position: relative;
+  right: 2px;
 }
+
 .close-x {
-    stroke: gray;
-    fill: transparent;
-    stroke-linecap: round;
-    stroke-width: 3;
+  fill: transparent;
+  stroke-linecap: round;
+  stroke-width: 3;
 }
+
 .query-info-icon {
-    position: absolute;
-    top: 0px;
-    right: -18px;
-    text-decoration: none;
-    font-size: 12px;
-    padding: 0 8px 8px 0;
+  position: absolute;
+  top: 0px;
+  right: -18px;
+  text-decoration: none;
+  font-size: 12px;
+  padding: 0 8px 8px 0;
 }
+
 .star {
-    margin-left: -20px;
-    font-size: 1.2em;
-    position: relative;
-    top: -2px;
+  margin-left: -20px;
+  font-size: 1.2em;
+  position: relative;
+  top: -2px;
 }
 
 .star button {
-    transition: color 0.1s;
+  transition: color 0.1s;
 }
-.star.selected button {
-    color: #22a;
-}
+
 .edit_links button {
-    transition: color 0.1s ease-in;
+  transition: color 0.1s ease-in;
 }
 
 .tag {
-    color: #a51;
-    line-height: 190%;
-    display: inline-block;
-}
-.tag-include {
-    color: rgb(221, 221, 221);
-    line-height: 190%;
-    display: inline-block;
-}
-.tag-exclude {
-    color: rgb(255, 170, 170);
-    line-height: 190%;
-    display: inline-block;
+  line-height: 190%;
+  display: inline-block;
 }
 
-.private {
-    background: #ddd;
-    border: 1px solid #d1d1d1;
-}
-.unread {
-    color: #b41;
-}
-.mark_read {
-    color: #a81;
-}
-.flash {
-    color: green;
-    background: #efe;
+.tag-exclude {
+  line-height: 190%;
+  display: inline-block;
 }
 
 .top_menu {
-    margin-top: 6px;
+  margin-top: 6px;
 }
-.top_menu a {
-    color: blue;
-}
+
 .bookmarklet {
-    padding: 1px 2px 0px 2px;
+  padding: 1px 2px 0px 2px;
 }
 
 .alert {
-    background: #ced;
-    border: 1px solid #acc;
-    margin-bottom: 5px;
-    padding: 2px;
-}
-.alert.alert-err {
-    background-color: #ffdfdf
-}
-
-.edit_bookmark_form {
-    color: #888;
-}
-.edit_bookmark_form input {
-    border: 1px solid #ddd;
-}
-.edit_bookmark_form textarea {
-    border: 1px solid #ddd;
-}
-
-.nav-active {
-    background: #ff8;
-    color: blue;
+  margin-bottom: 5px;
+  padding: 2px;
 }
 
 /* mobile device */
 @media only screen and (max-width: 750px) {
-    body {
-        -webkit-text-size-adjust: none;
-    }
-    .display {
-        float: none;
-    }
+  body {
+    -webkit-text-size-adjust: none;
+  }
+  .display {
+    float: none;
+  }
 }
 
 @media only screen and (max-width: 500px) {
-    .filters {
-        clear: both;
-        position: relative;
-        top: 2px;
-    }
+  .filters {
+    clear: both;
+    position: relative;
+    top: 2px;
+  }
 }
 
 .rdim {
-    opacity: 0.8;
-    transition: all 0.15s ease-in;
+  opacity: 0.8;
+  transition: all 0.15s ease-in;
 }
+
 .rdim:hover,
 .rdim:focus {
-    opacity: 1;
-    transition: all 0.15s ease-in;
+  opacity: 1;
+  transition: all 0.15s ease-in;
 }
+
 .display .description > div p,
 .display .description > div pre {
-    margin-top: 9px;
-    margin-bottom: 9px;
+  margin-top: 9px;
+  margin-bottom: 9px;
 }
+
 .display .description > div > *:first-child {
-    margin-top: 2px;
+  margin-top: 2px;
 }
+
 .display .description > div > *:last-child {
-    margin-bottom: 2px;
+  margin-bottom: 2px;
 }
+
 .display .description > div > ol li p {
-    margin-top: 0;
-    margin-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
 }
+
 .display .description > div > ul li p {
-    margin-top: 0;
-    margin-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
 }
+
 .display .description > div ol {
-    padding-left: 23px;
+  padding-left: 23px;
 }
+
 .display .description > div ul {
-    padding-left: 23px;
+  padding-left: 23px;
 }
+
 code,
 pre {
-    font-size: 13px;
+  font-size: 13px;
 }
 
 #content:not([view-rendered]) .view-delay {
-    display: none !important;
+  display: none !important;
 }

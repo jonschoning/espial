@@ -30,7 +30,7 @@ $newline never
         , userFilterRFilterSingle: ""
         , dat: {bmarks : [], bmark: {}, isowner: false, notes: []}
         };
-  <body .f6.dark-gray.helvetica>
+  <body .f6.thm-text-primary.helvetica>
     ^{pageBody pc}
 
   <script type="module">

@@ -1,0 +1,238 @@
+/* Base */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"],
+textarea {
+  font-size: 16px;
+}
+
+label {
+  cursor: pointer;
+}
+
+/* Colors */
+.thm-bg-surface {
+  background-color: #fff;
+}
+
+.thm-bg-secondary {
+  background-color: #f4f4f4;
+}
+
+.thm-bg-selected {
+  background-color: #96ccff;
+}
+
+.thm-bg-disabled {
+  background-color: #aaa;
+}
+
+.thm-text-primary {
+  color: #333;
+}
+
+.thm-text-secondary {
+  color: #555;
+}
+
+.thm-text-tertiary,
+.pager-arrow,
+.search-icon {
+  color: #777;
+}
+
+.thm-text-muted {
+  color: #aaa;
+}
+
+.thm-text-border,
+.thm-text-faded {
+  color: #ccc;
+}
+
+.thm-text-strong {
+  color: #000;
+}
+
+.thm-text-error {
+  color: #ff4136;
+}
+
+.thm-text-killed {
+  color: #f00;
+}
+
+.thm-text-success {
+  color: #137752;
+}
+
+.thm-text-selected {
+  color: #001b44;
+}
+
+.thm-border-default {
+  border-color: #ccc;
+}
+
+.thm-border-dotted {
+  border-color: #aaa;
+}
+
+.thm-border-pwd {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.thm-border-pwd-box {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.thm-border-doc-table {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.thm-border-primary {
+  border-color: #111;
+}
+
+.thm-hover-link-color:hover {
+  color: #06c;
+}
+
+input::placeholder {
+  color: #d3d3d3;
+}
+
+.queryInput {
+  border-color: gray;
+}
+
+.submitting .queryInput,
+.queryInput.search-active {
+  border-color: #990;
+  background-color: #ff9;
+}
+
+.star.selected button {
+  color: #22a;
+}
+
+.tag {
+  color: #a51;
+}
+
+.tag-include {
+  color: #ddd;
+}
+
+.tag-exclude {
+  color: #faa;
+}
+
+.private {
+  background: #ddd;
+  border: 1px solid #d1d1d1;
+}
+
+.unread,
+a.unread {
+  color: #b41;
+}
+
+.mark_read {
+  color: #a81;
+}
+
+.flash {
+  color: green;
+  background: #efe;
+}
+
+.top_menu a {
+  color: blue;
+}
+
+.alert {
+  background: #ced;
+  border: 1px solid #acc;
+}
+
+.alert.alert-err {
+  background-color: #ffdfdf;
+}
+
+.edit_bookmark_form {
+  color: #888;
+}
+
+.edit_bookmark_form input,
+.edit_bookmark_form textarea {
+  border: 1px solid #ddd;
+}
+
+.nav-active {
+  background: #ff8;
+  color: blue;
+}
+
+.close-x {
+  stroke: gray;
+}
+
+.rss {
+  color: #ffb700;
+}
+
+.rss:hover {
+  color: #ff6300;
+}
+
+.hover-alt:hover {
+  color: #357edd;
+}
+
+.pager-link,
+.logo-div {
+  color: #aaa;
+}
+
+.post-input {
+  color: #000;
+  border-color: #001b44;
+}
+
+.layout-msg {
+  border-color: #001b44;
+  background-color: #fffceb;
+}
+
+.query-info-icon {
+  color: #357edd;
+}
+
+.docs-item-bg,
+.docs-striped-item:nth-child(odd) {
+  background-color: #eee;
+}
+
+.login-div {
+  background-color: #fff;
+}
+
+.login-bg {
+  background-color: #f4f4f4;
+}

@@ -132,7 +132,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
         {isRelated(mode) ? (
           <button
             type="button"
-            className="pa1 f7 link hover-blue mr1 b"
+            className="pa1 f7 link thm-hover-link-color mr1 b"
             onClick={() => void onExpanded(!isExpanded(mode))}
           >
             Related Tags
@@ -141,7 +141,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
           <>
             <button
               type="button"
-              className={`pa1 f7 link hover-blue mr1${JSON.stringify(mode) === JSON.stringify(modetop) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color mr1${JSON.stringify(mode) === JSON.stringify(modetop) ? ' b' : ''}`}
               title="show a cloud of your most-used tags"
               onClick={() => void onChangeMode(modetop)}
             >
@@ -149,7 +149,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             </button>
             <button
               type="button"
-              className={`pa1 f7 link hover-blue ml2 ${JSON.stringify(mode) === JSON.stringify(modelb1) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color ml2 ${JSON.stringify(mode) === JSON.stringify(modelb1) ? ' b' : ''}`}
               title="show all tags"
               onClick={() => void onChangeMode(modelb1)}
             >
@@ -158,7 +158,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             {'‧'}
             <button
               type="button"
-              className={`pa1 f7 link hover-blue${JSON.stringify(mode) === JSON.stringify(modelb2) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb2) ? ' b' : ''}`}
               title="show tags with at least 2 bookmarks"
               onClick={() => void onChangeMode(modelb2)}
             >
@@ -167,7 +167,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             {'‧'}
             <button
               type="button"
-              className={`pa1 f7 link hover-blue${JSON.stringify(mode) === JSON.stringify(modelb5) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb5) ? ' b' : ''}`}
               title="show tags with at least 5 bookmarks"
               onClick={() => void onChangeMode(modelb5)}
             >
@@ -176,7 +176,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             {'‧'}
             <button
               type="button"
-              className={`pa1 f7 link hover-blue${JSON.stringify(mode) === JSON.stringify(modelb10) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb10) ? ' b' : ''}`}
               title="show tags with at least 10 bookmarks"
               onClick={() => void onChangeMode(modelb10)}
             >
@@ -185,7 +185,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             {'‧'}
             <button
               type="button"
-              className={`pa1 f7 link hover-blue${JSON.stringify(mode) === JSON.stringify(modelb20) ? ' b' : ''}`}
+              className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb20) ? ' b' : ''}`}
               title="show tags with at least 20 bookmarks"
               onClick={() => void onChangeMode(modelb20)}
             >
@@ -195,7 +195,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
         )}
         <button
           type="button"
-          className="pa1 ml2 f7 link silver hover-blue"
+          className="pa1 ml2 f7 link thm-text-faded thm-hover-link-color"
           onClick={() => void onExpanded(!isExpanded(mode))}
         >
           {isExpanded(mode) ? 'hide' : 'show'}

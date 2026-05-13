@@ -38,11 +38,11 @@ export function NList({ initial }: { initial: Note[] }) {
                 {note.title === '' ? '[no title]' : note.title}
               </a>
               <br />
-              <div className="description mt1 mid-gray">
+              <div className="description mt1 thm-text-secondary">
                 {toTextareaPreview(note.text.slice(0, 200))}
               </div>
               <a
-                className="link f7 dib gray w4"
+                className="link f7 dib thm-text-tertiary w4"
                 title={mm?.[1] ?? note.created}
                 href={linkToFilterSingle(note.slug)}
               >
