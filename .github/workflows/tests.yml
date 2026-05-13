@@ -2,56 +2,56 @@ on: [push]
 name: CI
 jobs:
   frontend:
-    name: Frontend Lint and Format
+    name: Frontend build
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: npm
-        cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Typecheck
-      run: npm run typecheck
+      - name: Typecheck
+        run: npm run typecheck
 
-    - name: ESLint
-      run: npm run lint
+      - name: ESLint
+        run: npm run lint
 
-    - name: Prettier check
-      run: npx prettier --check "src/**/*.{ts,tsx,js,json,md}"
+      - name: Prettier check
+        run: npx prettier --check "src/**/*.{ts,tsx,js,json,md}"
 
-    - name: Bundle build
-      run: npm run bundle:build
+      - name: Bundle build
+        run: npm run bundle:build
 
   stack:
-    name: Stack
+    name: Stack Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: haskell-actions/setup@v2
-      with:
-        enable-stack: true
-        stack-version: "latest"
+      - uses: haskell-actions/setup@v2
+        with:
+          enable-stack: true
+          stack-version: "latest"
 
-    - uses: actions/cache@v3
-      name: Cache ~/.stack
-      with:
-        path: ~/.stack
-        key: ${{ runner.os }}-stack-lts-24.37
+      - uses: actions/cache@v3
+        name: Cache ~/.stack
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-stack-lts-24.37
 
-    - name: Build
-      run: |
-        stack build --stack-yaml stack.yaml --test --bench --no-run-tests --no-run-benchmarks --fast
+      - name: Build
+        run: |
+          stack build --stack-yaml stack.yaml --test --bench --no-run-tests --no-run-benchmarks --fast
 
-    - name: Test
-      run: |
-        stack test --stack-yaml stack.yaml --fast
+      - name: Test
+        run: |
+          stack test --stack-yaml stack.yaml --fast
