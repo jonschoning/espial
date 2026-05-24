@@ -114,7 +114,11 @@ export function BMark({
     >
       {a.dat.isowner ? (
         <div className={`star fl pointer${bm.selected ? ' selected' : ''}`}>
-          <button className="moon-gray" onClick={() => void onStar(!bm.selected)} type="button">
+          <button
+            className="thm-text-border"
+            onClick={() => void onStar(!bm.selected)}
+            type="button"
+          >
             ✭
           </button>
         </div>
@@ -131,12 +135,12 @@ export function BMark({
             {bm.title === '' ? '[no title]' : bm.title}
           </a>
           <br />
-          <a href={bm.url} className="link f7 gray hover-blue">
+          <a href={bm.url} className="link f7 thm-text-tertiary thm-hover-link-color">
             {bm.url}
           </a>
           <a
             href={bm.archiveUrl ?? `http://archive.is/${bm.url}`}
-            className={`link f7 gray hover-blue ml2${bm.archiveUrl ? ' green' : ''}`}
+            className={`link f7 thm-text-tertiary thm-hover-link-color ml2${bm.archiveUrl ? ' thm-text-success' : ''}`}
             target="_blank"
             rel="noreferrer"
             title="archive link"
@@ -144,7 +148,7 @@ export function BMark({
             {bm.archiveUrl ? '☑' : '☐'}
           </a>
           <br />
-          <div className="description mt1 mid-gray">
+          <div className="description mt1 thm-text-secondary">
             <Markdown text={bm.description} />
           </div>
           <div className="tags">
@@ -161,7 +165,11 @@ export function BMark({
               : null}
           </div>
 
-          <a className="link f7 dib gray w4" href={linkToFilterSingle(bm.slug)} title={shdatetime}>
+          <a
+            className="link f7 dib w4 thm-text-tertiary"
+            href={linkToFilterSingle(bm.slug)}
+            title={shdatetime}
+          >
             {shdate}
           </a>
 
@@ -172,7 +180,7 @@ export function BMark({
                 onClick={() => {
                   startEdit(true);
                 }}
-                className="edit light-silver hover-blue"
+                className="edit thm-text-muted thm-hover-link-color"
               >
                 edit&nbsp;&nbsp;
               </button>
@@ -182,11 +190,11 @@ export function BMark({
                   onClick={() => {
                     setDeleteAsk(true);
                   }}
-                  className={`delete light-silver hover-blue${deleteAsk ? ' dn' : ''}`}
+                  className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
                 >
                   delete
                 </button>
-                <span className={`confirm red${!deleteAsk ? ' dn' : ''}`}>
+                <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
                   <button
                     type="button"
                     onClick={() => {
@@ -195,7 +203,7 @@ export function BMark({
                   >
                     cancel&nbsp;/&nbsp;
                   </button>
-                  <button type="button" onClick={() => void onDestroy()} className="red">
+                  <button type="button" onClick={() => void onDestroy()} className="thm-text-error">
                     destroy
                   </button>
                 </span>
@@ -213,7 +221,7 @@ export function BMark({
           ) : null}
         </div>
       ) : (
-        <div className="edit_bookmark_form pa2 pt0 bg-white">
+        <div className="edit_bookmark_form pa2 pt0 thm-bg-surface">
           {apiError ? <div className="alert alert-err">{apiError}</div> : null}
           <form onSubmit={(e) => void onSubmit(e)}>
             <div>url</div>
@@ -242,8 +250,8 @@ export function BMark({
                 disabled={loading}
                 type="button"
                 onClick={() => void onFetchTitle()}
-                className={`ml1 pa1 mb2 dark-gray ba b--moon-gray bg-near-white pointer rdim f7${
-                  loading ? 'bg-light-silver' : ''
+                className={`ml1 pa1 mb2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim f7${
+                  loading ? ' thm-bg-disabled' : ''
                 }`}
               >
                 fetch
@@ -318,12 +326,12 @@ export function BMark({
             </div>
             <input
               type="submit"
-              className="mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+              className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
               value="save"
             />{' '}
             <input
               type="reset"
-              className="pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+              className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
               value="cancel"
               onClick={() => {
                 startEdit(false);

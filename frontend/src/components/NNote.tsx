@@ -76,7 +76,7 @@ export function NNote({ initial }: { initial: Note }) {
     }
   };
 
-  if (destroyed) return <p className="red">you killed this note</p>;
+  if (destroyed) return <p className="thm-text-error">you killed this note</p>;
 
   return (
     <div id={String(note.id)} className="note w-100 mw7 pa1 mb2">
@@ -90,12 +90,12 @@ export function NNote({ initial }: { initial: Note }) {
                 <Markdown text={note.text} />
               </div>
             ) : (
-              <div className="description mt1 mid-gray">{toTextarea(note.text)}</div>
+              <div className="description mt1 thm-text-secondary">{toTextarea(note.text)}</div>
             )}
-            <div className="link f7 dib gray w4">
+            <div className="link f7 dib thm-text-tertiary w4">
               <span title={mm?.[1] ?? note.created}>{mm?.[0] ?? '\u00a0'}</span>
               {' - '}
-              <span className="gray">{note.shared ? 'public' : 'private'}</span>
+              <span className="thm-text-tertiary">{note.shared ? 'public' : 'private'}</span>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ export function NNote({ initial }: { initial: Note }) {
                 onClick={() => {
                   startEdit(true);
                 }}
-                className="edit light-silver hover-blue"
+                className="edit thm-text-muted thm-hover-link-color"
               >
                 edit&nbsp;&nbsp;
               </button>
@@ -116,11 +116,11 @@ export function NNote({ initial }: { initial: Note }) {
                   onClick={() => {
                     setDeleteAsk(true);
                   }}
-                  className={`delete light-silver hover-blue${deleteAsk ? ' dn' : ''}`}
+                  className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
                 >
                   delete
                 </button>
-                <span className={`confirm red${!deleteAsk ? ' dn' : ''}`}>
+                <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
                   <button
                     type="button"
                     onClick={() => {
@@ -129,7 +129,7 @@ export function NNote({ initial }: { initial: Note }) {
                   >
                     cancel&nbsp;/&nbsp;
                   </button>
-                  <button type="button" onClick={() => void onDestroy()} className="red">
+                  <button type="button" onClick={() => void onDestroy()} className="thm-text-error">
                     destroy
                   </button>
                 </span>
@@ -201,12 +201,12 @@ export function NNote({ initial }: { initial: Note }) {
           </div>
           <input
             type="submit"
-            className="mr1 pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+            className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
             value="save"
           />{' '}
           <input
             type="reset"
-            className="pv1 ph2 dark-gray ba b--moon-gray bg-near-white pointer rdim"
+            className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
             value="cancel"
             onClick={() => {
               startEdit(false);

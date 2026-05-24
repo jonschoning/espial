@@ -15,7 +15,7 @@ export function TagSuggestionsDropdown({
 }) {
   return (
     <div
-      className="absolute z-5 bg-near-white dark-gray ba b--moon-gray br2 shadow-4 overflow-hidden f6"
+      className="absolute z-5 thm-bg-secondary thm-text-primary ba thm-border-default br2 shadow-4 overflow-hidden f6"
       style={{
         left: suggestionState.anchorLeft,
         top: suggestionState.anchorTop,
@@ -30,7 +30,7 @@ export function TagSuggestionsDropdown({
           <button
             key={`${item.term}-${item.count.toString()}`}
             type="button"
-            className={`flex items-center justify-between w-100 bn bg-transparent tl ph2 pv1 pointer nowrap dark-gray hover-blue ${selected ? 'bg-light-blue dark-blue' : ''}`}
+            className={`flex items-center justify-between w-100 bn bg-transparent tl ph2 pv1 pointer nowrap thm-text-primary thm-hover-link-color ${selected ? 'thm-bg-selected thm-text-selected' : ''}`}
             onMouseEnter={() => {
               onHover(index);
             }}
@@ -45,7 +45,7 @@ export function TagSuggestionsDropdown({
             <span className="mr2">
               {renderHighlightedSuggestion(displayTerm, suggestionState.tokenRange.token)}
             </span>
-            <span className="gray f6 tr" style={{ minWidth: '3ch' }}>
+            <span className="thm-text-tertiary f6 tr" style={{ minWidth: '3ch' }}>
               {item.count}
             </span>
           </button>

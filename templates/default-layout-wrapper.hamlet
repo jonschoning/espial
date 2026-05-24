@@ -15,6 +15,14 @@ $newline never
     $maybe sourceCodeUri <- msourceCodeUri
       <meta name="source" content="#{ sourceCodeUri }">
 
+    <script>
+      try {
+        var storedColorScheme = window.localStorage.getItem('espial-color-scheme');
+        if (storedColorScheme === 'light' || storedColorScheme === 'dark') {
+          document.documentElement.dataset.colorScheme = storedColorScheme;
+        }
+      } catch (_) {}
+
     ^{pageHead pc}
 
     <script>document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/, 'js');
@@ -30,9 +38,10 @@ $newline never
         , userFilterRFilterSingle: ""
         , dat: {bmarks : [], bmark: {}, isowner: false, notes: []}
         };
-  <body .f6.dark-gray.helvetica>
+  <body .f6.thm-text-primary.helvetica>
     ^{pageBody pc}
 
   <script type="module">
-    import { logoutE } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}';
+    import { initColorSchemeToggle, logoutE } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}';
+    initColorSchemeToggle();
     Array.from(document.getElementsByClassName('logout-btn')).forEach(_ => _.addEventListener('click', (e) => logoutE(e)()));

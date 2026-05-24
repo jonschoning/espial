@@ -1,3 +1,5 @@
+export type ColorSchemePreference = 'light' | 'dark';
+
 export type BookmarkId = number;
 export type TagId = number;
 

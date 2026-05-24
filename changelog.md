@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.30 (2026-05-24)
+
+- add Dark Mode (fixes #59)
+
 ## v0.0.29 (2026-05-07)
 
 - Extend migration to add commands: `importnetscapebookmarks`, `exportnetscapebookmarks` (fixes #30)

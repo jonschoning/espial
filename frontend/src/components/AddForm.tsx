@@ -76,7 +76,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
     }
   };
 
-  if (destroyed) return <p className="red">you killed this bookmark</p>;
+  if (destroyed) return <p className="thm-text-killed">you killed this bookmark</p>;
 
   return (
     <form
@@ -92,7 +92,10 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               {bm.bid > 0 ? (
                 <div className="alert">
                   previously saved&nbsp;
-                  <span className="link f7 dib gray pr3" title={mm?.[1] ?? bm.time}>
+                  <span
+                    className="link f7 dib thm-text-tertiary thm-hover-link-color pr3"
+                    title={mm?.[1] ?? bm.time}
+                  >
                     {mm?.[0] ?? '\u00a0'}
                   </span>
                   <div className="edit_links dib ml1">
@@ -107,7 +110,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                       >
                         delete
                       </button>
-                      <span className="confirm red" hidden={!deleteAsk}>
+                      <span className="confirm thm-text-error" hidden={!deleteAsk}>
                         <button
                           type="button"
                           onClick={() => {
@@ -116,7 +119,11 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                         >
                           cancel&nbsp;/&nbsp;
                         </button>
-                        <button type="button" onClick={() => void onDestroy()} className="red">
+                        <button
+                          type="button"
+                          onClick={() => void onDestroy()}
+                          className="thm-text-error"
+                        >
                           destroy
                         </button>
                       </span>
@@ -167,7 +174,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 disabled={loading}
                 type="button"
                 onClick={() => void onFetchTitle()}
-                className={`ml2 input-reset ba b--navy pointer f6 di dim pa1 ma1 mr0${loading ? 'bg-light-silver' : ''}`}
+                className={`ml2 input-reset ba thm-border-primary pointer f6 di dim pa1 ma1 mr0${loading ? ' thm-bg-disabled' : ''}`}
               >
                 fetch
               </button>
@@ -180,7 +187,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
             </td>
             <td>
               <textarea
-                className="w-100 mt1 mid-gray"
+                className="w-100 mt1 thm-text-secondary"
                 id="description"
                 name="description"
                 rows={4}
@@ -270,7 +277,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
             <td>
               <input
                 type="submit"
-                className="ph3 pv2 input-reset black ba b--navy bg-transparent pointer f6 dib mt1 dim"
+                className="ph3 pv2 input-reset thm-text-strong ba thm-border-primary bg-transparent pointer f6 dib mt1 dim"
                 value={bm.bid > 0 ? 'update bookmark' : 'add bookmark'}
               />
             </td>

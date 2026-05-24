@@ -7,7 +7,7 @@ import { BList } from './components/BList';
 import { NList } from './components/NList';
 import { NNote } from './components/NNote';
 import { TagCloud } from './components/TagCloud';
-import type { AccountSettings, Bookmark, Note, TagCloudMode } from './types';
+import type { AccountSettings, Bookmark, ColorSchemePreference, Note, TagCloudMode } from './types';
 import { tagCloudModeToF } from './types';
 
 function selectEl(selector: string): Element | null {
@@ -65,3 +65,40 @@ export const renderAccountSettings =
     createRoot(el).render(<AccountSettingsView initial={accountSettings} />);
     viewRendered();
   };
+
+export function initColorSchemeToggle(): void {
+  function isColorSchemePreference(value: string | null): value is ColorSchemePreference {
+    return value === 'light' || value === 'dark';
+  }
+  function getEffectiveColorScheme(): ColorSchemePreference {
+    const explicit = document.documentElement.dataset.colorScheme;
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function applyColorSchemePreference(preference: ColorSchemePreference): void {
+    document.documentElement.dataset.colorScheme = preference;
+  }
+  function setColorSchemeToggleText(toggleEl: HTMLAnchorElement): void {
+    const next = getEffectiveColorScheme() === 'dark' ? 'light' : 'dark';
+    toggleEl.textContent = `${next} mode\u00A0\u00A0`;
+  }
+
+  const colorSchemeStorageKey = 'espial-color-scheme';
+  const stored = window.localStorage.getItem(colorSchemeStorageKey);
+  if (isColorSchemePreference(stored)) {
+    applyColorSchemePreference(stored);
+  }
+
+  const toggleEl = document.querySelector<HTMLAnchorElement>('#color-scheme-toggle');
+  if (!toggleEl) return;
+
+  setColorSchemeToggleText(toggleEl);
+  toggleEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    const next: ColorSchemePreference = getEffectiveColorScheme() === 'dark' ? 'light' : 'dark';
+    applyColorSchemePreference(next);
+    window.localStorage.setItem(colorSchemeStorageKey, next);
+    setColorSchemeToggleText(toggleEl);
+  });
+}

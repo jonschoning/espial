@@ -4,7 +4,7 @@
       ^{search}
     <div .di>
       <div .fr.f6.pr3.dib.mb2>
-          <a .link.gold.hover-orange
+          <a .link.rss
              href="@{NotesFeedR unamep}">RSS
 
     <span .db .mb3>#{T.append "" (maybe "You have" (const "Found") mquery)} #{bcount} notes:
@@ -24,8 +24,8 @@
         $maybe route <- mroute
           <div .dib.ml5>
             <span .silver.mr1>per page:
-            <a .link.light-silver :limit == 20:.nav-active href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
-            <a .link.light-silver :limit == 40:.nav-active href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
-            <a .link.light-silver :limit == 80:.nav-active href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
-            <a .link.light-silver :limit == 120:.nav-active href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
-            <a .link.light-silver :limit == 160:.nav-active href="@?{(route, [("count", "160")])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, [("count", "160")])}"‧>160</a>
