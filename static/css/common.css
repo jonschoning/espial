@@ -25,214 +25,252 @@ label {
   cursor: pointer;
 }
 
+a {
+  color: light-dark(#0000ee, #8ab4ff);
+}
+
+a:visited {
+  color: light-dark(#551a8b, #c58af9);
+}
+
+a:active {
+  color: light-dark(#ee0000, #ff8a80);
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="email"],
+input[type="number"],
+textarea {
+  color: light-dark(#000, #f2f2f2);
+  background-color: light-dark(#fff, #1f1f1f);
+  border-color: light-dark(#767676, #777);
+  caret-color: currentColor;
+  -webkit-text-fill-color: currentColor;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-color-scheme="light"] {
+  color-scheme: light;
+}
+
+:root[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
 /* Colors */
 .thm-bg-surface {
-  background-color: #fff;
+  background-color: light-dark(#fff, #121212);
 }
 
 .thm-bg-secondary {
-  background-color: #f4f4f4;
+  background-color: light-dark(#f4f4f4, #1f1f1f);
 }
 
 .thm-bg-selected {
-  background-color: #96ccff;
+  background-color: light-dark(#96ccff, #1c4f7e);
 }
 
 .thm-bg-disabled {
-  background-color: #aaa;
+  background-color: light-dark(#aaa, #666);
 }
 
 .thm-text-primary {
-  color: #333;
+  color: light-dark(#333, #ddd);
 }
 
 .thm-text-secondary {
-  color: #555;
+  color: light-dark(#555, #bdbdbd);
 }
 
 .thm-text-tertiary,
 .pager-arrow,
 .search-icon {
-  color: #777;
+  color: light-dark(#777, #999);
 }
 
 .thm-text-muted {
-  color: #aaa;
+  color: light-dark(#aaa, #7a7a7a);
 }
 
 .thm-text-border,
 .thm-text-faded {
-  color: #ccc;
+  color: light-dark(#ccc, #666);
 }
 
 .thm-text-strong {
-  color: #000;
+  color: light-dark(#000, #fff);
 }
 
 .thm-text-error {
-  color: #ff4136;
+  color: light-dark(#ff4136, #ff6b63);
 }
 
 .thm-text-killed {
-  color: #f00;
+  color: light-dark(#f00, #ff5c5c);
 }
 
 .thm-text-success {
-  color: #137752;
+  color: light-dark(#137752, #44c08a);
 }
 
 .thm-text-selected {
-  color: #001b44;
+  color: light-dark(#001b44, #cfe1ff);
 }
 
 .thm-border-default {
-  border-color: #ccc;
+  border-color: light-dark(#ccc, #666);
 }
 
 .thm-border-dotted {
-  border-color: #aaa;
+  border-color: light-dark(#aaa, #777);
 }
 
 .thm-border-pwd {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.35));
 }
 
 .thm-border-pwd-box {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.2));
 }
 
 .thm-border-doc-table {
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.2));
 }
 
 .thm-border-primary {
-  border-color: #111;
+  border-color: light-dark(#111, #efefef);
 }
 
 .thm-hover-link-color:hover {
-  color: #06c;
+  color: light-dark(#06c, #6ab0ff);
 }
 
 input::placeholder {
-  color: #d3d3d3;
+  color: light-dark(#d3d3d3, #8a8a8a);
 }
 
 .queryInput {
-  border-color: gray;
+  border-color: light-dark(gray, #8f8f8f);
 }
 
 .submitting .queryInput,
 .queryInput.search-active {
-  border-color: #990;
-  background-color: #ff9;
+  border-color: light-dark(#990, #d9c65a);
+  background-color: light-dark(#ff9, #5b4d00);
 }
 
 .star.selected button {
-  color: #22a;
+  color: light-dark(#22a, #7da2ff);
 }
 
 .tag {
-  color: #a51;
+  color: light-dark(#a51, #f0b36f);
 }
 
 .tag-include {
-  color: #ddd;
+  color: light-dark(#ddd, #9a9a9a);
 }
 
 .tag-exclude {
-  color: #faa;
+  color: light-dark(#faa, #ff9b9b);
 }
 
 .private {
-  background: #ddd;
-  border: 1px solid #d1d1d1;
+  background: light-dark(#ddd, #303030);
+  border: 1px solid light-dark(#d1d1d1, #4a4a4a);
 }
 
 .unread,
 a.unread {
-  color: #b41;
+  color: light-dark(#b41, #ffb06b);
 }
 
 .mark_read {
-  color: #a81;
+  color: light-dark(#a81, #ffd15c);
 }
 
 .flash {
-  color: green;
-  background: #efe;
+  color: light-dark(green, #6fdd8b);
+  background: light-dark(#efe, #143321);
 }
 
 .top_menu a {
-  color: blue;
+  color: light-dark(blue, #8ab4ff);
 }
 
 .alert {
-  background: #ced;
-  border: 1px solid #acc;
+  background: light-dark(#ced, #1d3340);
+  border: 1px solid light-dark(#acc, #3c5c70);
 }
 
 .alert.alert-err {
-  background-color: #ffdfdf;
+  background-color: light-dark(#ffdfdf, #4a2323);
 }
 
 .edit_bookmark_form {
-  color: #888;
+  color: light-dark(#888, #a0a0a0);
 }
 
 .edit_bookmark_form input,
 .edit_bookmark_form textarea {
-  border: 1px solid #ddd;
+  border: 1px solid light-dark(#ddd, #555);
 }
 
 .nav-active {
-  background: #ff8;
-  color: blue;
+  background: light-dark(#ff8, #645700);
+  color: light-dark(rgb(0, 0, 255), #9ec1ff);
 }
 
 .close-x {
-  stroke: gray;
+  stroke: light-dark(gray, #9a9a9a);
 }
 
 .rss {
-  color: #ffb700;
+  color: light-dark(#ffb700, #ffcd4f);
 }
 
 .rss:hover {
-  color: #ff6300;
+  color: light-dark(#ff6300, #ff9347);
 }
 
 .hover-alt:hover {
-  color: #357edd;
+  color: light-dark(#357edd, #7aaeff);
 }
 
 .pager-link,
 .logo-div {
-  color: #aaa;
+  color: light-dark(#aaa, #8d8d8d);
 }
 
 .post-input {
-  color: #000;
-  border-color: #001b44;
+  color: light-dark(#000, #f2f2f2);
+  border-color: light-dark(#001b44, #5f88d6);
 }
 
 .layout-msg {
-  border-color: #001b44;
-  background-color: #fffceb;
+  border-color: light-dark(#001b44, #5f88d6);
+  background-color: light-dark(#fffceb, #2d2a16);
 }
 
 .query-info-icon {
-  color: #357edd;
+  color: light-dark(#357edd, #7aaeff);
 }
 
 .docs-item-bg,
 .docs-striped-item:nth-child(odd) {
-  background-color: #eee;
+  background-color: light-dark(#eee, #242424);
 }
 
 .login-div {
-  background-color: #fff;
+  background-color: light-dark(#fff, #121212);
 }
 
 .login-bg {
-  background-color: #f4f4f4;
+  background-color: light-dark(#f4f4f4, #1f1f1f);
 }
