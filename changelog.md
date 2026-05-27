@@ -9,6 +9,7 @@
     - `wayback-machine-secret-key`
 - remove Archive Backend: `archive-li`
 - only show the archive link icon on the user's bookmark page if the the `archiveUrl` exists
+- adjust dark-mode link visted color
 
 ## v0.0.30 (2026-05-24)
 

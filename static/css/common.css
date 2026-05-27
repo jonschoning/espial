@@ -13,7 +13,7 @@ a {
 }
 
 a:visited {
-  color: light-dark(oklch(37.836% 0.17168 302.149), oklch(73% 0.17168 302.149));
+  color: light-dark(oklch(37.836% 0.17168 302.149), oklch(73% 0.12 283));
 }
 
 a:active {
