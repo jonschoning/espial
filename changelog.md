@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.0.31 (2026-05-27)
+
+- add Archive Backend: `wayback-machine` 
+- add Wayback Machine Backend-related settings `wayback-machine-access-key`, `wayback-machine-secret-key`
+- remove Archive Backend: `archive-li`
+- only show archive link icon on user's bookmark page if the archiveUrl exists
+
 ## v0.0.30 (2026-05-24)
 
 - add Dark Mode (fixes #59)

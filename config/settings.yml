@@ -35,13 +35,16 @@ database:
   poolsize: "_env:SQLITE_POOLSIZE:10"
 
 copyright: Insert copyright statement here
-#analytics: UA-YOURCODE
+# analytics: UA-YOURCODE
 
-archive-backend: "_env:ARCHIVE_BACKEND:disabled"
-#archive-backend: "_env:ARCHIVE_BACKEND:archive-li"
+# archive-backend: "_env:ARCHIVE_BACKEND:disabled"
+archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
+
+wayback-machine-access-key: "_env:WAYBACK_MACHINE_ACCESS_KEY" # Wayback Machine S3 access key, used when archive-backend is set to wayback-machine.
+wayback-machine-secret-key: "_env:WAYBACK_MACHINE_SECRET_KEY" # Wayback Machine S3 secret key, used when archive-backend is set to wayback-machine.
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 

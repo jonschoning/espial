@@ -52,10 +52,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-VFN6DYVP.min.js
-    static/js/app-VFN6DYVP.min.js.gz
-    static/js/app-VFN6DYVP.min.js.map
-    static/js/app-VFN6DYVP.min.js.map.gz
+    static/js/app-EUIX3Z4N.min.js
+    static/js/app-EUIX3Z4N.min.js.gz
+    static/js/app-EUIX3Z4N.min.js.map
+    static/js/app-EUIX3Z4N.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -104,8 +104,8 @@ flag library-only
 library
   exposed-modules:
       Application
-      Archiver.ArchiveLi
       Archiver.Backend
+      Archiver.WaybackMachine
       Foundation
       Generic
       Handler.AccountSettings

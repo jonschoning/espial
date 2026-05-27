@@ -63,6 +63,12 @@ data AppSettings = AppSettings
     , appArchiveSocksProxyPort   :: Maybe Int
     -- ^ Socks proxy port to use when making archive requests
 
+    , appWaybackMachineAccessKey  :: Maybe Text
+    -- ^ Wayback Machine access key for archive requests
+
+    , appWaybackMachineSecretKey  :: Maybe Text
+    -- ^ Wayback Machine secret key for archive requests
+
     , appArchiveBackend          :: ArchiveBackend
     -- ^ Which archiver backend to use (or disabled)
 
@@ -104,7 +110,9 @@ instance FromJSON AppSettings where
 
         appArchiveSocksProxyHost   <- o .:? "archive-socks-proxy-host"
         appArchiveSocksProxyPort   <- o .:? "archive-socks-proxy-port"
-        appArchiveBackend          <- fromMaybe ArchiveDisabled <$> o .:? "archive-backend"
+        appWaybackMachineAccessKey  <- o .:? "wayback-machine-access-key"
+        appWaybackMachineSecretKey  <- o .:? "wayback-machine-secret-key"
+        appArchiveBackend          <- fromMaybe ArchiveBackendDisabled <$> o .:? "archive-backend"
         appSourceCodeUri           <- o .:? "source-code-uri"
 
         appSSLOnly                 <- fromMaybe False <$> o .:? "ssl-only"
@@ -168,11 +176,13 @@ combineScripts = combineScripts'
     combineSettings
 
 -- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveLi | ArchiveDisabled
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine
   deriving (Show, Eq)
 
 instance FromJSON ArchiveBackend where
   parseJSON = withText "ArchiveBackend" $ \case
-    "archive-li" -> pure ArchiveLi
-    "disabled"   -> pure ArchiveDisabled
-    _            -> mzero
+    "disabled" -> pure ArchiveBackendDisabled
+    "archive-li" -> pure ArchiveBackendArchiveLi
+    "wayback-machine" -> pure ArchiveBackendWaybackMachine
+    _ -> mzero
+
