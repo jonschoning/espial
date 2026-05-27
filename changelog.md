@@ -10,6 +10,7 @@
 - remove Archive Backend: `archive-li`
 - only show the archive link icon on the user's bookmark page if the the `archiveUrl` exists
 - adjust dark-mode link visted color
+- hide status of starred, to-read, and archive properties of bookmarks when not viewed by the bookmark owner
 
 ## v0.0.30 (2026-05-24)
 
