@@ -215,15 +215,18 @@ input::placeholder {
   color: light-dark(#22a, #7da2ff);
 }
 
-.tag {
+.tag,
+a.tag:visited {
   color: light-dark(oklch(54.38% 0.13279 52.009), oklch(64% 0.13229 52.009));
 }
 
-.tag-include {
+.tag-include,
+a.tag-include:visited {
   color: light-dark(#ddd, #9a9a9a);
 }
 
-.tag-exclude {
+.tag-exclude,
+a.tag-exclude:visited {
   color: light-dark(#faa, #ff9b9b);
 }
 
