@@ -37,8 +37,8 @@ database:
 copyright: Insert copyright statement here
 # analytics: UA-YOURCODE
 
-# archive-backend: "_env:ARCHIVE_BACKEND:disabled"
-archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
+archive-backend: "_env:ARCHIVE_BACKEND:disabled"
+# archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"

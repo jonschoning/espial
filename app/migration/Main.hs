@@ -6,6 +6,7 @@ import ClassyPrelude
 import qualified Data.Text as T
 import qualified Database.Persist as P
 import qualified Database.Persist.Sqlite as P
+import Import (configSettingsYmlValue)
 import Lens.Micro
 import Model
 import Model.Custom
@@ -210,7 +211,7 @@ main = do
     getConnText :: Maybe Text -> IO Text
     getConnText mconn =
       maybe
-        (P.sqlDatabase . appDatabaseConf <$> loadYamlSettings [configSettingsYml] [] useEnv)
+        (P.sqlDatabase . appDatabaseConf <$> loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv)
         pure
         mconn
 

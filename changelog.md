@@ -2,10 +2,13 @@
 
 ## v0.0.31 (2026-05-27)
 
+- use values in `config/settings.yml` at run-time (on app startup), instead of only the values from compile-time embedding of `config/settings.yml`
 - add Archive Backend: `wayback-machine` 
-- add Wayback Machine Backend-related settings `wayback-machine-access-key`, `wayback-machine-secret-key`
+  - add Wayback Machine Backend-related settings: 
+    - `wayback-machine-access-key`
+    - `wayback-machine-secret-key`
 - remove Archive Backend: `archive-li`
-- only show archive link icon on user's bookmark page if the archiveUrl exists
+- only show the archive link icon on the user's bookmark page if the the `archiveUrl` exists
 
 ## v0.0.30 (2026-05-24)
 

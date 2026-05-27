@@ -176,7 +176,7 @@ getApplicationDev = do
   return (wsettings, app)
 
 getAppSettings :: IO AppSettings
-getAppSettings = loadYamlSettings [configSettingsYml] [] useEnv
+getAppSettings = loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv
 
 -- | main function for use by yesod devel
 develMain :: IO ()
@@ -185,7 +185,7 @@ develMain = develMainHelper getApplicationDev
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
 appMain = do
-  settings <- loadYamlSettingsArgs [configSettingsYmlValue] useEnv
+  settings <- getAppSettings
   foundation <- makeFoundation settings
   app <- makeApplication foundation
 #ifndef mingw32_HOST_OS
