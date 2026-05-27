@@ -96,6 +96,19 @@ label {
   color-scheme: dark;
 }
 
+.color-scheme-toggle-dark-label,
+.color-scheme-toggle-light-label {
+  display: none;
+}
+
+:root[data-color-scheme="light"] .color-scheme-toggle-dark-label {
+  display: inline;
+}
+
+:root[data-color-scheme="dark"] .color-scheme-toggle-light-label {
+  display: inline;
+}
+
 /* Colors */
 .thm-bg-surface {
   background-color: light-dark(#fff, #121212);

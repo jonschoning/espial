@@ -79,10 +79,6 @@ export function initColorSchemeToggle(): void {
   function applyColorSchemePreference(preference: ColorSchemePreference): void {
     document.documentElement.dataset.colorScheme = preference;
   }
-  function setColorSchemeToggleText(toggleEl: HTMLAnchorElement): void {
-    const next = getEffectiveColorScheme() === 'dark' ? 'light' : 'dark';
-    toggleEl.textContent = `${next} mode\u00A0\u00A0`;
-  }
 
   const colorSchemeStorageKey = 'espial-color-scheme';
   const stored = window.localStorage.getItem(colorSchemeStorageKey);
@@ -93,12 +89,10 @@ export function initColorSchemeToggle(): void {
   const toggleEl = document.querySelector<HTMLAnchorElement>('#color-scheme-toggle');
   if (!toggleEl) return;
 
-  setColorSchemeToggleText(toggleEl);
   toggleEl.addEventListener('click', (e) => {
     e.preventDefault();
     const next: ColorSchemePreference = getEffectiveColorScheme() === 'dark' ? 'light' : 'dark';
     applyColorSchemePreference(next);
     window.localStorage.setItem(colorSchemeStorageKey, next);
-    setColorSchemeToggleText(toggleEl);
   });
 }

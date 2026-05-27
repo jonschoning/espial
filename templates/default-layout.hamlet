@@ -14,7 +14,10 @@
       <div .top_menu.fr>
 
         <a .link href="#" #color-scheme-toggle>
-          dark mode&nbsp;&nbsp;
+          <span .color-scheme-toggle-dark-label>
+            dark mode&nbsp;&nbsp;
+          <span .color-scheme-toggle-light-label>
+            light mode&nbsp;&nbsp;
         $maybe userName <- musername
           <a .link href="@?{(AddViewR, [("next","back")])}">add url&nbsp;&nbsp;
           <a .link href="@{AddNoteViewR (UserNameP userName)}">add note&nbsp;&nbsp;
