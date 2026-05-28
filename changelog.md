@@ -4,6 +4,7 @@
 
 - change runtime docker image from `jonschoning/espial:scratch` to `gcr.io/distroless/base-debian12`
   - included bin utilities: `sh`, `cp`, `ls`, `cat`, `mkdir`, `rm`
+- fix background css for defaultMessageWidget (e.g. 404 page)
 
 ## v0.0.31 (2026-05-27)
 
