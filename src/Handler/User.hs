@@ -60,7 +60,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     $(widgetFile "user")
     toWidgetBody
       [julius|
-        app.dat.bmarks = #{ toJSON $ toBookmarkFormList btmarks } || [];
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormListForViewer isowner btmarks } || [];
         app.dat.isowner = #{ isowner };
       app.dat.suggestTags = #{ suggestTags };
         app.userR = "@{UserR unamep}";

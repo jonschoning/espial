@@ -5,7 +5,10 @@
       - (#{userName})
   <div .fr>
     <a .link href="#" #color-scheme-toggle>
-      dark mode\u00A0\u00A0
+      <span .color-scheme-toggle-dark-label>
+        dark mode&nbsp;&nbsp;
+      <span .color-scheme-toggle-light-label>
+        light mode&nbsp;&nbsp;
     $maybe userName <- musername
       <a .link.logout-btn href="@{AuthR LogoutR}">
         [log out]

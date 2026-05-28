@@ -138,15 +138,17 @@ export function BMark({
           <a href={bm.url} className="link f7 thm-text-tertiary thm-hover-link-color">
             {bm.url}
           </a>
-          <a
-            href={bm.archiveUrl ?? `http://archive.is/${bm.url}`}
-            className={`link f7 thm-text-tertiary thm-hover-link-color ml2${bm.archiveUrl ? ' thm-text-success' : ''}`}
-            target="_blank"
-            rel="noreferrer"
-            title="archive link"
-          >
-            {bm.archiveUrl ? '☑' : '☐'}
-          </a>
+          {bm.archiveUrl ? (
+            <a
+              href={bm.archiveUrl}
+              className="link f7 thm-text-tertiary thm-hover-link-color ml2 thm-text-success"
+              target="_blank"
+              rel="noreferrer"
+              title="archive link"
+            >
+              ☑
+            </a>
+          ) : null}
           <br />
           <div className="description mt1 thm-text-secondary">
             <Markdown text={bm.description} />

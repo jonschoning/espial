@@ -1,0 +1,72 @@
+module Archiver.WaybackMachine
+  ( waybackMachineBackend,
+  )
+where
+
+import Archiver.Backend
+import ClassyPrelude
+import Control.Monad.Logger (LoggingT, logDebug, runLoggingT)
+import qualified Data.ByteString as BS
+import Database.Persist.Sql (ConnectionPool, Key, runSqlPool)
+import Model (Bookmark, Url (..), User, UserAgent (UserAgent), updateBookmarkArchiveUrl)
+import qualified Network.HTTP.Client as NH
+import qualified Network.HTTP.Types.Status as NH
+import qualified Web.FormUrlEncoded as WH
+import Yesod.Default.Main (LogFunc)
+
+-- | Wayback Machine backend.
+waybackMachineBackend :: Text -> Text -> ConnectionPool -> NH.Manager -> LogFunc -> ArchiverBackend
+waybackMachineBackend accessKey secretKey connPool manager logFunc =
+  ArchiverBackend
+    { runArchiver = \uid bid ua url -> flip runLoggingT logFunc $ _waybackMachineRun accessKey secretKey connPool manager uid bid ua url,
+      isUrlDenylisted = \(Url url) -> any (`isInfixOf` url) _waybackMachineDenylist
+    }
+
+_waybackMachineDenylist :: [Text]
+_waybackMachineDenylist =
+  [ "archive.org",
+    "web.archive.org"
+  ]
+
+_waybackMachineRun :: Text -> Text -> ConnectionPool -> NH.Manager -> Key User -> Key Bookmark -> UserAgent -> Url -> LoggingT IO ()
+_waybackMachineRun accessKey secretKey connPool manager userId bookmarkId ua url = do
+  $(logDebug) $ "Archiving URL with Wayback Machine: " <> unUrl url
+  let req = _buildWaybackMachineSubmitRequest accessKey secretKey ua url
+  $(logDebug) $ "Wayback Machine request: " <> tshow req
+  res <- liftIO $ NH.httpLbs req manager
+  let status = NH.responseStatus res
+      mArchiveUrl =
+        if
+          | status == NH.status200 -> Just (_extractArchiveUrl url)
+          | status == NH.status302 || status == NH.status307 -> Just (_extractArchiveUrl url)
+          | otherwise -> Nothing
+  $(logDebug) $ "Archive response status: " <> tshow status <> ", URL result: " <> tshow mArchiveUrl
+  $(logDebug) $ "Archive response body: " <> tshow (NH.responseBody res)
+  forM_ mArchiveUrl $ \archiveUrl ->
+    liftIO $ runSqlPool (updateBookmarkArchiveUrl userId bookmarkId (Just archiveUrl)) connPool
+
+_buildWaybackMachineSubmitRequest :: Text -> Text -> UserAgent -> Url -> NH.Request
+_buildWaybackMachineSubmitRequest accessKey secretKey (UserAgent ua) (Url href) =
+  let body =
+        WH.urlEncodeAsForm
+          ( [ ("url", unpack href),
+              ("capture_all", "on"),
+              ("capture_screenshot", "on")
+            ] ::
+              [(String, String)]
+          )
+      req = NH.parseRequest_ "https://web.archive.org/save"
+   in req
+        { NH.method = "POST",
+          NH.requestHeaders =
+            [ ("Authorization", BS.concat ["LOW ", encodeUtf8 accessKey, ":", encodeUtf8 secretKey]),
+              ("Accept", "application/json"),
+              ("Content-Type", "application/x-www-form-urlencoded"),
+              ("User-Agent", encodeUtf8 ua)
+            ],
+          NH.requestBody = NH.RequestBodyLBS body,
+          NH.redirectCount = 0
+        }
+
+_extractArchiveUrl :: Url -> Text
+_extractArchiveUrl (Url inputUrl) = "https://web.archive.org/web/*/" <> inputUrl

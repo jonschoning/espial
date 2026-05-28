@@ -67,8 +67,11 @@ instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
 gDefaultFormOptions :: A.Options
 gDefaultFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
 
-toBookmarkFormList :: [(Entity Bookmark, Maybe Text)] -> [BookmarkForm]
-toBookmarkFormList = fmap _toBookmarkForm'
+toBookmarkFormListForViewer :: Bool -> [(Entity Bookmark, Maybe Text)] -> [BookmarkForm]
+toBookmarkFormListForViewer isowner =
+  fmap $ \entry ->
+    let form = _toBookmarkForm' entry
+     in if isowner then form else form {_selected = Just False, _toread = Just False, _archiveUrl = Nothing}
 
 _toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
 _toBookmarkForm (bm, tags) =
@@ -94,8 +97,8 @@ _toBookmark :: UserId -> BookmarkForm -> IO Bookmark
 _toBookmark userId BookmarkForm {..} = do
   time <- liftIO getCurrentTime
   slug <- maybe mkBmSlug pure _slug
-  pure $
-    Bookmark
+  pure
+    $ Bookmark
       { bookmarkUserId = userId,
         bookmarkSlug = slug,
         bookmarkHref = _url,

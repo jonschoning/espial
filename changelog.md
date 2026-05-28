@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.31 (2026-05-27)
+
+- use values in `config/settings.yml` at run-time (on app startup), instead of only the values from compile-time embedding of `config/settings.yml`
+- add Archive Backend: `wayback-machine` 
+  - add Wayback Machine Backend-related settings: 
+    - `wayback-machine-access-key`
+    - `wayback-machine-secret-key`
+- remove Archive Backend: `archive-li`
+- only show the archive link icon on the user's bookmark page if the the `archiveUrl` exists
+- adjust dark-mode link visited color and toggle
+- hide status of starred, to-read, and archive properties of bookmarks when not viewed by the bookmark owner
+
 ## v0.0.30 (2026-05-24)
 
 - add Dark Mode (fixes #59)

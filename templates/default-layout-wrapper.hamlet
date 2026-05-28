@@ -20,6 +20,11 @@ $newline never
         var storedColorScheme = window.localStorage.getItem('espial-color-scheme');
         if (storedColorScheme === 'light' || storedColorScheme === 'dark') {
           document.documentElement.dataset.colorScheme = storedColorScheme;
+        } else {
+          document.documentElement.dataset.colorScheme =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
         }
       } catch (_) {}
 

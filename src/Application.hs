@@ -47,7 +47,8 @@ import           Handler.Add
 import           Handler.Edit
 import           Handler.Notes
 import           Handler.Docs
-import           Archiver.ArchiveLi (archiveLiBackend)
+import           Archiver.WaybackMachine (waybackMachineBackend)
+import Archiver.Backend (ArchiverBackend)
 
 mkYesodDispatch "App" resourcesApp
 
@@ -67,16 +68,7 @@ makeFoundation appSettings = do
   pool <- mkPool logFunc True
   poolMigrations <- mkPool logFunc False
   flip runLoggingT logFunc $ runSqlPool runMigrations poolMigrations
-  appArchiver <-
-    case appArchiveBackend appSettings of
-      ArchiveDisabled -> pure Nothing
-      ArchiveLi -> do
-        let mSocks =
-              NC.SockSettingsSimple
-                <$> fmap unpack (appArchiveSocksProxyHost appSettings)
-                <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
-        archiveManager <- NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
-        pure $ Just $ archiveLiBackend pool archiveManager logFunc 
+  appArchiver <- mkArchiverBackend logFunc pool
   flip runLoggingT logFunc 
     ($(logInfo) $ "Archive backend: " <> tshow (appArchiveBackend appSettings)) 
   return (mkFoundation pool appArchiver)
@@ -89,6 +81,29 @@ makeFoundation appSettings = do
             connInfo = mkSqliteConnectionInfo dbPath &
                        set fkEnabled isFkEnabled
         createSqlitePoolFromInfo connInfo poolSize
+    mkArchiverBackend :: _ -> ConnectionPool -> IO (Maybe ArchiverBackend)
+    mkArchiverBackend logFunc pool = do
+      case appArchiveBackend appSettings of
+        ArchiveBackendDisabled -> pure Nothing
+        ArchiveBackendArchiveLi -> do
+          flip runLoggingT logFunc
+            ($(logWarn) "Archive backend `archive-li` selected but functionality has been removed; archiving disabled")
+          pure Nothing
+        ArchiveBackendWaybackMachine -> mkWaybackArchiver
+      where
+        mkWaybackArchiver = do
+          let mSocks =
+                NC.SockSettingsSimple
+                  <$> fmap unpack (appArchiveSocksProxyHost appSettings)
+                  <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
+          case (appWaybackMachineAccessKey appSettings, appWaybackMachineSecretKey appSettings) of
+            (Just accessKey, Just secretKey) -> do
+              archiveManager <- NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
+              pure $ Just $ waybackMachineBackend accessKey secretKey pool archiveManager logFunc
+            _ -> do
+              flip runLoggingT logFunc
+                ($(logWarn) "Archive backend `wayback-machine` selected but access/secret key missing; archiving disabled")
+              pure Nothing
 
 loadFrontendBundleName :: FilePath -> IO Text
 loadFrontendBundleName staticDir = do
@@ -161,7 +176,7 @@ getApplicationDev = do
   return (wsettings, app)
 
 getAppSettings :: IO AppSettings
-getAppSettings = loadYamlSettings [configSettingsYml] [] useEnv
+getAppSettings = loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv
 
 -- | main function for use by yesod devel
 develMain :: IO ()
@@ -170,7 +185,7 @@ develMain = develMainHelper getApplicationDev
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
 appMain = do
-  settings <- loadYamlSettingsArgs [configSettingsYmlValue] useEnv
+  settings <- getAppSettings
   foundation <- makeFoundation settings
   app <- makeApplication foundation
 #ifndef mingw32_HOST_OS
