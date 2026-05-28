@@ -4,7 +4,12 @@ module Handler.Notes where
 
 import qualified Data.Aeson as A
 import qualified Data.Text as T
-import Handler.Common (lookupPagingParams)
+import Handler.Common
+  ( formatPagingCursorTime,
+    hasPagingCursorQuery,
+    lookupPagingParams,
+    withPagingCursorQuery,
+  )
 import Import
 import qualified Network.Wai.Internal as W
 import qualified Text.Blaze.Html5 as H
@@ -19,7 +24,7 @@ getNotesR unamep@(UserNameP uname) = do
   mquery <- lookupGetParam queryp
   let limit = maybe 20 fromIntegral limit'
       page = maybe 1 fromIntegral page'
-      mqueryp = fmap (queryp,) mquery
+      mqueryp = Nothing :: Maybe (Text, Text)
       isowner = Just uname == mauthuname
   (bcount, notes) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
@@ -28,6 +33,24 @@ getNotesR unamep@(UserNameP uname) = do
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     getNoteList userId mquery sharedp limit page
+  let mfirstTime = headMay (map (noteCreated . entityVal) notes)
+      mlastTime = lastMay (map (noteCreated . entityVal) notes)
+      mqueryEarlierp =
+        fmap
+          (queryp,)
+          ( fmap
+              (withPagingCursorQuery mquery . ("before:" <>))
+              (formatPagingCursorTime <$> mlastTime)
+          )
+      mqueryLaterp =
+        fmap
+          (queryp,)
+          ( fmap
+              (withPagingCursorQuery mquery . ("after:" <>))
+              (formatPagingCursorTime <$> mfirstTime)
+          )
+      hasEarlier = fromIntegral (length notes) >= limit
+      hasLater = hasPagingCursorQuery mquery
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do

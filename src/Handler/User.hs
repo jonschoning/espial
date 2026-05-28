@@ -40,14 +40,35 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         _ -> if isowner then filterp' else FilterAll
       isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
       queryp = "query" :: Text
+      beforep = "before" :: Text
+      afterp = "after" :: Text
   mquery <- lookupGetParam queryp
-  let mqueryp = fmap (queryp,) mquery
+  mbefore <- lookupGetParam beforep
+  mafter <- lookupGetParam afterp
+  let cursor = PagingCursorBefore <$> (parsePagingCursorTime =<< mbefore) <|> PagingCursorAfter <$> (parsePagingCursorTime =<< mafter)
+      mqueryp = fmap (queryp,) mquery
   (suggestTags, (bcount, btmarks)) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (userSuggestTags user,) <$> bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
+    (userSuggestTags user,) <$> bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery cursor limit page
+  let mfirstTime = headMay (map (bookmarkTime . entityVal . fst) btmarks)
+      mlastTime = lastMay (map (bookmarkTime . entityVal . fst) btmarks)
+      mqueryEarlierp =
+        fmap
+          (beforep,)
+          (formatPagingCursorTime <$> mlastTime)
+      mqueryLaterp =
+        fmap
+          (afterp,)
+          (formatPagingCursorTime <$> mfirstTime)
+      hasEarlier = fromIntegral (length btmarks) >= limit
+      hasLater = isJust cursor && fromIntegral (length btmarks) >= limit
+  cpprint $ (\(b, _) -> bookmarkTime (entityVal b)) <$> btmarks
+  cpprint cursor
+  cpprint (mqueryEarlierp, mqueryLaterp)
+  cpprint (hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
@@ -150,13 +171,18 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         _ -> if isowner then filterp' else FilterAll
       -- isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
       queryp = "query" :: Text
+      beforep = "before" :: Text
+      afterp = "after" :: Text
   mquery <- lookupGetParam queryp
+  mbefore <- lookupGetParam beforep
+  mafter <- lookupGetParam afterp
+  let cursor = PagingCursorBefore <$> (parsePagingCursorTime =<< mbefore) <|> PagingCursorAfter <$> (parsePagingCursorTime =<< mafter)
   (_, btmarks) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery cursor limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

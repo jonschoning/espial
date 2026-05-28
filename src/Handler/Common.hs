@@ -4,6 +4,8 @@ module Handler.Common where
 import Data.Aeson as A
 import qualified Data.ByteString.Char8 as BS8
 import Data.FileEmbed (embedFile)
+import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+import qualified Data.Time.ISO8601 as TISO
 import Import
 import Network.Wai (requestHeaderHost)
 import Text.Read
@@ -30,6 +32,27 @@ lookupPagingParams =
   (,)
     <$> getUrlSessionParam "count"
     <*> getUrlParam "page"
+
+formatPagingCursorTime :: UTCTime -> Text
+formatPagingCursorTime = pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ"
+
+hasPagingCursorQuery :: Maybe Text -> Bool
+hasPagingCursorQuery = maybe False (any isPagingCursorToken . words)
+  where
+    isPagingCursorToken t = "before:" `isPrefixOf` t || "after:" `isPrefixOf` t
+
+withPagingCursorQuery :: Maybe Text -> Text -> Text
+withPagingCursorQuery mquery token =
+  unwords $ filter (not . null) [stripPagingCursorQuery mquery, token]
+  where
+    stripPagingCursorQuery = maybe "" (unwords . filter (not . isPagingCursorToken) . words)
+    isPagingCursorToken t = "before:" `isPrefixOf` t || "after:" `isPrefixOf` t
+
+parsePagingCursorTime :: Text -> Maybe UTCTime
+parsePagingCursorTime t =
+  TISO.parseISO8601 (unpack t)
+    <|> (parseTimeText t :: Maybe UTCTime)
+    <|> (posixSecondsToUTCTime . fromInteger <$> (readMaybe (unpack t) :: Maybe Integer))
 
 espialUserAgent :: Handler UserAgent
 espialUserAgent = do

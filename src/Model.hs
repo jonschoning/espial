@@ -103,6 +103,11 @@ data FilterP
   | FilterSingle BmSlug
   deriving (Eq, Show, Read)
 
+data PagingCursor
+  = PagingCursorBefore UTCTime
+  | PagingCursorAfter UTCTime
+  deriving (Eq, Show, Read)
+
 newtype UnreadOnly
   = UnreadOnly {unUnreadOnly :: Bool}
   deriving (Eq, Show, Read)
@@ -171,23 +176,29 @@ bookmarksTagsQuery ::
   FilterP ->
   [Tag] ->
   Maybe Text ->
+  Maybe PagingCursor ->
   Limit ->
   Page ->
   DB (Int, [(Entity Bookmark, Maybe Text)])
-bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
-  (,) -- total count
-    <$> fmap
+bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' page = do
+  total <-
+    fmap
       (sum . fmap unValue)
       ( select $ from (table @Bookmark) >>= \b -> do
           _whereClause b
           pure countRows
       )
-    -- paged data
-    <*> (fmap . fmap . fmap)
+  rows <-
+    (fmap . fmap . fmap)
       unValue
       ( select $ from (table @Bookmark) >>= \b -> do
           _whereClause b
-          orderBy [desc (b ^. BookmarkTime)]
+          for_ mcursor $ \case
+            PagingCursorBefore beforeTime ->
+              where_ (b ^. BookmarkTime Database.Esqueleto.Experimental.<. val beforeTime)
+            PagingCursorAfter afterTime ->
+              where_ (b ^. BookmarkTime Database.Esqueleto.Experimental.>. val afterTime)
+          orderBy [bookmarkOrder b]
           limit limit'
           offset ((page - 1) * limit')
           pure
@@ -202,7 +213,18 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
                 pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")
             )
       )
+  pure (total, finalizeRows rows)
   where
+    bookmarkOrder b =
+      case mcursor of
+        Just (PagingCursorAfter _) -> asc (b ^. BookmarkTime)
+        _ -> desc (b ^. BookmarkTime)
+
+    finalizeRows =
+      case mcursor of
+        Just (PagingCursorAfter _) -> reverse
+        _ -> id
+
     _whereClause b = do
       where_
         $ foldl
