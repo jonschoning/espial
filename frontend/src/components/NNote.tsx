@@ -21,6 +21,7 @@ function toTextarea(input: string) {
   );
 }
 
+/** Displays a single note with inline editing and deletion, used in the popup window. */
 export function NNote({ initial }: { initial: Note }) {
   const a = app();
 

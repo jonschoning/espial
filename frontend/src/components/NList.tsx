@@ -19,6 +19,7 @@ function toTextareaPreview(input: string) {
   );
 }
 
+/** Renders a list of note summaries with links to individual notes. */
 export function NList({ initial }: { initial: Note[] }) {
   const a = app();
   const linkToFilterSingle = (slug: string) => `${fromNullableStr(a.userR)}/notes/${slug}`;

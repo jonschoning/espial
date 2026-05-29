@@ -133,7 +133,7 @@ instance Yesod App where
       [hamlet|
         <main .pv2.ph3.mh1>
           <div .w-100.mw8.center>
-            <div .pa3.bg-near-white>
+            <div .pa3.thm-bg-secondary>
               <h1>#{title}
               ^{body}
       |]

@@ -8,18 +8,17 @@ services:
       - "3000:3000"
     volumes:
       - '$DATA:/app/data'
-    # network_mode: host
     environment:
-      - IP_FROM_HEADER=true
-      - SQLITE_DATABASE=/app/data/espial.sqlite3
       - PORT=3000
+      - SQLITE_DATABASE=/app/data/espial.sqlite3
+      - IP_FROM_HEADER=true
       # - SSL_ONLY=false
-      # - DETAILED_LOGGING=false
       # - SHOULD_LOG_ALL=false
+      # - DETAILED_LOGGING=false
+      # - ALLOW_NON_HTTP_URL_SCHEMES=false
+      # - SOURCE_CODE_URI=https://github.com/jonschoning/espial
       # - ARCHIVE_SOCKS_PROXY_HOST=localhost 
       # - ARCHIVE_SOCKS_PROXY_PORT=8888
-      # - SOURCE_CODE_URI=https://github.com/jonschoning/espial
-      # - ALLOW_NON_HTTP_URL_SCHEMES=false
 
       - ARCHIVE-BACKEND=disabled
       # - ARCHIVE-BACKEND=wayback-machine

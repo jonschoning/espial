@@ -7,6 +7,7 @@ marked.setOptions({
   gfm: true,
 });
 
+/** Renders sanitized Markdown text as HTML. */
 export function Markdown({ text, className }: { text: string; className?: string }) {
   const html = React.useMemo(() => {
     if (!text) return '';

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.32 (2026-05-28)
+
+- change runtime docker image from `jonschoning/espial:scratch` to `gcr.io/distroless/base-debian12`
+- fix css for 404 page
+
 ## v0.0.31 (2026-05-27)
 
 - use values in `config/settings.yml` at run-time (on app startup), instead of only the values from compile-time embedding of `config/settings.yml`

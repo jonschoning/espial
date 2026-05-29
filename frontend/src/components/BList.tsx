@@ -4,6 +4,7 @@ import { useBookmarksStore } from '../stores/bookmarksStore';
 import type { Bookmark } from '../types';
 import { BMark } from './BMark';
 
+/** Renders the full list of bookmarks, delegating each item to BMark. */
 export function BList({ initial }: { initial: Bookmark[] }) {
   const bmarks = useBookmarksStore((s) => s.bmarks);
   const setAll = useBookmarksStore((s) => s.setAll);
