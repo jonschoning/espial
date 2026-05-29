@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.33 (2026-05-XX)
+
+- update shared libs in runtime docker image
+
 ## v0.0.32 (2026-05-28)
 
 - change runtime docker image from `jonschoning/espial:scratch` to `gcr.io/distroless/base-debian12`
