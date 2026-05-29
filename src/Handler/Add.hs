@@ -9,7 +9,7 @@ import qualified Data.Text as T (replace)
 import Data.Text.Lazy.Builder (toLazyText)
 import HTMLEntities.Decoder (htmlEncodedText)
 import Handler.Archive
-import Handler.Common (espialUserAgent)
+import Handler.Common (browserUserAgent)
 import Import
 import qualified Network.HTTP.Client as NH
 import qualified Network.HTTP.Client.TLS as NHT
@@ -127,7 +127,7 @@ postLookupTitleR = do
         decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
         skipAnyTill end = go where go = end $> () <|> AP.anyWord8 *> go
         buildPageTitleRequest = do
-          (UserAgent ua) <- espialUserAgent
+          let UserAgent ua = browserUserAgent
           pure $ NH.parseRequest_ (unpack (unUrl url)) & \r ->
             r
               { NH.requestHeaders =
