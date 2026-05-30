@@ -5,7 +5,7 @@ module Handler.Home where
 import Import
 
 getHomeR :: Handler Html
-getHomeR = do 
+getHomeR = do
   musername <- maybeAuthUsername
   case musername of
     Nothing -> redirect (AuthR LoginR)

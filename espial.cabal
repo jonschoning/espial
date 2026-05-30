@@ -104,6 +104,7 @@ flag library-only
 library
   exposed-modules:
       Application
+      Archiver.ArchiveBox07
       Archiver.Backend
       Archiver.WaybackMachine
       Foundation

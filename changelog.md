@@ -2,6 +2,7 @@
 
 ## v0.0.33 (2026-05-XX)
 
+- add new `archive-backend`: `archivebox07`
 - update shared libs in runtime docker image
 
 ## v0.0.32 (2026-05-28)

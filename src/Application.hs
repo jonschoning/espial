@@ -2,36 +2,39 @@
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Application
-  ( getApplicationDev
-  , appMain
-  , develMain
-  , makeFoundation
-  , makeLogWare
-   -- * for DevelMain
-  , getApplicationRepl
-  , shutdownApp
-   -- * for GHCI
-  , handler
-  , db
-  ) where
+  ( getApplicationDev,
+    appMain,
+    develMain,
+    makeFoundation,
+    makeLogWare,
 
-import           Control.Monad.Logger (liftLoc, runLoggingT)
+    -- * for DevelMain
+    getApplicationRepl,
+    shutdownApp,
+
+    -- * for GHCI
+    handler,
+    db,
+  )
+where
+
+import Control.Monad.Logger (liftLoc, runLoggingT)
 import qualified Data.Aeson as A
-import           Database.Persist.Sqlite (ConnectionPool, mkSqliteConnectionInfo, createSqlitePoolFromInfo, fkEnabled, runSqlPool, sqlDatabase, sqlPoolSize)
-import           Import
-import           Language.Haskell.TH.Syntax (qLocation)
-import           Lens.Micro
-import           Network.HTTP.Client.TLS
-import qualified Network.HTTP.Client.TLS as NHT
+import Database.Persist.Sqlite (ConnectionPool, createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, runSqlPool, sqlDatabase, sqlPoolSize)
+import Import
+import Language.Haskell.TH.Syntax (qLocation)
+import Lens.Micro
 import qualified Network.Connection as NC
-import           Network.Wai (Middleware)
-import           Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, runSettings, setHost, setOnException, setPort, getPort)
-import           Network.Wai.Middleware.AcceptOverride
-import           Network.Wai.Middleware.Autohead
-import           Network.Wai.Middleware.Gzip hiding (def)
-import           Network.Wai.Middleware.MethodOverride
-import           Network.Wai.Middleware.RequestLogger (Destination(Logger), IPAddrSource(..), OutputFormat(..), destination, mkRequestLogger, outputFormat)
-import           System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)
+import Network.HTTP.Client.TLS
+import qualified Network.HTTP.Client.TLS as NHT
+import Network.Wai (Middleware)
+import Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, getPort, runSettings, setHost, setOnException, setPort)
+import Network.Wai.Middleware.AcceptOverride
+import Network.Wai.Middleware.Autohead
+import Network.Wai.Middleware.Gzip hiding (def)
+import Network.Wai.Middleware.MethodOverride
+import Network.Wai.Middleware.RequestLogger (Destination (Logger), IPAddrSource (..), OutputFormat (..), destination, mkRequestLogger, outputFormat)
+import System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet, toLogStr)
 #ifndef mingw32_HOST_OS
 import qualified Control.Concurrent as CC (killThread, myThreadId)
 import qualified System.Posix.Signals as PS (installHandler, Handler(CatchOnce), sigTERM)
@@ -39,16 +42,18 @@ import qualified System.Posix.Signals as PS (installHandler, Handler(CatchOnce),
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import           Handler.Common
-import           Handler.Home
-import           Handler.User
-import           Handler.AccountSettings
-import           Handler.Add
-import           Handler.Edit
-import           Handler.Notes
-import           Handler.Docs
-import           Archiver.WaybackMachine (waybackMachineBackend)
+
+import Archiver.ArchiveBox07 (archiveBox07Backend)
 import Archiver.Backend (ArchiverBackend)
+import Archiver.WaybackMachine (waybackMachineBackend)
+import Handler.AccountSettings
+import Handler.Add
+import Handler.Common
+import Handler.Docs
+import Handler.Edit
+import Handler.Home
+import Handler.Notes
+import Handler.User
 
 mkYesodDispatch "App" resourcesApp
 
@@ -58,9 +63,10 @@ makeFoundation appSettings = do
   appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
   appFrontendBundleName <- loadFrontendBundleName (appStaticDir appSettings)
   appStatic <-
-    (if appMutableStatic appSettings
-       then staticDevel
-       else static)
+    ( if appMutableStatic appSettings
+        then staticDevel
+        else static
+    )
       (appStaticDir appSettings)
   let mkFoundation appConnPool appArchiver = App {..}
       tempFoundation = mkFoundation (error "connPool forced in tempFoundation") Nothing
@@ -69,8 +75,10 @@ makeFoundation appSettings = do
   poolMigrations <- mkPool logFunc False
   flip runLoggingT logFunc $ runSqlPool runMigrations poolMigrations
   appArchiver <- mkArchiverBackend logFunc pool
-  flip runLoggingT logFunc 
-    ($(logInfo) $ "Archive backend: " <> tshow (appArchiveBackend appSettings)) 
+  flip
+    runLoggingT
+    logFunc
+    ($(logInfo) $ "Archive backend: " <> tshow (appArchiveBackend appSettings))
   return (mkFoundation pool appArchiver)
   where
     mkPool :: _ -> Bool -> IO ConnectionPool
@@ -78,32 +86,35 @@ makeFoundation appSettings = do
       flip runLoggingT logFunc $ do
         let dbPath = sqlDatabase (appDatabaseConf appSettings)
             poolSize = sqlPoolSize (appDatabaseConf appSettings)
-            connInfo = mkSqliteConnectionInfo dbPath &
-                       set fkEnabled isFkEnabled
+            connInfo =
+              mkSqliteConnectionInfo dbPath
+                & set fkEnabled isFkEnabled
         createSqlitePoolFromInfo connInfo poolSize
     mkArchiverBackend :: _ -> ConnectionPool -> IO (Maybe ArchiverBackend)
     mkArchiverBackend logFunc pool = do
       case appArchiveBackend appSettings of
         ArchiveBackendDisabled -> pure Nothing
-        ArchiveBackendArchiveLi -> do
-          flip runLoggingT logFunc
-            ($(logWarn) "Archive backend `archive-li` selected but functionality has been removed; archiving disabled")
-          pure Nothing
+        ArchiveBackendArchiveLi -> mkArchiveLiArchiver
         ArchiveBackendWaybackMachine -> mkWaybackArchiver
+        ArchiveBackendArchiveBox07 -> mkArchiveBox07Archiver
       where
+        mkArchiveLiArchiver = do
+          flip runLoggingT logFunc ($(logWarn) ("Archive backend `archive-li` selected but functionality has been removed; archiving disabled"))
+          pure Nothing
         mkWaybackArchiver = do
-          let mSocks =
-                NC.SockSettingsSimple
-                  <$> fmap unpack (appArchiveSocksProxyHost appSettings)
-                  <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
           case (appWaybackMachineAccessKey appSettings, appWaybackMachineSecretKey appSettings) of
             (Just accessKey, Just secretKey) -> do
-              archiveManager <- NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
+              archiveManager <- do
+                let mSocks = NC.SockSettingsSimple <$> fmap unpack (appArchiveSocksProxyHost appSettings) <*> fmap toEnum (appArchiveSocksProxyPort appSettings)
+                NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
               pure $ Just $ waybackMachineBackend accessKey secretKey pool archiveManager logFunc
             _ -> do
-              flip runLoggingT logFunc
-                ($(logWarn) "Archive backend `wayback-machine` selected but access/secret key missing; archiving disabled")
+              flip
+                runLoggingT
+                logFunc
+                ($(logWarn) ("Archive backend `wayback-machine` selected but access/secret key missing; archiving disabled"))
               pure Nothing
+        mkArchiveBox07Archiver = archiveBox07Backend appSettings pool logFunc
 
 loadFrontendBundleName :: FilePath -> IO Text
 loadFrontendBundleName staticDir = do
@@ -121,7 +132,6 @@ instance A.FromJSON FrontendBundleManifest where
     appBundle <- o A..: "appBundle"
     pure FrontendBundleManifest {..}
 
-
 makeApplication :: App -> IO Application
 makeApplication foundation = do
   logWare <- makeLogWare foundation
@@ -130,41 +140,44 @@ makeApplication foundation = do
 
 makeMiddleware :: Middleware
 makeMiddleware =
-  acceptOverride .
-  autohead .
-  gzip def {gzipFiles = GzipPreCompressed GzipIgnore} .
-  methodOverride
+  acceptOverride
+    . autohead
+    . gzip def {gzipFiles = GzipPreCompressed GzipIgnore}
+    . methodOverride
 
 makeLogWare :: App -> IO Middleware
 makeLogWare foundation =
   mkRequestLogger
     def
-    { outputFormat =
-      if appDetailedRequestLogging (appSettings foundation)
-        then Detailed True
-        else Apache
-               (if appIpFromHeader (appSettings foundation)
-                  then FromFallback
-                  else FromSocket)
-    , destination = Logger (loggerSet (appLogger foundation))
-    }
+      { outputFormat =
+          if appDetailedRequestLogging (appSettings foundation)
+            then Detailed True
+            else
+              Apache
+                ( if appIpFromHeader (appSettings foundation)
+                    then FromFallback
+                    else FromSocket
+                ),
+        destination = Logger (loggerSet (appLogger foundation))
+      }
 
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
 warpSettings foundation =
-  setPort (appPort (appSettings foundation)) $
-  setHost (appHost (appSettings foundation)) $
-  setOnException
-    (\_req e ->
-        when (defaultShouldDisplayException e) $
-        messageLoggerSource
-          foundation
-          (appLogger foundation)
-          $(qLocation >>= liftLoc)
-          "yesod"
-          LevelError
-          (toLogStr $ "Exception from Warp: " ++ show e))
-    defaultSettings
+  setPort (appPort (appSettings foundation))
+    $ setHost (appHost (appSettings foundation))
+    $ setOnException
+      ( \_req e ->
+          when (defaultShouldDisplayException e)
+            $ messageLoggerSource
+              foundation
+              (appLogger foundation)
+              $(qLocation >>= liftLoc)
+              "yesod"
+              LevelError
+              (toLogStr $ "Exception from Warp: " ++ show e)
+      )
+      defaultSettings
 
 -- | For yesod devel, return the Warp settings and WAI Application.
 getApplicationDev :: IO (Settings, Application)

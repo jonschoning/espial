@@ -29,7 +29,8 @@
 		},
 		"chat.tools.terminal.autoApprove": {
 			"stack": true
-		}
+		},
+		"powershell.cwd": "espial"
 	},
 	"extensions": {
 		"recommendations": [

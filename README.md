@@ -99,10 +99,70 @@ Set the backend with `archive-backend` in `config/settings.yml`:
         Create these by signing in to your Internet Archive account and generating S3-style API credentials at `https://archive.org/account/s3.php`. \
         If `wayback-machine` is selected but the access key or secret key is missing, archiving is disabled at runtime.
 
+- `archivebox07`: queues the URL in a local ArchiveBox 0.7 instance and stores an ArchiveBox link on the bookmark.
+
+    **IMPORTANT - ArchiveBox stores all archive data in a single global index space, so this arcive-backend is best suited to single-user Espial instances.**
+
+    ArchiveBox support requires the following settings:
+
+    - `archivebox-url`
+
+      `archivebox-url` is the URL espial uses to sign in to ArchiveBox and submit URLs through the web UI. In Docker Compose this is typically `http://archivebox:8000`.
+
+    - `archivebox-public-url` (optional)
+
+      Public ArchiveBox URL stored on bookmarks. Defaults to `archivebox-url` when unset.
+
+    - `archivebox-username` plus `archivebox-password`
+
+      Espial signs in to the ArchiveBox web UI with these credentials before submitting URLs.
+
+    - `archivebox-tag` (optional)
+
+      A tag Espial adds to submissions (example: `espial`).
+
+    - `archivebox-plugins` (optional)
+
+      Comma-separated list of ArchiveBox methods (plugins) to request when submitting URLs, e.g. `title,favicon,singlefile,screenshot`.
+
+    Recommended setup is to use Docker Compose to run the ArchiveBox instance the the override file `docker-compose.archivebox07.yml`
+
+    Set the ArchiveBox admin credentials in the override path by supplying:
+
+    - `ARCHIVEBOX_USERNAME=...`
+    - `ARCHIVEBOX_PASSWORD=...`
+
+    The `Makefile` includes the following helpers:
+      - `docker-compose-up-archivebox07`
+      - `docker-compose-up-d-archivebox07`
+      - `docker-compose-exec-archivebox07`
+    
+    Or start the instance manually via docker compose, example:
+
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.archivebox07.yml up espial archivebox
+    ```
+
+    Configure the enrivonment variable `ARCHIVE_METHODS` to control which archive methods ArchiveBox uses:
+
+    ```yaml
+    environment:
+      - ARCHIVE_METHODS=title,favicon,singlefile,screenshot
+    ```
+
+    Available ARCHIVE_METHODS plugins:
+
+    - `archive_org`, `dom`, `favicon`, `git`, `headers`, `htmltotext`, `media`, `mercury`, `pdf`, `readability`, `screenshot`, `singlefile`, `title`, `wget`
+
+    If `ARCHIVE_METHODS` is unset/not-present, ArchiveBox will uses all plugins.
+
+    For additional information, refer to the [ArchiveBox repository](https://github.com/ArchiveBox/ArchiveBox)
+
 Optional proxy settings for archive requests:
 
 - `archive-socks-proxy-host`
 - `archive-socks-proxy-port`
+
 
 ## Related Projects
 

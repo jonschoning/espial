@@ -31,6 +31,7 @@ serve:
 
 _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')
+_DOCKER_COMPOSE_ARCHIVEBOX07 = $(_DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.archivebox07.yml
 
 docker-compose-build: build 
 	@$(_DOCKER_COMPOSE) build espial
@@ -53,6 +54,14 @@ docker-espial-logs:
 docker-espial-shell:
 	@$(docker_espial) sh
 
+# commands for archive-backend: "archivebox07" 
+docker-compose-up-archivebox07:
+	@$(_DOCKER_COMPOSE_ARCHIVEBOX07) up --no-build espial archivebox
+docker-compose-up-d-archivebox07:
+	@$(_DOCKER_COMPOSE_ARCHIVEBOX07) up --no-build -d espial archivebox
+docker-compose-exec-archivebox07:
+	@$(docker_archivebox) /bin/bash
+
 
 _HUB_REPO = ${HUB_REPO}
 ifeq ($(_HUB_REPO),)
@@ -60,6 +69,7 @@ ifeq ($(_HUB_REPO),)
 endif
 
 docker_espial = $(_DOCKER_COMPOSE) exec espial
+docker_archivebox = $(_DOCKER_COMPOSE) exec --user=archivebox archivebox
 
 clean:
 	@stack clean
