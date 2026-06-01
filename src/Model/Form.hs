@@ -56,13 +56,16 @@ data BookmarkForm = BookmarkForm
     _slug :: Maybe BmSlug,
     _selected :: Maybe Bool,
     _time :: Maybe UTCTimeStr,
-    _archiveUrl :: Maybe Text
+    _archiveUrl :: Maybe Text,
+    _archiveRequested :: Maybe Bool
   }
   deriving (Show, Eq, Read, Generic)
 
 instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultFormOptions
 
-instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
+instance ToJSON BookmarkForm where
+  toJSON = A.genericToJSON gDefaultFormOptions
+  toEncoding = A.genericToEncoding gDefaultFormOptions
 
 gDefaultFormOptions :: A.Options
 gDefaultFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
@@ -72,6 +75,26 @@ toBookmarkFormListForViewer isowner =
   fmap $ \entry ->
     let form = _toBookmarkForm' entry
      in if isowner then form else form {_selected = Just False, _toread = Just False, _archiveUrl = Nothing}
+
+mkNewBookmarkForm :: Bool -> User -> Text -> Maybe Text -> Maybe Textarea -> Maybe Text -> Maybe Bool -> Maybe Bool -> BookmarkForm
+mkNewBookmarkForm archiveBackendEnabled user url title description tags private toread =
+  BookmarkForm
+    { _url = url,
+      _title = title,
+      _description = description,
+      _tags = tags,
+      _private = private,
+      _toread = toread,
+      _bid = Nothing,
+      _slug = Nothing,
+      _selected = Nothing,
+      _time = Nothing,
+      _archiveUrl = Nothing,
+      _archiveRequested =
+        if archiveBackendEnabled
+          then maybe (Just False) (\priv -> if priv then Just False else Just (userArchiveDefault user)) private
+          else Nothing
+    }
 
 toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
 toBookmarkForm (bm, tags) =
@@ -93,7 +116,8 @@ _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
       _slug = Just bookmarkSlug,
       _selected = Just bookmarkSelected,
       _time = Just $ UTCTimeStr $ bookmarkTime,
-      _archiveUrl = bookmarkArchiveHref
+      _archiveUrl = bookmarkArchiveHref,
+      _archiveRequested = Nothing
     }
 
 bookmarkFormToBookmark :: UserId -> BookmarkForm -> IO Bookmark

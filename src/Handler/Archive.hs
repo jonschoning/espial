@@ -6,16 +6,16 @@ import Archiver.Backend (ArchiverBackend (..))
 import Handler.Common (espialUserAgent)
 import Import
 
-shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
-shouldArchiveBookmark user kbid = do
-  b <- runMaybeT $ do
-    ArchiverBackend {isUrlDenylisted} <- MaybeT (appArchiver <$> getYesod)
-    bm <- MaybeT (runDB (get kbid))
-    guard (isNothing (bookmarkArchiveHref bm))
-    guard (bookmarkShared bm)
-    guard (userArchiveDefault user)
-    guard (not (isUrlDenylisted (Url (bookmarkHref bm))))
-  pure (isJust b)
+postArchiveBookmarkR :: Int64 -> Handler ()
+postArchiveBookmarkR bid = do
+  let kbid = toSqlKey bid
+  (userId, _) <- requireAuthPair
+  runDB (get kbid) >>= \case
+    Just bm
+      | (bookmarkUserId bm == userId) ->
+          whenM (shouldArchiveBookmark bm)
+            $ archiveBookmarkUrl kbid (Url (bookmarkHref bm))
+    _ -> notFound
 
 archiveBookmarkUrl :: Key Bookmark -> Url -> Handler ()
 archiveBookmarkUrl kbid url = do
@@ -31,3 +31,11 @@ archiveBookmarkUrl kbid url = do
               liftIO $ runArchiver userId kbid ua url
           )
             `catch` (\(e :: SomeException) -> ($(logError) $ (pack . show) e) >> throwIO e)
+
+shouldArchiveBookmark :: Bookmark -> Handler Bool
+shouldArchiveBookmark bm = do
+  b <- runMaybeT $ do
+    ArchiverBackend {isUrlDenylisted} <- MaybeT (appArchiver <$> getYesod)
+    guard (bookmarkShared bm)
+    guard (not (isUrlDenylisted (Url (bookmarkHref bm))))
+  pure (isJust b)

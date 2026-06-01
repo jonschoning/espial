@@ -44,6 +44,7 @@ import qualified System.Posix.Signals as PS (installHandler, Handler(CatchOnce),
 -- Don't forget to add new modules to your cabal file!
 
 import Archiver.ArchiveBox07 (archiveBox07Backend)
+import Archiver.Debug (debugArchiverBackend)
 import Archiver.Backend (ArchiverBackend)
 import Archiver.WaybackMachine (waybackMachineBackend)
 import Handler.AccountSettings
@@ -54,6 +55,7 @@ import Handler.Edit
 import Handler.Home
 import Handler.Notes
 import Handler.User
+import Handler.Archive
 
 mkYesodDispatch "App" resourcesApp
 
@@ -94,6 +96,7 @@ makeFoundation appSettings = do
     mkArchiverBackend logFunc pool = do
       case appArchiveBackend appSettings of
         ArchiveBackendDisabled -> pure Nothing
+        ArchiveBackendDebug -> pure (Just (debugArchiverBackend logFunc))
         ArchiveBackendArchiveLi -> mkArchiveLiArchiver
         ArchiveBackendWaybackMachine -> mkWaybackArchiver
         ArchiveBackendArchiveBox07 -> mkArchiveBox07Archiver

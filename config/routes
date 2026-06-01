@@ -48,6 +48,7 @@ api/tagSuggestions TagSuggestionsR POST
 /bm/#Int64/read ReadR POST
 /bm/#Int64/star StarR POST
 /bm/#Int64/unstar UnstarR POST
+/bm/#Int64/archive ArchiveBookmarkR POST
 
 -- doc
 /docs/search DocsSearchR GET

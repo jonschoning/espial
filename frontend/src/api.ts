@@ -67,6 +67,12 @@ export async function markRead(bid: number): Promise<void> {
   });
 }
 
+export async function archiveBookmark(bid: number): Promise<void> {
+  await request('POST', `bm/${bid.toString()}/archive`, {
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+  });
+}
+
 export async function editBookmark(
   bm: Bookmark,
 ): Promise<{ ok: boolean; status: number; bodyText: string }> {

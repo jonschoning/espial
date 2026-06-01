@@ -19,14 +19,15 @@ import qualified Network.HTTP.Client.TLS as NHT
 getAddViewR :: Handler Html
 getAddViewR = do
   Entity userId user <- requireAuth
-  frontendBundleName <- appFrontendBundleName <$> getYesod
-
+  yesod <- getYesod
+  let frontendBundleName = appFrontendBundleName yesod
+      archiveBackendEnabled = isJust (appArchiver yesod)
   murl <- lookupGetParam "url"
   mBookmarkDb <- runDB (fetchBookmarkByUrl userId murl)
-  let mformdb = fmap toBookmarkForm mBookmarkDb
-  bookmarkForm <- mkBookmarkFormForUrl
-
-  let renderEl = "addForm" :: Text
+  newBookmarkForm <- mkNewBookmarkFormForUrl archiveBackendEnabled
+  let mExistingBookmarkForm = toBookmarkForm <$> mBookmarkDb
+      bookmarkForm = mExistingBookmarkForm <|> Just newBookmarkForm
+      renderEl = "addForm" :: Text
 
   popupLayout do
     toWidget
@@ -35,7 +36,8 @@ getAddViewR = do
     |]
     toWidgetBody
       [julius|
-      app.dat.bmark = #{ toJSON (fromMaybe bookmarkForm mformdb) }; 
+      app.dat.bmark = #{ toJSON bookmarkForm }; 
+      app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
       app.dat.suggestTags = #{ userSuggestTags user };
     |]
     toWidget
@@ -45,8 +47,8 @@ getAddViewR = do
         renderAddForm('##{renderEl}')(app.dat.bmark)();
     |]
   where
-    mkBookmarkFormForUrl :: Handler BookmarkForm
-    mkBookmarkFormForUrl = do
+    mkNewBookmarkFormForUrl :: Bool -> Handler BookmarkForm
+    mkNewBookmarkFormForUrl archiveBackendEnabled = do
       Entity _ user <- requireAuth
       url <- lookupGetParam "url" <&> fromMaybe ""
       title <- lookupGetParam "title"
@@ -54,20 +56,7 @@ getAddViewR = do
       tags <- lookupGetParam "tags"
       private <- lookupGetParam "private" <&> fmap parseChk <&> (<|> Just (userPrivateDefault user))
       toread <- lookupGetParam "toread" <&> fmap parseChk
-      pure
-        $ BookmarkForm
-          { _url = url,
-            _title = title,
-            _description = description,
-            _tags = tags,
-            _private = private,
-            _toread = toread,
-            _bid = Nothing,
-            _slug = Nothing,
-            _selected = Nothing,
-            _time = Nothing,
-            _archiveUrl = Nothing
-          }
+      pure (mkNewBookmarkForm archiveBackendEnabled user url title description tags private toread)
       where
         parseChk s = s == "yes" || s == "on" || s == "true" || s == "1"
 
@@ -87,15 +76,18 @@ postAddR = do
       appSettings <- appSettings <$> getYesod
       case (appAllowNonHttpUrlSchemes appSettings, (parseRequest . unpack . _url) bookmarkForm) of
         (False, Nothing) -> pure $ Failed "Invalid URL"
-        (_, _) -> do
+        _ -> do
           let mkbid = toSqlKey <$> _bid bookmarkForm
               tags = maybe [] toTagList (_tags bookmarkForm)
           bm <- liftIO $ bookmarkFormToBookmark userId bookmarkForm
           res <- runDB (upsertBookmark userId mkbid bm tags)
-          forM_ (maybeUpsertResult res) $ \kbid ->
-            whenM (shouldArchiveBookmark user kbid)
-              $ void
-              $ async (archiveBookmarkUrl kbid (Url (bookmarkHref bm)))
+          case res of
+            Created kbid
+              | (maybe (userArchiveDefault user) id (_archiveRequested bookmarkForm)) ->
+                  whenM
+                    (shouldArchiveBookmark bm)
+                    (void $ async $ archiveBookmarkUrl kbid (Url (bookmarkHref bm)))
+            _ -> pure ()
           pure res
       where
         toTagList = nub . words . T.replace "," " "

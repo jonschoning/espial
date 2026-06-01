@@ -17,6 +17,8 @@ export type Bookmark = {
   private: boolean;
   /** Whether the bookmark is marked for later reading. */
   toread: boolean;
+  /** Whether the bookmark should be archived (request). */
+  archiveRequested?: boolean | null;
   /** Database ID of the bookmark. */
   bid: BookmarkId;
   /** URL-friendly slug for the bookmark. */

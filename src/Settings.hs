@@ -147,12 +147,13 @@ instance FromJSON AppSettings where
       toText other = (decodeUtf8 . toStrict . encode) other
 
 -- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
   deriving (Show, Eq)
 
 instance FromJSON ArchiveBackend where
   parseJSON = withText "ArchiveBackend" $ \case
     "disabled" -> pure ArchiveBackendDisabled
+    "debug" -> pure ArchiveBackendDebug
     "archive-li" -> pure ArchiveBackendArchiveLi
     "wayback-machine" -> pure ArchiveBackendWaybackMachine
     "archivebox07" -> pure ArchiveBackendArchiveBox07

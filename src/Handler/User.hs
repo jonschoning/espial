@@ -51,6 +51,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
   req <- getRequest
+  archiveBackendEnabled <- isJust . appArchiver <$> getYesod
   defaultLayout do
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
@@ -63,6 +64,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.dat.bmarks = #{ toJSON $ toBookmarkFormListForViewer isowner btmarks } || [];
         app.dat.isowner = #{ isowner };
       app.dat.suggestTags = #{ suggestTags };
+      app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]

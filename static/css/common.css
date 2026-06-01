@@ -124,6 +124,11 @@ label {
 
 .thm-bg-disabled {
   background-color: light-dark(#aaa, #666);
+  cursor: not-allowed;
+}
+
+.not-allowed {
+  cursor: not-allowed;
 }
 
 .thm-text-primary {

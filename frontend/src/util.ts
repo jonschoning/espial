@@ -40,6 +40,6 @@ export function fromNullableStr(s: string | null | undefined): string {
   return s ?? '';
 }
 
-export function normalizeTags(tags: string): string {
-  return tags.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+export function normalizeTags(tags: string | null): string {
+  return tags?.replace(/,/g, ' ').replace(/\s+/g, ' ').trim() ?? '';
 }

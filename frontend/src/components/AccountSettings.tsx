@@ -37,7 +37,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           className={`lh-copy${archiveDisabled ? ' thm-text-tertiary' : ''}`}
           title={archiveDisabledTitle}
         >
-          Archive Non-Private Bookmarks
+          Archive new non-Private bookmarks by default
         </label>
       </div>
 
