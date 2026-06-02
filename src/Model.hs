@@ -515,7 +515,7 @@ upsertBookmark userId mbid bm tags = do
     prepareReplace prev_bm =
       if bookmarkHref bm /= bookmarkHref prev_bm
         then bm {bookmarkArchiveHref = Nothing}
-        else bm {bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
     replaceBookmark bid prev_bm = do
       replace bid (prepareReplace prev_bm)
       deleteTags bid
@@ -523,8 +523,7 @@ upsertBookmark userId mbid bm tags = do
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
-      for_ (zip [1 ..] tags)
-        $ \(i, tag) -> void $ insert $ BookmarkTag userId' tag bid' i
+      insertMany_ (mkBookmarkTags userId' bid' tags)
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl =

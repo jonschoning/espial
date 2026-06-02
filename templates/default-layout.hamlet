@@ -2,7 +2,7 @@
   <header #banner .pv2.ph3.mh1>
     <div .mw8.center.pb2.bb.br-0.bl-0.bt-0.b--dotted.thm-border-dotted>
       <div #logo .fl.logo-div>
-          <a #espial_name .link.f4>espial
+          <span #espial_name .f4>espial
           $maybe userName <- musername
             <span>
                (<a class="link" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}</a>)

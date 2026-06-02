@@ -8,18 +8,14 @@ import Import
 
 shouldArchiveBookmark :: User -> Key Bookmark -> Handler Bool
 shouldArchiveBookmark user kbid = do
-  mArchiver <- appArchiver <$> getYesod
-  case mArchiver of
-    Nothing -> pure False
-    Just ArchiverBackend {isUrlDenylisted} ->
-      runDB (get kbid) >>= \case
-        Nothing -> pure False
-        Just bm ->
-          pure
-            $ isNothing (bookmarkArchiveHref bm)
-            && bookmarkShared bm
-            && userArchiveDefault user
-            && not (isUrlDenylisted (Url (bookmarkHref bm)))
+  b <- runMaybeT $ do
+    ArchiverBackend {isUrlDenylisted} <- MaybeT (appArchiver <$> getYesod)
+    bm <- MaybeT (runDB (get kbid))
+    guard (isNothing (bookmarkArchiveHref bm))
+    guard (bookmarkShared bm)
+    guard (userArchiveDefault user)
+    guard (not (isUrlDenylisted (Url (bookmarkHref bm))))
+  pure (isJust b)
 
 archiveBookmarkUrl :: Key Bookmark -> Url -> Handler ()
 archiveBookmarkUrl kbid url = do

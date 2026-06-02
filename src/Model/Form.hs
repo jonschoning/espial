@@ -43,7 +43,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
       UserPrivacyLock CP.=. _privacyLock
     ]
 
--- BookmarkForm
+-- * BookmarkForm
 
 data BookmarkForm = BookmarkForm
   { _url :: Text,
@@ -73,9 +73,12 @@ toBookmarkFormListForViewer isowner =
     let form = _toBookmarkForm' entry
      in if isowner then form else form {_selected = Just False, _toread = Just False, _archiveUrl = Nothing}
 
-_toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
-_toBookmarkForm (bm, tags) =
-  _toBookmarkForm' (bm, Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags)
+toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
+toBookmarkForm (bm, tags) =
+  _toBookmarkForm' (bm, Just $ tagsToText tags)
+  where
+    tagsToText :: [Entity BookmarkTag] -> Text
+    tagsToText = unwords . fmap (bookmarkTagTag . entityVal)
 
 _toBookmarkForm' :: (Entity Bookmark, Maybe Text) -> BookmarkForm
 _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
@@ -93,8 +96,8 @@ _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
       _archiveUrl = bookmarkArchiveHref
     }
 
-_toBookmark :: UserId -> BookmarkForm -> IO Bookmark
-_toBookmark userId BookmarkForm {..} = do
+bookmarkFormToBookmark :: UserId -> BookmarkForm -> IO Bookmark
+bookmarkFormToBookmark userId BookmarkForm {..} = do
   time <- liftIO getCurrentTime
   slug <- maybe mkBmSlug pure _slug
   pure
@@ -110,6 +113,8 @@ _toBookmark userId BookmarkForm {..} = do
         bookmarkSelected = Just True == _selected,
         bookmarkArchiveHref = _archiveUrl
       }
+
+-- * Tag suggestions
 
 data TagSuggestionRequest = TagSuggestionRequest
   { _query :: Text,
