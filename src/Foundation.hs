@@ -118,8 +118,9 @@ instance Yesod App where
       $(widgetFile "default-layout")
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-  shouldLogIO app _source level =
-    pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
+  shouldLogIO app "yesod-core" LevelWarn = pure False -- remove verbose CSRF token warnings
+  shouldLogIO app source level = pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
+
   makeLogger = return . appLogger
 
   authRoute _ = Just (AuthR LoginR)

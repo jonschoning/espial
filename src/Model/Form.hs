@@ -64,8 +64,22 @@ data BookmarkForm = BookmarkForm
 instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultFormOptions
 
 instance ToJSON BookmarkForm where
-  toJSON = A.genericToJSON gDefaultFormOptions
-  toEncoding = A.genericToEncoding gDefaultFormOptions
+  toEncoding BookmarkForm {..} =
+    A.pairs
+      $ mconcat
+        [ "url" .= _url,
+          "title" .= _title,
+          "description" .= _description,
+          "tags" .= _tags,
+          "private" .= _private,
+          "toread" .= _toread,
+          "bid" .= _bid,
+          "slug" .= _slug,
+          "selected" .= _selected,
+          "time" .= _time
+        ]
+      <> maybe mempty ("archiveUrl" .=) _archiveUrl
+      <> maybe mempty ("archiveRequested" .=) _archiveRequested
 
 gDefaultFormOptions :: A.Options
 gDefaultFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
@@ -92,7 +106,7 @@ mkNewBookmarkForm archiveBackendEnabled user url title description tags private 
       _archiveUrl = Nothing,
       _archiveRequested =
         if archiveBackendEnabled
-          then maybe (Just False) (\priv -> if priv then Just False else Just (userArchiveDefault user)) private
+          then Just (userArchiveDefault user && maybe True not private)
           else Nothing
     }
 

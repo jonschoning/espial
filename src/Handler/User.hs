@@ -2,6 +2,7 @@
 
 module Handler.User where
 
+import Data.Aeson.Encoding (encodingToLazyByteString)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Handler.Common
@@ -61,10 +62,10 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     $(widgetFile "user")
     toWidgetBody
       [julius|
-        app.dat.bmarks = #{ toJSON $ toBookmarkFormListForViewer isowner btmarks } || [];
+        app.dat.bmarks = #{ toRawJs $ toBookmarkFormListForViewer isowner btmarks } || [];
         app.dat.isowner = #{ isowner };
-      app.dat.suggestTags = #{ suggestTags };
-      app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
+        app.dat.suggestTags = #{ suggestTags };
+        app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
@@ -79,6 +80,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
           renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
         }, 0);
     |]
+  where
+    toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding
 
 -- Form
 
