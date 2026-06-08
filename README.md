@@ -16,7 +16,7 @@ Log in with:
 - username: `demo`
 - password: `demo`
 
-https://esp.ae8.org/u:demo
+https://espdemo.ae8.org/u:demo
 
 ![jpg](./docs/demo-bookmarks-page.png)
 
