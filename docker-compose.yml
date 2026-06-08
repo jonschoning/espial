@@ -12,7 +12,7 @@ services:
     environment:
       PORT: 3000
       SQLITE_DATABASE: /app/data/espial.sqlite3
-      IP_FROM_HEADER: true
+      IP_FROM_HEADER: false
       # SSL_ONLY: false
       SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
       # DETAILED_LOGGING: false

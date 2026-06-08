@@ -80,7 +80,53 @@ See `config/settings.yml` for changing default run-time parameters & environment
   - environment variable `PORT`
   - default app http port: `3000`
 
-SSL: use reverse proxy
+### Request IP Logging
+
+Espial supports the `IP_FROM_HEADER` environment variable for request logging.
+
+- `IP_FROM_HEADER=true`: log the client IP from the `X-Real-IP` or `X-Forwarded-For` header when present, and fall back to the peer address if neither header is available.
+- `IP_FROM_HEADER=false`: log the peer address from the HTTP connection.
+
+Only set `IP_FROM_HEADER=true` if your application is safely positioned **behind a trusted reverse proxy**.
+
+### SSL / Reverse Proxy
+
+Espial does not terminate TLS itself. Run it behind a reverse proxy that handles HTTPS and forwards traffic to Espial over HTTP.
+
+For container-based deployment examples, including production-oriented layouts, see the `espial-docker` repository:
+
+- https://github.com/jonschoning/espial-docker
+
+Minimal [Caddy](https://github.com/caddyserver/caddy) example:
+
+Localhost without a real domain:
+
+```caddyfile
+https://localhost:3050 {
+    reverse_proxy localhost:3000
+}
+```
+
+or with a domain:
+
+```caddyfile
+espial.example.com {
+  reverse_proxy 127.0.0.1:3000
+}
+```
+
+With the domain setup:
+
+- Caddy terminates TLS for `espial.example.com`.
+- Espial continues listening on HTTP, locally on `127.0.0.1:3000`
+  - If using Docker Compose, it would like like `espial:3000`
+- Set `IP_FROM_HEADER=true` only when Espial is reachable solely through that trusted proxy.
+
+If you are using Cloudflare:
+
+- Prefer Cloudflare SSL mode `Full (strict)`.
+- use `header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}`
+- If traffic can reach Espial directly without passing through your trusted proxy, do not enable `IP_FROM_HEADER=true`, because client IP headers can be spoofed.
 
 ## Archive Backends
 
@@ -103,6 +149,13 @@ Set the backend with `archive-backend` in `config/settings.yml`:
 
     **IMPORTANT - ArchiveBox stores all archive data in a single global index space, so this arcive-backend is best suited to single-user Espial instances.**
 
+
+    **Recommended setup is to use Docker Compose to run the ArchiveBox instance**
+
+    -  Simple example, running on localhost: [docker-compose.archivebox07.yml](docker-compose.archivebox07.yml)
+    - See https://github.com/jonschoning/espial-docker for more examples intended for deployment
+    - In all examples, you must change the `ARCHIVEBOX_PASSWORD` from it's default value.
+
     ArchiveBox support requires the following settings:
 
     - `archivebox-url`
@@ -111,7 +164,7 @@ Set the backend with `archive-backend` in `config/settings.yml`:
 
     - `archivebox-public-url` (optional)
 
-      Public ArchiveBox URL stored on bookmarks. Defaults to `archivebox-url` when unset.
+      Public ArchiveBox URL stored on bookmarks.
 
     - `archivebox-username` plus `archivebox-password`
 
@@ -124,8 +177,6 @@ Set the backend with `archive-backend` in `config/settings.yml`:
     - `archivebox-plugins` (optional)
 
       Comma-separated list of ArchiveBox methods (plugins) to request when submitting URLs, e.g. `title,favicon,singlefile,screenshot`.
-
-    Recommended setup is to use Docker Compose to run the ArchiveBox instance the the override file `docker-compose.archivebox07.yml`
 
     Set the ArchiveBox admin credentials in the override path by supplying:
 
@@ -140,7 +191,7 @@ Set the backend with `archive-backend` in `config/settings.yml`:
     Or start the instance manually via docker compose, example:
 
     ```bash
-    docker compose -f docker-compose.yml -f docker-compose.archivebox07.yml up espial archivebox
+    docker compose -f docker-compose.archivebox07.yml up
     ```
 
     Configure the enrivonment variable `ARCHIVE_METHODS` to control which archive methods ArchiveBox uses:
@@ -156,7 +207,7 @@ Set the backend with `archive-backend` in `config/settings.yml`:
 
     If `ARCHIVE_METHODS` is unset/not-present, ArchiveBox will uses all plugins.
 
-    For additional information, refer to the [ArchiveBox repository](https://github.com/ArchiveBox/ArchiveBox)
+    For additional information and configuration, refer to the [ArchiveBox repository](https://github.com/ArchiveBox/ArchiveBox)
 
 Optional proxy settings for archive requests:
 

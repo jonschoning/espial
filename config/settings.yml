@@ -47,8 +47,8 @@ archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
 wayback-machine-access-key: "_env:WAYBACK_MACHINE_ACCESS_KEY" # Wayback Machine S3 access key, used when archive-backend is set to wayback-machine.
 wayback-machine-secret-key: "_env:WAYBACK_MACHINE_SECRET_KEY" # Wayback Machine S3 secret key, used when archive-backend is set to wayback-machine.
 
-archivebox-url: "_env:ARCHIVEBOX_URL" # ArchiveBox base URL espial uses for web UI login/add, e.g. http://archivebox:8000 inside docker compose.
-archivebox-public-url: "_env:ARCHIVEBOX_PUBLIC_URL" # Public ArchiveBox URL stored on bookmarks, e.g. http://archivebox.localhost:8000.
+archivebox-url: "_env:ARCHIVEBOX_URL" # ArchiveBox base URL espial uses internally for login/add, e.g. http://archivebox:8000 inside docker compose.
+archivebox-public-url: "_env:ARCHIVEBOX_PUBLIC_URL" # Public ArchiveBox URL stored on bookmarks, e.g. http://localhost:8000.
 archivebox-username: "_env:ARCHIVEBOX_USERNAME" # ArchiveBox admin username used when archive-backend is set to archivebox.
 archivebox-password: "_env:ARCHIVEBOX_PASSWORD" # ArchiveBox admin password used when archive-backend is set to archivebox.
 archivebox-tag: "_env:ARCHIVEBOX_TAG:espial"

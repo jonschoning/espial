@@ -1,9 +1,19 @@
 # Changelog
 
-## v0.0.33 (2026-05-XX)
+## v0.0.33 (2026-06-08)
 
 - add new `archive-backend`: `archivebox07`
+  - additional documentation in readme
+- add new archive-related elements on UI (visible when `archive-backend` is enabled)
+  - add url popup: `archive` checkbox (only displays for new bookmarks)
+    - when `Account Settings`: `Archive new non-Private bookmarks by default` is checked, the Archive checkbox is checked by default
+    - upon submission, the archive backend will run if checked
+  - bookmark edit form: `archive` button
+    - when clicked, immediately sends a request to the archive backend
+  - when a bookmark is marked as private, the archive checkbox/archive button are disabled
+  - `Account Settings`: `Privacy Lock (Private Account)` only controls authorization to view user's content on espial; it has no effect on whether bookmarks are archived.
 - update shared libs in runtime docker image
+- add docker compose examples
 
 ## v0.0.32 (2026-05-28)
 

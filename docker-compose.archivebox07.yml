@@ -1,9 +1,22 @@
 services:
   espial:
+    image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
+    ports:
+      - "3000:3000"
+    volumes:
+      - '${DATA:-.}:/app/data'
     environment:
+      PORT: 3000
+      SQLITE_DATABASE: /app/data/espial.sqlite3
+      IP_FROM_HEADER: false
+      SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
       ARCHIVE_BACKEND: archivebox07
       ARCHIVEBOX_URL: ${ARCHIVEBOX_URL:-http://archivebox:8000}
-      ARCHIVEBOX_PUBLIC_URL: ${ARCHIVEBOX_PUBLIC_URL:-http://archivebox.localhost:8000}
+      ARCHIVEBOX_PUBLIC_URL: ${ARCHIVEBOX_PUBLIC_URL:-http://localhost:8000}
       ARCHIVEBOX_USERNAME: ${ARCHIVEBOX_USERNAME:-admin}
       ARCHIVEBOX_PASSWORD: ${ARCHIVEBOX_PASSWORD:-change-me}
       ARCHIVEBOX_TAG: ${ARCHIVEBOX_TAG:-espial}
@@ -32,8 +45,4 @@ services:
       PUBLIC_INDEX: ${ARCHIVEBOX_PUBLIC_INDEX:-false}
       PUBLIC_SNAPSHOTS: ${ARCHIVEBOX_PUBLIC_SNAPSHOTS:-false}
       PUBLIC_ADD_VIEW: ${ARCHIVEBOX_PUBLIC_ADD_VIEW:-false}
-    networks:
-      default:
-        aliases:
-          - archivebox.localhost
     shm_size: "1gb"
