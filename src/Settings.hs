@@ -6,120 +6,158 @@
 module Settings where
 
 import ClassyPrelude.Yesod
-
 import qualified Control.Exception as Exception
-import Data.Aeson                  (Result (..), fromJSON, withObject, withText, (.!=),
-                                    (.:?))
-import Data.FileEmbed              (embedFile)
-import Data.Yaml                   (decodeEither')
-import Database.Persist.Sqlite     (SqliteConf)
-import Language.Haskell.TH.Syntax  (Exp, Name, Q)
-import Network.Wai.Handler.Warp    (HostPreference)
-import Yesod.Default.Config2       (applyEnvValue, configSettingsYml)
-import Yesod.Default.Util          (WidgetFileSettings, widgetFileNoReload,
-                                    widgetFileReload)
+import Data.Aeson
+  ( Result (..),
+    encode,
+    fromJSON,
+    withObject,
+    withText,
+    (.!=),
+    (.:?),
+  )
+import Data.FileEmbed (embedFile)
+import Data.Yaml (decodeEither')
+import Database.Persist.Sqlite (SqliteConf)
+import Language.Haskell.TH.Syntax (Exp, Name, Q)
+import Network.Wai.Handler.Warp (HostPreference)
+import Yesod.Default.Config2 (applyEnvValue, configSettingsYml)
+import Yesod.Default.Util
+  ( WidgetFileSettings,
+    widgetFileNoReload,
+    widgetFileReload,
+  )
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
 -- theoretically even a database.
 data AppSettings = AppSettings
-    { appStaticDir              :: String
-    -- ^ Directory from which to serve static files.
-    , appDatabaseConf           :: SqliteConf
-    -- ^ Configuration settings for accessing the database.
-    , appRoot                   :: Maybe Text
-    -- ^ Base for all generated URLs. If @Nothing@, determined
+  { -- | Directory from which to serve static files.
+    appStaticDir :: String,
+    -- | Configuration settings for accessing the database.
+    appDatabaseConf :: SqliteConf,
+    -- | Base for all generated URLs. If @Nothing@, determined
     -- from the request headers.
-    , appHost                   :: HostPreference
-    -- ^ Host/interface the server should bind to.
-    , appPort                   :: Int
-    -- ^ Port to listen on
-    , appIpFromHeader           :: Bool
-    -- ^ Get the IP address from the header when logging. Useful when sitting
+    appRoot :: Maybe Text,
+    -- | Host/interface the server should bind to.
+    appHost :: HostPreference,
+    -- | Port to listen on
+    appPort :: Int,
+    -- | Get the IP address from the header when logging. Useful when sitting
     -- behind a reverse proxy.
-    , appDetailedRequestLogging :: Bool
-    -- ^ Use detailed request logging system
-    , appShouldLogAll           :: Bool
-    -- ^ Should all log messages be displayed?
-    , appReloadTemplates        :: Bool
-    -- ^ Use the reload version of templates
-    , appMutableStatic          :: Bool
-    -- ^ Assume that files in the static dir may change after compilation
-    , appSkipCombining          :: Bool
-    -- ^ Perform no stylesheet/script combining
-
+    appIpFromHeader :: Bool,
+    -- | Use detailed request logging system
+    appDetailedRequestLogging :: Bool,
+    -- | Should all log messages be displayed?
+    appShouldLogAll :: Bool,
+    -- | Use the reload version of templates
+    appReloadTemplates :: Bool,
+    -- | Assume that files in the static dir may change after compilation
+    appMutableStatic :: Bool,
+    -- | Perform no stylesheet/script combining
+    appSkipCombining :: Bool,
     -- Example app-specific configuration values.
-    , appCopyright              :: Text
-    -- ^ Copyright text to appear in the footer of the page
-    , appAnalytics              :: Maybe Text
-    -- ^ Google Analytics code
 
-    , appAuthDummyLogin         :: Bool
-    -- ^ Indicate if auth dummy login should be enabled.
-
-    , appArchiveSocksProxyHost   :: Maybe Text
-    -- ^ Socks proxy host to use when making archive requests
-
-    , appArchiveSocksProxyPort   :: Maybe Int
-    -- ^ Socks proxy port to use when making archive requests
-
-    , appWaybackMachineAccessKey  :: Maybe Text
-    -- ^ Wayback Machine access key for archive requests
-
-    , appWaybackMachineSecretKey  :: Maybe Text
-    -- ^ Wayback Machine secret key for archive requests
-
-    , appArchiveBackend          :: ArchiveBackend
-    -- ^ Which archiver backend to use (or disabled)
-
-    , appSourceCodeUri                :: Maybe Text
-    -- ^ Uri to app source code
-
-    , appSSLOnly :: Bool
-
-    , appAllowNonHttpUrlSchemes :: Bool
-    }
+    -- | Copyright text to appear in the footer of the page
+    appCopyright :: Text,
+    -- | Google Analytics code
+    appAnalytics :: Maybe Text,
+    -- | Indicate if auth dummy login should be enabled.
+    appAuthDummyLogin :: Bool,
+    -- | Socks proxy host to use when making archive requests
+    appArchiveSocksProxyHost :: Maybe Text,
+    -- | Socks proxy port to use when making archive requests
+    appArchiveSocksProxyPort :: Maybe Int,
+    -- | Wayback Machine access key for archive requests
+    appWaybackMachineAccessKey :: Maybe Text,
+    -- | Wayback Machine secret key for archive requests
+    appWaybackMachineSecretKey :: Maybe Text,
+    -- | ArchiveBox-07 base URL used for web UI login and submissions
+    appArchiveBoxUrl :: Maybe Text,
+    -- | Public ArchiveBox-07 base URL used for bookmark links
+    appArchiveBoxPublicUrl :: Maybe Text,
+    -- | ArchiveBox-07 admin username used for web UI login
+    appArchiveBoxUsername :: Maybe Text,
+    -- | ArchiveBox-07 admin password used for web UI login
+    appArchiveBoxPassword :: Maybe Text,
+    -- | Tag applied to URLs submitted via the ArchiveBox-07 backend
+    appArchiveBoxTag :: Text,
+    -- | Optional comma-separated ArchiveBox-07 archive method override
+    appArchiveBoxPlugins :: Maybe Text,
+    -- | Which archiver backend to use (or disabled)
+    appArchiveBackend :: ArchiveBackend,
+    -- | Uri to app source code
+    appSourceCodeUri :: Maybe Text,
+    appSSLOnly :: Bool,
+    appAllowNonHttpUrlSchemes :: Bool
+  }
 
 instance FromJSON AppSettings where
-    parseJSON = withObject "AppSettings" \o -> do
-        let defaultDev =
+  parseJSON = withObject "AppSettings" \o -> do
+    let defaultDev =
 #ifdef DEVELOPMENT
                 True
 #else
                 False
 #endif
-        appStaticDir              <- o .: "static-dir"
-        appDatabaseConf           <- o .: "database"
-        appRoot                   <- o .:? "approot"
-        appHost                   <- fromString <$> o .: "host"
-        appPort                   <- o .: "port"
-        appIpFromHeader           <- o .: "ip-from-header"
+    appStaticDir <- o .: "static-dir"
+    appDatabaseConf <- o .: "database"
+    appRoot <- o .:? "approot"
+    appHost <- fromString <$> o .: "host"
+    appPort <- o .: "port"
+    appIpFromHeader <- o .: "ip-from-header"
 
-        dev                       <- o .:? "development"      .!= defaultDev
+    dev <- o .:? "development" .!= defaultDev
 
-        appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
-        appShouldLogAll           <- o .:? "should-log-all"   .!= dev
-        appReloadTemplates        <- o .:? "reload-templates" .!= dev
-        appMutableStatic          <- o .:? "mutable-static"   .!= dev
-        appSkipCombining          <- o .:? "skip-combining"   .!= dev
+    appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
+    appShouldLogAll <- o .:? "should-log-all" .!= dev
+    appReloadTemplates <- o .:? "reload-templates" .!= dev
+    appMutableStatic <- o .:? "mutable-static" .!= dev
+    appSkipCombining <- o .:? "skip-combining" .!= dev
 
-        appCopyright              <- o .:  "copyright"
-        appAnalytics              <- o .:? "analytics"
+    appCopyright <- o .: "copyright"
+    appAnalytics <- o .:? "analytics"
 
-        appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= dev
+    appAuthDummyLogin <- o .:? "auth-dummy-login" .!= dev
 
-        appArchiveSocksProxyHost   <- o .:? "archive-socks-proxy-host"
-        appArchiveSocksProxyPort   <- o .:? "archive-socks-proxy-port"
-        appWaybackMachineAccessKey  <- o .:? "wayback-machine-access-key"
-        appWaybackMachineSecretKey  <- o .:? "wayback-machine-secret-key"
-        appArchiveBackend          <- fromMaybe ArchiveBackendDisabled <$> o .:? "archive-backend"
-        appSourceCodeUri           <- o .:? "source-code-uri"
+    appArchiveBackend <- o .:? "archive-backend" .!= ArchiveBackendDisabled
 
-        appSSLOnly                 <- fromMaybe False <$> o .:? "ssl-only"
+    appArchiveSocksProxyHost <- o .:? "archive-socks-proxy-host"
+    appArchiveSocksProxyPort <- o .:? "archive-socks-proxy-port"
 
-        appAllowNonHttpUrlSchemes  <- fromMaybe False <$> o .:? "allow-non-http-url-schemes"
+    appWaybackMachineAccessKey <- fmap toText <$> o .:? "wayback-machine-access-key"
+    appWaybackMachineSecretKey <- fmap toText <$> o .:? "wayback-machine-secret-key"
 
-        return AppSettings {..}
+    appArchiveBoxUrl <- o .:? "archivebox-url"
+    appArchiveBoxPublicUrl <- o .:? "archivebox-public-url"
+    appArchiveBoxUsername <- fmap toText <$> o .:? "archivebox-username"
+    appArchiveBoxPassword <- fmap toText <$> o .:? "archivebox-password"
+    appArchiveBoxTag <- (fmap toText <$> o .:? "archivebox-tag") .!= "espial"
+    appArchiveBoxPlugins <- o .:? "archivebox-plugins"
+
+    appSourceCodeUri <- o .:? "source-code-uri"
+
+    appSSLOnly <- fromMaybe False <$> o .:? "ssl-only"
+
+    appAllowNonHttpUrlSchemes <- o .:? "allow-non-http-url-schemes" .!= False
+
+    return AppSettings {..}
+    where
+      toText (String t) = t
+      toText other = (decodeUtf8 . toStrict . encode) other
+
+-- | Selects which archive backend is active.
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
+  deriving (Show, Eq)
+
+instance FromJSON ArchiveBackend where
+  parseJSON = withText "ArchiveBackend" $ \case
+    "disabled" -> pure ArchiveBackendDisabled
+    "debug" -> pure ArchiveBackendDebug
+    "archive-li" -> pure ArchiveBackendArchiveLi
+    "wayback-machine" -> pure ArchiveBackendWaybackMachine
+    "archivebox07" -> pure ArchiveBackendArchiveBox07
+    _ -> mzero
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
@@ -138,10 +176,12 @@ combineSettings = def
 -- user.
 
 widgetFile :: String -> Q Exp
-widgetFile = (if appReloadTemplates compileTimeAppSettings
-                then widgetFileReload
-                else widgetFileNoReload)
-              widgetFileSettings
+widgetFile =
+  ( if appReloadTemplates compileTimeAppSettings
+      then widgetFileReload
+      else widgetFileNoReload
+  )
+    widgetFileSettings
 
 -- | Raw bytes at compile time of @config/settings.yml@
 configSettingsYmlBS :: ByteString
@@ -149,15 +189,16 @@ configSettingsYmlBS = $(embedFile configSettingsYml)
 
 -- | @config/settings.yml@, parsed to a @Value@.
 configSettingsYmlValue :: Value
-configSettingsYmlValue = either Exception.throw id
-                       $ decodeEither' configSettingsYmlBS
+configSettingsYmlValue =
+  either Exception.throw id
+    $ decodeEither' configSettingsYmlBS
 
 -- | A version of @AppSettings@ parsed at compile time from @config/settings.yml@.
 compileTimeAppSettings :: AppSettings
 compileTimeAppSettings =
-    case fromJSON $ applyEnvValue False mempty configSettingsYmlValue of
-        Error e -> error e
-        Success settings -> settings
+  case fromJSON $ applyEnvValue False mempty configSettingsYmlValue of
+    Error e -> error e
+    Success settings -> settings
 
 -- The following two functions can be used to combine multiple CSS or JS files
 -- at compile time to decrease the number of http requests.
@@ -166,23 +207,13 @@ compileTimeAppSettings =
 -- > $(combineStylesheets 'StaticR [style1_css, style2_css])
 
 combineStylesheets :: Name -> [Route Static] -> Q Exp
-combineStylesheets = combineStylesheets'
+combineStylesheets =
+  combineStylesheets'
     (appSkipCombining compileTimeAppSettings)
     combineSettings
 
 combineScripts :: Name -> [Route Static] -> Q Exp
-combineScripts = combineScripts'
+combineScripts =
+  combineScripts'
     (appSkipCombining compileTimeAppSettings)
     combineSettings
-
--- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine
-  deriving (Show, Eq)
-
-instance FromJSON ArchiveBackend where
-  parseJSON = withText "ArchiveBackend" $ \case
-    "disabled" -> pure ArchiveBackendDisabled
-    "archive-li" -> pure ArchiveBackendArchiveLi
-    "wayback-machine" -> pure ArchiveBackendWaybackMachine
-    _ -> mzero
-

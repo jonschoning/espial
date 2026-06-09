@@ -124,6 +124,11 @@ label {
 
 .thm-bg-disabled {
   background-color: light-dark(#aaa, #666);
+  cursor: not-allowed;
+}
+
+.not-allowed {
+  cursor: not-allowed;
 }
 
 .thm-text-primary {
@@ -298,9 +303,12 @@ a.unread {
   color: light-dark(#357edd, #7aaeff);
 }
 
-.pager-link,
-.logo-div {
+.pager-link {
   color: light-dark(#aaa, #8d8d8d);
+}
+
+.logo-div {
+  color: light-dark(#aaa, #eee);
 }
 
 .post-input {

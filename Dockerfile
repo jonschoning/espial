@@ -12,7 +12,7 @@ FROM debian:bookworm-slim AS runtime-deps
 ARG BUSYBOX_VERSION=1.36.1
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential bzip2 ca-certificates libgmp10 wget zlib1g \
+  && apt-get install -y --no-install-recommends build-essential bzip2 ca-certificates libgcc-s1 libgmp10 wget zlib1g \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
@@ -50,6 +50,7 @@ FROM gcr.io/distroless/base-debian12 AS runtime
 WORKDIR /app
 
 COPY --from=runtime-deps /opt/runtime-bin/ /bin/
+COPY --from=runtime-deps /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/
 COPY --from=runtime-deps /usr/lib/x86_64-linux-gnu/libgmp.so.10 /usr/lib/x86_64-linux-gnu/
 COPY --from=runtime-deps /usr/lib/x86_64-linux-gnu/libz.so.1 /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /src/config ./config

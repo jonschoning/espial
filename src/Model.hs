@@ -496,6 +496,7 @@ maybeUpsertResult (Updated a) = Just a
 maybeUpsertResult _ = Nothing
 
 upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult (Key Bookmark))
+upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed "unauthorized")
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
     Just bid ->
@@ -506,16 +507,19 @@ upsertBookmark userId mbid bm tags = do
         Just _ -> pure (Failed "unauthorized")
         _ -> pure (Failed "not found")
     Nothing ->
-      getBy (UniqueUserHref (bookmarkUserId bm) (bookmarkHref bm)) >>= \case
-        Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
+      getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
+        Just (Entity bid prev_bm)
+          | userId == bookmarkUserId prev_bm ->
+              replaceBookmark bid prev_bm
+        Just _ -> pure (Failed "unauthorized")
         _ -> Created <$> insert bm
   forM_ (maybeUpsertResult res) (insertTags (bookmarkUserId bm))
   pure res
   where
     prepareReplace prev_bm =
       if bookmarkHref bm /= bookmarkHref prev_bm
-        then bm {bookmarkArchiveHref = Nothing}
-        else bm {bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+        then bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = Nothing}
+        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
     replaceBookmark bid prev_bm = do
       replace bid (prepareReplace prev_bm)
       deleteTags bid
@@ -523,8 +527,7 @@ upsertBookmark userId mbid bm tags = do
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
-      for_ (zip [1 ..] tags)
-        $ \(i, tag) -> void $ insert $ BookmarkTag userId' tag bid' i
+      insertMany_ (mkBookmarkTags userId' bid' tags)
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl =

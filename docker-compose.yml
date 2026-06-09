@@ -1,26 +1,27 @@
 services:
   espial:
-    image: '$HUB_REPO/$APPIMAGE'
+    image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial}'
+    restart: unless-stopped
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
     ports:
       - "3000:3000"
     volumes:
-      - '$DATA:/app/data'
+      - '${DATA:-.}:/app/data'
     environment:
-      - PORT=3000
-      - SQLITE_DATABASE=/app/data/espial.sqlite3
-      - IP_FROM_HEADER=true
-      # - SSL_ONLY=false
-      # - SHOULD_LOG_ALL=false
-      # - DETAILED_LOGGING=false
-      # - ALLOW_NON_HTTP_URL_SCHEMES=false
-      # - SOURCE_CODE_URI=https://github.com/jonschoning/espial
-      # - ARCHIVE_SOCKS_PROXY_HOST=localhost 
-      # - ARCHIVE_SOCKS_PROXY_PORT=8888
+      PORT: 3000
+      SQLITE_DATABASE: /app/data/espial.sqlite3
+      IP_FROM_HEADER: false
+      # SSL_ONLY: false
+      SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
+      # DETAILED_LOGGING: false
+      # ALLOW_NON_HTTP_URL_SCHEMES: false
+      # SOURCE_CODE_URI: https://github.com/jonschoning/espial
+      # ARCHIVE_SOCKS_PROXY_HOST: localhost
+      # ARCHIVE_SOCKS_PROXY_PORT: 8888
 
-      - ARCHIVE-BACKEND=disabled
-      # - ARCHIVE-BACKEND=wayback-machine
-      # - WAYBACK-MACHINE-ACCESS-KEY=ACCESS_KEY
-      # - WAYBACK-MACHINE-SECRET-KEY=SECRET_KEY
+      ARCHIVE_BACKEND: ${ARCHIVE_BACKEND:-disabled}
+      # ARCHIVE_BACKEND: wayback-machine
+      # WAYBACK_MACHINE_ACCESS_KEY: ACCESS_KEY
+      # WAYBACK_MACHINE_SECRET_KEY: SECRET_KEY

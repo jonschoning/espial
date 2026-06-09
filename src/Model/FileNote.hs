@@ -27,13 +27,13 @@ instance FromJSON FileNote where
   parseJSON (Object o) =
     FileNote
       <$> o
-        .: "id"
+      .: "id"
       <*> o
-        .: "title"
+      .: "title"
       <*> o
-        .: "text"
+      .: "text"
       <*> o
-        .: "length"
+      .: "length"
       <*> (readFileNoteTime =<< o .: "created_at")
       <*> (readFileNoteTime =<< o .: "updated_at")
   parseJSON _ = A.parseFail "bad parse"
@@ -60,8 +60,8 @@ showFileNoteTime = formatTime defaultTimeLocale "%F %T"
 fileNoteToNote :: UserId -> FileNote -> IO Note
 fileNoteToNote user FileNote {..} = do
   slug <- mkNtSlug
-  pure $
-    Note
+  pure
+    $ Note
       { noteUserId = user,
         noteSlug = slug,
         noteLength = fileNoteLength,

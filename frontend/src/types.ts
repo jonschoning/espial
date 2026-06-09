@@ -17,11 +17,13 @@ export type Bookmark = {
   private: boolean;
   /** Whether the bookmark is marked for later reading. */
   toread: boolean;
+  /** Whether the bookmark should be archived (request). */
+  archiveRequested?: boolean | null;
   /** Database ID of the bookmark. */
   bid: BookmarkId;
   /** URL-friendly slug for the bookmark. */
   slug: string;
-  /** Whether the bookmark is currently selected in the UI. */
+  /** Whether the bookmark is starred. */
   selected: boolean;
   /** ISO 8601 creation timestamp. */
   time: string;

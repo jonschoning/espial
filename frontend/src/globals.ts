@@ -12,6 +12,8 @@ export type AppData = {
   isowner: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags?: boolean;
+  /** Whether the archive backend is enabled. */
+  archiveBackendEnabled?: boolean;
 };
 
 /** Server-rendered global data. */

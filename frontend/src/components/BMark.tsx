@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
+import { archiveBookmark, destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
 import { app, setFocus, toLocaleDateString } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
@@ -24,6 +24,7 @@ export function BMark({
   const [deleteAsk, setDeleteAsk] = React.useState(false);
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [archiving, setArchiving] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
 
   const tagInputId = `${bm.bid.toString()}_tags`;
@@ -76,6 +77,7 @@ export function BMark({
     setEditBm(bm);
     setEdit(next);
     setApiError(null);
+    setArchiving(false);
     closeSuggestions();
     if (next) setFocus(tagInputId);
   }
@@ -90,6 +92,11 @@ export function BMark({
     }
   }
 
+  async function onArchive() {
+    setArchiving(true);
+    await archiveBookmark(bm.bid);
+  }
+
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
     setApiError(null);
@@ -102,11 +109,10 @@ export function BMark({
       onUpdated(editBm2);
     } else {
       setApiError(res.bodyText);
-      // match PS behavior: log error
-      // eslint-disable-next-line no-console
-      console.log(res.bodyText);
     }
   };
+
+  const archivingDisabled = archiving || editBm.private || bm.url !== editBm.url;
 
   return (
     <div
@@ -169,7 +175,7 @@ export function BMark({
           </div>
 
           <a
-            className="link f7 dib w4 thm-text-tertiary"
+            className="link f7 di mr5 thm-text-tertiary"
             href={linkToFilterSingle(bm.slug)}
             title={shdatetime}
           >
@@ -327,19 +333,33 @@ export function BMark({
               />{' '}
               <label htmlFor="edit_toread">to-read</label>
             </div>
-            <input
-              type="submit"
-              className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-              value="save"
-            />{' '}
-            <input
-              type="reset"
-              className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-              value="cancel"
-              onClick={() => {
-                startEdit(false);
-              }}
-            />
+            <div className="flex justify-between items-center">
+              <div>
+                <input
+                  type="submit"
+                  className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
+                  value="save"
+                />{' '}
+                <input
+                  type="reset"
+                  className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
+                  value="cancel"
+                  onClick={() => {
+                    startEdit(false);
+                  }}
+                />
+              </div>
+              {a.dat.archiveBackendEnabled ? (
+                <button
+                  type="button"
+                  disabled={archivingDisabled}
+                  onClick={() => void onArchive()}
+                  className={`pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary${archiving ? ' thm-bg-disabled' : ''}${archivingDisabled ? ' not-allowed o-20' : ''}`}
+                >
+                  {archiving ? 'archiving' : 'archive'}
+                </button>
+              ) : null}
+            </div>
           </form>
         </div>
       )}

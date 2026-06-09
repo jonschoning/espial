@@ -1,0 +1,48 @@
+services:
+  espial:
+    image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
+    ports:
+      - "3000:3000"
+    volumes:
+      - '${DATA:-.}:/app/data'
+    environment:
+      PORT: 3000
+      SQLITE_DATABASE: /app/data/espial.sqlite3
+      IP_FROM_HEADER: false
+      SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
+      ARCHIVE_BACKEND: archivebox07
+      ARCHIVEBOX_URL: ${ARCHIVEBOX_URL:-http://archivebox:8000}
+      ARCHIVEBOX_PUBLIC_URL: ${ARCHIVEBOX_PUBLIC_URL:-http://localhost:8000}
+      ARCHIVEBOX_USERNAME: ${ARCHIVEBOX_USERNAME:-admin}
+      ARCHIVEBOX_PASSWORD: ${ARCHIVEBOX_PASSWORD:-change-me}
+      ARCHIVEBOX_TAG: ${ARCHIVEBOX_TAG:-espial}
+      ARCHIVEBOX_PLUGINS: ${ARCHIVEBOX_PLUGINS:-title,favicon,singlefile,screenshot}
+
+  archivebox:
+    image: ${ARCHIVEBOX_IMAGE:-archivebox/archivebox:0.7}
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - |
+        if [ "$$ADMIN_PASSWORD" = "change-me" ]; then
+          echo "Error: ADMIN_PASSWORD (ARCHIVEBOX_PASSWORD) is set to the default value. Please change it before running the server." && exit 1
+        else
+          archivebox server --quick-init 0.0.0.0:8000
+        fi
+    ports:
+      - "${ARCHIVEBOX_PORT:-8000}:8000"
+    volumes:
+      - '${ARCHIVEBOX_DATA:-./archivebox-data}:/data'
+    environment:
+      ALLOWED_HOSTS: ${ARCHIVEBOX_ALLOWED_HOSTS:-*}
+      ADMIN_USERNAME: ${ARCHIVEBOX_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ARCHIVEBOX_PASSWORD:-change-me}
+      PUBLIC_INDEX: ${ARCHIVEBOX_PUBLIC_INDEX:-false}
+      PUBLIC_SNAPSHOTS: ${ARCHIVEBOX_PUBLIC_SNAPSHOTS:-false}
+      PUBLIC_ADD_VIEW: ${ARCHIVEBOX_PUBLIC_ADD_VIEW:-false}
+    shm_size: "1gb"

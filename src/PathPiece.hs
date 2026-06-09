@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PathPiece where
-  
+
 import Data.Text (breakOn, splitOn)
 import qualified Data.Text as T (replace)
 import Import.NoFoundation
@@ -52,10 +52,10 @@ instance PathPiece FilterP where
     "untagged" -> Just FilterUntagged
     "starred" -> Just FilterStarred
     s -> case breakOn ":" s of
-        ("b", "") -> Nothing
-        ("b", slug) -> Just $ FilterSingle (BmSlug (drop 1 slug))
-        _ -> Nothing
+      ("b", "") -> Nothing
+      ("b", slug) -> Just $ FilterSingle (BmSlug (drop 1 slug))
+      _ -> Nothing
 
+deriving instance PathPiece NtSlug
 
-deriving instance PathPiece NtSlug 
-deriving instance PathPiece BmSlug 
+deriving instance PathPiece BmSlug

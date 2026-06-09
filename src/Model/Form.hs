@@ -43,7 +43,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
       UserPrivacyLock CP.=. _privacyLock
     ]
 
--- BookmarkForm
+-- * BookmarkForm
 
 data BookmarkForm = BookmarkForm
   { _url :: Text,
@@ -56,13 +56,30 @@ data BookmarkForm = BookmarkForm
     _slug :: Maybe BmSlug,
     _selected :: Maybe Bool,
     _time :: Maybe UTCTimeStr,
-    _archiveUrl :: Maybe Text
+    _archiveUrl :: Maybe Text,
+    _archiveRequested :: Maybe Bool
   }
   deriving (Show, Eq, Read, Generic)
 
 instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultFormOptions
 
-instance ToJSON BookmarkForm where toJSON = A.genericToJSON gDefaultFormOptions
+instance ToJSON BookmarkForm where
+  toEncoding BookmarkForm {..} =
+    A.pairs
+      $ mconcat
+        [ "url" .= _url,
+          "title" .= _title,
+          "description" .= _description,
+          "tags" .= _tags,
+          "private" .= _private,
+          "toread" .= _toread,
+          "bid" .= _bid,
+          "slug" .= _slug,
+          "selected" .= _selected,
+          "time" .= _time
+        ]
+      <> maybe mempty ("archiveUrl" .=) _archiveUrl
+      <> maybe mempty ("archiveRequested" .=) _archiveRequested
 
 gDefaultFormOptions :: A.Options
 gDefaultFormOptions = A.defaultOptions {A.fieldLabelModifier = drop 1}
@@ -73,9 +90,32 @@ toBookmarkFormListForViewer isowner =
     let form = _toBookmarkForm' entry
      in if isowner then form else form {_selected = Just False, _toread = Just False, _archiveUrl = Nothing}
 
-_toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
-_toBookmarkForm (bm, tags) =
-  _toBookmarkForm' (bm, Just $ unwords $ fmap (bookmarkTagTag . entityVal) tags)
+mkNewBookmarkForm :: Bool -> User -> Text -> Maybe Text -> Maybe Textarea -> Maybe Text -> Maybe Bool -> Maybe Bool -> BookmarkForm
+mkNewBookmarkForm archiveBackendEnabled user url title description tags private toread =
+  BookmarkForm
+    { _url = url,
+      _title = title,
+      _description = description,
+      _tags = tags,
+      _private = private,
+      _toread = toread,
+      _bid = Nothing,
+      _slug = Nothing,
+      _selected = Nothing,
+      _time = Nothing,
+      _archiveUrl = Nothing,
+      _archiveRequested =
+        if archiveBackendEnabled
+          then Just (userArchiveDefault user && maybe True not private)
+          else Nothing
+    }
+
+toBookmarkForm :: (Entity Bookmark, [Entity BookmarkTag]) -> BookmarkForm
+toBookmarkForm (bm, tags) =
+  _toBookmarkForm' (bm, Just $ tagsToText tags)
+  where
+    tagsToText :: [Entity BookmarkTag] -> Text
+    tagsToText = unwords . fmap (bookmarkTagTag . entityVal)
 
 _toBookmarkForm' :: (Entity Bookmark, Maybe Text) -> BookmarkForm
 _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
@@ -90,11 +130,12 @@ _toBookmarkForm' (Entity bid Bookmark {..}, tags) =
       _slug = Just bookmarkSlug,
       _selected = Just bookmarkSelected,
       _time = Just $ UTCTimeStr $ bookmarkTime,
-      _archiveUrl = bookmarkArchiveHref
+      _archiveUrl = bookmarkArchiveHref,
+      _archiveRequested = Nothing
     }
 
-_toBookmark :: UserId -> BookmarkForm -> IO Bookmark
-_toBookmark userId BookmarkForm {..} = do
+bookmarkFormToBookmark :: UserId -> BookmarkForm -> IO Bookmark
+bookmarkFormToBookmark userId BookmarkForm {..} = do
   time <- liftIO getCurrentTime
   slug <- maybe mkBmSlug pure _slug
   pure
@@ -110,6 +151,8 @@ _toBookmark userId BookmarkForm {..} = do
         bookmarkSelected = Just True == _selected,
         bookmarkArchiveHref = _archiveUrl
       }
+
+-- * Tag suggestions
 
 data TagSuggestionRequest = TagSuggestionRequest
   { _query :: Text,

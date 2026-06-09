@@ -36,6 +36,14 @@ espialUserAgent = do
   mHost <- requestHeaderHost . reqWaiRequest <$> getRequest
   pure $ UserAgent $ pack $ "espial-" <> maybe "" (BS8.unpack . BS8.takeWhile (/= ':')) mHost
 
+browserUserAgent :: UserAgent
+browserUserAgent =
+  UserAgent
+    $ pack
+    $ "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    <> "AppleWebKit/537.36 (KHTML, like Gecko) "
+    <> "Chrome/136.0.0.0 Safari/537.36"
+
 getUrlParam :: (Read a) => Text -> Handler (Maybe a)
 getUrlParam name = do
   fmap parseMaybe (lookupGetParam name)

@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.32
+version:        0.0.33
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
@@ -52,10 +52,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-6VKLUDOQ.min.js
-    static/js/app-6VKLUDOQ.min.js.gz
-    static/js/app-6VKLUDOQ.min.js.map
-    static/js/app-6VKLUDOQ.min.js.map.gz
+    static/js/app-F6AR6563.min.js
+    static/js/app-F6AR6563.min.js.gz
+    static/js/app-F6AR6563.min.js.map
+    static/js/app-F6AR6563.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -104,7 +104,9 @@ flag library-only
 library
   exposed-modules:
       Application
+      Archiver.ArchiveBox07
       Archiver.Backend
+      Archiver.Debug
       Archiver.WaybackMachine
       Foundation
       Generic

@@ -4,7 +4,7 @@ import { destroy, editBookmark, lookupTitle } from '../api';
 import { app, closeWindow, mmoment8601 } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
-import { curQuerystring, lookupQueryStringValue } from '../util';
+import { curQuerystring, lookupQueryStringValue, normalizeTags } from '../util';
 import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
 /** Form for adding or editing a single bookmark, used in the popup window. */
@@ -56,9 +56,11 @@ export function AddForm({ initial }: { initial: Bookmark }) {
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
     setApiError(null);
-    const res = await editBookmark(editBm);
+    const editBm2 = { ...editBm, tags: normalizeTags(editBm.tags) };
+
+    const res = await editBookmark(editBm2);
     if (res.ok && res.status >= 200 && res.status < 300) {
-      setBm(editBm);
+      setBm(editBm2);
 
       const qs = curQuerystring();
       const next = lookupQueryStringValue(qs, 'next');
@@ -242,16 +244,47 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               <label htmlFor="private">private</label>
             </td>
             <td>
-              <input
-                type="checkbox"
-                id="private"
-                className="private pointer"
-                name="private"
-                checked={editBm.private}
-                onChange={(e) => {
-                  setEditBm((x) => ({ ...x, private: e.target.checked }));
-                }}
-              />
+              <div className="mr4 dib">
+                <input
+                  type="checkbox"
+                  id="private"
+                  className="private pointer"
+                  name="private"
+                  checked={editBm.private}
+                  onChange={(e) => {
+                    setEditBm((x) => ({
+                      ...x,
+                      private: e.target.checked,
+                      ...(a.dat.archiveBackendEnabled && editBm.archiveRequested && e.target.checked
+                        ? { archiveRequested: false }
+                        : {}),
+                    }));
+                  }}
+                />
+              </div>
+              {!(bm.bid > 0) && a.dat.archiveBackendEnabled ? (
+                <div
+                  className={`dib ${editBm.private ? 'o-50' : ''}`}
+                  title={
+                    editBm.private ? 'archiving is unavailable for private bookmarks' : undefined
+                  }
+                >
+                  <label className="mr2 di" htmlFor="archiveRequested">
+                    archive
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="archiveRequested"
+                    className="archive pointer ml2"
+                    name="archiveRequested"
+                    disabled={editBm.private}
+                    checked={editBm.archiveRequested ?? false}
+                    onChange={(e) => {
+                      setEditBm((x) => ({ ...x, archiveRequested: e.target.checked }));
+                    }}
+                  />
+                </div>
+              ) : null}
             </td>
           </tr>
 
