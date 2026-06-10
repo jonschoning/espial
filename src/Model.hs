@@ -254,11 +254,11 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
               )
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
           where
-            p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
-            p_title = "title:" *> fmap (toLikeB BookmarkDescription) P.takeText
-            p_description = "description:" *> fmap (toLikeB BookmarkExtended) P.takeText
+            p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
+            p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
+            p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
             p_tags =
-              "tags:"
+              ("tags:" <|> "t:")
                 *> fmap
                   ( \term' ->
                       exists $ from (table @BookmarkTag) >>= \t ->
@@ -267,8 +267,8 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
                           &&. (t ^. BookmarkTagTag `like` wild term')
                   )
                   P.takeText
-            p_after = "after:" *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+            p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
@@ -366,10 +366,10 @@ getNoteList key mquery sharedp limit' page =
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_after <|> p_before
           where
-            p_title = "title:" *> fmap (toLikeN NoteTitle) P.takeText
-            p_text = "description:" *> fmap (toLikeN NoteText) P.takeText
-            p_after = "after:" *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
+            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
 
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =
