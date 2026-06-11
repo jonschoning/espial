@@ -64,6 +64,21 @@ data BookmarkForm = BookmarkForm
 instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultFormOptions
 
 instance ToJSON BookmarkForm where
+  toJSON BookmarkForm {..} =
+    A.object $
+      [ "url" .= _url,
+        "title" .= _title,
+        "description" .= _description,
+        "tags" .= _tags,
+        "private" .= _private,
+        "toread" .= _toread,
+        "bid" .= _bid,
+        "slug" .= _slug,
+        "selected" .= _selected,
+        "time" .= _time
+      ]
+      ++ maybe [] (\x -> ["archiveUrl" .= x]) _archiveUrl
+      ++ maybe [] (\x -> ["archiveRequested" .= x]) _archiveRequested
   toEncoding BookmarkForm {..} =
     A.pairs
       $ mconcat

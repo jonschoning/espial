@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.34 (2026-06-11)
+
+- fix serialization bug in Add bookmark handler (introduced in v0.0.33)
+
 ## v0.0.33 (2026-06-08)
 
 - add new `archive-backend`: `archivebox07`
@@ -23,8 +27,8 @@
 ## v0.0.31 (2026-05-27)
 
 - use values in `config/settings.yml` at run-time (on app startup), instead of only the values from compile-time embedding of `config/settings.yml`
-- add Archive Backend: `wayback-machine` 
-  - add Wayback Machine Backend-related settings: 
+- add Archive Backend: `wayback-machine`
+  - add Wayback Machine Backend-related settings:
     - `wayback-machine-access-key`
     - `wayback-machine-secret-key`
 - remove Archive Backend: `archive-li`

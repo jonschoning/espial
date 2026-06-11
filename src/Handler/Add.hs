@@ -1,5 +1,6 @@
 module Handler.Add where
 
+import Data.Aeson.Encoding (encodingToLazyByteString)
 import qualified Data.Attoparsec.ByteString as AP
 import qualified Data.ByteString.Lazy as LBS
 import Data.Char (ord)
@@ -36,7 +37,7 @@ getAddViewR = do
     |]
     toWidgetBody
       [julius|
-      app.dat.bmark = #{ toJSON bookmarkForm }; 
+      app.dat.bmark = #{ toRawJs bookmarkForm }; 
       app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
       app.dat.suggestTags = #{ userSuggestTags user };
     |]
@@ -47,6 +48,7 @@ getAddViewR = do
         renderAddForm('##{renderEl}')(app.dat.bmark)();
     |]
   where
+    toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding
     mkNewBookmarkFormForUrl :: Bool -> Handler BookmarkForm
     mkNewBookmarkFormForUrl archiveBackendEnabled = do
       Entity _ user <- requireAuth
