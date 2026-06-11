@@ -103,10 +103,14 @@ data FilterP
   | FilterSingle BmSlug
   deriving (Eq, Show, Read)
 
-data PagingCursor
-  = PagingCursorBefore UTCTime
-  | PagingCursorAfter UTCTime
+data PagingCursor a
+  = PagingCursorBefore a
+  | PagingCursorAfter a
   deriving (Eq, Show, Read)
+
+type BookmarkPagingCursor = PagingCursor BookmarkId
+
+type NotePagingCursor = PagingCursor NoteId
 
 newtype UnreadOnly
   = UnreadOnly {unUnreadOnly :: Bool}
@@ -176,10 +180,10 @@ bookmarksTagsQuery ::
   FilterP ->
   [Tag] ->
   Maybe Text ->
-  Maybe PagingCursor ->
+  Maybe BookmarkPagingCursor ->
   Limit ->
   Page ->
-  DB (Int, [(Entity Bookmark, Maybe Text)])
+  DB (Int, [(Entity Bookmark, Maybe Text)], Bool, Bool)
 bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' page = do
   total <-
     fmap
@@ -194,12 +198,12 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       ( select $ from (table @Bookmark) >>= \b -> do
           _whereClause b
           for_ mcursor $ \case
-            PagingCursorBefore beforeTime ->
-              where_ (b ^. BookmarkTime Database.Esqueleto.Experimental.<. val beforeTime)
-            PagingCursorAfter afterTime ->
-              where_ (b ^. BookmarkTime Database.Esqueleto.Experimental.>. val afterTime)
-          orderBy [bookmarkOrder b]
-          limit limit'
+            PagingCursorBefore beforeId ->
+              where_ (isBeforeCursor b beforeId)
+            PagingCursorAfter afterId ->
+              where_ (isAfterCursor b afterId)
+          orderBy (bookmarkOrder b)
+          limit (limit' + 1)
           offset ((page - 1) * limit')
           pure
             ( b,
@@ -213,18 +217,19 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
                 pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")
             )
       )
-  pure (total, finalizeRows rows)
+  let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
+      pageRows = take (fromIntegral limit') rows
+      hasEarlier =
+        case mcursor of
+          Just (PagingCursorAfter _) -> not (null pageRows)
+          _ -> hasMoreInQueryDirection
+      hasLater =
+        case mcursor of
+          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
+          Just (PagingCursorBefore _) -> not (null pageRows)
+          Nothing -> False
+  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
-    bookmarkOrder b =
-      case mcursor of
-        Just (PagingCursorAfter _) -> asc (b ^. BookmarkTime)
-        _ -> desc (b ^. BookmarkTime)
-
-    finalizeRows =
-      case mcursor of
-        Just (PagingCursorAfter _) -> reverse
-        _ -> id
-
     _whereClause b = do
       where_
         $ foldl
@@ -252,14 +257,8 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
         FilterSingle slug -> where_ (b ^. BookmarkSlug ==. val slug)
         FilterUntagged ->
           where_ $ notExists $ from (table @BookmarkTag) >>= \t ->
-            where_
-              $ t
-              ^. BookmarkTagBookmarkId
-              ==. b ^. BookmarkId
-      -- search
+            where_ $ t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
-
-    toLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         wild s = (%) ++. val s ++. (%)
@@ -291,6 +290,26 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
                   P.takeText
             p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+    bookmarkOrder b = case mcursor of
+      Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+      _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+    finalizeRows = case mcursor of
+      Just (PagingCursorAfter _) -> reverse
+      _ -> id
+    isBeforeCursor b cursorId =
+      (just (b ^. BookmarkTime) Database.Esqueleto.Experimental.<. cursorTime cursorId)
+        ||. ( just (b ^. BookmarkTime) ==. cursorTime cursorId
+                &&. b ^. BookmarkId Database.Esqueleto.Experimental.<. val cursorId
+            )
+    isAfterCursor b cursorId =
+      (just (b ^. BookmarkTime) Database.Esqueleto.Experimental.>. cursorTime cursorId)
+        ||. ( just (b ^. BookmarkTime) ==. cursorTime cursorId
+                &&. b ^. BookmarkId Database.Esqueleto.Experimental.>. val cursorId
+            )
+    cursorTime cursorId =
+      subSelect $ from (table @Bookmark) >>= \cursor -> do
+        where_ (cursor ^. BookmarkId ==. val cursorId)
+        pure (cursor ^. BookmarkTime)
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
@@ -352,24 +371,39 @@ getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
   selectFirst [NoteUserId CP.==. userKey, NoteSlug CP.==. slug] []
 
-getNoteList :: Key User -> Maybe Text -> SharedP -> Limit -> Page -> DB (Int, [Entity Note])
-getNoteList key mquery sharedp limit' page =
-  (,) -- total count
-    <$> fmap
+getNoteList :: Key User -> Maybe Text -> Maybe NotePagingCursor -> SharedP -> Limit -> Page -> DB (Int, [Entity Note], Bool, Bool)
+getNoteList key mquery mcursor sharedp limit' page = do
+  total <-
+    fmap
       (sum . fmap unValue)
       ( select $ do
           b <- from (table @Note)
           _whereClause b
           pure countRows
       )
-    <*> ( select $ do
-            b <- from (table @Note)
-            _whereClause b
-            orderBy [desc (b ^. NoteCreated)]
-            limit limit'
-            offset ((page - 1) * limit')
-            pure b
-        )
+  rows <-
+    select $ do
+      b <- from (table @Note)
+      _whereClause b
+      for_ mcursor $ \case
+        PagingCursorBefore beforeId -> where_ (isBeforeCursor b beforeId)
+        PagingCursorAfter afterId -> where_ (isAfterCursor b afterId)
+      orderBy (noteOrder b)
+      limit (limit' + 1)
+      offset ((page - 1) * limit')
+      pure b
+  let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
+      pageRows = take (fromIntegral limit') rows
+      hasEarlier =
+        case mcursor of
+          Just (PagingCursorAfter _) -> not (null pageRows)
+          _ -> hasMoreInQueryDirection
+      hasLater =
+        case mcursor of
+          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
+          Just (PagingCursorBefore _) -> not (null pageRows)
+          Nothing -> False
+  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
     _whereClause b = do
       where_ (b ^. NoteUserId ==. val key)
@@ -379,8 +413,6 @@ getNoteList key mquery sharedp limit' page =
         SharedAll -> pure ()
         SharedPublic -> where_ (b ^. NoteShared ==. val True)
         SharedPrivate -> where_ (b ^. NoteShared ==. val False)
-
-    toLikeExpr :: SqlExpr (Entity Note) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         wild s = (%) ++. val s ++. (%)
@@ -392,6 +424,28 @@ getNoteList key mquery sharedp limit' page =
             p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
             p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+    noteOrder b =
+      case mcursor of
+        Just (PagingCursorAfter _) -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
+        _ -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
+    finalizeRows =
+      case mcursor of
+        Just (PagingCursorAfter _) -> reverse
+        _ -> id
+    isBeforeCursor b cursorId =
+      (just (b ^. NoteCreated) Database.Esqueleto.Experimental.<. cursorCreated cursorId)
+        ||. ( just (b ^. NoteCreated) ==. cursorCreated cursorId
+                &&. b ^. NoteId Database.Esqueleto.Experimental.<. val cursorId
+            )
+    isAfterCursor b cursorId =
+      (just (b ^. NoteCreated) Database.Esqueleto.Experimental.>. cursorCreated cursorId)
+        ||. ( just (b ^. NoteCreated) ==. cursorCreated cursorId
+                &&. b ^. NoteId Database.Esqueleto.Experimental.>. val cursorId
+            )
+    cursorCreated cursorId =
+      subSelect $ from (table @Note) >>= \cursor -> do
+        where_ (cursor ^. NoteId ==. val cursorId)
+        pure (cursor ^. NoteCreated)
 
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =

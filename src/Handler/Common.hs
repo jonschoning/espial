@@ -1,11 +1,9 @@
 -- | Common handler functions.
 module Handler.Common where
 
-import Data.Aeson as A
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BS8
 import Data.FileEmbed (embedFile)
-import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
-import qualified Data.Time.ISO8601 as TISO
 import Import
 import Network.Wai (requestHeaderHost)
 import Text.Read
@@ -33,26 +31,28 @@ lookupPagingParams =
     <$> getUrlSessionParam "count"
     <*> getUrlParam "page"
 
-formatPagingCursorTime :: UTCTime -> Text
-formatPagingCursorTime = pack . formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%QZ"
+pagingCursorBeforeParam :: Text
+pagingCursorBeforeParam = "before"
 
-hasPagingCursorQuery :: Maybe Text -> Bool
-hasPagingCursorQuery = maybe False (any isPagingCursorToken . words)
-  where
-    isPagingCursorToken t = "before:" `isPrefixOf` t || "after:" `isPrefixOf` t
+pagingCursorAfterParam :: Text
+pagingCursorAfterParam = "after"
 
-withPagingCursorQuery :: Maybe Text -> Text -> Text
-withPagingCursorQuery mquery token =
-  unwords $ filter (not . null) [stripPagingCursorQuery mquery, token]
-  where
-    stripPagingCursorQuery = maybe "" (unwords . filter (not . isPagingCursorToken) . words)
-    isPagingCursorToken t = "before:" `isPrefixOf` t || "after:" `isPrefixOf` t
+formatEntityPagingCursor :: (ToBackendKey SqlBackend record) => Entity record -> Text
+formatEntityPagingCursor = tshow . fromSqlKey . entityKey
 
-parsePagingCursorTime :: Text -> Maybe UTCTime
-parsePagingCursorTime t =
-  TISO.parseISO8601 (unpack t)
-    <|> (parseTimeText t :: Maybe UTCTime)
-    <|> (posixSecondsToUTCTime . fromInteger <$> (readMaybe (unpack t) :: Maybe Integer))
+parsePagingCursor :: (ToBackendKey SqlBackend record) => Text -> Maybe (Key record)
+parsePagingCursor t =
+  toSqlKey <$> (readMaybe (unpack t) :: Maybe Int64)
+
+parsePagingCursorParams ::
+  (ToBackendKey SqlBackend record) =>
+  (Key record -> cursor) ->
+  (Key record -> cursor) ->
+  Maybe Text ->
+  Maybe Text ->
+  Maybe cursor
+parsePagingCursorParams mkBefore mkAfter mbefore mafter =
+  (mkBefore <$> (parsePagingCursor =<< mbefore)) <|> (mkAfter <$> (parsePagingCursor =<< mafter))
 
 espialUserAgent :: Handler UserAgent
 espialUserAgent = do
