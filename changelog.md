@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.35 (2026-06-XX)
+
+- add 'View in Context' lddink to single-bookmark
+- update robots.txt
+
 ## v0.0.34 (2026-06-11)
 
 - fix serialization bug in Add bookmark handler (introduced in v0.0.33)
