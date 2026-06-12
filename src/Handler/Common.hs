@@ -4,6 +4,7 @@ module Handler.Common where
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BS8
 import Data.FileEmbed (embedFile)
+import qualified Data.Time.ISO8601 as TISO (formatISO8601Nanos, parseISO8601)
 import Import
 import Network.Wai (requestHeaderHost)
 import Text.Read
@@ -37,6 +38,12 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
+formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
+formatEntityPagingCursorTimeBm = pack . TISO.formatISO8601Nanos . bookmarkTime . entityVal
+
+parsePagingCursorTime :: Text -> Maybe UTCTime
+parsePagingCursorTime = TISO.parseISO8601 . unpack
+
 formatEntityPagingCursor :: (ToBackendKey SqlBackend record) => Entity record -> Text
 formatEntityPagingCursor = tshow . fromSqlKey . entityKey
 
@@ -45,14 +52,13 @@ parsePagingCursor t =
   toSqlKey <$> (readMaybe (unpack t) :: Maybe Int64)
 
 parsePagingCursorParams ::
-  (ToBackendKey SqlBackend record) =>
-  (Key record -> cursor) ->
-  (Key record -> cursor) ->
+  (Text -> Maybe cursor) ->
+  (Text -> Maybe cursor) ->
   Maybe Text ->
   Maybe Text ->
   Maybe cursor
 parsePagingCursorParams mkBefore mkAfter mbefore mafter =
-  (mkBefore <$> (parsePagingCursor =<< mbefore)) <|> (mkAfter <$> (parsePagingCursor =<< mafter))
+  (mkBefore =<< mbefore) <|> (mkAfter =<< mafter)
 
 espialUserAgent :: Handler UserAgent
 espialUserAgent = do

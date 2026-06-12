@@ -5,12 +5,6 @@ module Handler.Notes where
 import qualified Data.Aeson as A
 import qualified Data.Text as T
 import Handler.Common
-  ( formatEntityPagingCursor,
-    lookupPagingParams,
-    pagingCursorAfterParam,
-    pagingCursorBeforeParam,
-    parsePagingCursorParams,
-  )
 import Import
 import qualified Network.Wai.Internal as W
 import qualified Text.Blaze.Html5 as H
@@ -25,7 +19,7 @@ getNotesR unamep@(UserNameP uname) = do
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
-  mcursor <- parsePagingCursorParams PagingCursorBefore PagingCursorAfter <$> lookupGetParam beforep <*> lookupGetParam afterp
+  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursor) (fmap PagingCursorAfter . parsePagingCursor) <$> lookupGetParam beforep <*> lookupGetParam afterp
   let limit = maybe 20 fromIntegral limit'
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
@@ -231,7 +225,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
   mquery <- lookupGetParam "query"
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
-  let mcursor = parsePagingCursorParams PagingCursorBefore PagingCursorAfter mbefore mafter
+  let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursor) (fmap PagingCursorAfter . parsePagingCursor) mbefore mafter
   let limit = maybe 20 fromIntegral limit'
       page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname

@@ -43,7 +43,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
-  mcursor <- parsePagingCursorParams PagingCursorBefore PagingCursorAfter <$> lookupGetParam beforep <*> lookupGetParam afterp
+  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
   let mqueryp = fmap (queryp,) mquery
   (suggestTags, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
@@ -57,13 +57,14 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       mqueryEarlierp =
         fmap
           (beforep,)
-          (formatEntityPagingCursor <$> mlastBookmark)
+          (formatEntityPagingCursorTimeBm <$> mlastBookmark)
       mqueryLaterp =
         fmap
           (afterp,)
-          (formatEntityPagingCursor <$> mfirstBookmark)
+          (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
   cpprint $ (\(b, _) -> bookmarkTime (entityVal b)) <$> btmarks
   cpprint mcursor
+  cpprint (mcursor >>= \case PagingCursorBefore c -> Just $ PersistUTCTime c; PagingCursorAfter c -> Just $ PersistUTCTime c)
   cpprint (mqueryEarlierp, mqueryLaterp)
   cpprint (hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
@@ -173,7 +174,7 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mquery <- lookupGetParam queryp
   mbefore <- lookupGetParam beforep
   mafter <- lookupGetParam afterp
-  let cursor = parsePagingCursorParams PagingCursorBefore PagingCursorAfter mbefore mafter
+  let cursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
   (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when

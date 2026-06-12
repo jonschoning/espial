@@ -110,6 +110,8 @@ data PagingCursor a
 
 type BookmarkPagingCursor = PagingCursor BookmarkId
 
+type BookmarkPagingCursorTime = PagingCursor UTCTime
+
 type NotePagingCursor = PagingCursor NoteId
 
 newtype UnreadOnly
@@ -180,7 +182,7 @@ bookmarksTagsQuery ::
   FilterP ->
   [Tag] ->
   Maybe Text ->
-  Maybe BookmarkPagingCursor ->
+  Maybe BookmarkPagingCursorTime ->
   Limit ->
   Page ->
   DB (Int, [(Entity Bookmark, Maybe Text)], Bool, Bool)
@@ -297,19 +299,14 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       Just (PagingCursorAfter _) -> reverse
       _ -> id
     isBeforeCursor b cursorId =
-      (just (b ^. BookmarkTime) Database.Esqueleto.Experimental.<. cursorTime cursorId)
-        ||. ( just (b ^. BookmarkTime) ==. cursorTime cursorId
-                &&. b ^. BookmarkId Database.Esqueleto.Experimental.<. val cursorId
-            )
+      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val cursorId)
     isAfterCursor b cursorId =
-      (just (b ^. BookmarkTime) Database.Esqueleto.Experimental.>. cursorTime cursorId)
-        ||. ( just (b ^. BookmarkTime) ==. cursorTime cursorId
-                &&. b ^. BookmarkId Database.Esqueleto.Experimental.>. val cursorId
-            )
-    cursorTime cursorId =
-      subSelect $ from (table @Bookmark) >>= \cursor -> do
-        where_ (cursor ^. BookmarkId ==. val cursorId)
-        pure (cursor ^. BookmarkTime)
+      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val cursorId)
+
+-- cursorTime cursorId =
+--   subSelect $ from (table @Bookmark) >>= \cursor -> do
+--     where_ (cursor ^. BookmarkId ==. val cursorId)
+--     pure (cursor ^. BookmarkTime)
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
