@@ -29,8 +29,14 @@ export function BMark({
 
   const tagInputId = `${bm.bid.toString()}_tags`;
 
-  const linkToFilterSingle = (slug: string) => `${fromNullableStr(a.userR)}/b:${slug}`;
+  const linkToFilterSingle = `${fromNullableStr(a.userR)}/b:${bm.slug}`;
   const linkToFilterTag = (tag: string) => `${fromNullableStr(a.userR)}/t:${encodeTag(tag)}`;
+  const viewInContextTime = (time: Date) => {
+    const t = new Date(time);
+    const t2 = new Date(t.getTime() + 2);
+    return t2.toISOString();
+  };
+  const linkToViewInContext = `${fromNullableStr(a.userR)}?before=${encodeURIComponent(viewInContextTime(new Date(bm.time)))}`;
 
   const shdate = toLocaleDateString(bm.time);
   const shdatetime = `${bm.time.slice(0, 16)}Z`;
@@ -174,58 +180,72 @@ export function BMark({
               : null}
           </div>
 
-          <a
-            className="link f7 di mr5 thm-text-tertiary"
-            href={linkToFilterSingle(bm.slug)}
-            title={shdatetime}
-          >
-            {shdate}
-          </a>
+          <div>
+            <a
+              className="link f7 di mr5 thm-text-tertiary"
+              href={linkToFilterSingle}
+              title={shdatetime}
+            >
+              {shdate}
+            </a>
 
-          {a.dat.isowner ? (
-            <div className="edit_links di">
-              <button
-                type="button"
-                onClick={() => {
-                  startEdit(true);
-                }}
-                className="edit thm-text-muted thm-hover-link-color"
-              >
-                edit&nbsp;&nbsp;
-              </button>
-              <div className="delete_link di">
+            {a.dat.isowner ? (
+              <div className="edit_links di">
                 <button
                   type="button"
                   onClick={() => {
-                    setDeleteAsk(true);
+                    startEdit(true);
                   }}
-                  className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
+                  className="edit thm-text-muted thm-hover-link-color"
                 >
-                  delete
+                  edit&nbsp;&nbsp;
                 </button>
-                <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
+                <div className="delete_link di">
                   <button
                     type="button"
                     onClick={() => {
-                      setDeleteAsk(false);
+                      setDeleteAsk(true);
                     }}
+                    className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
                   >
-                    cancel&nbsp;/&nbsp;
+                    delete
                   </button>
-                  <button type="button" onClick={() => void onDestroy()} className="thm-text-error">
-                    destroy
-                  </button>
-                </span>
+                  <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteAsk(false);
+                      }}
+                    >
+                      cancel&nbsp;/&nbsp;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void onDestroy()}
+                      className="thm-text-error"
+                    >
+                      destroy
+                    </button>
+                  </span>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {a.dat.isowner && bm.toread ? (
-            <div className="read di">
-              &nbsp;&nbsp;
-              <button onClick={() => void onMarkRead()} className="mark_read" type="button">
-                mark as read
-              </button>
+            {a.dat.isowner && bm.toread ? (
+              <div className="read di">
+                &nbsp;&nbsp;
+                <button onClick={() => void onMarkRead()} className="mark_read" type="button">
+                  mark as read
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {a.dat.filter?.tag == 'FilterSingle' ? (
+            <div className="mt2">
+              <a className="link f7 di mr5" href={linkToViewInContext}>
+                view in context
+              </a>
             </div>
           ) : null}
         </div>

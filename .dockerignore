@@ -6,6 +6,15 @@
 .stack
 .stack-work
 dist
+dist-newstyle
+
+# IDEs
+.vscode
+.idea
+
+# OS junk
+.DS_Store
+Thumbs.db
 
 # Frontend dependencies and build output
 frontend/node_modules
@@ -21,4 +30,7 @@ frontend/.cache
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
+*.7z
+*.json
+*.html
 tmp

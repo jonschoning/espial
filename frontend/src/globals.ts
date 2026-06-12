@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import type { Bookmark } from './types';
+import type { Bookmark, Filter } from './types';
 
 /** Server-rendered page data. */
 export type AppData = {
@@ -14,6 +14,8 @@ export type AppData = {
   suggestTags?: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled?: boolean;
+  /** The current filter applied to the bookmarks. */
+  filter?: Filter;
 };
 
 /** Server-rendered global data. */

@@ -1,19 +1,19 @@
 module Handler.Add where
 
 import Data.Aeson.Encoding (encodingToLazyByteString)
-import qualified Data.Attoparsec.ByteString as AP
-import qualified Data.ByteString.Lazy as LBS
+import Data.Attoparsec.ByteString qualified as AP
+import Data.ByteString.Lazy qualified as LBS
 import Data.Char (ord)
 import Data.Function ((&))
 import Data.List (nub)
-import qualified Data.Text as T (replace)
+import Data.Text qualified as T (replace)
 import Data.Text.Lazy.Builder (toLazyText)
 import HTMLEntities.Decoder (htmlEncodedText)
 import Handler.Archive
 import Handler.Common (browserUserAgent)
 import Import
-import qualified Network.HTTP.Client as NH
-import qualified Network.HTTP.Client.TLS as NHT
+import Network.HTTP.Client qualified as NH
+import Network.HTTP.Client.TLS qualified as NHT
 
 -- * View
 

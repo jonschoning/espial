@@ -2,8 +2,15 @@
 
 ## v0.0.35 (2026-06-XX)
 
-- add 'View in Context' lddink to single-bookmark
-- update robots.txt
+- add "appMigrations" on startup; normalize utctime fields in db for correct sorting
+- record "appMigration" history and app version history in db
+- add startup logs with version and revision information
+- add 'view in context' link, visible when viewing single bookmark listing
+- on bookmark and note listing, change '« earlier' and 'later »' links from pagenum-based params to time-based 'before'/'after' params
+- update robots.txt to disallow robots
+- add short versions of search term specifiers & updated search documentation:
+  - u: for url:, t: for tags:, ti: for title:, d: for description:, b: for before:, a: for after:
+- add OCI Image Specification annotation keys to docker image (including version & revision)
 
 ## v0.0.34 (2026-06-11)
 

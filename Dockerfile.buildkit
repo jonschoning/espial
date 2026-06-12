@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 FROM fpco/stack-build:lts-24.37 AS builder-base
 
 WORKDIR /src
@@ -6,7 +8,13 @@ COPY stack.yaml ./
 COPY stack.yaml.lock ./
 COPY package.yaml ./
 
-RUN stack setup
+RUN --mount=type=cache,target=/root/.stack \
+  --mount=type=cache,target=/root/.cache \
+  stack setup
+
+RUN --mount=type=cache,target=/root/.stack \
+  --mount=type=cache,target=/root/.cache \
+  stack build --only-dependencies
 
 FROM builder-base AS builder
 
@@ -23,7 +31,9 @@ RUN mkdir -p /tmp/buildinfo && \
   echo "gitSha = \"${GIT_SHA}\"" >> /tmp/buildinfo/BuildInfo.hs && \
   cp -r /tmp/buildinfo buildinfo
 
-RUN stack build --copy-bins --local-bin-path /opt/espial/bin --flag espial:usebuildinfo
+RUN --mount=type=cache,target=/root/.stack \
+  --mount=type=cache,target=/root/.cache \
+  stack build --copy-bins --local-bin-path /opt/espial/bin --flag espial:usebuildinfo
 
 FROM debian:bookworm-slim AS runtime-deps
 
@@ -61,7 +71,6 @@ RUN make allnoconfig \
   && ln -sf busybox /opt/runtime-bin/cat \
   && ln -sf busybox /opt/runtime-bin/mkdir \
   && ln -sf busybox /opt/runtime-bin/rm
-
 
 FROM gcr.io/distroless/base-debian12 AS runtime
 

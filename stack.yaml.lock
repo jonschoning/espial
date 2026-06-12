@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/topics/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: persistent-sqlite-2.13.3.0@sha256:04caa8dba2a310a4dcf06295fbb4be7eed2ca9c2da92076bac3dd1a66b946062,5155
+    pantry-tree:
+      sha256: a0bf1dbfce66d6c2191c30940c567379f2a7f7fa1fc0153e1b3727fab711a475
+      size: 834
+  original:
+    hackage: persistent-sqlite-2.13.3.0@sha256:04caa8dba2a310a4dcf06295fbb4be7eed2ca9c2da92076bac3dd1a66b946062,5155
 snapshots:
 - completed:
     sha256: 85363ca92602ef9c8c3f6cfdb188efd3db3209ca3280eea4aad3b38b12a208a1

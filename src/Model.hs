@@ -1,30 +1,45 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Model where
 
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
-import qualified ClassyPrelude.Yesod as CP
-import qualified Control.Monad.Combinators as PC (between)
+import ClassyPrelude.Yesod qualified as CP
+import Control.Monad.Combinators qualified as PC (between)
 import Control.Monad.Fail (MonadFail)
 import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
-import Control.Monad.Writer (tell)
-import qualified Data.Aeson.KeyMap as KM
-import qualified Data.Aeson.Types as A (parseFail)
-import qualified Data.Attoparsec.Text as P
+import Data.Aeson qualified as A
+import Data.Aeson.KeyMap qualified as KM
+import Data.Aeson.Types qualified as A (parseFail)
+import Data.Attoparsec.Text qualified as P
 import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
-import qualified Data.Time as TI (ParseTime)
-import qualified Data.Time.ISO8601 as TISO (formatISO8601Millis, parseISO8601)
+import Data.Time qualified as TI (ParseTime)
+import Data.Time.ISO8601 qualified as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
-import Pretty ()
 import Types
 
 share
   [mkPersist sqlSettings, mkMigrate "migrateSchema"]
   [persistLowerCase|
+
+AppMigration
+    dbVersion Int
+    migrationDescription Text
+    appVersionSpec Text
+    appliedAt UTCTime
+    UniqueAppMigrationDbVersion dbVersion
+    deriving Show Eq Typeable Ord
+
+AppVersion
+    appVersionSpec Text
+    appVersion Text
+    appGitSha Text
+    created UTCTime
+    deriving Show Eq Typeable Ord
+
 User json
   name Text
   passwordHash BCrypt
@@ -101,7 +116,24 @@ data FilterP
   | FilterUntagged
   | FilterStarred
   | FilterSingle BmSlug
+  deriving (Eq, Show, Read, Generic)
+
+instance FromJSON FilterP where parseJSON = A.genericParseJSON A.defaultOptions
+
+instance ToJSON FilterP where toJSON = A.genericToJSON A.defaultOptions
+
+data PagingCursor a
+  = PagingCursorBefore a
+  | PagingCursorAfter a
   deriving (Eq, Show, Read)
+
+type BookmarkPagingCursor = PagingCursor BookmarkId
+
+type BookmarkPagingCursorTime = PagingCursor UTCTime
+
+type NotePagingCursor = PagingCursor NoteId
+
+type NotePagingCursorTime = PagingCursor UTCTime
 
 newtype UnreadOnly
   = UnreadOnly {unUnreadOnly :: Bool}
@@ -118,26 +150,6 @@ newtype Url
 type Limit = Int64
 
 type Page = Int64
-
-migrateAll :: Migration
-migrateAll = migrateSchema >> migrateIndexes
-
-dumpMigration :: DB ()
-dumpMigration = printMigration migrateAll
-
-runMigrations :: DB ()
-runMigrations = runMigration migrateAll
-
-toMigration :: [Text] -> Migration
-toMigration = lift . tell . fmap (False,)
-
-migrateIndexes :: Migration
-migrateIndexes =
-  toMigration
-    [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time ON bookmark (user_id, time DESC)",
-      "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
-      "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)"
-    ]
 
 sqliteGroupConcat ::
   (PersistField a) =>
@@ -171,24 +183,28 @@ bookmarksTagsQuery ::
   FilterP ->
   [Tag] ->
   Maybe Text ->
+  Maybe BookmarkPagingCursorTime ->
   Limit ->
   Page ->
-  DB (Int, [(Entity Bookmark, Maybe Text)])
-bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
-  (,) -- total count
-    <$> fmap
+  DB (Int, [(Entity Bookmark, Maybe Text)], Bool, Bool)
+bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' page = do
+  total <-
+    fmap
       (sum . fmap unValue)
       ( select $ from (table @Bookmark) >>= \b -> do
           _whereClause b
           pure countRows
       )
-    -- paged data
-    <*> (fmap . fmap . fmap)
+  rows <-
+    (fmap . fmap . fmap)
       unValue
       ( select $ from (table @Bookmark) >>= \b -> do
           _whereClause b
-          orderBy [desc (b ^. BookmarkTime)]
-          limit limit'
+          for_ mcursor $ \case
+            PagingCursorBefore before -> where_ (isBeforeCursor b before)
+            PagingCursorAfter after -> where_ (isAfterCursor b after)
+          orderBy (bookmarkOrder b)
+          limit (limit' + 1) -- fetch one extra row to determine if there are more rows in the given direction
           offset ((page - 1) * limit')
           pure
             ( b,
@@ -202,6 +218,18 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
                 pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")
             )
       )
+  let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
+      pageRows = take (fromIntegral limit') rows
+      hasEarlier =
+        case mcursor of
+          Just (PagingCursorAfter _) -> not (null pageRows)
+          _ -> hasMoreInQueryDirection
+      hasLater =
+        case mcursor of
+          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
+          Just (PagingCursorBefore _) -> not (null pageRows)
+          Nothing -> False
+  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
     _whereClause b = do
       where_
@@ -230,14 +258,8 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
         FilterSingle slug -> where_ (b ^. BookmarkSlug ==. val slug)
         FilterUntagged ->
           where_ $ notExists $ from (table @BookmarkTag) >>= \t ->
-            where_
-              $ t
-              ^. BookmarkTagBookmarkId
-              ==. b ^. BookmarkId
-      -- search
+            where_ $ t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
       sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
-
-    toLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         wild s = (%) ++. val s ++. (%)
@@ -254,11 +276,11 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
               )
         p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
           where
-            p_url = "url:" *> fmap (toLikeB BookmarkHref) P.takeText
-            p_title = "title:" *> fmap (toLikeB BookmarkDescription) P.takeText
-            p_description = "description:" *> fmap (toLikeB BookmarkExtended) P.takeText
+            p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
+            p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
+            p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
             p_tags =
-              "tags:"
+              ("tags:" <|> "t:")
                 *> fmap
                   ( \term' ->
                       exists $ from (table @BookmarkTag) >>= \t ->
@@ -267,8 +289,23 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery limit' page =
                           &&. (t ^. BookmarkTagTag `like` wild term')
                   )
                   P.takeText
-            p_after = "after:" *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+            p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+    bookmarkOrder b = case mcursor of
+      Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+      _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+    finalizeRows = case mcursor of
+      Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
+      _ -> id
+    isBeforeCursor b before =
+      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
+    isAfterCursor b after =
+      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
+
+-- cursorTime cursorId =
+--   subSelect $ from (table @Bookmark) >>= \cursor -> do
+--     where_ (cursor ^. BookmarkId ==. val cursorId)
+--     pure (cursor ^. BookmarkTime)
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
@@ -309,16 +346,14 @@ parseTimeText :: (TI.ParseTime t, MonadFail m, Alternative m) => Text -> m t
 parseTimeText t =
   asum
     $ flip (parseTimeM True defaultTimeLocale) (unpack t)
-    <$> [ "%-m/%-d/%Y",
-          "%-m/%-d/%Y%z",
-          "%-m/%-d/%Y%Z", -- 12/31/2018
-          "%Y-%-m-%-d",
-          "%Y-%-m-%-d%z",
-          "%Y-%-m-%-d%Z", -- 2018-12-31
-          "%Y-%-m-%-dT%T",
-          "%Y-%-m-%-dT%T%z",
-          "%Y-%-m-%-dT%T%Z", -- 2018-12-31T06:40:53
-          "%s" -- 1535932800
+    <$> [ "%FT%T%Q%Z", -- 2018-12-31T23:59:59.123Z  (iso8601 with timezone)
+          "%FT%T%Q", -- 2018-12-31T23:59:59.123   (iso8601 without timezone)
+          "%F %T%Q", -- 2018-12-31 23:59:59.123
+          "%F %T%Q %Z", -- 2018-12-31 23:59:59.123 UTC
+          "%F", -- 2018-12-31
+          "%-m/%-d/%Y", -- 12/31/2018
+          "%s", -- 1535932800
+          "%s%Q" -- 1535932800.123
         ]
 
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
@@ -330,24 +365,39 @@ getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
   selectFirst [NoteUserId CP.==. userKey, NoteSlug CP.==. slug] []
 
-getNoteList :: Key User -> Maybe Text -> SharedP -> Limit -> Page -> DB (Int, [Entity Note])
-getNoteList key mquery sharedp limit' page =
-  (,) -- total count
-    <$> fmap
+getNoteList :: Key User -> Maybe Text -> Maybe NotePagingCursorTime -> SharedP -> Limit -> Page -> DB (Int, [Entity Note], Bool, Bool)
+getNoteList key mquery mcursor sharedp limit' page = do
+  total <-
+    fmap
       (sum . fmap unValue)
       ( select $ do
           b <- from (table @Note)
           _whereClause b
           pure countRows
       )
-    <*> ( select $ do
-            b <- from (table @Note)
-            _whereClause b
-            orderBy [desc (b ^. NoteCreated)]
-            limit limit'
-            offset ((page - 1) * limit')
-            pure b
-        )
+  rows <-
+    select $ do
+      b <- from (table @Note)
+      _whereClause b
+      for_ mcursor $ \case
+        PagingCursorBefore before -> where_ (isBeforeCursor b before)
+        PagingCursorAfter after -> where_ (isAfterCursor b after)
+      orderBy (noteOrder b)
+      limit (limit' + 1) -- fetch one extra row to determine if there are more rows in the given direction
+      offset ((page - 1) * limit')
+      pure b
+  let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
+      pageRows = take (fromIntegral limit') rows
+      hasEarlier =
+        case mcursor of
+          Just (PagingCursorAfter _) -> not (null pageRows)
+          _ -> hasMoreInQueryDirection
+      hasLater =
+        case mcursor of
+          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
+          Just (PagingCursorBefore _) -> not (null pageRows)
+          Nothing -> False
+  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
     _whereClause b = do
       where_ (b ^. NoteUserId ==. val key)
@@ -357,8 +407,6 @@ getNoteList key mquery sharedp limit' page =
         SharedAll -> pure ()
         SharedPublic -> where_ (b ^. NoteShared ==. val True)
         SharedPrivate -> where_ (b ^. NoteShared ==. val False)
-
-    toLikeExpr :: SqlExpr (Entity Note) -> Text -> SqlExpr (Value Bool)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         wild s = (%) ++. val s ++. (%)
@@ -366,10 +414,22 @@ getNoteList key mquery sharedp limit' page =
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_after <|> p_before
           where
-            p_title = "title:" *> fmap (toLikeN NoteTitle) P.takeText
-            p_text = "description:" *> fmap (toLikeN NoteText) P.takeText
-            p_after = "after:" *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = "before:" *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
+            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+    noteOrder b =
+      case mcursor of
+        Just (PagingCursorAfter _) -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
+        _ -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
+    finalizeRows =
+      case mcursor of
+        Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
+        _ -> id
+    isBeforeCursor b before =
+      (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val before
+    isAfterCursor b after =
+      (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val after
 
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =

@@ -2,12 +2,12 @@
 
 module Handler.Notes where
 
-import qualified Data.Aeson as A
-import qualified Data.Text as T
-import Handler.Common (lookupPagingParams)
+import Data.Aeson qualified as A
+import Data.Text qualified as T
+import Handler.Common
 import Import
-import qualified Network.Wai.Internal as W
-import qualified Text.Blaze.Html5 as H
+import Network.Wai.Internal qualified as W
+import Text.Blaze.Html5 qualified as H
 import Yesod.RssFeed
 
 getNotesR :: UserNameP -> Handler Html
@@ -16,18 +16,31 @@ getNotesR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let queryp = "query"
+      beforep = pagingCursorBeforeParam
+      afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
+  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
   let limit = maybe 20 fromIntegral limit'
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
       isowner = Just uname == mauthuname
-  (bcount, notes) <- runDB do
+  (bcount, notes, hasEarlier, hasLater) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     let sharedp = if isowner then SharedAll else SharedPublic
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery sharedp limit page
+    getNoteList userId mquery mcursor sharedp limit page
+  let mfirstNote = headMay notes
+      mlastNote = lastMay notes
+      mqueryEarlierp =
+        fmap
+          (beforep,)
+          (formatEntityPagingCursorTimeNt <$> mlastNote)
+      mqueryLaterp =
+        fmap
+          (afterp,)
+          (formatEntityPagingCursorTimeNt <$> mfirstNote)
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do
@@ -210,16 +223,19 @@ getNotesFeedR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   mquery <- lookupGetParam "query"
+  mbefore <- lookupGetParam pagingCursorBeforeParam
+  mafter <- lookupGetParam pagingCursorAfterParam
+  let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
   let limit = maybe 20 fromIntegral limit'
       page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then SharedAll else SharedPublic
-  (_, notes) <- runDB do
+  (_, notes, _, _) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery sharedp limit page
+    getNoteList userId mquery mcursor sharedp limit page
   render <- getUrlRender
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
       entries = map (noteToRssEntry render unamep) notes

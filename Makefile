@@ -1,6 +1,14 @@
 _DOCKER:=docker
 _DOCKER_COMPOSE:=docker compose
 
+VERSION := $(shell sed -n 's/^version:[[:space:]]*//p' espial.cabal)
+GIT_SHA := $(shell git rev-parse --short HEAD 2>/dev/null || echo UNKNOWN)
+BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+SOURCE_URL := $(shell sed -n 's/^homepage:[[:space:]]*//p' espial.cabal)
+TITLE := $(shell sed -n 's/^name:[[:space:]]*//p' espial.cabal)
+DESCRIPTION := $(shell sed -n 's/^synopsis:[[:space:]]*//p' espial.cabal)
+LICENSES := $(shell sed -n 's/^license:[[:space:]]*//p' espial.cabal)
+
 .PHONY: clean build
 
 all: build
@@ -12,7 +20,7 @@ build-fast:
 	@stack build --fast
 
 build-watch:
-	@stack build --file-watch --fast --ghc-options=-fno-code
+	@stack build --file-watch --fast --ghc-options=-fno-code 
 
 repl: 
 	@stack ghci --test --bench --ghci-options=-fno-code --main-is=espial:exe:espial
@@ -21,10 +29,7 @@ ghcid:
 	@ghcid -c "stack ghci --test --bench --ghci-options=-fno-code --main-is=espial:exe:espial"
 
 devel:
-	@yesod devel
-
-migrate-createdb:
-	@stack exec migration -- createdb --conn espial.sqlite3
+	@stack exec -- yesod devel
 
 serve:
 	@stack exec espial -- +RTS -T
@@ -34,7 +39,24 @@ _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $
 _DOCKER_COMPOSE_ARCHIVEBOX07 = $(_DOCKER_COMPOSE) -f docker-compose.archivebox07.yml
 
 docker-compose-build: build 
-	@$(_DOCKER_COMPOSE) build espial
+	@$(_DOCKER_COMPOSE) build espial \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_SHA=$(GIT_SHA) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg SOURCE_URL="$(SOURCE_URL)" \
+		--build-arg TITLE="$(TITLE)" \
+		--build-arg DESCRIPTION="$(DESCRIPTION)" \
+		--build-arg LICENSES="$(LICENSES)"
+docker-compose-build-buildx: build
+	@$(_DOCKER) buildx build -f Dockerfile.buildkit -t localhost/espial:espial --load \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_SHA=$(GIT_SHA) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg SOURCE_URL="$(SOURCE_URL)" \
+		--build-arg TITLE="$(TITLE)" \
+		--build-arg DESCRIPTION="$(DESCRIPTION)" \
+		--build-arg LICENSES="$(LICENSES)" \
+		.
 docker-compose-up:
 	@$(_DOCKER_COMPOSE) up --no-deps --no-build espial
 docker-compose-down:

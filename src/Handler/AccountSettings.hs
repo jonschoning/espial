@@ -1,6 +1,6 @@
 module Handler.AccountSettings where
 
-import qualified ClassyPrelude.Yesod as CP
+import ClassyPrelude.Yesod qualified as CP
 import Import
 
 getAccountSettingsR :: Handler Html

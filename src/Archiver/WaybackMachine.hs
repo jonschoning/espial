@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 module Archiver.WaybackMachine
   ( waybackMachineBackend,
   )
@@ -6,12 +8,12 @@ where
 import Archiver.Backend
 import ClassyPrelude
 import Control.Monad.Logger (LoggingT, logDebug, runLoggingT)
-import qualified Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Database.Persist.Sql (ConnectionPool, Key, runSqlPool)
 import Model (Bookmark, Url (..), User, UserAgent (UserAgent), updateBookmarkArchiveUrl)
-import qualified Network.HTTP.Client as NH
-import qualified Network.HTTP.Types.Status as NH
-import qualified Web.FormUrlEncoded as WH
+import Network.HTTP.Client qualified as NH
+import Network.HTTP.Types.Status qualified as NH
+import Web.FormUrlEncoded qualified as WH
 import Yesod.Default.Main (LogFunc)
 
 -- | Wayback Machine backend.

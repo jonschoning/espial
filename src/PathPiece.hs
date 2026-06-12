@@ -3,7 +3,7 @@
 module PathPiece where
 
 import Data.Text (breakOn, splitOn)
-import qualified Data.Text as T (replace)
+import Data.Text qualified as T (replace)
 import Import.NoFoundation
 
 -- PathPiece

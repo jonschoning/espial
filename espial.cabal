@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
 -- This file has been generated from package.yaml by hpack version 0.39.1.
 --
@@ -17,11 +17,21 @@ bug-reports:    https://github.com/jonschoning/espial/issues
 author:         Jon Schoning
 maintainer:     jonschoning@gmail.com
 copyright:      Copyright (c) 2018 Jon Schoning
-license:        AGPL-3
+license:        AGPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
+tested-with:
+    GHC == 9.10.3
 extra-source-files:
     README.md
+    SECURITY.md
+    Dockerfile
+    Dockerfile.buildkit
+    Makefile
+    appmigrations/002-normalize-bookmark-utctime-add-z.sql
+    appmigrations/002-normalize-bookmark-utctime-remove-z.sql
+    appmigrations/002-normalize-note-utctime-add-z.sql
+    appmigrations/002-normalize-note-utctime-remove-z.sql
     changelog.md
     config/favicon.ico
     config/keter.yml
@@ -29,44 +39,18 @@ extra-source-files:
     config/routes
     config/settings.yml
     config/test-settings.yml
-    templates/change-password.hamlet
-    templates/default-layout-wrapper.hamlet
-    templates/default-layout.hamlet
-    templates/docs-search.hamlet
-    templates/homepage.hamlet
-    templates/login.hamlet
-    templates/note.hamlet
-    templates/notes.hamlet
-    templates/pager.hamlet
-    templates/popup-layout.hamlet
-    templates/search.hamlet
-    templates/user-settings.hamlet
-    templates/user.hamlet
-    static/css/common.css
-    static/css/main.css
-    static/css/popup.css
-    static/css/tachyons.min.css
-    static/css/tachyons.min.css.gz
-    static/fonts/glyphicons-halflings-regular.eot
-    static/fonts/glyphicons-halflings-regular.svg
-    static/fonts/glyphicons-halflings-regular.ttf
-    static/fonts/glyphicons-halflings-regular.woff
-    static/images/bluepin.gif
-    static/js/app-F6AR6563.min.js
-    static/js/app-F6AR6563.min.js.gz
-    static/js/app-F6AR6563.min.js.map
-    static/js/app-F6AR6563.min.js.map.gz
-    static/js/js.cookie-2.2.0.min.js
-    static/js/js.cookie-2.2.0.min.js.gz
-    static/js/manifest.json
+    docker-compose.archivebox07.yml
+    docker-compose.yml
+    frontend/.gitignore
     frontend/.prettierignore
     frontend/.prettierrc
-    frontend/eslint.config.mjs
     frontend/Makefile
+    frontend/README.md
+    frontend/eslint.config.mjs
     frontend/package-lock.json
     frontend/package.json
-    frontend/README.md
-    frontend/tsconfig.json
+    frontend/scripts/publish-bundle.mjs
+    frontend/scripts/report-dist.mjs
     frontend/src/api.ts
     frontend/src/components/AccountSettings.tsx
     frontend/src/components/AddForm.tsx
@@ -84,8 +68,41 @@ extra-source-files:
     frontend/src/stores/tagCloudStore.ts
     frontend/src/types.ts
     frontend/src/util.ts
-    frontend/scripts/publish-bundle.mjs
-    frontend/scripts/report-dist.mjs
+    frontend/tsconfig.json
+    hie.yaml
+    package.yaml
+    stack.yaml
+    stack.yaml.lock
+    static/css/common.css
+    static/css/main.css
+    static/css/popup.css
+    static/css/tachyons.min.css
+    static/css/tachyons.min.css.gz
+    static/fonts/glyphicons-halflings-regular.eot
+    static/fonts/glyphicons-halflings-regular.svg
+    static/fonts/glyphicons-halflings-regular.ttf
+    static/fonts/glyphicons-halflings-regular.woff
+    static/images/bluepin.gif
+    static/js/app-WY46YY6F.min.js
+    static/js/app-WY46YY6F.min.js.gz
+    static/js/app-WY46YY6F.min.js.map
+    static/js/app-WY46YY6F.min.js.map.gz
+    static/js/js.cookie-2.2.0.min.js
+    static/js/js.cookie-2.2.0.min.js.gz
+    static/js/manifest.json
+    templates/change-password.hamlet
+    templates/default-layout-wrapper.hamlet
+    templates/default-layout.hamlet
+    templates/docs-search.hamlet
+    templates/homepage.hamlet
+    templates/login.hamlet
+    templates/note.hamlet
+    templates/notes.hamlet
+    templates/pager.hamlet
+    templates/popup-layout.hamlet
+    templates/search.hamlet
+    templates/user-settings.hamlet
+    templates/user.hamlet
 
 source-repository head
   type: git
@@ -101,6 +118,11 @@ flag library-only
   manual: False
   default: False
 
+flag usebuildinfo
+  description: read buildinfo from generated file buildinfo/BuildInfo.hs
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Application
@@ -110,6 +132,7 @@ library
       Archiver.WaybackMachine
       Foundation
       Generic
+      GraphUtils
       Handler.AccountSettings
       Handler.Add
       Handler.Archive
@@ -129,52 +152,28 @@ library
       Model.FileNetscape
       Model.FileNote
       Model.Form
+      Model.Migrations
       PathPiece
       Pretty
       Settings
       Settings.StaticFiles
       Types
-  other-modules:
+      Version
+      Paths_espial
+  autogen-modules:
       Paths_espial
   hs-source-dirs:
       src
   default-extensions:
-      BangPatterns
       BlockArguments
       CPP
-      ConstraintKinds
-      DataKinds
-      DeriveDataTypeable
-      DeriveGeneric
-      DerivingStrategies
-      EmptyDataDecls
-      FlexibleContexts
-      FlexibleInstances
-      GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
       NoImplicitPrelude
       OverloadedStrings
-      PolyKinds
-      PolymorphicComponents
       PartialTypeSignatures
       QuasiQuotes
-      Rank2Types
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      UndecidableInstances
       ViewPatterns
   build-depends:
       aeson >=1.4
@@ -182,23 +181,25 @@ library
     , base >=4.18.1.0 && <5
     , base64 ==1.*
     , bcrypt >=0.0.8
-    , blaze-html >=0.9 && <1.0
+    , blaze-html >=0.9 && <1
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
-    , conduit >=1.0 && <2.0
+    , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256
     , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
     , entropy
-    , esqueleto >=3.5.11.1 && <3.7.0.0
+    , esqueleto >=3.5.11.1 && <3.7
     , fast-logger >=2.2 && <4
+    , fgl
     , file-embed
     , foreign-store
+    , gitrev
     , hjsmin >=0.1 && <0.3
     , hscolour
     , html-entities
@@ -213,13 +214,13 @@ library
     , mtl
     , parser-combinators
     , persistent >=2.14 && <2.18
-    , persistent-sqlite >=2.13.3 && <2.14
+    , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=2 && <3.0
+    , text ==2.*
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -235,12 +236,18 @@ library
     , yesod-form >=1.6 && <1.8
     , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.8
-  default-language: Haskell2010
+  default-language: GHC2024
   if !os(windows)
     build-depends:
         unix
+  if flag(usebuildinfo)
+    exposed-modules:
+        BuildInfo
+    hs-source-dirs:
+        buildinfo
+    cpp-options: -DUSE_BUILDINFO
   if (flag(dev)) || (flag(library-only))
-    ghc-options: -Wall -fwarn-tabs -O0
+    ghc-options: -Wall -fwarn-tabs
     cpp-options: -DDEVELOPMENT
   else
     ghc-options: -Wall -fwarn-tabs -O2
@@ -250,45 +257,20 @@ executable espial
   other-modules:
       DevelMain
       Paths_espial
+  autogen-modules:
+      Paths_espial
   hs-source-dirs:
       app
   default-extensions:
-      BangPatterns
       BlockArguments
       CPP
-      ConstraintKinds
-      DataKinds
-      DeriveDataTypeable
-      DeriveGeneric
-      DerivingStrategies
-      EmptyDataDecls
-      FlexibleContexts
-      FlexibleInstances
-      GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
       NoImplicitPrelude
       OverloadedStrings
-      PolyKinds
-      PolymorphicComponents
       PartialTypeSignatures
       QuasiQuotes
-      Rank2Types
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      UndecidableInstances
       ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
@@ -297,13 +279,13 @@ executable espial
     , base >=4.18.1.0 && <5
     , base64 ==1.*
     , bcrypt >=0.0.8
-    , blaze-html >=0.9 && <1.0
+    , blaze-html >=0.9 && <1
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
-    , conduit >=1.0 && <2.0
+    , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256
     , crypton-connection
@@ -311,10 +293,12 @@ executable espial
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.7.0.0
+    , esqueleto >=3.5.11.1 && <3.7
     , fast-logger >=2.2 && <4
+    , fgl
     , file-embed
     , foreign-store
+    , gitrev
     , hjsmin >=0.1 && <0.3
     , hscolour
     , html-entities
@@ -329,13 +313,13 @@ executable espial
     , mtl
     , parser-combinators
     , persistent >=2.14 && <2.18
-    , persistent-sqlite >=2.13.3 && <2.14
+    , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=2 && <3.0
+    , text ==2.*
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -351,7 +335,7 @@ executable espial
     , yesod-form >=1.6 && <1.8
     , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.8
-  default-language: Haskell2010
+  default-language: GHC2024
   if !os(windows)
     build-depends:
         unix
@@ -362,45 +346,20 @@ executable migration
   main-is: Main.hs
   other-modules:
       Paths_espial
+  autogen-modules:
+      Paths_espial
   hs-source-dirs:
       app/migration
   default-extensions:
-      BangPatterns
       BlockArguments
       CPP
-      ConstraintKinds
-      DataKinds
-      DeriveDataTypeable
-      DeriveGeneric
-      DerivingStrategies
-      EmptyDataDecls
-      FlexibleContexts
-      FlexibleInstances
-      GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
       NoImplicitPrelude
       OverloadedStrings
-      PolyKinds
-      PolymorphicComponents
       PartialTypeSignatures
       QuasiQuotes
-      Rank2Types
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      UndecidableInstances
       ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
@@ -409,13 +368,13 @@ executable migration
     , base >=4.18.1.0 && <5
     , base64 ==1.*
     , bcrypt >=0.0.8
-    , blaze-html >=0.9 && <1.0
+    , blaze-html >=0.9 && <1
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
-    , conduit >=1.0 && <2.0
+    , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256
     , crypton-connection
@@ -423,10 +382,12 @@ executable migration
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.7.0.0
+    , esqueleto >=3.5.11.1 && <3.7
     , fast-logger >=2.2 && <4
+    , fgl
     , file-embed
     , foreign-store
+    , gitrev
     , hjsmin >=0.1 && <0.3
     , hscolour
     , html-entities
@@ -443,13 +404,13 @@ executable migration
     , optparse-generic >=1.2.3
     , parser-combinators
     , persistent >=2.14 && <2.18
-    , persistent-sqlite >=2.13.3 && <2.14
+    , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=2 && <3.0
+    , text ==2.*
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -465,7 +426,7 @@ executable migration
     , yesod-form >=1.6 && <1.8
     , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.8
-  default-language: Haskell2010
+  default-language: GHC2024
   if !os(windows)
     build-depends:
         unix
@@ -480,45 +441,20 @@ test-suite test
       Handler.HomeSpec
       TestImport
       Paths_espial
+  autogen-modules:
+      Paths_espial
   hs-source-dirs:
       test
   default-extensions:
-      BangPatterns
       BlockArguments
       CPP
-      ConstraintKinds
-      DataKinds
-      DeriveDataTypeable
-      DeriveGeneric
-      DerivingStrategies
-      EmptyDataDecls
-      FlexibleContexts
-      FlexibleInstances
-      GADTs
-      GeneralizedNewtypeDeriving
-      InstanceSigs
-      KindSignatures
-      LambdaCase
-      MultiParamTypeClasses
-      MultiWayIf
       NoImplicitPrelude
       OverloadedStrings
-      PolyKinds
-      PolymorphicComponents
       PartialTypeSignatures
       QuasiQuotes
-      Rank2Types
-      RankNTypes
       RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
       TemplateHaskell
-      TupleSections
-      TypeApplications
       TypeFamilies
-      TypeOperators
-      TypeSynonymInstances
-      UndecidableInstances
       ViewPatterns
   ghc-options: -Wall
   build-depends:
@@ -527,13 +463,13 @@ test-suite test
     , base >=4.18.1.0 && <5
     , base64 ==1.*
     , bcrypt >=0.0.8
-    , blaze-html >=0.9 && <1.0
+    , blaze-html >=0.9 && <1
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
-    , conduit >=1.0 && <2.0
+    , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256
     , crypton-connection
@@ -541,13 +477,15 @@ test-suite test
     , directory >=1.1 && <1.4
     , entropy
     , espial
-    , esqueleto >=3.5.11.1 && <3.7.0.0
+    , esqueleto >=3.5.11.1 && <3.7
     , fast-logger >=2.2 && <4
+    , fgl
     , file-embed
     , foreign-store
+    , gitrev
     , hjsmin >=0.1 && <0.3
     , hscolour
-    , hspec >=2.0.0
+    , hspec >=2
     , html-entities
     , http-api-data >=0.3.4
     , http-client
@@ -560,13 +498,13 @@ test-suite test
     , mtl
     , parser-combinators
     , persistent >=2.14 && <2.18
-    , persistent-sqlite >=2.13.3 && <2.14
+    , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
-    , text >=2 && <3.0
+    , text ==2.*
     , time
     , transformers >=0.2.2
     , unordered-containers
@@ -583,7 +521,7 @@ test-suite test
     , yesod-newsfeed >=1.6 && <1.8
     , yesod-static >=1.6 && <1.8
     , yesod-test
-  default-language: Haskell2010
+  default-language: GHC2024
   if !os(windows)
     build-depends:
         unix

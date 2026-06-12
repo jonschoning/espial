@@ -3,12 +3,12 @@
 module Handler.User where
 
 import Data.Aeson.Encoding (encodingToLazyByteString)
-import qualified Data.Map as Map
-import qualified Data.Text as T
+import Data.Map qualified as Map
+import Data.Text qualified as T
 import Handler.Common
 import Import
-import qualified Network.Wai.Internal as W
-import qualified Text.Blaze.Html5 as H
+import Network.Wai.Internal qualified as W
+import Text.Blaze.Html5 qualified as H
 import Yesod.RssFeed
 
 getUserR :: UserNameP -> Handler Html
@@ -40,14 +40,28 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         _ -> if isowner then filterp' else FilterAll
       isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
       queryp = "query" :: Text
+      beforep = pagingCursorBeforeParam
+      afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
+  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
   let mqueryp = fmap (queryp,) mquery
-  (suggestTags, (bcount, btmarks)) <- runDB $ do
+  (suggestTags, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (userSuggestTags user,) <$> bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
+    (bcount, btmarks, hasEarlier, hasLater) <- bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
+    pure (userSuggestTags user, bcount, btmarks, hasEarlier, hasLater)
+  let mfirstBookmark = headMay (map fst btmarks)
+      mlastBookmark = lastMay (map fst btmarks)
+      mqueryEarlierp =
+        fmap
+          (beforep,)
+          (formatEntityPagingCursorTimeBm <$> mlastBookmark)
+      mqueryLaterp =
+        fmap
+          (afterp,)
+          (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
@@ -66,6 +80,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
         app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
+        app.dat.filter = #{ toJSON filterp' } || {};
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
@@ -150,13 +165,18 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         _ -> if isowner then filterp' else FilterAll
       -- isAll = filterp == FilterAll && sharedp == SharedAll && null pathtags
       queryp = "query" :: Text
+      beforep = pagingCursorBeforeParam
+      afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
-  (_, btmarks) <- runDB $ do
+  mbefore <- lookupGetParam beforep
+  mafter <- lookupGetParam afterp
+  let cursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
+  (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery cursor limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

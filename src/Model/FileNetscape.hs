@@ -1,16 +1,14 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Model.FileNetscape where
 
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
 import Data.Char (isSpace)
 import Data.List (elemIndex, findIndex)
 import Data.Text (breakOn, splitOn, strip)
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TLB
-import qualified Data.Time.Clock.POSIX as TI (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
-import qualified HTMLEntities.Decoder as HED
-import qualified HTMLEntities.Text as HE
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TLB
+import Data.Time.Clock.POSIX qualified as TI (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
+import HTMLEntities.Decoder qualified as HED
+import HTMLEntities.Text qualified as HE
 import Model
 import Model.Custom
 import Types
