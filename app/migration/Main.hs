@@ -12,6 +12,7 @@ import Model
 import Model.Custom
 import Model.File
 import Model.FileNetscape (exportNetscapeBookmarks)
+import Model.Migrations (dumpMigration, runMigrations)
 import qualified Options.Applicative as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic

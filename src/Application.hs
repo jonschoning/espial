@@ -56,6 +56,7 @@ import Handler.Home
 import Handler.Notes
 import Handler.User
 import Handler.Archive
+import Model.Migrations (runMigrations)
 
 mkYesodDispatch "App" resourcesApp
 
@@ -208,6 +209,7 @@ appMain = do
   mainThreadId <- CC.myThreadId
   void $ PS.installHandler PS.sigTERM (PS.CatchOnce (CC.killThread mainThreadId)) Nothing
 #endif
+  putStrLn $ "Starting server."
   runSettings (warpSettings foundation) app
 
 getApplicationRepl :: IO (Int, App, Application)

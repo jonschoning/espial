@@ -7,7 +7,6 @@ import qualified ClassyPrelude.Yesod as CP
 import qualified Control.Monad.Combinators as PC (between)
 import Control.Monad.Fail (MonadFail)
 import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
-import Control.Monad.Writer (tell)
 import qualified Data.Aeson.KeyMap as KM
 import qualified Data.Aeson.Types as A (parseFail)
 import qualified Data.Attoparsec.Text as P
@@ -19,7 +18,6 @@ import qualified Data.Time.ISO8601 as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
-import Pretty ()
 import Types
 
 share
@@ -71,6 +69,12 @@ Note json
   created UTCTime
   updated UTCTime
   deriving Show Eq Typeable Ord
+
+AppMigration
+    version Int
+    name Text
+    appliedAt UTCTime
+    UniqueAppMigrationVersion version
 |]
 
 newtype UTCTimeStr
@@ -129,26 +133,6 @@ newtype Url
 type Limit = Int64
 
 type Page = Int64
-
-migrateAll :: Migration
-migrateAll = migrateSchema >> migrateIndexes
-
-dumpMigration :: DB ()
-dumpMigration = printMigration migrateAll
-
-runMigrations :: DB ()
-runMigrations = runMigration migrateAll
-
-toMigration :: [Text] -> Migration
-toMigration = lift . tell . fmap (False,)
-
-migrateIndexes :: Migration
-migrateIndexes =
-  toMigration
-    [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time ON bookmark (user_id, time DESC)",
-      "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
-      "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)"
-    ]
 
 sqliteGroupConcat ::
   (PersistField a) =>

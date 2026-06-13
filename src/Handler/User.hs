@@ -62,11 +62,11 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         fmap
           (afterp,)
           (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
-  cpprint $ (\(b, _) -> bookmarkTime (entityVal b)) <$> btmarks
-  cpprint mcursor
-  cpprint (mcursor >>= \case PagingCursorBefore c -> Just $ PersistUTCTime c; PagingCursorAfter c -> Just $ PersistUTCTime c)
-  cpprint (mqueryEarlierp, mqueryLaterp)
-  cpprint (hasEarlier, hasLater)
+  -- cpprint $ (\(b, _) -> bookmarkTime (entityVal b)) <$> btmarks
+  -- cpprint mcursor
+  -- cpprint (mcursor >>= \case PagingCursorBefore c -> Just $ PersistUTCTime c; PagingCursorAfter c -> Just $ PersistUTCTime c)
+  -- cpprint (mqueryEarlierp, mqueryLaterp)
+  -- cpprint (hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner pathtags
