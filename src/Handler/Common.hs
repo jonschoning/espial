@@ -4,7 +4,6 @@ module Handler.Common where
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as BS8
 import Data.FileEmbed (embedFile)
-import qualified Data.Time.ISO8601 as TISO (formatISO8601Nanos, parseISO8601)
 import Import
 import Network.Wai (requestHeaderHost)
 import Text.Read
@@ -38,17 +37,23 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
+format8601 :: UTCTime -> Text
+format8601 = pack . formatTime defaultTimeLocale "%FT%T%QZ"
+
 formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
-formatEntityPagingCursorTimeBm = pack . TISO.formatISO8601Nanos . bookmarkTime . entityVal
+formatEntityPagingCursorTimeBm = format8601 . bookmarkTime . entityVal
+
+formatEntityPagingCursorTimeNt :: Entity Note -> Text
+formatEntityPagingCursorTimeNt = format8601 . noteCreated . entityVal
 
 parsePagingCursorTime :: Text -> Maybe UTCTime
-parsePagingCursorTime = TISO.parseISO8601 . unpack
+parsePagingCursorTime = parseTimeText
 
-formatEntityPagingCursor :: (ToBackendKey SqlBackend record) => Entity record -> Text
-formatEntityPagingCursor = tshow . fromSqlKey . entityKey
+formatEntityPagingCursorKey :: (ToBackendKey SqlBackend record) => Entity record -> Text
+formatEntityPagingCursorKey = tshow . fromSqlKey . entityKey
 
-parsePagingCursor :: (ToBackendKey SqlBackend record) => Text -> Maybe (Key record)
-parsePagingCursor t =
+parsePagingCursorKey :: (ToBackendKey SqlBackend record) => Text -> Maybe (Key record)
+parsePagingCursorKey t =
   toSqlKey <$> (readMaybe (unpack t) :: Maybe Int64)
 
 parsePagingCursorParams ::
