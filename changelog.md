@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.35 (2026-06-XX)
+## v0.0.35 (2026-06-17)
 
 - add "appMigrations" on startup; normalize utctime fields in db for correct sorting
 - record "appMigration" history and app version history in db
