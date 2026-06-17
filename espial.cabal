@@ -243,8 +243,6 @@ library
   if flag(usebuildinfo)
     exposed-modules:
         BuildInfo
-    autogen-modules:
-        BuildInfo
     hs-source-dirs:
         buildinfo
     cpp-options: -DUSE_BUILDINFO

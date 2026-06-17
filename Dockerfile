@@ -21,7 +21,7 @@ RUN mkdir -p /tmp/buildinfo && \
   echo "import Prelude(String)" >> /tmp/buildinfo/BuildInfo.hs && \
   echo "gitSha :: String" >> /tmp/buildinfo/BuildInfo.hs && \
   echo "gitSha = \"${GIT_SHA}\"" >> /tmp/buildinfo/BuildInfo.hs && \
-  cp -r /tmp/buildinfo buildinfo
+  cp /tmp/buildinfo/BuildInfo.hs buildinfo/BuildInfo.hs
 
 RUN stack build --copy-bins --local-bin-path /opt/espial/bin --flag espial:usebuildinfo
 

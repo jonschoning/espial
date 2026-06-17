@@ -148,7 +148,7 @@ library:
     - Paths_espial
   when:
     - condition: flag(usebuildinfo)
-      generated-exposed-modules:
+      exposed-modules:
         - BuildInfo
       source-dirs: buildinfo
       cpp-options:
