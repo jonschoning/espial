@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 module Handler.Archive where
 
 import Archiver.Backend (ArchiverBackend (..))

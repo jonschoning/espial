@@ -10,3 +10,5 @@ database:
   database: ":memory:"
 
 auth-dummy-login: true
+request-logging: false
+startup-logging: false

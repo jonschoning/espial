@@ -1,22 +1,19 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Foundation where
 
 import Archiver.Backend (ArchiverBackend)
-import qualified Data.CaseInsensitive as CI
-import qualified Data.Text.Encoding as TE
+import Data.CaseInsensitive qualified as CI
+import Data.Text.Encoding qualified as TE
 import Data.Type.Equality (type (~))
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Import.NoFoundation
-import qualified Network.Wai as Wai
+import Network.Wai qualified as Wai
 import PathPiece ()
 import Text.Hamlet (hamletFile)
 import Yesod.Auth.Message
 import Yesod.Core.Types
-import qualified Yesod.Core.Unsafe as Unsafe
+import Yesod.Core.Unsafe qualified as Unsafe
 
 data App = App
   { appSettings :: AppSettings,
@@ -119,6 +116,14 @@ instance Yesod App where
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
   shouldLogIO app "yesod-core" LevelWarn = pure False -- remove verbose CSRF token warnings
+  shouldLogIO app "startup" level =
+    pure
+      ( ( appEnableStartupLogging (appSettings app)
+            && (appShouldLogAll (appSettings app) || level == LevelInfo || level == LevelWarn || level == LevelError)
+        )
+          || level == LevelWarn
+          || level == LevelError
+      )
   shouldLogIO app source level = pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
 
   makeLogger = return . appLogger

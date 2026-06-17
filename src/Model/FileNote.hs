@@ -1,11 +1,9 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Model.FileNote where
 
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
 import Control.Monad.Fail (MonadFail)
-import qualified Data.Aeson as A
-import qualified Data.Aeson.Types as A (parseFail)
+import Data.Aeson qualified as A
+import Data.Aeson.Types qualified as A (parseFail)
 import Model
 import Model.Custom
 import System.Directory (listDirectory)

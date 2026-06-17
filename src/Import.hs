@@ -6,8 +6,8 @@ module Import
   )
 where
 
-import qualified Data.Aeson as A
-import qualified Data.ByteString.Char8 as B8
+import Data.Aeson qualified as A
+import Data.ByteString.Char8 qualified as B8
 import Data.Type.Equality (type (~))
 import Foundation as Import
 import Import.NoFoundation as Import

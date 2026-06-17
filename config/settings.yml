@@ -20,6 +20,8 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 #
 detailed-logging: "_env:DETAILED_LOGGING" # false
 should-log-all: "_env:SHOULD_LOG_ALL" # false
+startup-logging: "_env:STARTUP_LOGGING" # true
+request-logging: "_env:REQUEST_LOGGING" # true
 # reload-templates: false
 # mutable-static: false
 # skip-combining: false
@@ -53,6 +55,7 @@ archivebox-username: "_env:ARCHIVEBOX_USERNAME" # ArchiveBox admin username used
 archivebox-password: "_env:ARCHIVEBOX_PASSWORD" # ArchiveBox admin password used when archive-backend is set to archivebox.
 archivebox-tag: "_env:ARCHIVEBOX_TAG:espial"
 archivebox-plugins: "_env:ARCHIVEBOX_PLUGINS:title,favicon,singlefile,screenshot" # Comma-separated list of ArchiveBox plugins to run when espial adds a URL to ArchiveBox.
+
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 

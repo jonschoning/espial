@@ -3,11 +3,13 @@ $maybe route <- mroute
     <table style="float:left" border="0">
       <tbody>
         <tr>
-          $if fromIntegral bcount >= (limit * page)
+          $if hasEarlier
             <td width="80">
-              <a .link.pager-arrow #top_earlier href="@?{(route, catMaybes [Just ("page", pack (show (page + 1))), mqueryp])}">
-                « earlier
-          $if page > 1
+              $maybe queryEarlierp <- mqueryEarlierp
+                <a .link.pager-arrow #top_earlier href="@?{(route, catMaybes [mqueryp, Just queryEarlierp])}">
+                  « earlier
+          $if hasLater
             <td width="80">
-              <a .link.pager-arrow #top_later href="@?{(route, catMaybes [Just ("page", pack (show (page - 1))), mqueryp])}">
-                later »
+              $maybe queryLaterp <- mqueryLaterp
+                <a .link.pager-arrow #top_later href="@?{(route, catMaybes [mqueryp, Just queryLaterp])}">
+                  later »

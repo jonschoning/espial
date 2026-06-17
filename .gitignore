@@ -36,3 +36,4 @@ purs/docset/purescript-local.docset/
 *.log
 *.html
 archivebox-data
+*.7z

@@ -1,8 +1,8 @@
 -- | Common handler functions.
 module Handler.Common where
 
-import Data.Aeson as A
-import qualified Data.ByteString.Char8 as BS8
+import Data.Aeson qualified as A
+import Data.ByteString.Char8 qualified as BS8
 import Data.FileEmbed (embedFile)
 import Import
 import Network.Wai (requestHeaderHost)
@@ -30,6 +30,40 @@ lookupPagingParams =
   (,)
     <$> getUrlSessionParam "count"
     <*> getUrlParam "page"
+
+pagingCursorBeforeParam :: Text
+pagingCursorBeforeParam = "before"
+
+pagingCursorAfterParam :: Text
+pagingCursorAfterParam = "after"
+
+format8601 :: UTCTime -> Text
+format8601 = pack . formatTime defaultTimeLocale "%FT%T%QZ"
+
+formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
+formatEntityPagingCursorTimeBm = format8601 . bookmarkTime . entityVal
+
+formatEntityPagingCursorTimeNt :: Entity Note -> Text
+formatEntityPagingCursorTimeNt = format8601 . noteCreated . entityVal
+
+parsePagingCursorTime :: Text -> Maybe UTCTime
+parsePagingCursorTime = parseTimeText
+
+formatEntityPagingCursorKey :: (ToBackendKey SqlBackend record) => Entity record -> Text
+formatEntityPagingCursorKey = tshow . fromSqlKey . entityKey
+
+parsePagingCursorKey :: (ToBackendKey SqlBackend record) => Text -> Maybe (Key record)
+parsePagingCursorKey t =
+  toSqlKey <$> (readMaybe (unpack t) :: Maybe Int64)
+
+parsePagingCursorParams ::
+  (Text -> Maybe cursor) ->
+  (Text -> Maybe cursor) ->
+  Maybe Text ->
+  Maybe Text ->
+  Maybe cursor
+parsePagingCursorParams mkBefore mkAfter mbefore mafter =
+  (mkBefore =<< mbefore) <|> (mkAfter =<< mafter)
 
 espialUserAgent :: Handler UserAgent
 espialUserAgent = do

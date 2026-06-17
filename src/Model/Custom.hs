@@ -1,14 +1,14 @@
 module Model.Custom where
 
 import Crypto.BCrypt as Import hiding (hashPassword)
-import qualified Crypto.Hash.SHA256 as SHA256
-import qualified Data.Aeson as A
-import qualified Data.Base64.Types as Base64
-import qualified Data.ByteString.Base64.URL as Base64Url
-import qualified Data.ByteString.Builder as BB
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
+import Crypto.Hash.SHA256 qualified as SHA256
+import Data.Aeson qualified as A
+import Data.Base64.Types qualified as Base64
+import Data.ByteString.Base64.URL qualified as Base64Url
+import Data.ByteString.Builder qualified as BB
+import Data.ByteString.Lazy qualified as LBS
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
 import Database.Persist.Sql
 import Safe (fromJustNote)
 import System.Entropy (getEntropy)

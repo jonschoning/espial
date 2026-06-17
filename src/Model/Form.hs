@@ -1,8 +1,8 @@
 module Model.Form where
 
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
-import qualified ClassyPrelude.Yesod as CP
-import qualified Data.Aeson as A
+import ClassyPrelude.Yesod qualified as CP
+import Data.Aeson qualified as A
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Model
 import Model.Custom
@@ -65,18 +65,18 @@ instance FromJSON BookmarkForm where parseJSON = A.genericParseJSON gDefaultForm
 
 instance ToJSON BookmarkForm where
   toJSON BookmarkForm {..} =
-    A.object $
-      [ "url" .= _url,
-        "title" .= _title,
-        "description" .= _description,
-        "tags" .= _tags,
-        "private" .= _private,
-        "toread" .= _toread,
-        "bid" .= _bid,
-        "slug" .= _slug,
-        "selected" .= _selected,
-        "time" .= _time
-      ]
+    A.object
+      $ [ "url" .= _url,
+          "title" .= _title,
+          "description" .= _description,
+          "tags" .= _tags,
+          "private" .= _private,
+          "toread" .= _toread,
+          "bid" .= _bid,
+          "slug" .= _slug,
+          "selected" .= _selected,
+          "time" .= _time
+        ]
       ++ maybe [] (\x -> ["archiveUrl" .= x]) _archiveUrl
       ++ maybe [] (\x -> ["archiveRequested" .= x]) _archiveRequested
   toEncoding BookmarkForm {..} =

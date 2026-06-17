@@ -48,8 +48,12 @@ data AppSettings = AppSettings
     appIpFromHeader :: Bool,
     -- | Use detailed request logging system
     appDetailedRequestLogging :: Bool,
+    -- | Enable request logging middleware.
+    appEnableRequestLogging :: Bool,
     -- | Should all log messages be displayed?
     appShouldLogAll :: Bool,
+    -- | Enable startup and migration log output.
+    appEnableStartupLogging :: Bool,
     -- | Use the reload version of templates
     appReloadTemplates :: Bool,
     -- | Assume that files in the static dir may change after compilation
@@ -88,7 +92,9 @@ data AppSettings = AppSettings
     appArchiveBackend :: ArchiveBackend,
     -- | Uri to app source code
     appSourceCodeUri :: Maybe Text,
+    -- | Whether to only allow SSL connections (i.e. disable non-https cookies and redirects)
     appSSLOnly :: Bool,
+    -- | Whether to allow non-http URL schemes (e.g. mailto:, ipfs:, etc.) in user input.
     appAllowNonHttpUrlSchemes :: Bool
   }
 
@@ -110,7 +116,9 @@ instance FromJSON AppSettings where
     dev <- o .:? "development" .!= defaultDev
 
     appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
+    appEnableRequestLogging <- o .:? "request-logging" .!= True
     appShouldLogAll <- o .:? "should-log-all" .!= dev
+    appEnableStartupLogging <- o .:? "startup-logging" .!= True
     appReloadTemplates <- o .:? "reload-templates" .!= dev
     appMutableStatic <- o .:? "mutable-static" .!= dev
     appSkipCombining <- o .:? "skip-combining" .!= dev

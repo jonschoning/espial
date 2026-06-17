@@ -57,6 +57,13 @@ export type Note = {
   updated: string;
 };
 
+export type Filter =
+  | { tag: 'FilterAll' }
+  | { tag: 'FilterUnread' }
+  | { tag: 'FilterUntagged' }
+  | { tag: 'FilterStarred' }
+  | { tag: 'FilterSingle'; contents: string };
+
 export type AccountSettings = {
   /** Whether bookmarks are archived by default. */
   archiveDefault: boolean;

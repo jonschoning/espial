@@ -37,23 +37,23 @@
           <td .pv2.ph3>FIELD
           <td .pv2.ph3>EXAMPLE
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">url
-          <td .pv2.ph3><span class="code fw9">url:youtube.com
+          <td .pv2.ph3><span class="code fw9">url</span>, <span class="code fw9">u
+          <td .pv2.ph3><span class="code fw9">url:youtube.com</span><br><span class="code fw9">u:youtube.com
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">title
-          <td .pv2.ph3><span class="code fw9">title:"hacker news"
+          <td .pv2.ph3><span class="code fw9">title</span>, <span class="code fw9">ti
+          <td .pv2.ph3><span class="code fw9">title:"hacker news"</span><br><span class="code fw9">ti:"hacker news"
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">description
-          <td .pv2.ph3><span class="code fw9">description:surveys
+          <td .pv2.ph3><span class="code fw9">description</span>, <span class="code fw9">d
+          <td .pv2.ph3><span class="code fw9">description:surveys</span><br><span class="code fw9">d:surveys
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">tags
-          <td .pv2.ph3><span class="code fw9">tags:learning
+          <td .pv2.ph3><span class="code fw9">tags</span>, <span class="code fw9">t
+          <td .pv2.ph3><span class="code fw9">tags:learning</span><br><span class="code fw9">t:learning
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">after
-          <td .pv2.ph3><span class="code fw9">after:12/31/2018<br>after:2018-12-31
+          <td .pv2.ph3><span class="code fw9">after</span>, <span class="code fw9">a
+          <td .pv2.ph3><span class="code fw9">after:12/31/2018</span><br><span class="code fw9">after:2018-12-31</span><br><span class="code fw9">a:12/31/2018</span><br><span class="code fw9">a:2018-12-31
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">before
-          <td .pv2.ph3><span class="code fw9">before:12/31/2019<br>before:2019-12-31
+          <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
+          <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
   
     <div .f5.fw6.pv3.underline>Note Search
     <table .collapse.ba.br2.thm-border-doc-table.pv2.ph3>
@@ -62,25 +62,25 @@
           <td .pv2.ph3>FIELD
           <td .pv2.ph3>EXAMPLE
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">title
-          <td .pv2.ph3><span class="code fw9">title:"hacker news"
+          <td .pv2.ph3><span class="code fw9">title</span>, <span class="code fw9">ti
+          <td .pv2.ph3><span class="code fw9">title:"hacker news"</span><br><span class="code fw9">ti:"hacker news"
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">description
-          <td .pv2.ph3><span class="code fw9">description:surveys
+          <td .pv2.ph3><span class="code fw9">description</span>, <span class="code fw9">d
+          <td .pv2.ph3><span class="code fw9">description:surveys</span><br><span class="code fw9">d:surveys
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">after
-          <td .pv2.ph3><span class="code fw9">after:12/31/2018<br>after:2018-12-31
+          <td .pv2.ph3><span class="code fw9">after</span>, <span class="code fw9">a
+          <td .pv2.ph3><span class="code fw9">after:12/31/2018</span><br><span class="code fw9">after:2018-12-31</span><br><span class="code fw9">a:12/31/2018</span><br><span class="code fw9">a:2018-12-31
         <tr .docs-striped-item>
-          <td .pv2.ph3><span class="code fw9">before
-          <td .pv2.ph3><span class="code fw9">before:12/31/2019<br>before:2019-12-31
+          <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
+          <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
 
   <h3 .mb0>More Complex Examples
   <div .ml3.pt3>
     <span>"youtube" in url, and title of "haskell" or title of "python" and after 12/31/2017
-    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">url:youtube title:haskell|title:python after:12/31/2017
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">u:youtube ti:haskell|ti:python a:12/31/2017
       
   <div .ml3.pt3>
     <span>"hacker news" not in title, and "news", "cnn", "npr" anywhere, or "the guardian" in the description
-    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">-title:"hacker news" news|cnn|npr|description:"the guardian"
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">-ti:"hacker news" news|cnn|npr|d:"the guardian"
 
 

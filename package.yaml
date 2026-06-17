@@ -1,173 +1,169 @@
-name:    espial
+name: espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.34"
-description: ! '
+version: "0.0.35"
+description: ! "
   Espial is an open-source, web-based bookmarking server.
 
   - Yesod + TypeScript + sqlite3
 
   - multi-user (w/ privacy scopes)
-  
-  - tags, stars, editing, deleting'
+
+  - tags, stars, editing, deleting"
 category: Web
 author: Jon Schoning
 maintainer: jonschoning@gmail.com
 copyright: Copyright (c) 2018 Jon Schoning
-license: AGPL-3
+license: AGPL-3.0-or-later
 license-file: LICENSE
 homepage: https://github.com/jonschoning/espial
 git: https://github.com/jonschoning/espial.git
 bug-reports: https://github.com/jonschoning/espial/issues
 extra-source-files:
-- README.md
-- changelog.md
-- config/favicon.ico
-- config/keter.yml
-- config/robots.txt
-- config/routes
-- config/settings.yml
-- config/test-settings.yml
-- templates/**
-- static/css/**
-- static/fonts/**
-- static/images/**
-- static/js/**
-- frontend/.prettierignore
-- frontend/.prettierrc
-- frontend/eslint.config.mjs
-- frontend/Makefile
-- frontend/package-lock.json
-- frontend/package.json
-- frontend/README.md
-- frontend/tsconfig.json
-- frontend/src/**/*
-- frontend/scripts/**/*
+  - README.md
+  - SECURITY.md
+  - Dockerfile
+  - Dockerfile.buildkit
+  - Makefile
+  - appmigrations/**
+  - changelog.md
+  - config/favicon.ico
+  - config/keter.yml
+  - config/robots.txt
+  - config/routes
+  - config/settings.yml
+  - config/test-settings.yml
+  - docker-compose.archivebox07.yml
+  - docker-compose.yml
+  - frontend/.gitignore
+  - frontend/.prettierignore
+  - frontend/.prettierrc
+  - frontend/Makefile
+  - frontend/README.md
+  - frontend/eslint.config.mjs
+  - frontend/package-lock.json
+  - frontend/package.json
+  - frontend/scripts/**/*
+  - frontend/src/**/*
+  - frontend/tsconfig.json
+  - hie.yaml
+  - package.yaml
+  - stack.yaml
+  - stack.yaml.lock
+  - static/css/**
+  - static/fonts/**
+  - static/images/**
+  - static/js/**
+  - templates/**
+
+language: GHC2024
 
 default-extensions:
-- BangPatterns
-- BlockArguments
-- CPP
-- ConstraintKinds
-- DataKinds
-- DeriveDataTypeable
-- DeriveGeneric
-- DerivingStrategies      
-- EmptyDataDecls
-- FlexibleContexts
-- FlexibleInstances
-- GADTs
-- GeneralizedNewtypeDeriving
-- InstanceSigs
-- KindSignatures
-- LambdaCase
-- MultiParamTypeClasses
-- MultiWayIf
-- NoImplicitPrelude
-- OverloadedStrings
-- PolyKinds
-- PolymorphicComponents
-- PartialTypeSignatures
-- QuasiQuotes
-- Rank2Types
-- RankNTypes
-- RecordWildCards
-- ScopedTypeVariables
-- StandaloneDeriving
-- TemplateHaskell
-- TupleSections
-- TypeApplications
-- TypeFamilies
-- TypeOperators
-- TypeSynonymInstances
-- UndecidableInstances
-- ViewPatterns
+  - BlockArguments
+  - CPP
+  - NoImplicitPrelude
+  - OverloadedStrings
+  - PartialTypeSignatures
+  - QuasiQuotes
+  - RecordWildCards
+  - TemplateHaskell
+  - TypeFamilies
+  - ViewPatterns
 
 dependencies:
+  - base >=4.18.1.0 && <5
+  - yesod >=1.6 && <1.8
+  - yesod-core >=1.6 && <1.8
+  - yesod-auth >=1.6 && <1.8
+  - yesod-static >=1.6 && <1.8
+  - yesod-form >=1.6 && <1.8
+  - yesod-newsfeed >= 1.6 && < 1.8
+  - classy-prelude >=1.4 && <1.6
+  - classy-prelude-conduit >=1.4 && <1.6
+  - classy-prelude-yesod >=1.4 && <1.6
+  - bytestring >=0.11.5 && <0.13
+  - text >=2 && <3
+  - persistent >=2.14 && <2.18
+  - blaze-html >= 0.9 && < 1
+  - persistent-template >=2.12 && <2.13
+  - template-haskell
+  - shakespeare >=2.0 && <2.2
+  - hjsmin >=0.1 && <0.3
+  - wai-extra >=3.0 && <3.2
+  - yaml >=0.8 && <0.12
+  - http-client-tls >=0.3 && <0.4
+  - http-conduit >=2.3 && <2.4
+  - directory >=1.1 && <1.4
+  - warp >=3.0 && <3.5
+  - data-default
+  - conduit >=1.0 && <2
+  - monad-logger >=0.3 && <0.4
+  - fast-logger >=2.2 && <4
+  - wai-logger
+  - file-embed
+  - safe
+  - unordered-containers
+  - containers
+  - vector
+  - time
+  - case-insensitive
+  - wai
+  - foreign-store
 
-- base >=4.18.1.0 && <5
-- yesod >=1.6 && <1.8
-- yesod-core >=1.6 && <1.8
-- yesod-auth >=1.6 && <1.8
-- yesod-static >=1.6 && <1.8
-- yesod-form >=1.6 && <1.8
-- yesod-newsfeed >= 1.6 && < 1.8
-- classy-prelude >=1.4 && <1.6
-- classy-prelude-conduit >=1.4 && <1.6
-- classy-prelude-yesod >=1.4 && <1.6
-- bytestring >=0.11.5 && <0.13
-- text >=2 && <3.0
-- persistent >=2.14 && <2.18
-- blaze-html >= 0.9 && < 1.0
-- persistent-template >=2.12 && <2.13
-- template-haskell
-- shakespeare >=2.0 && <2.2
-- hjsmin >=0.1 && <0.3
-- wai-extra >=3.0 && <3.2
-- yaml >=0.8 && <0.12
-- http-client-tls >=0.3 && <0.4
-- http-conduit >=2.3 && <2.4
-- directory >=1.1 && <1.4
-- warp >=3.0 && <3.5
-- data-default
-- conduit >=1.0 && <2.0
-- monad-logger >=0.3 && <0.4
-- fast-logger >=2.2 && <4
-- wai-logger
-- file-embed
-- safe
-- unordered-containers
-- containers
-- vector
-- time
-- case-insensitive
-- wai
-- foreign-store
+  - aeson >=1.4
+  - attoparsec
+  - base64 >=1 && < 2
+  - bcrypt >= 0.0.8
+  - cryptohash-sha256
+  - crypton-connection
+  - entropy
+  - esqueleto >= 3.5.11.1 && < 3.7
+  - fgl
+  - gitrev
+  - hscolour
+  - html-entities
+  - http-api-data >= 0.3.4
+  - http-client
+  - http-types
+  - iso8601-time >=0.1.3
+  - microlens
+  - mtl
+  - parser-combinators
+  - persistent-sqlite == 2.13.3.0
+  - pretty-show
+  - transformers >= 0.2.2
 
-- aeson >=1.4
-- attoparsec
-- bcrypt >= 0.0.8
-- entropy
-- esqueleto >= 3.5.11.1 && < 3.7.0.0
-- hscolour
-- http-api-data >= 0.3.4
-- http-client
-- http-types
-- iso8601-time >=0.1.3
-- microlens
-- mtl
-- persistent-sqlite >=2.13.3 && < 2.14
-- pretty-show
-- transformers >= 0.2.2
-- parser-combinators
-- html-entities
-- crypton-connection
-- base64 >=1 && < 2
-- cryptohash-sha256
-
-when: 
+when:
   - condition: "!os(windows)"
-    dependencies: 
+    dependencies:
       - unix
 
-
+tested-with:
+  - GHC == 9.10.3
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
+  generated-exposed-modules:
+    - Paths_espial
   when:
-  - condition: (flag(dev)) || (flag(library-only))
-    then:
-      ghc-options:
-      - -Wall
-      - -fwarn-tabs
-      - -O0
-      cpp-options: -DDEVELOPMENT
-    else:
-      ghc-options:
-      - -Wall
-      - -fwarn-tabs
-      - -O2
+    - condition: flag(usebuildinfo)
+      exposed-modules:
+        - BuildInfo
+      source-dirs: buildinfo
+      cpp-options:
+        - -DUSE_BUILDINFO
+    - condition: (flag(dev)) || (flag(library-only))
+      then:
+        ghc-options:
+          - -Wall
+          - -fwarn-tabs
+        cpp-options: -DDEVELOPMENT
+      else:
+        ghc-options:
+          - -Wall
+          - -fwarn-tabs
+          - -O2
 
 # Runnable executable for our application
 executables:
@@ -175,14 +171,14 @@ executables:
     main: main.hs
     source-dirs: app
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - espial
+      - espial
     when:
-    - condition: flag(library-only)
-      buildable: false
+      - condition: flag(library-only)
+        buildable: false
   migration:
     when:
       - condition: flag(library-only)
@@ -203,9 +199,9 @@ tests:
     source-dirs: test
     ghc-options: -Wall
     dependencies:
-    - espial
-    - hspec >=2.0.0
-    - yesod-test
+      - espial
+      - hspec >=2
+      - yesod-test
 
 # Define flags used by "yesod devel" to make compilation faster
 flags:
@@ -217,3 +213,7 @@ flags:
     description: Turn on development settings, like auto-reload templates.
     manual: false
     default: false
+  usebuildinfo:
+    description: read buildinfo from generated file buildinfo/BuildInfo.hs
+    default: false
+    manual: true

@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Archiver.ArchiveBox07
   ( archiveBox07Backend,
   )
@@ -9,12 +7,12 @@ import Archiver.Backend
 import ClassyPrelude
 import Control.Monad.Logger (LoggingT, logDebug, logWarn, runLoggingT)
 import Control.Monad.Trans.Except (ExceptT (..), runExceptT, throwE)
-import qualified Data.ByteString.Lazy as BSL
+import Data.ByteString.Lazy qualified as BSL
 import Data.Default (def)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Database.Persist.Sql (ConnectionPool, Key, runSqlPool)
 import Model (Bookmark, Url (..), User, updateBookmarkArchiveUrl)
-import qualified Network.Connection as NC
+import Network.Connection qualified as NC
 import Network.HTTP.Client
   ( CookieJar,
     HttpException (..),
@@ -35,12 +33,12 @@ import Network.HTTP.Client
     updateCookieJar,
   )
 import Network.HTTP.Client.TLS (mkManagerSettings, newTlsManagerWith)
-import qualified Network.HTTP.Types as HT
+import Network.HTTP.Types qualified as HT
 import Network.HTTP.Types.Header (hLocation, hReferer)
-import qualified Network.HTTP.Types.Status as NStatus
-import qualified Network.HTTP.Types.URI as NUri
+import Network.HTTP.Types.Status qualified as NStatus
+import Network.HTTP.Types.URI qualified as NUri
 import Settings (AppSettings (..))
-import qualified Web.FormUrlEncoded as WH
+import Web.FormUrlEncoded qualified as WH
 import Yesod.Default.Main (LogFunc)
 
 data ArchiveBoxContext = ArchiveBoxContext

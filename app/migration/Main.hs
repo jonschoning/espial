@@ -3,16 +3,17 @@
 module Main where
 
 import ClassyPrelude
-import qualified Data.Text as T
-import qualified Database.Persist as P
-import qualified Database.Persist.Sqlite as P
+import Data.Text qualified as T
+import Database.Persist qualified as P
+import Database.Persist.Sqlite qualified as P
 import Import (configSettingsYmlValue)
 import Lens.Micro
 import Model
 import Model.Custom
 import Model.File
 import Model.FileNetscape (exportNetscapeBookmarks)
-import qualified Options.Applicative as OA
+import Model.Migrations (dumpMigration, runPersistentMigrations, runAppMigrations)
+import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
 import Settings (AppSettings (..))
@@ -83,6 +84,8 @@ instance ParseRecord MigrationOpts
 
 main :: IO ()
 main = do
+  hSetBuffering stdout LineBuffering
+  hSetBuffering stderr LineBuffering
   args <- getRecord "Migrations"
   case args of
     PrintMigrateDB {..} -> do
@@ -93,7 +96,8 @@ main = do
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
-      P.runSqliteInfo connInfo runMigrations
+      P.runSqliteInfo connInfo (runPersistentMigrations True)
+      P.runSqliteInfo connInfo (runAppMigrations True)
     CreateUser {..} -> do
       connText <- getConnText conn
       P.runSqlite connText $ do
