@@ -4,12 +4,12 @@ $maybe route <- mroute
       <tbody>
         <tr>
           $if hasEarlier
-            <td width="80">
+            <td .dib.mr4>
               $maybe queryEarlierp <- mqueryEarlierp
                 <a .link.pager-arrow #top_earlier href="@?{(route, catMaybes [mqueryp, Just queryEarlierp])}">
-                  « earlier
+                  #{t "pager.earlier"}
           $if hasLater
-            <td width="80">
+            <td .dib.mr4>
               $maybe queryLaterp <- mqueryLaterp
                 <a .link.pager-arrow #top_later href="@?{(route, catMaybes [mqueryp, Just queryLaterp])}">
-                  later »
+                  #{t "pager.later"}

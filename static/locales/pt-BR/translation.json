@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Combinacao de usuario/senha invalida",
+    "incorrectOldPassword": "Senha antiga incorreta",
+    "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
+    "passUpdated": "Senha atualizada",
+    "missingRequiredFields": "Campos obrigatorios ausentes"
+  },
+  "error": {
+    "notFound": "Nao encontrado",
+    "internalError": "Erro interno do servidor",
+    "invalidArgs": "Argumentos invalidos",
+    "badMethod": "Metodo nao permitido",
+    "notAuthenticated": "Nao autenticado",
+    "permissionDenied": "Permissao negada"
+  },
+  "nav": {
+    "privateProfileEnabled": "perfil privado ativado",
+    "darkMode": "modo escuro",
+    "lightMode": "modo claro",
+    "addUrl": "adicionar url",
+    "addNote": "adicionar nota",
+    "notes": "notas",
+    "settings": "configuracoes",
+    "logout": "sair",
+    "login": "entrar"
+  },
+  "footer": {
+    "sourceCode": "Codigo-fonte"
+  },
+  "login": {
+    "pageTitle": "Entrar",
+    "username": "Usuario",
+    "password": "Senha",
+    "submit": "Entrar"
+  },
+  "changePassword": {
+    "oldPassword": "Senha antiga",
+    "newPassword": "Nova senha",
+    "submit": "Salvar alteracoes"
+  },
+  "settings": {
+    "serverDefault": "Padrao do servidor",
+    "bookmarklet": "bookmarklet para adicionar url",
+    "changePassword": "Alterar senha",
+    "accountTitle": "Configuracoes da conta",
+    "archiveDefault": "Arquivar novos favoritos nao privados por padrao",
+    "privateDefault": "Definir novos favoritos como privados por padrao",
+    "suggestTags": "Ativar sugestoes de tags",
+    "privacyLock": "Bloqueio de privacidade (conta privada)",
+    "archivingDisabled": "Arquivamento desativado",
+    "language": "Idioma"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "todos",
+    "private": "privados",
+    "public": "publicos",
+    "unread": "nao lidos",
+    "untagged": "sem tags",
+    "starred": "favoritos"
+  },
+  "pagination": {
+    "perPage": "por pagina:"
+  },
+  "pager": {
+    "earlier": "« anteriores",
+    "later": "proximos »"
+  },
+  "notes": {
+    "youHave": "Voce tem",
+    "found": "Encontrado",
+    "label": "notas:"
+  },
+  "search": {
+    "placeholder": "buscar",
+    "clearTitle": "limpar resultados da busca",
+    "submitTitle": "enviar busca",
+    "syntaxTitle": "sintaxe de busca"
+  },
+  "noTitle": "[sem titulo]",
+  "edit": "editar",
+  "delete": "excluir",
+  "cancel": "cancelar",
+  "destroy": "destruir",
+  "save": "salvar",
+  "fetch": "buscar",
+  "archive": "arquivar",
+  "archiving": "arquivando",
+  "bmark": {
+    "archiveLinkTitle": "link do arquivo",
+    "markAsRead": "marcar como lido",
+    "viewInContext": "ver no contexto",
+    "url": "url",
+    "title": "titulo",
+    "description": "descricao",
+    "tags": "tags",
+    "private": "privado",
+    "toread": "ler depois"
+  },
+  "note": {
+    "killed": "voce excluiu esta nota",
+    "titleLabel": "titulo:",
+    "descriptionLabel": "descricao:",
+    "useMarkdown": "usar markdown?",
+    "publicLabel": "publica?"
+  },
+  "addForm": {
+    "previouslySaved": "salvo anteriormente",
+    "url": "URL",
+    "archive": "arquivar",
+    "archiveUnavailable": "o arquivamento nao esta disponivel para favoritos privados",
+    "readLater": "ler depois",
+    "update": "atualizar favorito",
+    "add": "adicionar favorito",
+    "killed": "voce excluiu este favorito"
+  },
+  "tagCloud": {
+    "relatedTags": "Tags relacionadas",
+    "topTags": "Principais tags",
+    "topTagsTitle": "mostrar uma nuvem com as tags mais usadas",
+    "allTitle": "mostrar todas as tags",
+    "min2Title": "mostrar tags com pelo menos 2 favoritos",
+    "min5Title": "mostrar tags com pelo menos 5 favoritos",
+    "min10Title": "mostrar tags com pelo menos 10 favoritos",
+    "min20Title": "mostrar tags com pelo menos 20 favoritos",
+    "hide": "ocultar",
+    "show": "mostrar"
+  },
+  "docs": {
+    "title": "Entendendo a sintaxe de busca",
+    "pageFilters": "Filtros de pagina",
+    "pageFiltersDesc": "As buscas sao limitadas ao filtro de pagina atualmente selecionado.",
+    "soGiven": "Assim, considerando os filtros de pagina possiveis",
+    "if": "Se",
+    "isCurrentlySelectedIncludes": "estiver selecionado no momento, a busca inclui",
+    "bookmarks": "favoritos",
+    "isCurrentlySelectedOnly": "estiver selecionado no momento, a busca inclui apenas",
+    "bookmarksEtc": "favoritos, etc.",
+    "combineAnd": "Combinar buscas (AND)",
+    "separateBySpace": "Separe os termos com um espaco.",
+    "forExample": "Por exemplo,",
+    "combineOr": "Combinar buscas (OR)",
+    "put": "Coloque",
+    "betweenQuery": "entre cada consulta de busca.",
+    "excludeWords": "Excluir palavras da busca",
+    "inFrontWord": "na frente de uma palavra que voce quer omitir.",
+    "exactMatch": "Buscar uma correspondencia exata",
+    "putInQuotes": "Coloque uma palavra ou frase entre aspas.",
+    "specificField": "Buscar em um campo especifico",
+    "inFrontTerm": "na frente do termo,",
+    "where": "onde",
+    "isOneOfOptions": "e uma das opcoes abaixo",
+    "bookmarkSearch": "Busca de favoritos",
+    "noteSearch": "Busca de notas",
+    "fieldHeader": "CAMPO",
+    "exampleHeader": "EXEMPLO",
+    "complexExamples": "Exemplos mais complexos",
+    "complexExample1Desc": "\"youtube\" na url, e titulo com \"haskell\" ou titulo com \"python\" e depois de 31/12/2017",
+    "complexExample2Desc": "\"hacker news\" nao no titulo, e \"news\", \"cnn\", \"npr\" em qualquer lugar, ou \"the guardian\" na descricao"
+  }
+}

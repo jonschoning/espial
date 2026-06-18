@@ -43,3 +43,20 @@ export function fromNullableStr(s: string | null | undefined): string {
 export function normalizeTags(tags: string | null): string {
   return tags?.replace(/,/g, ' ').replace(/\s+/g, ' ').trim() ?? '';
 }
+
+/**
+ * Generates a short, non-cryptographic hash from a string.
+ * @param str - The input string to hash.
+ * @returns A short alphanumeric string hash.
+ */
+export function getShortHash(str: string): string {
+  let hash = 5381;
+  let i = str.length;
+
+  while (i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+
+  // Convert to an unsigned 32-bit integer, then to a base36 string
+  return (hash >>> 0).toString(36);
+}

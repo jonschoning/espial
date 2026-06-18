@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { destroyNote, editNote } from '../api';
-import { app, closeWindow, mmoment8601, setFocus } from '../globals';
+import { app, closeWindow, fromNow, setFocus, shdatetime } from '../globals';
 import type { Note } from '../types';
 import { curQuerystring, fromNullableStr, lookupQueryStringValue } from '../util';
 import { Markdown } from './Markdown';
@@ -23,6 +24,7 @@ function toTextarea(input: string) {
 
 /** Displays a single note with inline editing and deletion, used in the popup window. */
 export function NNote({ initial }: { initial: Note }) {
+  const { t } = useTranslation();
   const a = app();
 
   const [note, setNote] = React.useState<Note>(initial);
@@ -31,9 +33,9 @@ export function NNote({ initial }: { initial: Note }) {
   const [edit, setEdit] = React.useState(initial.id <= 0);
   const [destroyed, setDestroyed] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
+  const fromNowVal = fromNow(a.lang, note.created);
 
   const notetextid = `${note.id.toString()}_text`;
-  const mm = mmoment8601(note.created);
 
   function startEdit(next: boolean) {
     setEditNoteState(note);
@@ -77,14 +79,14 @@ export function NNote({ initial }: { initial: Note }) {
     }
   };
 
-  if (destroyed) return <p className="thm-text-error">you killed this note</p>;
+  if (destroyed) return <p className="thm-text-error">{t('note.killed')}</p>;
 
   return (
     <div id={String(note.id)} className="note w-100 mw7 pa1 mb2">
       {!edit ? (
         <>
           <div className="display">
-            <div className="link f5 lh-title">{note.title === '' ? '[no title]' : note.title}</div>
+            <div className="link f5 lh-title">{note.title === '' ? t('noTitle') : note.title}</div>
             <br />
             {note.isMarkdown ? (
               <div className="description mt1">
@@ -93,10 +95,14 @@ export function NNote({ initial }: { initial: Note }) {
             ) : (
               <div className="description mt1 thm-text-secondary">{toTextarea(note.text)}</div>
             )}
-            <div className="link f7 dib thm-text-tertiary w4">
-              <span title={mm?.[1] ?? note.created}>{mm?.[0] ?? '\u00a0'}</span>
+            <div className="link f7 mt2 dib thm-text-tertiary w4">
+              <span data-created={note.created} title={shdatetime(a.lang, note.created)}>
+                {fromNowVal}
+              </span>
               {' - '}
-              <span className="thm-text-tertiary">{note.shared ? 'public' : 'private'}</span>
+              <span className="thm-text-tertiary">
+                {note.shared ? t('filter.public') : t('filter.private')}
+              </span>
             </div>
           </div>
 
@@ -109,7 +115,7 @@ export function NNote({ initial }: { initial: Note }) {
                 }}
                 className="edit thm-text-muted thm-hover-link-color"
               >
-                edit&nbsp;&nbsp;
+                {t('edit')}&nbsp;&nbsp;
               </button>
               <div className="delete_link di">
                 <button
@@ -119,7 +125,7 @@ export function NNote({ initial }: { initial: Note }) {
                   }}
                   className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
                 >
-                  delete
+                  {t('delete')}
                 </button>
                 <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
                   <button
@@ -128,10 +134,10 @@ export function NNote({ initial }: { initial: Note }) {
                       setDeleteAsk(false);
                     }}
                   >
-                    cancel&nbsp;/&nbsp;
+                    {t('cancel')}&nbsp;/&nbsp;
                   </button>
                   <button type="button" onClick={() => void onDestroy()} className="thm-text-error">
-                    destroy
+                    {t('destroy')}
                   </button>
                 </span>
               </div>
@@ -145,7 +151,7 @@ export function NNote({ initial }: { initial: Note }) {
           }}
         >
           {apiError ? <div className="alert alert-err">{apiError}</div> : null}
-          <p className="mt2 mb1">title:</p>
+          <p className="mt2 mb1">{t('note.titleLabel')}</p>
           <input
             type="text"
             className="title w-100 mb1 pt1 edit_form_input"
@@ -157,7 +163,7 @@ export function NNote({ initial }: { initial: Note }) {
             autoFocus={editNoteState.title === ''}
           />
           <br />
-          <p className="mt2 mb1">description:</p>
+          <p className="mt2 mb1">{t('note.descriptionLabel')}</p>
           <textarea
             id={notetextid}
             className="description w-100 mb1 pt1 edit_form_input"
@@ -180,7 +186,7 @@ export function NNote({ initial }: { initial: Note }) {
               }}
             />{' '}
             <label htmlFor="edit_ismarkdown" className="mr2">
-              use markdown?
+              {t('note.useMarkdown')}
             </label>
             <br />
           </div>
@@ -196,19 +202,19 @@ export function NNote({ initial }: { initial: Note }) {
               }}
             />{' '}
             <label htmlFor="edit_shared" className="mr2">
-              public?
+              {t('note.publicLabel')}
             </label>
             <br />
           </div>
           <input
             type="submit"
             className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-            value="save"
+            value={t('save')}
           />{' '}
           <input
             type="reset"
             className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-            value="cancel"
+            value={t('cancel')}
             onClick={() => {
               startEdit(false);
             }}

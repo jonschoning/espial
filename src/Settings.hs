@@ -27,6 +27,7 @@ import Yesod.Default.Util
     widgetFileNoReload,
     widgetFileReload,
   )
+import Model
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
@@ -95,7 +96,9 @@ data AppSettings = AppSettings
     -- | Whether to only allow SSL connections (i.e. disable non-https cookies and redirects)
     appSSLOnly :: Bool,
     -- | Whether to allow non-http URL schemes (e.g. mailto:, ipfs:, etc.) in user input.
-    appAllowNonHttpUrlSchemes :: Bool
+    appAllowNonHttpUrlSchemes :: Bool,
+    -- | Default language for the application
+    appLanguageDefault :: I18nLang
   }
 
 instance FromJSON AppSettings where
@@ -148,6 +151,8 @@ instance FromJSON AppSettings where
     appSSLOnly <- fromMaybe False <$> o .:? "ssl-only"
 
     appAllowNonHttpUrlSchemes <- o .:? "allow-non-http-url-schemes" .!= False
+
+    appLanguageDefault <- o .:? "language-default" .!= I18nLangEn
 
     return AppSettings {..}
     where

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.36 (2026-06-26)
+
+- improve UI stability & positioning of elements after first render for less flash of content
+- add language internationalization
+  - add language selector on `settings` page (persisted in user db and in session cookie)
+  - supported languages: `en`, `de`, `es`, `fr`, `it`, `ja`, `ko`, `pl`, `pt-BR`, `ru`, `tr`, `uk`, `zh-Hans`, `zh-Hant`
+  - add appSetting `language-default`
+    - if not logged in and no previous cookie is present, the `language-default` is used
+  - adjusted `migration` command `createUser` to take `language` option
+- corrected `migration` command `createUser` to set additional properties correctly on initial user creation
+- replaced npm Moment package with Intl.DateTimeFormat
+
 ## v0.0.35 (2026-06-17)
 
 - add "appMigrations" on startup; normalize utctime fields in db for correct sorting

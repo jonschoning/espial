@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "用户名或密码组合无效",
+    "incorrectOldPassword": "旧密码不正确",
+    "passwordTooShort": "密码长度至少为 6 个字符",
+    "passUpdated": "密码已更新",
+    "missingRequiredFields": "缺少必填字段"
+  },
+  "error": {
+    "notFound": "未找到",
+    "internalError": "服务器内部错误",
+    "invalidArgs": "参数无效",
+    "badMethod": "错误的方法",
+    "notAuthenticated": "未认证",
+    "permissionDenied": "权限被拒绝"
+  },
+  "nav": {
+    "privateProfileEnabled": "已启用私密个人资料",
+    "darkMode": "深色模式",
+    "lightMode": "浅色模式",
+    "addUrl": "添加 url",
+    "addNote": "添加笔记",
+    "notes": "笔记",
+    "settings": "设置",
+    "logout": "退出登录",
+    "login": "登录"
+  },
+  "footer": {
+    "sourceCode": "源代码"
+  },
+  "login": {
+    "pageTitle": "登录",
+    "username": "用户名",
+    "password": "密码",
+    "submit": "登录"
+  },
+  "changePassword": {
+    "oldPassword": "旧密码",
+    "newPassword": "新密码",
+    "submit": "保存更改"
+  },
+  "settings": {
+    "serverDefault": "服务器默认值",
+    "bookmarklet": "添加 url 的书签小工具",
+    "changePassword": "修改密码",
+    "accountTitle": "账户设置",
+    "archiveDefault": "默认归档新的非私密书签",
+    "privateDefault": "默认将新书签设为私密",
+    "suggestTags": "启用标签建议",
+    "privacyLock": "隐私锁定（私密账户）",
+    "archivingDisabled": "归档已禁用",
+    "language": "语言"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "全部",
+    "private": "私密",
+    "public": "公开",
+    "unread": "未读",
+    "untagged": "无标签",
+    "starred": "已加星标"
+  },
+  "pagination": {
+    "perPage": "每页:"
+  },
+  "pager": {
+    "earlier": "« 更早",
+    "later": "更晚 »"
+  },
+  "notes": {
+    "youHave": "你有",
+    "found": "找到",
+    "label": "笔记:"
+  },
+  "search": {
+    "placeholder": "搜索",
+    "clearTitle": "清除搜索结果",
+    "submitTitle": "提交搜索",
+    "syntaxTitle": "搜索语法"
+  },
+  "noTitle": "[无标题]",
+  "edit": "编辑",
+  "delete": "删除",
+  "cancel": "取消",
+  "destroy": "销毁",
+  "save": "保存",
+  "fetch": "抓取",
+  "archive": "归档",
+  "archiving": "正在归档",
+  "bmark": {
+    "archiveLinkTitle": "归档链接",
+    "markAsRead": "标记为已读",
+    "viewInContext": "在上下文中查看",
+    "url": "url",
+    "title": "标题",
+    "description": "描述",
+    "tags": "标签",
+    "private": "私密",
+    "toread": "稍后阅读"
+  },
+  "note": {
+    "killed": "你已删除这条笔记",
+    "titleLabel": "标题:",
+    "descriptionLabel": "描述:",
+    "useMarkdown": "使用 markdown？",
+    "publicLabel": "公开？"
+  },
+  "addForm": {
+    "previouslySaved": "之前已保存",
+    "url": "URL",
+    "archive": "归档",
+    "archiveUnavailable": "私密书签无法使用归档功能",
+    "readLater": "稍后阅读",
+    "update": "更新书签",
+    "add": "添加书签",
+    "killed": "你已删除这个书签"
+  },
+  "tagCloud": {
+    "relatedTags": "相关标签",
+    "topTags": "热门标签",
+    "topTagsTitle": "显示你最常用标签的标签云",
+    "allTitle": "显示所有标签",
+    "min2Title": "显示至少有 2 个书签的标签",
+    "min5Title": "显示至少有 5 个书签的标签",
+    "min10Title": "显示至少有 10 个书签的标签",
+    "min20Title": "显示至少有 20 个书签的标签",
+    "hide": "隐藏",
+    "show": "显示"
+  },
+  "docs": {
+    "title": "理解搜索语法",
+    "pageFilters": "页面过滤器",
+    "pageFiltersDesc": "搜索范围受当前所选页面过滤器限制。",
+    "soGiven": "因此，给定可能的页面过滤器",
+    "if": "如果",
+    "isCurrentlySelectedIncludes": "当前被选中，搜索会包含",
+    "bookmarks": "书签",
+    "isCurrentlySelectedOnly": "当前被选中，搜索只会包含",
+    "bookmarksEtc": "书签等。",
+    "combineAnd": "组合搜索 (AND)",
+    "separateBySpace": "用空格分隔各个词项。",
+    "forExample": "例如，",
+    "combineOr": "组合搜索 (OR)",
+    "put": "将",
+    "betweenQuery": "放在每个搜索查询之间。",
+    "excludeWords": "从搜索中排除词语",
+    "inFrontWord": "放在你想排除的词前面。",
+    "exactMatch": "搜索精确匹配",
+    "putInQuotes": "将单词或短语放在引号中。",
+    "specificField": "在特定字段中搜索",
+    "inFrontTerm": "放在词项前面，",
+    "where": "其中",
+    "isOneOfOptions": "是下面的选项之一",
+    "bookmarkSearch": "书签搜索",
+    "noteSearch": "笔记搜索",
+    "fieldHeader": "字段",
+    "exampleHeader": "示例",
+    "complexExamples": "更复杂的示例",
+    "complexExample1Desc": "url 中包含 \"youtube\"，标题中包含 \"haskell\" 或标题中包含 \"python\"，并且日期晚于 2017/12/31",
+    "complexExample2Desc": "标题中不包含 \"hacker news\"，并且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或者描述中包含 \"the guardian\""
+  }
+}

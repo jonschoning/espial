@@ -40,6 +40,8 @@ $newline never
         , csrfToken: Cookies.get("#{ TE.decodeUtf8 defaultCsrfCookieName }")
         , homeR: "@{ HomeR }"
         , authRlogoutR: "@{ AuthR LogoutR }"
+        , i18nR: "@{ i18nR }"
+        , lang: "#{lang}"
         , dat: {bmarks : [], bmark: {}, isowner: false, notes: []}
         };
   <body .f6.thm-text-primary.helvetica>

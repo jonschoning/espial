@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 import type { Bookmark, Filter } from './types';
 
 /** Server-rendered page data. */
@@ -36,6 +34,10 @@ export type App = {
   userR: string | null;
   /** URL for the current note, or null if not viewing a note. */
   noteR: string | null;
+  /** URL for the i18n backend */
+  i18nR: string;
+  /** The current language code (e.g. 'en', 'fr'). */
+  lang: string;
   /** Server-rendered page data. */
   dat: AppData;
 };
@@ -50,19 +52,46 @@ export function app(): App {
   return globalThis.app;
 }
 
-export function moment8601(s: string): [string, string] {
-  const m = moment(s, moment.ISO_8601);
-  const s1 = m.fromNow();
-  const s2 = `${m.format('MMMM D YYYY, h:mm a')} (${m.format()}) `;
-  return [s1, s2];
+export function fromNow(locale = navigator.language, date: Date | number | string): string {
+  const target = date instanceof Date ? date.getTime() : new Date(date).getTime();
+
+  const diff = target - Date.now();
+  const abs = Math.abs(diff);
+
+  const units: readonly [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 365 * 24 * 60 * 60 * 1000],
+    ['month', 30 * 24 * 60 * 60 * 1000],
+    ['day', 24 * 60 * 60 * 1000],
+    ['hour', 60 * 60 * 1000],
+    ['minute', 60 * 1000],
+    ['second', 1000],
+  ];
+
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+  for (const [unit, ms] of units) {
+    if (abs >= ms || unit === 'second') {
+      return rtf.format(Math.round(diff / ms), unit);
+    }
+  }
+
+  // Unreachable, but satisfies TypeScript.
+  return '';
 }
 
-export function mmoment8601(s: string): [string, string] | null {
-  try {
-    return moment8601(s);
-  } catch {
-    return null;
-  }
+export function shdatetime(lang: string, dateString: string): string {
+  return new Date(dateString).toLocaleString(lang, {
+    dateStyle: 'full',
+    timeStyle: 'long',
+  });
+}
+
+export function toLocaleDateString(lang: string, dateString: string): string {
+  return new Date(dateString).toLocaleDateString(lang, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export function closeWindow(win: Window): void {
@@ -73,12 +102,4 @@ export type RawHTML = string;
 
 export function setFocus(elemId: string): void {
   document.getElementById(elemId)?.focus();
-}
-
-export function toLocaleDateString(dateString: string): string {
-  return new Date(dateString).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }

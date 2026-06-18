@@ -15,9 +15,10 @@ data AccountSettingsForm = AccountSettingsForm
     _archiveDefault :: Bool,
     _suggestTags :: Bool,
     _privacyLock :: Bool,
-    _archiveBackendEnabled :: Bool
+    _archiveBackendEnabled :: Bool,
+    _language :: Maybe I18nLang
   }
-  deriving (Show, Eq, Read, Generic)
+  deriving (Show, Eq, Generic)
 
 instance FromJSON AccountSettingsForm where parseJSON = A.genericParseJSON gDefaultFormOptions
 
@@ -30,7 +31,8 @@ toAccountSettingsForm archiveBackendEnabled User {..} =
       _archiveDefault = userArchiveDefault,
       _suggestTags = userSuggestTags,
       _privacyLock = userPrivacyLock,
-      _archiveBackendEnabled = archiveBackendEnabled
+      _archiveBackendEnabled = archiveBackendEnabled,
+      _language = userLanguage
     }
 
 updateUserFromAccountSettingsForm :: Key User -> AccountSettingsForm -> DB ()
@@ -40,7 +42,8 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
     [ UserPrivateDefault CP.=. _privateDefault,
       UserArchiveDefault CP.=. _archiveDefault,
       UserSuggestTags CP.=. _suggestTags,
-      UserPrivacyLock CP.=. _privacyLock
+      UserPrivacyLock CP.=. _privacyLock,
+      UserLanguage CP.=. _language
     ]
 
 -- * BookmarkForm

@@ -1,68 +1,71 @@
 $maybe route <- mroute
-  <main #main_column .pv2.ph3.mh1>
-    <div .w-100.mw8.center>
-      <div .fr.nt1 style="margin-bottom:.7rem">
-        ^{search}
-      <div .di>
-        <div .fl.pr3.dib.mb2>
-          <b>
-            <a .link href="@{UserR unamep}">#{uname}
-            $forall tag <- pathtags
-              \  + #
-              <a .link href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
-        <div .fl.pr3.dib.mb2>
-          <span .f7.silver>#{bcount}</span>
-        $if isowner
+  <main #main_column .pv2.ph3.mh1.page-with-footer>
+    <div .w-100.mw8.center.page-with-footer-inner>
+      <div .page-main-content>
+        <div .fr.nt1.nowrap style="margin-bottom:.7rem">
+          <div .dib.v-mid.f6.pr2>
+            $if sharedp == SharedPrivate
+              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">#{t "rss"}
+            $elseif sharedp == SharedPublic
+              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">#{t "rss"}
+            $elseif filterp == FilterUnread
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">#{t "rss"}
+            $elseif filterp == FilterUntagged
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">#{t "rss"}
+            $elseif filterp == FilterStarred
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">#{t "rss"}
+            $else
+              <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">#{t "rss"}
+          <div .dib.v-mid>
+            ^{search}
+        <div .di>
           <div .fl.pr3.dib.mb2>
-            <a .link.silver.hover-alt :isAll:.nav-active 
-               href="@{UserR unamep}">all
-            ‧  
-            <a .link.silver.hover-alt :sharedp == SharedPrivate:.nav-active 
-               href="@{UserSharedR unamep SharedPrivate}">private
-            ‧  
-            <a .link.silver.hover-alt :sharedp == SharedPublic:.nav-active 
-               href="@{UserSharedR unamep SharedPublic}">public
-            ‧  
-            <a .link.silver.hover-alt :filterp == FilterUnread:.nav-active 
-               href="@{UserFilterR unamep FilterUnread}">unread
-            ‧  
-            <a .link.silver.hover-alt :filterp == FilterUntagged:.nav-active 
-               href="@{UserFilterR unamep FilterUntagged}">untagged
-            ‧  
-            <a .link.silver.hover-alt :filterp == FilterStarred:.nav-active 
-               href="@{UserFilterR unamep FilterStarred}">starred
-        <div .fr.f6.pr3.dib.mb2>
-          $if sharedp == SharedPrivate
-            <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">RSS
-          $elseif sharedp == SharedPublic
-            <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">RSS
-          $elseif filterp == FilterUnread
-            <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">RSS
-          $elseif filterp == FilterUntagged
-            <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">RSS
-          $elseif filterp == FilterStarred
-            <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">RSS
-          $else
-            <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">RSS
-  
-      <div .cf>
-      
-      ^{pager}
-  
-      <div .cf>
-  
-      <div ##{tagCloudRenderEl}>
+            <b>
+              <a .link href="@{UserR unamep}">#{uname}
+              $forall tag <- pathtags
+                \  + #
+                <a .link href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
+          <div .fl.pr3.dib.mb2>
+            <span .f7.silver>#{bcount}</span>
+          $if isowner
+            <div .fl.pr2.dib.mb2>
+              <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active 
+                 href="@{UserR unamep}">#{t "filter.all"}
+              ‧  
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active 
+                 href="@{UserSharedR unamep SharedPrivate}">#{t "filter.private"}
+              ‧  
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active 
+                 href="@{UserSharedR unamep SharedPublic}">#{t "filter.public"}
+              ‧  
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active 
+                 href="@{UserFilterR unamep FilterUnread}">#{t "filter.unread"}
+              ‧  
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active 
+                 href="@{UserFilterR unamep FilterUntagged}">#{t "filter.untagged"}
+              ‧  
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active 
+                 href="@{UserFilterR unamep FilterStarred}">#{t "filter.starred"}
+    
+        <div .cf>
+        
+        ^{pager}
+    
+        <div .cf>
+    
+        $if isowner
+          <div ##{tagCloudRenderEl} .tag-cloud-placeholder>
 
-      <div ##{renderEl} .mt3>
-  
-      <div .cf>
+        <div ##{renderEl} .mt3>
+    
+        <div .cf>
   
       <div .user_footer.view-delay>
         ^{pager}
   
         $if (fromIntegral bcount >= limit) || (page > 1)
           <div .dib.ml5>
-            <span .silver.mr1>per page:
+            <span .silver.mr1>#{t "pagination.perPage"}
             <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
             <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
             <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 

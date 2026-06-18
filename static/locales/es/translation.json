@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Combinacion de usuario/contrasena no valida",
+    "incorrectOldPassword": "Contrasena anterior incorrecta",
+    "passwordTooShort": "La contrasena debe tener al menos 6 caracteres",
+    "passUpdated": "Contrasena actualizada",
+    "missingRequiredFields": "Faltan campos obligatorios"
+  },
+  "error": {
+    "notFound": "No encontrado",
+    "internalError": "Error interno del servidor",
+    "invalidArgs": "Argumentos no validos",
+    "badMethod": "Metodo no permitido",
+    "notAuthenticated": "No autenticado",
+    "permissionDenied": "Permiso denegado"
+  },
+  "nav": {
+    "privateProfileEnabled": "perfil privado activado",
+    "darkMode": "modo oscuro",
+    "lightMode": "modo claro",
+    "addUrl": "anadir url",
+    "addNote": "anadir nota",
+    "notes": "notas",
+    "settings": "ajustes",
+    "logout": "cerrar sesion",
+    "login": "iniciar sesion"
+  },
+  "footer": {
+    "sourceCode": "Codigo fuente"
+  },
+  "login": {
+    "pageTitle": "Iniciar sesion",
+    "username": "Usuario",
+    "password": "Contrasena",
+    "submit": "Iniciar sesion"
+  },
+  "changePassword": {
+    "oldPassword": "Contrasena anterior",
+    "newPassword": "Nueva contrasena",
+    "submit": "Guardar cambios"
+  },
+  "settings": {
+    "serverDefault": "Predeterminado del servidor",
+    "bookmarklet": "bookmarklet para anadir url",
+    "changePassword": "Cambiar contrasena",
+    "accountTitle": "Configuracion de la cuenta",
+    "archiveDefault": "Archivar por defecto los nuevos marcadores no privados",
+    "privateDefault": "Marcar como privados por defecto los nuevos marcadores",
+    "suggestTags": "Activar sugerencias de etiquetas",
+    "privacyLock": "Bloqueo de privacidad (cuenta privada)",
+    "archivingDisabled": "Archivado desactivado",
+    "language": "Idioma"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "todos",
+    "private": "privados",
+    "public": "publicos",
+    "unread": "no leidos",
+    "untagged": "sin etiquetas",
+    "starred": "destacados"
+  },
+  "pagination": {
+    "perPage": "por pagina:"
+  },
+  "pager": {
+    "earlier": "« anteriores",
+    "later": "siguientes »"
+  },
+  "notes": {
+    "youHave": "Tienes",
+    "found": "Encontrado",
+    "label": "notas:"
+  },
+  "search": {
+    "placeholder": "buscar",
+    "clearTitle": "borrar resultados de busqueda",
+    "submitTitle": "enviar busqueda",
+    "syntaxTitle": "sintaxis de busqueda"
+  },
+  "noTitle": "[sin titulo]",
+  "edit": "editar",
+  "delete": "eliminar",
+  "cancel": "cancelar",
+  "destroy": "destruir",
+  "save": "guardar",
+  "fetch": "obtener",
+  "archive": "archivar",
+  "archiving": "archivando",
+  "bmark": {
+    "archiveLinkTitle": "enlace archivado",
+    "markAsRead": "marcar como leido",
+    "viewInContext": "ver en contexto",
+    "url": "url",
+    "title": "titulo",
+    "description": "descripcion",
+    "tags": "etiquetas",
+    "private": "privado",
+    "toread": "leer despues"
+  },
+  "note": {
+    "killed": "has eliminado esta nota",
+    "titleLabel": "titulo:",
+    "descriptionLabel": "descripcion:",
+    "useMarkdown": "usar markdown?",
+    "publicLabel": "publica?"
+  },
+  "addForm": {
+    "previouslySaved": "guardado anteriormente",
+    "url": "URL",
+    "archive": "archivar",
+    "archiveUnavailable": "el archivado no esta disponible para los marcadores privados",
+    "readLater": "leer mas tarde",
+    "update": "actualizar marcador",
+    "add": "anadir marcador",
+    "killed": "has eliminado este marcador"
+  },
+  "tagCloud": {
+    "relatedTags": "Etiquetas relacionadas",
+    "topTags": "Etiquetas principales",
+    "topTagsTitle": "mostrar una nube con tus etiquetas mas usadas",
+    "allTitle": "mostrar todas las etiquetas",
+    "min2Title": "mostrar etiquetas con al menos 2 marcadores",
+    "min5Title": "mostrar etiquetas con al menos 5 marcadores",
+    "min10Title": "mostrar etiquetas con al menos 10 marcadores",
+    "min20Title": "mostrar etiquetas con al menos 20 marcadores",
+    "hide": "ocultar",
+    "show": "mostrar"
+  },
+  "docs": {
+    "title": "Entender la sintaxis de busqueda",
+    "pageFilters": "Filtros de pagina",
+    "pageFiltersDesc": "Las busquedas se limitan al filtro de pagina seleccionado actualmente.",
+    "soGiven": "Asi que, dados los posibles filtros de pagina",
+    "if": "Si",
+    "isCurrentlySelectedIncludes": "esta seleccionado actualmente, la busqueda incluye",
+    "bookmarks": "marcadores",
+    "isCurrentlySelectedOnly": "esta seleccionado actualmente, la busqueda solo incluye",
+    "bookmarksEtc": "marcadores, etc.",
+    "combineAnd": "Combinar busquedas (AND)",
+    "separateBySpace": "Separa los terminos con un espacio.",
+    "forExample": "Por ejemplo,",
+    "combineOr": "Combinar busquedas (OR)",
+    "put": "Pon",
+    "betweenQuery": "entre cada consulta de busqueda.",
+    "excludeWords": "Excluir palabras de tu busqueda",
+    "inFrontWord": "delante de una palabra que quieras omitir.",
+    "exactMatch": "Buscar una coincidencia exacta",
+    "putInQuotes": "Pon una palabra o frase entre comillas.",
+    "specificField": "Buscar en un campo especifico",
+    "inFrontTerm": "delante del termino,",
+    "where": "donde",
+    "isOneOfOptions": "es una de las opciones siguientes",
+    "bookmarkSearch": "Busqueda de marcadores",
+    "noteSearch": "Busqueda de notas",
+    "fieldHeader": "CAMPO",
+    "exampleHeader": "EJEMPLO",
+    "complexExamples": "Ejemplos mas complejos",
+    "complexExample1Desc": "\"youtube\" en la url, y titulo de \"haskell\" o titulo de \"python\" y despues del 31/12/2017",
+    "complexExample2Desc": "\"hacker news\" no en el titulo, y \"news\", \"cnn\", \"npr\" en cualquier parte, o \"the guardian\" en la descripcion"
+  }
+}

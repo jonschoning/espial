@@ -1,9 +1,11 @@
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Model where
 
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
 import ClassyPrelude.Yesod qualified as CP
+import Control.Monad (fail)
 import Control.Monad.Combinators qualified as PC (between)
 import Control.Monad.Fail (MonadFail)
 import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
@@ -19,7 +21,11 @@ import Data.Time.ISO8601 qualified as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
+import Text.Blaze (ToMarkup, toMarkup)
 import Types
+import Util
+
+-- * Database models
 
 share
   [mkPersist sqlSettings, mkMigrate "migrateSchema"]
@@ -48,6 +54,7 @@ User json
   archiveDefault Bool
   suggestTags Bool default=True
   privacyLock Bool
+  language I18nLang Maybe
   UniqueUserName name
   deriving Show Eq Typeable Ord
 
@@ -88,6 +95,22 @@ Note json
   deriving Show Eq Typeable Ord
 |]
 
+-- * Custom types
+
+newtype UserAgent
+  = UserAgent {unUserAgent :: Text}
+  deriving (Eq, Show, Read)
+
+newtype Url
+  = Url {unUrl :: Text}
+  deriving (Eq, Show, Read)
+
+type Limit = Int64
+
+type Page = Int64
+
+-- Path/Routing Types
+
 newtype UTCTimeStr
   = UTCTimeStr {unUTCTimeStr :: UTCTime}
   deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
@@ -122,6 +145,8 @@ instance FromJSON FilterP where parseJSON = A.genericParseJSON A.defaultOptions
 
 instance ToJSON FilterP where toJSON = A.genericToJSON A.defaultOptions
 
+-- * Paging
+
 data PagingCursor a
   = PagingCursorBefore a
   | PagingCursorAfter a
@@ -135,21 +160,102 @@ type NotePagingCursor = PagingCursor NoteId
 
 type NotePagingCursorTime = PagingCursor UTCTime
 
-newtype UnreadOnly
-  = UnreadOnly {unUnreadOnly :: Bool}
-  deriving (Eq, Show, Read)
+-- * I18n
 
-newtype UserAgent
-  = UserAgent {unUserAgent :: Text}
-  deriving (Eq, Show, Read)
+-- | Translation map: language -> namespace -> key -> translation
+type I18nMap = HashMap I18nLang (HashMap I18nNs (HashMap I18nKey Text))
 
-newtype Url
-  = Url {unUrl :: Text}
-  deriving (Eq, Show, Read)
+-- | Translation namespace
+newtype I18nNs = I18nNs {unI18nNs :: Text} deriving (Eq, Ord, Show, Hashable, FromJSON, ToJSON)
 
-type Limit = Int64
+-- | Translation key
+newtype I18nKey = I18nKey {unI18nKey :: Text} deriving (Eq, Ord, Show, Hashable)
 
-type Page = Int64
+-- | Supported languages for translation
+data I18nLang
+  = -- | English
+    I18nLangEn
+  | -- | German
+    I18nLangDe
+  | -- | Spanish
+    I18nLangEs
+  | -- | French
+    I18nLangFr
+  | -- | Italian
+    I18nLangIt
+  | -- | Japanese
+    I18nLangJa
+  | -- | Korean
+    I18nLangKo
+  | -- | Polish
+    I18nLangPl
+  | -- | Portuguese (Brazil)
+    I18nLangPtBr
+  | -- | Russian
+    I18nLangRu
+  | -- | Turkish
+    I18nLangTr
+  | -- | Ukrainian
+    I18nLangUk
+  | -- | Chinese (Simplified)
+    I18nLangZhHans
+  | -- | Chinese (Traditional)
+    I18nLangZhHant
+  deriving (Eq, Ord, Enum, Bounded, Generic)
+
+instance Hashable I18nLang where hashWithSalt s = hashWithSalt s . fromEnum
+
+instance ToMarkup I18nLang where toMarkup = toMarkup . fromI18nLang'
+
+instance PersistField I18nLang where
+  toPersistValue = PersistText . fromI18nLang'
+  fromPersistValue (PersistText t) =
+    maybe 
+    (Right I18nLangEn) -- in case of version downgrade, default to English if the language is not recognized
+    Right 
+    (toI18nLang t)
+  fromPersistValue _ = Left "Invalid PersistValue for I18nLang"
+
+instance PersistFieldSql I18nLang where sqlType _ = SqlString
+
+fromI18nLang :: (IsString a) => I18nLang -> a
+fromI18nLang = \case
+  I18nLangEn -> "en"
+  I18nLangDe -> "de"
+  I18nLangEs -> "es"
+  I18nLangFr -> "fr"
+  I18nLangIt -> "it"
+  I18nLangJa -> "ja"
+  I18nLangKo -> "ko"
+  I18nLangPl -> "pl"
+  I18nLangPtBr -> "pt-BR"
+  I18nLangRu -> "ru"
+  I18nLangTr -> "tr"
+  I18nLangUk -> "uk"
+  I18nLangZhHans -> "zh-Hans"
+  I18nLangZhHant -> "zh-Hant"
+
+fromI18nLang' :: I18nLang -> Text
+fromI18nLang' = fromI18nLang
+
+toI18nLang :: (Ord s, IsString s) => s -> Maybe I18nLang
+toI18nLang s = inverseMap fromI18nLang s
+
+instance Show I18nLang where show = fromI18nLang
+
+instance ToJSON I18nLang where toJSON = A.String . fromI18nLang
+
+instance FromJSON I18nLang where
+  parseJSON = A.withText "I18nLang" $ \s ->
+    maybe
+      (fail $ "Invalid language: '" <> unpack s <> "'. Supported languages: " <> supportedLangs)
+      pure
+      (toI18nLang s)
+
+supportedLangs :: String
+supportedLangs = intercalate ", " (fmap fromI18nLang [minBound .. maxBound])
+
+-- * Model functions
 
 sqliteGroupConcat ::
   (PersistField a) =>
@@ -301,11 +407,6 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
     isAfterCursor b after =
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
-
--- cursorTime cursorId =
---   subSelect $ from (table @Bookmark) >>= \cursor -> do
---     where_ (cursor ^. BookmarkId ==. val cursorId)
---     pure (cursor ^. BookmarkTime)
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]

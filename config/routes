@@ -1,5 +1,7 @@
 /static StaticR Static appStatic
 
+/locales/#Text/*Texts LocalesFileR GET
+
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 

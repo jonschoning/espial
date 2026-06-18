@@ -6,15 +6,15 @@
   <div .fr>
     <a .link href="#" #color-scheme-toggle>
       <span .color-scheme-toggle-dark-label>
-        dark mode&nbsp;&nbsp;
+        #{t "nav.darkMode"}&nbsp;&nbsp;
       <span .color-scheme-toggle-light-label>
-        light mode&nbsp;&nbsp;
+        #{t "nav.lightMode"}&nbsp;&nbsp;
     $maybe userName <- musername
       <a .link.logout-btn href="@{AuthR LogoutR}">
-        [log out]
+        #{t "nav.logout"}
     $nothing
       <a .link href="@{AuthR LoginR}">
-        [log in]
+        #{t "nav.login"}
   <div .cf>
 
 <div .ph2.mw7>

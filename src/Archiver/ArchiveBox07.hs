@@ -63,11 +63,11 @@ archiveBox07Backend ::
   ConnectionPool ->
   LogFunc ->
   IO (Maybe ArchiverBackend)
-archiveBox07Backend AppSettings {..} connPool logFunc = do
+archiveBox07Backend AppSettings {..} connPool logFunc = flip runLoggingT logFunc $ do
   case (nonBlank appArchiveBoxUrl, nonBlank appArchiveBoxUsername, nonBlank appArchiveBoxPassword) of
-    (Nothing, _, _) -> do flip runLoggingT logFunc $ $(logWarn) "Archive backend `archivebox` selected but archivebox-url missing; archiving disabled"; pure Nothing
-    (_, Nothing, _) -> do flip runLoggingT logFunc $ $(logWarn) "Archive backend `archivebox` selected but archivebox-username missing; archiving disabled"; pure Nothing
-    (_, _, Nothing) -> do flip runLoggingT logFunc $ $(logWarn) "Archive backend `archivebox` selected but archivebox-password missing; archiving disabled"; pure Nothing
+    (Nothing, _, _) -> $(logWarn) "Archive backend `archivebox` selected but archivebox-url missing; archiving disabled" >> pure Nothing
+    (_, Nothing, _) -> $(logWarn) "Archive backend `archivebox` selected but archivebox-username missing; archiving disabled" >> pure Nothing
+    (_, _, Nothing) -> $(logWarn) "Archive backend `archivebox` selected but archivebox-password missing; archiving disabled" >> pure Nothing
     (Just baseUrl, Just username, Just password) -> do
       cookieJarRef <- newIORef (createCookieJar [])
       archiveManager <- newTlsManagerWith $ mkManagerSettings def (NC.SockSettingsSimple <$> fmap unpack (appArchiveSocksProxyHost) <*> fmap toEnum (appArchiveSocksProxyPort))

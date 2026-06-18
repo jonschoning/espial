@@ -1,9 +1,9 @@
 # Values formatted like "_env:ENV_VAR_NAME:default_value" can be overridden by the specified environment variable.
 # See https://github.com/yesodweb/yesod/wiki/Configuration#overriding-configuration-values-with-environment-variables
 
-static-dir:     "_env:STATIC_DIR:static"
-host:           "_env:HOST:*4" # any IPv4 host
-port:           "_env:PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
+static-dir: "_env:STATIC_DIR:static"
+host: "_env:HOST:*4" # any IPv4 host
+port: "_env:PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
 ip-from-header: "_env:IP_FROM_HEADER:false"
 
 # Default behavior: determine the application root from the request headers.
@@ -56,9 +56,10 @@ archivebox-password: "_env:ARCHIVEBOX_PASSWORD" # ArchiveBox admin password used
 archivebox-tag: "_env:ARCHIVEBOX_TAG:espial"
 archivebox-plugins: "_env:ARCHIVEBOX_PLUGINS:title,favicon,singlefile,screenshot" # Comma-separated list of ArchiveBox plugins to run when espial adds a URL to ArchiveBox.
 
-
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 
 ssl-only: "_env:SSL_ONLY" # false
 
 allow-non-http-url-schemes: "_env:ALLOW_NON_HTTP_URL_SCHEMES:false"
+
+language-default: "_env:LANGUAGE_DEFAULT:en"

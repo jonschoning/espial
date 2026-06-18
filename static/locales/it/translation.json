@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Combinazione nome utente/password non valida",
+    "incorrectOldPassword": "Vecchia password non corretta",
+    "passwordTooShort": "La password deve contenere almeno 6 caratteri",
+    "passUpdated": "Password aggiornata",
+    "missingRequiredFields": "Campi obbligatori mancanti"
+  },
+  "error": {
+    "notFound": "Non trovato",
+    "internalError": "Errore interno del server",
+    "invalidArgs": "Argomenti non validi",
+    "badMethod": "Metodo non consentito",
+    "notAuthenticated": "Non autenticato",
+    "permissionDenied": "Permesso negato"
+  },
+  "nav": {
+    "privateProfileEnabled": "profilo privato abilitato",
+    "darkMode": "modalita scura",
+    "lightMode": "modalita chiara",
+    "addUrl": "aggiungi url",
+    "addNote": "aggiungi nota",
+    "notes": "note",
+    "settings": "impostazioni",
+    "logout": "disconnetti",
+    "login": "accedi"
+  },
+  "footer": {
+    "sourceCode": "Codice sorgente"
+  },
+  "login": {
+    "pageTitle": "Accedi",
+    "username": "Nome utente",
+    "password": "Password",
+    "submit": "Accedi"
+  },
+  "changePassword": {
+    "oldPassword": "Vecchia password",
+    "newPassword": "Nuova password",
+    "submit": "Salva modifiche"
+  },
+  "settings": {
+    "serverDefault": "Predefinito del server",
+    "bookmarklet": "bookmarklet per aggiungere url",
+    "changePassword": "Cambia password",
+    "accountTitle": "Impostazioni account",
+    "archiveDefault": "Archivia per impostazione predefinita i nuovi segnalibri non privati",
+    "privateDefault": "Imposta come privati per default i nuovi segnalibri",
+    "suggestTags": "Abilita i suggerimenti per i tag",
+    "privacyLock": "Blocco privacy (account privato)",
+    "archivingDisabled": "Archiviazione disabilitata",
+    "language": "Lingua"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "tutti",
+    "private": "privati",
+    "public": "pubblici",
+    "unread": "non letti",
+    "untagged": "senza tag",
+    "starred": "preferiti"
+  },
+  "pagination": {
+    "perPage": "per pagina:"
+  },
+  "pager": {
+    "earlier": "« precedenti",
+    "later": "successivi »"
+  },
+  "notes": {
+    "youHave": "Hai",
+    "found": "Trovato",
+    "label": "note:"
+  },
+  "search": {
+    "placeholder": "cerca",
+    "clearTitle": "cancella i risultati della ricerca",
+    "submitTitle": "invia ricerca",
+    "syntaxTitle": "sintassi di ricerca"
+  },
+  "noTitle": "[senza titolo]",
+  "edit": "modifica",
+  "delete": "elimina",
+  "cancel": "annulla",
+  "destroy": "distruggi",
+  "save": "salva",
+  "fetch": "recupera",
+  "archive": "archivia",
+  "archiving": "archiviazione",
+  "bmark": {
+    "archiveLinkTitle": "link archiviato",
+    "markAsRead": "segna come letto",
+    "viewInContext": "vedi nel contesto",
+    "url": "url",
+    "title": "titolo",
+    "description": "descrizione",
+    "tags": "tag",
+    "private": "privato",
+    "toread": "da leggere"
+  },
+  "note": {
+    "killed": "hai eliminato questa nota",
+    "titleLabel": "titolo:",
+    "descriptionLabel": "descrizione:",
+    "useMarkdown": "usare markdown?",
+    "publicLabel": "pubblica?"
+  },
+  "addForm": {
+    "previouslySaved": "salvato in precedenza",
+    "url": "URL",
+    "archive": "archivia",
+    "archiveUnavailable": "l'archiviazione non e disponibile per i segnalibri privati",
+    "readLater": "leggi dopo",
+    "update": "aggiorna segnalibro",
+    "add": "aggiungi segnalibro",
+    "killed": "hai eliminato questo segnalibro"
+  },
+  "tagCloud": {
+    "relatedTags": "Tag correlati",
+    "topTags": "Tag principali",
+    "topTagsTitle": "mostra una nuvola dei tuoi tag piu usati",
+    "allTitle": "mostra tutti i tag",
+    "min2Title": "mostra i tag con almeno 2 segnalibri",
+    "min5Title": "mostra i tag con almeno 5 segnalibri",
+    "min10Title": "mostra i tag con almeno 10 segnalibri",
+    "min20Title": "mostra i tag con almeno 20 segnalibri",
+    "hide": "nascondi",
+    "show": "mostra"
+  },
+  "docs": {
+    "title": "Comprendere la sintassi di ricerca",
+    "pageFilters": "Filtri di pagina",
+    "pageFiltersDesc": "Le ricerche sono limitate al filtro di pagina attualmente selezionato.",
+    "soGiven": "Quindi, dati i possibili filtri di pagina",
+    "if": "Se",
+    "isCurrentlySelectedIncludes": "e attualmente selezionato, la ricerca include",
+    "bookmarks": "segnalibri",
+    "isCurrentlySelectedOnly": "e attualmente selezionato, la ricerca include solo",
+    "bookmarksEtc": "segnalibri, ecc.",
+    "combineAnd": "Combina ricerche (AND)",
+    "separateBySpace": "Separa i termini con uno spazio.",
+    "forExample": "Per esempio,",
+    "combineOr": "Combina ricerche (OR)",
+    "put": "Metti",
+    "betweenQuery": "tra ogni query di ricerca.",
+    "excludeWords": "Escludi parole dalla ricerca",
+    "inFrontWord": "davanti a una parola che vuoi omettere.",
+    "exactMatch": "Cerca una corrispondenza esatta",
+    "putInQuotes": "Metti una parola o una frase tra virgolette.",
+    "specificField": "Cerca in un campo specifico",
+    "inFrontTerm": "davanti al termine,",
+    "where": "dove",
+    "isOneOfOptions": "e una delle opzioni seguenti",
+    "bookmarkSearch": "Ricerca segnalibri",
+    "noteSearch": "Ricerca note",
+    "fieldHeader": "CAMPO",
+    "exampleHeader": "ESEMPIO",
+    "complexExamples": "Esempi piu complessi",
+    "complexExample1Desc": "\"youtube\" nell'url, e titolo di \"haskell\" o titolo di \"python\" e dopo il 31/12/2017",
+    "complexExample2Desc": "\"hacker news\" non nel titolo, e \"news\", \"cnn\", \"npr\" ovunque, o \"the guardian\" nella descrizione"
+  }
+}

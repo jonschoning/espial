@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { getTagCloud, updateTagCloudMode } from '../api';
 import { app } from '../globals';
@@ -13,75 +14,9 @@ import {
 } from '../types';
 import { encodeTag, fromNullableStr } from '../util';
 
-function rescale(
-  f: (x: number) => number,
-  v: number,
-  n: number,
-  m: number,
-  l: number,
-  h: number,
-): number {
-  const denom = f(m - n);
-  const ratio = m - n < 0.01 || denom === 0 ? 1.0 : f(v - n) / denom;
-  return ratio * (h - l) + l;
-}
-
-function toArray(curtags: string[], n: number, m: number, tagcloud: TagCloudT) {
-  const a = app();
-  const cur = curtags.map((t) => t.toLowerCase());
-  const entries: Array<[string, number]> = Object.entries(tagcloud).sort((x, y) =>
-    x[0].toLowerCase().localeCompare(y[0].toLowerCase()),
-  );
-
-  const linkToFilterTag = (rest: string) =>
-    `${fromNullableStr(a.userR)}${rest === '' ? '' : `/t:${rest}`}`;
-
-  const out: Array<React.ReactNode> = [];
-  for (const [k, v] of entries) {
-    const kLower = k.toLowerCase();
-    const fontsize = rescale((x) => x, v, n, m, 100.0, 150.0);
-    const opacity = rescale((x) => Math.log(1.0 + x), v, n, m, 0.6, 1.0);
-    const style: React.CSSProperties = { fontSize: `${fontsize.toString()}%`, opacity };
-
-    const includeExclude =
-      cur.length === 0 ? null : !cur.includes(kLower) ? (
-        <a
-          href={linkToFilterTag(cur.concat([kLower]).map(encodeTag).join('+'))}
-          className="link mr2 tag-include"
-        >
-          ⊕
-        </a>
-      ) : (
-        <a
-          href={linkToFilterTag(
-            cur
-              .filter((t) => t !== kLower)
-              .map(encodeTag)
-              .join('+'),
-          )}
-          className="link mr2 tag-exclude"
-        >
-          ⊖
-        </a>
-      );
-
-    out.push(
-      <a
-        key={`${k}-tag`}
-        href={linkToFilterTag(encodeTag(k))}
-        className="link tag mr1"
-        style={style}
-      >
-        {k}
-      </a>,
-    );
-    if (includeExclude) out.push(<React.Fragment key={`${k}-ie`}>{includeExclude}</React.Fragment>);
-  }
-  return out;
-}
-
 /** Displays the tag cloud, with controls to filter by top tags, frequency, or related tags. */
 export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
+  const { t } = useTranslation();
   const mode = useTagCloudStore((s) => s.mode);
   const tagcloud = useTagCloudStore((s) => s.tagcloud);
   const setMode = useTagCloudStore((s) => s.setMode);
@@ -136,31 +71,31 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             className="pa1 f7 link thm-hover-link-color mr1 b"
             onClick={() => void onExpanded(!isExpanded(mode))}
           >
-            Related Tags
+            {t('tagCloud.relatedTags')}
           </button>
         ) : (
           <>
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color mr1${JSON.stringify(mode) === JSON.stringify(modetop) ? ' b' : ''}`}
-              title="show a cloud of your most-used tags"
+              title={t('tagCloud.topTagsTitle')}
               onClick={() => void onChangeMode(modetop)}
             >
-              Top Tags
+              {t('tagCloud.topTags')}
             </button>
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color ml2 ${JSON.stringify(mode) === JSON.stringify(modelb1) ? ' b' : ''}`}
-              title="show all tags"
+              title={t('tagCloud.allTitle')}
               onClick={() => void onChangeMode(modelb1)}
             >
-              all
+              {t('filter.all')}
             </button>
             {'‧'}
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb2) ? ' b' : ''}`}
-              title="show tags with at least 2 bookmarks"
+              title={t('tagCloud.min2Title')}
               onClick={() => void onChangeMode(modelb2)}
             >
               2
@@ -169,7 +104,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb5) ? ' b' : ''}`}
-              title="show tags with at least 5 bookmarks"
+              title={t('tagCloud.min5Title')}
               onClick={() => void onChangeMode(modelb5)}
             >
               5
@@ -178,7 +113,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb10) ? ' b' : ''}`}
-              title="show tags with at least 10 bookmarks"
+              title={t('tagCloud.min10Title')}
               onClick={() => void onChangeMode(modelb10)}
             >
               10
@@ -187,7 +122,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
             <button
               type="button"
               className={`pa1 f7 link thm-hover-link-color${JSON.stringify(mode) === JSON.stringify(modelb20) ? ' b' : ''}`}
-              title="show tags with at least 20 bookmarks"
+              title={t('tagCloud.min20Title')}
               onClick={() => void onChangeMode(modelb20)}
             >
               20
@@ -199,7 +134,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
           className="pa1 ml2 f7 link thm-text-faded thm-hover-link-color"
           onClick={() => void onExpanded(!isExpanded(mode))}
         >
-          {isExpanded(mode) ? 'hide' : 'show'}
+          {isExpanded(mode) ? t('tagCloud.hide') : t('tagCloud.show')}
         </button>
       </div>
 
@@ -212,4 +147,71 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
       ) : null}
     </div>
   );
+}
+
+function toArray(curtags: string[], n: number, m: number, tagcloud: TagCloudT) {
+  const a = app();
+  const cur = curtags.map((tag) => tag.toLowerCase());
+  const entries: Array<[string, number]> = Object.entries(tagcloud).sort((x, y) =>
+    x[0].toLowerCase().localeCompare(y[0].toLowerCase()),
+  );
+
+  const linkToFilterTag = (rest: string) =>
+    `${fromNullableStr(a.userR)}${rest === '' ? '' : `/t:${rest}`}`;
+
+  const out: Array<React.ReactNode> = [];
+  for (const [k, v] of entries) {
+    const kLower = k.toLowerCase();
+    const fontsize = rescale((x) => x, v, n, m, 100.0, 150.0);
+    const opacity = rescale((x) => Math.log(1.0 + x), v, n, m, 0.6, 1.0);
+    const style: React.CSSProperties = { fontSize: `${fontsize.toString()}%`, opacity };
+
+    const includeExclude =
+      cur.length === 0 ? null : !cur.includes(kLower) ? (
+        <a
+          href={linkToFilterTag(cur.concat([kLower]).map(encodeTag).join('+'))}
+          className="link mr2 tag-include"
+        >
+          ⊕
+        </a>
+      ) : (
+        <a
+          href={linkToFilterTag(
+            cur
+              .filter((t) => t !== kLower)
+              .map(encodeTag)
+              .join('+'),
+          )}
+          className="link mr2 tag-exclude"
+        >
+          ⊖
+        </a>
+      );
+
+    out.push(
+      <a
+        key={`${k}-tag`}
+        href={linkToFilterTag(encodeTag(k))}
+        className="link tag mr1"
+        style={style}
+      >
+        {k}
+      </a>,
+    );
+    if (includeExclude) out.push(<React.Fragment key={`${k}-ie`}>{includeExclude}</React.Fragment>);
+  }
+  return out;
+}
+
+function rescale(
+  f: (x: number) => number,
+  v: number,
+  n: number,
+  m: number,
+  l: number,
+  h: number,
+): number {
+  const denom = f(m - n);
+  const ratio = m - n < 0.01 || denom === 0 ? 1.0 : f(v - n) / denom;
+  return ratio * (h - l) + l;
 }

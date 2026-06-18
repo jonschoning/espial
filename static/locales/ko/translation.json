@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "잘못된 사용자 이름/비밀번호 조합입니다",
+    "incorrectOldPassword": "기존 비밀번호가 올바르지 않습니다",
+    "passwordTooShort": "비밀번호는 최소 6자 이상이어야 합니다",
+    "passUpdated": "비밀번호가 업데이트되었습니다",
+    "missingRequiredFields": "필수 항목이 누락되었습니다"
+  },
+  "error": {
+    "notFound": "찾을 수 없음",
+    "internalError": "내부 서버 오류",
+    "invalidArgs": "잘못된 인수",
+    "badMethod": "잘못된 메서드",
+    "notAuthenticated": "인증되지 않음",
+    "permissionDenied": "권한 거부됨"
+  },
+  "nav": {
+    "privateProfileEnabled": "비공개 프로필 활성화됨",
+    "darkMode": "다크 모드",
+    "lightMode": "라이트 모드",
+    "addUrl": "url 추가",
+    "addNote": "노트 추가",
+    "notes": "노트",
+    "settings": "설정",
+    "logout": "로그아웃",
+    "login": "로그인"
+  },
+  "footer": {
+    "sourceCode": "소스 코드"
+  },
+  "login": {
+    "pageTitle": "로그인",
+    "username": "사용자 이름",
+    "password": "비밀번호",
+    "submit": "로그인"
+  },
+  "changePassword": {
+    "oldPassword": "기존 비밀번호",
+    "newPassword": "새 비밀번호",
+    "submit": "변경 사항 저장"
+  },
+  "settings": {
+    "serverDefault": "서버 기본값",
+    "bookmarklet": "url 추가 북마클릿",
+    "changePassword": "비밀번호 변경",
+    "accountTitle": "계정 설정",
+    "archiveDefault": "새 비공개가 아닌 북마크를 기본적으로 아카이브",
+    "privateDefault": "새 북마크를 기본적으로 비공개로 설정",
+    "suggestTags": "태그 제안 사용",
+    "privacyLock": "개인정보 잠금(비공개 계정)",
+    "archivingDisabled": "아카이브 비활성화됨",
+    "language": "언어"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "전체",
+    "private": "비공개",
+    "public": "공개",
+    "unread": "읽지 않음",
+    "untagged": "태그 없음",
+    "starred": "별표"
+  },
+  "pagination": {
+    "perPage": "페이지당:"
+  },
+  "pager": {
+    "earlier": "« 이전",
+    "later": "다음 »"
+  },
+  "notes": {
+    "youHave": "보유 중",
+    "found": "찾음",
+    "label": "노트:"
+  },
+  "search": {
+    "placeholder": "검색",
+    "clearTitle": "검색 결과 지우기",
+    "submitTitle": "검색 제출",
+    "syntaxTitle": "검색 구문"
+  },
+  "noTitle": "[제목 없음]",
+  "edit": "편집",
+  "delete": "삭제",
+  "cancel": "취소",
+  "destroy": "완전 삭제",
+  "save": "저장",
+  "fetch": "가져오기",
+  "archive": "아카이브",
+  "archiving": "아카이브 중",
+  "bmark": {
+    "archiveLinkTitle": "아카이브 링크",
+    "markAsRead": "읽음으로 표시",
+    "viewInContext": "문맥에서 보기",
+    "url": "url",
+    "title": "제목",
+    "description": "설명",
+    "tags": "태그",
+    "private": "비공개",
+    "toread": "나중에 읽기"
+  },
+  "note": {
+    "killed": "이 노트를 삭제했습니다",
+    "titleLabel": "제목:",
+    "descriptionLabel": "설명:",
+    "useMarkdown": "markdown 사용?",
+    "publicLabel": "공개?"
+  },
+  "addForm": {
+    "previouslySaved": "이전에 저장됨",
+    "url": "URL",
+    "archive": "아카이브",
+    "archiveUnavailable": "비공개 북마크에는 아카이브를 사용할 수 없습니다",
+    "readLater": "나중에 읽기",
+    "update": "북마크 업데이트",
+    "add": "북마크 추가",
+    "killed": "이 북마크를 삭제했습니다"
+  },
+  "tagCloud": {
+    "relatedTags": "관련 태그",
+    "topTags": "인기 태그",
+    "topTagsTitle": "가장 많이 사용한 태그 클라우드 표시",
+    "allTitle": "모든 태그 표시",
+    "min2Title": "북마크가 2개 이상인 태그 표시",
+    "min5Title": "북마크가 5개 이상인 태그 표시",
+    "min10Title": "북마크가 10개 이상인 태그 표시",
+    "min20Title": "북마크가 20개 이상인 태그 표시",
+    "hide": "숨기기",
+    "show": "표시"
+  },
+  "docs": {
+    "title": "검색 구문 이해하기",
+    "pageFilters": "페이지 필터",
+    "pageFiltersDesc": "검색은 현재 선택된 페이지 필터 범위로 제한됩니다.",
+    "soGiven": "따라서 가능한 페이지 필터가 다음과 같을 때",
+    "if": "만약",
+    "isCurrentlySelectedIncludes": "가 현재 선택되어 있으면 검색에는 다음이 포함됩니다",
+    "bookmarks": "북마크",
+    "isCurrentlySelectedOnly": "가 현재 선택되어 있으면 검색에는 다음만 포함됩니다",
+    "bookmarksEtc": "북마크 등",
+    "combineAnd": "검색 결합 (AND)",
+    "separateBySpace": "용어를 공백으로 구분하세요.",
+    "forExample": "예를 들어,",
+    "combineOr": "검색 결합 (OR)",
+    "put": "다음을 넣으세요",
+    "betweenQuery": "각 검색어 사이에 넣으세요.",
+    "excludeWords": "검색에서 단어 제외하기",
+    "inFrontWord": "빼고 싶은 단어 앞에 붙이세요.",
+    "exactMatch": "정확히 일치하는 항목 검색",
+    "putInQuotes": "단어 또는 구문을 따옴표 안에 넣으세요.",
+    "specificField": "특정 필드에서 검색",
+    "inFrontTerm": "용어 앞에 붙이세요,",
+    "where": "여기서",
+    "isOneOfOptions": "는 아래 옵션 중 하나입니다",
+    "bookmarkSearch": "북마크 검색",
+    "noteSearch": "노트 검색",
+    "fieldHeader": "필드",
+    "exampleHeader": "예시",
+    "complexExamples": "더 복잡한 예시",
+    "complexExample1Desc": "url에 \"youtube\"가 있고, 제목에 \"haskell\" 또는 제목에 \"python\"이 있으며 2017-12-31 이후",
+    "complexExample2Desc": "제목에는 \"hacker news\"가 없고, 어디에나 \"news\", \"cnn\", \"npr\"이 있거나 설명에 \"the guardian\"이 있음"
+  }
+}

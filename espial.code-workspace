@@ -1,41 +1,38 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "frontend"
-		}
-	],
-	"settings": {
-		"makefile.configureOnOpen": false,
-		"editor.formatOnSave": true,
-		"eslint.useFlatConfig": true,
-		"eslint.workingDirectories": [
-			{
-				"directory": "frontend",
-				"changeProcessCWD": true
-			}
-		],
-		"eslint.validate": [
-			"typescript",
-			"typescriptreact"
-		],
-		"[typescript]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"[typescriptreact]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-		"chat.tools.terminal.autoApprove": {
-			"stack": true
-		},
-		"powershell.cwd": "espial"
-	},
-	"extensions": {
-		"recommendations": [
-			"dbaeumer.vscode-eslint",
-			"esbenp.prettier-vscode"
-		]
-	}
+  "folders": [
+    {
+      "path": ".",
+    },
+    {
+      "path": "frontend",
+    },
+  ],
+  "settings": {
+    "makefile.configureOnOpen": false,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+    },
+    "eslint.useFlatConfig": true,
+    "eslint.workingDirectories": [
+      {
+        "directory": "frontend",
+        "changeProcessCWD": true,
+      },
+    ],
+    "eslint.validate": ["typescript", "typescriptreact"],
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
+    "chat.tools.terminal.autoApprove": {
+      "stack": true,
+    },
+    "powershell.cwd": "espial",
+  },
+  "extensions": {
+    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+  },
 }

@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "ユーザ名とパスワードの組み合わせが間違っています",
+    "incorrectOldPassword": "現在のパスワードが間違っています",
+    "passwordTooShort": "パスワードは6文字以上である必要があります",
+    "passUpdated": "パスワードが更新されました",
+    "missingRequiredFields": "必須フィールドが不足しています"
+  },
+  "error": {
+    "notFound": "見つかりません",
+    "internalError": "サーバー内部エラー",
+    "invalidArgs": "無効な引数",
+    "badMethod": "無効なメソッド",
+    "notAuthenticated": "認証されていません",
+    "permissionDenied": "権限がありません"
+  },
+  "nav": {
+    "privateProfileEnabled": "プライベートプロフィールが有効",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード",
+    "addUrl": "URLを追加",
+    "addNote": "メモを追加",
+    "notes": "メモ",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "login": "ログイン"
+  },
+  "footer": {
+    "sourceCode": "ソースコード"
+  },
+  "login": {
+    "pageTitle": "ログイン",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "submit": "ログイン"
+  },
+  "changePassword": {
+    "oldPassword": "現在のパスワード",
+    "newPassword": "新しいパスワード",
+    "submit": "変更を保存"
+  },
+  "settings": {
+    "serverDefault": "サーバーのデフォルト",
+    "bookmarklet": "URLブックマークレットを追加",
+    "changePassword": "パスワードを変更",
+    "accountTitle": "アカウント設定",
+    "archiveDefault": "新しい非プライベートブックマークをデフォルトでアーカイブする",
+    "privateDefault": "新しいブックマークをデフォルトでプライベートにする",
+    "suggestTags": "タグの候補を有効にする",
+    "privacyLock": "プライバシーロック（非公開アカウント）",
+    "archivingDisabled": "アーカイブ無効",
+    "language": "言語"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "すべて",
+    "private": "プライベート",
+    "public": "公開",
+    "unread": "未読",
+    "untagged": "タグなし",
+    "starred": "スター付き"
+  },
+  "pagination": {
+    "perPage": "1ページあたり:"
+  },
+  "pager": {
+    "earlier": "« 前へ",
+    "later": "次へ »"
+  },
+  "notes": {
+    "youHave": "あなたは",
+    "found": "見つかりました",
+    "label": "件のメモ:"
+  },
+  "search": {
+    "placeholder": "検索",
+    "clearTitle": "検索結果をクリア",
+    "submitTitle": "検索を実行",
+    "syntaxTitle": "検索構文"
+  },
+  "noTitle": "[タイトルなし]",
+  "edit": "編集",
+  "delete": "削除",
+  "cancel": "キャンセル",
+  "destroy": "削除する",
+  "save": "保存",
+  "fetch": "取得",
+  "archive": "アーカイブ",
+  "archiving": "アーカイブ中",
+  "bmark": {
+    "archiveLinkTitle": "アーカイブリンク",
+    "markAsRead": "既読にする",
+    "viewInContext": "コンテキストで表示",
+    "url": "URL",
+    "title": "タイトル",
+    "description": "説明",
+    "tags": "タグ",
+    "private": "プライベート",
+    "toread": "後で読む"
+  },
+  "note": {
+    "killed": "このメモを削除しました",
+    "titleLabel": "タイトル:",
+    "descriptionLabel": "説明:",
+    "useMarkdown": "Markdownを使用しますか？",
+    "publicLabel": "公開？"
+  },
+  "addForm": {
+    "previouslySaved": "以前に保存済み",
+    "url": "URL",
+    "archive": "アーカイブ",
+    "archiveUnavailable": "プライベートブックマークにはアーカイブが利用できません",
+    "readLater": "後で読む",
+    "update": "ブックマークを更新",
+    "add": "ブックマークを追加",
+    "killed": "このブックマークを削除しました"
+  },
+  "tagCloud": {
+    "relatedTags": "関連タグ",
+    "topTags": "人気タグ",
+    "topTagsTitle": "最もよく使うタグのクラウドを表示",
+    "allTitle": "すべてのタグを表示",
+    "min2Title": "2件以上のブックマークがあるタグを表示",
+    "min5Title": "5件以上のブックマークがあるタグを表示",
+    "min10Title": "10件以上のブックマークがあるタグを表示",
+    "min20Title": "20件以上のブックマークがあるタグを表示",
+    "hide": "非表示",
+    "show": "表示"
+  },
+  "docs": {
+    "title": "検索構文の説明",
+    "pageFilters": "ページフィルター",
+    "pageFiltersDesc": "検索は現在選択されているページフィルターに限定されます。",
+    "soGiven": "したがって、使用可能なページフィルターを考えると",
+    "if": "もし",
+    "isCurrentlySelectedIncludes": "が現在選択されている場合、検索には次が含まれます",
+    "bookmarks": "ブックマーク",
+    "isCurrentlySelectedOnly": "が現在選択されている場合、検索には次のみが含まれます",
+    "bookmarksEtc": "ブックマークなど",
+    "combineAnd": "検索の組み合わせ（AND）",
+    "separateBySpace": "スペースで区切ります。",
+    "forExample": "例えば、",
+    "combineOr": "検索の組み合わせ（OR）",
+    "put": "入力",
+    "betweenQuery": "を各検索クエリの間に入れます。",
+    "excludeWords": "検索から単語を除外",
+    "inFrontWord": "を除外したい単語の前に付けます。",
+    "exactMatch": "完全一致で検索",
+    "putInQuotes": "単語またはフレーズを引用符で囲みます。",
+    "specificField": "特定のフィールドで検索",
+    "inFrontTerm": "を語句の前に付けます、",
+    "where": "ここで",
+    "isOneOfOptions": "は以下のオプションのいずれかです",
+    "bookmarkSearch": "ブックマーク検索",
+    "noteSearch": "メモ検索",
+    "fieldHeader": "フィールド",
+    "exampleHeader": "例",
+    "complexExamples": "より複雑な例",
+    "complexExample1Desc": "URLに「youtube」、タイトルに「haskell」またはタイトルに「python」、かつ2017/12/31以降",
+    "complexExample2Desc": "タイトルに「hacker news」を含まず、どこかに「news」「cnn」「npr」があるか、説明に「the guardian」がある"
+  }
+}

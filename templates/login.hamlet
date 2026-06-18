@@ -8,13 +8,13 @@
           <input type="hidden" name="#{defaultCsrfParamName}" value="#{token}">
 
         <div>
-          <label .db.fw6.lh-copy.f6 for="username">Username
+          <label .db.fw6.lh-copy.f6 for="username">#{t "login.username"}
           <input #username .w-100.pa1.mb2.ba.thm-border-pwd autofocus name="username" type="text" value="">
 
         <div>
-          <label .db.fw6.lh-copy.f6 for="password">Password
+          <label .db.fw6.lh-copy.f6 for="password">#{t "login.password"}
           <input #password .w-100.pa1.mb2.ba.thm-border-pwd name="password" type="password">
 
-        <input class="ph3 pv2 input-reset post-input ba bg-transparent pointer f6 dib mt3 dim" type="submit" value="Log In">
+        <input class="ph3 pv2 input-reset post-input ba bg-transparent pointer f6 dib mt3 dim" type="submit" value="#{t "login.submit"}">
 
 <script> document.body.classList.add("login-bg");

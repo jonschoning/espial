@@ -1,14 +1,17 @@
 module Handler.AccountSettings where
 
 import ClassyPrelude.Yesod qualified as CP
+import Data.CaseInsensitive qualified as CI
 import Import
 
 getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
   app <- getYesod
-  let frontendBundleName = appFrontendBundleName app
-      archiveBackendEnabled = isJust (appArchiver app)
   (_, user) <- requireAuthPair
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
+      frontendBundleName = appFrontendBundleName app
+      archiveBackendEnabled = isJust (appArchiver app)
+      t = \key -> appTranslate app lang (I18nKey key)
   let accountSettingsEl = "accountSettings" :: Text
   let accountSettings = toAccountSettingsForm archiveBackendEnabled user
   defaultLayout do
@@ -27,37 +30,48 @@ getAccountSettingsR = do
 
 postEditAccountSettingsR :: Handler ()
 postEditAccountSettingsR = do
+  app <- getYesod
   userId <- requireAuthId
   accountSettingsForm <- requireCheckJsonBody
   runDB (updateUserFromAccountSettingsForm userId accountSettingsForm)
+  case _language accountSettingsForm of
+    Nothing -> setLanguage (CI.original $ fromI18nLang (appLanguageDefault (appSettings app)))
+    Just lang -> setLanguage (CI.original $ fromI18nLang lang)
 
 getChangePasswordR :: Handler Html
 getChangePasswordR = do
   void requireAuthId
   req <- getRequest
+  app <- getYesod
+  (_, user) <- requireAuthPair
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
+      t = \key -> appTranslate app lang (I18nKey key)
   defaultLayout
     $ $(widgetFile "change-password")
 
 postChangePasswordR :: Handler Html
 postChangePasswordR = do
+  app <- getYesod
   (userId, user) <- requireAuthPair
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
+      t = \key -> appTranslate app lang (I18nKey key)
   runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
     FormSuccess (old, new) -> do
       runDB (authenticatePassword (userName user) old) >>= \case
-        Nothing -> setMessage "Incorrect Old Password"
+        Nothing -> setMessage (fromString (unpack (t "auth.incorrectOldPassword")))
         Just _ ->
-          validateNewPassword new >>= \case
+          validateNewPassword t new >>= \case
             Just newValid -> do
               newHash <- liftIO (hashPassword newValid)
               void $ runDB (update userId [UserPasswordHash CP.=. newHash])
-              setMessage "Password Changed Successfully"
+              setMessage (fromString (unpack (t "auth.passUpdated")))
             _ -> pure ()
-    _ -> setMessage "Missing Required Fields"
+    _ -> setMessage (fromString (unpack (t "auth.missingRequiredFields")))
   redirect ChangePasswordR
-
-validateNewPassword :: Text -> Handler (Maybe Text)
-validateNewPassword = \case
-  new | length new < 6 -> do
-    setMessage "Password must be at least 6 characters long"
-    pure Nothing
-  new -> pure $ Just new
+  where
+    validateNewPassword :: (Text -> Text) -> Text -> Handler (Maybe Text)
+    validateNewPassword t = \case
+      new | length new < 6 -> do
+        setMessage (fromString (unpack (t "auth.passwordTooShort")))
+        pure Nothing
+      new -> pure $ Just new

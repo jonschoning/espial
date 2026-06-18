@@ -12,7 +12,11 @@ import Yesod.RssFeed
 
 getNotesR :: UserNameP -> Handler Html
 getNotesR unamep@(UserNameP uname) = do
-  frontendBundleName <- appFrontendBundleName <$> getYesod
+  app <- getYesod
+  muser <- fmap entityVal <$> maybeAuth
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
+      frontendBundleName = appFrontendBundleName app
+      t = \key -> appTranslate app lang (I18nKey key)
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let queryp = "query"

@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Неверное сочетание имени пользователя и пароля",
+    "incorrectOldPassword": "Неверный старый пароль",
+    "passwordTooShort": "Пароль должен быть не менее 6 символов",
+    "passUpdated": "Пароль обновлён",
+    "missingRequiredFields": "Отсутствуют обязательные поля"
+  },
+  "error": {
+    "notFound": "Не найдено",
+    "internalError": "Внутренняя ошибка сервера",
+    "invalidArgs": "Недопустимые аргументы",
+    "badMethod": "Недопустимый метод",
+    "notAuthenticated": "Не аутентифицирован",
+    "permissionDenied": "Доступ запрещён"
+  },
+  "nav": {
+    "privateProfileEnabled": "приватный профиль включён",
+    "darkMode": "тёмный режим",
+    "lightMode": "светлый режим",
+    "addUrl": "добавить URL",
+    "addNote": "добавить заметку",
+    "notes": "заметки",
+    "settings": "настройки",
+    "logout": "выйти",
+    "login": "войти"
+  },
+  "footer": {
+    "sourceCode": "Исходный код"
+  },
+  "login": {
+    "pageTitle": "Войти",
+    "username": "Имя пользователя",
+    "password": "Пароль",
+    "submit": "Войти"
+  },
+  "changePassword": {
+    "oldPassword": "Старый пароль",
+    "newPassword": "Новый пароль",
+    "submit": "Сохранить изменения"
+  },
+  "settings": {
+    "serverDefault": "По умолчанию на сервере",
+    "bookmarklet": "букмарклет добавления URL",
+    "changePassword": "Изменить пароль",
+    "accountTitle": "Настройки аккаунта",
+    "archiveDefault": "Архивировать новые не-приватные закладки по умолчанию",
+    "privateDefault": "Делать новые закладки приватными по умолчанию",
+    "suggestTags": "Включить предложение тегов",
+    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",
+    "archivingDisabled": "Архивирование отключено",
+    "language": "Язык"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "все",
+    "private": "приватные",
+    "public": "публичные",
+    "unread": "непрочитанные",
+    "untagged": "без тегов",
+    "starred": "помеченные"
+  },
+  "pagination": {
+    "perPage": "на странице:"
+  },
+  "pager": {
+    "earlier": "« ранее",
+    "later": "позже »"
+  },
+  "notes": {
+    "youHave": "У вас",
+    "found": "Найдено",
+    "label": "заметок:"
+  },
+  "search": {
+    "placeholder": "поиск",
+    "clearTitle": "очистить результаты поиска",
+    "submitTitle": "выполнить поиск",
+    "syntaxTitle": "синтаксис поиска"
+  },
+  "noTitle": "[без названия]",
+  "edit": "редактировать",
+  "delete": "удалить",
+  "cancel": "отмена",
+  "destroy": "уничтожить",
+  "save": "сохранить",
+  "fetch": "получить",
+  "archive": "архивировать",
+  "archiving": "архивирование",
+  "bmark": {
+    "archiveLinkTitle": "ссылка на архив",
+    "markAsRead": "отметить как прочитанное",
+    "viewInContext": "просмотреть в контексте",
+    "url": "URL",
+    "title": "название",
+    "description": "описание",
+    "tags": "теги",
+    "private": "приватное",
+    "toread": "прочитать позже"
+  },
+  "note": {
+    "killed": "вы удалили эту заметку",
+    "titleLabel": "название:",
+    "descriptionLabel": "описание:",
+    "useMarkdown": "использовать Markdown?",
+    "publicLabel": "публичное?"
+  },
+  "addForm": {
+    "previouslySaved": "ранее сохранено",
+    "url": "URL",
+    "archive": "архивировать",
+    "archiveUnavailable": "архивирование недоступно для приватных закладок",
+    "readLater": "прочитать позже",
+    "update": "обновить закладку",
+    "add": "добавить закладку",
+    "killed": "вы удалили эту закладку"
+  },
+  "tagCloud": {
+    "relatedTags": "Связанные теги",
+    "topTags": "Популярные теги",
+    "topTagsTitle": "показать облако наиболее используемых тегов",
+    "allTitle": "показать все теги",
+    "min2Title": "показать теги с не менее чем 2 закладками",
+    "min5Title": "показать теги с не менее чем 5 закладками",
+    "min10Title": "показать теги с не менее чем 10 закладками",
+    "min20Title": "показать теги с не менее чем 20 закладками",
+    "hide": "скрыть",
+    "show": "показать"
+  },
+  "docs": {
+    "title": "Понимание синтаксиса поиска",
+    "pageFilters": "Фильтры страницы",
+    "pageFiltersDesc": "Поиск ограничен текущим выбранным фильтром страницы.",
+    "soGiven": "Так, учитывая возможные фильтры страницы",
+    "if": "Если",
+    "isCurrentlySelectedIncludes": "выбрано в данный момент, поиск включает",
+    "bookmarks": "закладки",
+    "isCurrentlySelectedOnly": "выбрано в данный момент, поиск включает только",
+    "bookmarksEtc": "закладки и т.д.",
+    "combineAnd": "Объединение поисков (AND)",
+    "separateBySpace": "Разделяйте термины пробелом.",
+    "forExample": "Например,",
+    "combineOr": "Объединение поисков (OR)",
+    "put": "Поставьте",
+    "betweenQuery": "между каждым поисковым запросом.",
+    "excludeWords": "Исключить слова из поиска",
+    "inFrontWord": "перед словом, которое хотите исключить.",
+    "exactMatch": "Поиск точного совпадения",
+    "putInQuotes": "Заключите слово или фразу в кавычки.",
+    "specificField": "Поиск в определённом поле",
+    "inFrontTerm": "перед термином,",
+    "where": "где",
+    "isOneOfOptions": "является одним из вариантов ниже",
+    "bookmarkSearch": "Поиск закладок",
+    "noteSearch": "Поиск заметок",
+    "fieldHeader": "ПОЛЕ",
+    "exampleHeader": "ПРИМЕР",
+    "complexExamples": "Более сложные примеры",
+    "complexExample1Desc": "«youtube» в URL, и заголовок «haskell» или заголовок «python» и после 31.12.2017",
+    "complexExample2Desc": "«hacker news» не в заголовке, и «news», «cnn», «npr» где угодно, или «the guardian» в описании"
+  }
+}

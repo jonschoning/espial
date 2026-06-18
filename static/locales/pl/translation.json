@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Nieprawidłowa nazwa użytkownika lub hasło",
+    "incorrectOldPassword": "Nieprawidłowe stare hasło",
+    "passwordTooShort": "Hasło musi mieć co najmniej 6 znaków",
+    "passUpdated": "Hasło zostało zaktualizowane",
+    "missingRequiredFields": "Brak wymaganych pól"
+  },
+  "error": {
+    "notFound": "Nie znaleziono",
+    "internalError": "Wewnętrzny błąd serwera",
+    "invalidArgs": "Nieprawidłowe argumenty",
+    "badMethod": "Nieprawidłowa metoda",
+    "notAuthenticated": "Brak uwierzytelnienia",
+    "permissionDenied": "Brak uprawnień"
+  },
+  "nav": {
+    "privateProfileEnabled": "profil prywatny wlaczony",
+    "darkMode": "tryb ciemny",
+    "lightMode": "tryb jasny",
+    "addUrl": "dodaj URL",
+    "addNote": "dodaj notatkę",
+    "notes": "notatki",
+    "settings": "ustawienia",
+    "logout": "wyloguj",
+    "login": "zaloguj"
+  },
+  "footer": {
+    "sourceCode": "Kod zrodlowy"
+  },
+  "login": {
+    "pageTitle": "Zaloguj sie",
+    "username": "Nazwa użytkownika",
+    "password": "Hasło",
+    "submit": "Zaloguj się"
+  },
+  "changePassword": {
+    "oldPassword": "Stare hasło",
+    "newPassword": "Nowe hasło",
+    "submit": "Zapisz zmiany"
+  },
+  "settings": {
+    "serverDefault": "Domyslne ustawienie serwera",
+    "bookmarklet": "bookmarklet dodawania URL",
+    "changePassword": "Zmień hasło",
+    "accountTitle": "Ustawienia konta",
+    "archiveDefault": "Domyślnie archiwizuj nowe niepubliczne zakładki",
+    "privateDefault": "Domyślnie ustawiaj nowe zakładki jako prywatne",
+    "suggestTags": "Włącz sugestie tagów",
+    "privacyLock": "Blokada prywatności (konto prywatne)",
+    "archivingDisabled": "Archiwizacja wyłączona",
+    "language": "Język"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "wszystkie",
+    "private": "prywatne",
+    "public": "publiczne",
+    "unread": "nieprzeczytane",
+    "untagged": "bez tagów",
+    "starred": "oznaczone gwiazdką"
+  },
+  "pagination": {
+    "perPage": "na stronę:"
+  },
+  "pager": {
+    "earlier": "« wcześniejsze",
+    "later": "późniejsze »"
+  },
+  "notes": {
+    "youHave": "Masz",
+    "found": "Znaleziono",
+    "label": "notatek:"
+  },
+  "search": {
+    "placeholder": "szukaj",
+    "clearTitle": "wyczyść wyniki wyszukiwania",
+    "submitTitle": "wykonaj wyszukiwanie",
+    "syntaxTitle": "składnia wyszukiwania"
+  },
+  "noTitle": "[brak tytułu]",
+  "edit": "edytuj",
+  "delete": "usuń",
+  "cancel": "anuluj",
+  "destroy": "zniszcz",
+  "save": "zapisz",
+  "fetch": "pobierz",
+  "archive": "archiwizuj",
+  "archiving": "archiwizowanie",
+  "bmark": {
+    "archiveLinkTitle": "link do archiwum",
+    "markAsRead": "oznacz jako przeczytane",
+    "viewInContext": "pokaż w kontekście",
+    "url": "URL",
+    "title": "tytuł",
+    "description": "opis",
+    "tags": "tagi",
+    "private": "prywatne",
+    "toread": "do przeczytania"
+  },
+  "note": {
+    "killed": "usunąłeś tę notatkę",
+    "titleLabel": "tytuł:",
+    "descriptionLabel": "opis:",
+    "useMarkdown": "użyć Markdown?",
+    "publicLabel": "publiczne?"
+  },
+  "addForm": {
+    "previouslySaved": "poprzednio zapisane",
+    "url": "URL",
+    "archive": "archiwizuj",
+    "archiveUnavailable": "archiwizacja jest niedostępna dla prywatnych zakładek",
+    "readLater": "przeczytaj później",
+    "update": "aktualizuj zakładkę",
+    "add": "dodaj zakładkę",
+    "killed": "usunąłeś tę zakładkę"
+  },
+  "tagCloud": {
+    "relatedTags": "Powiązane tagi",
+    "topTags": "Popularne tagi",
+    "topTagsTitle": "pokaż chmurę najczęściej używanych tagów",
+    "allTitle": "pokaż wszystkie tagi",
+    "min2Title": "pokaż tagi z co najmniej 2 zakładkami",
+    "min5Title": "pokaż tagi z co najmniej 5 zakładkami",
+    "min10Title": "pokaż tagi z co najmniej 10 zakładkami",
+    "min20Title": "pokaż tagi z co najmniej 20 zakładkami",
+    "hide": "ukryj",
+    "show": "pokaż"
+  },
+  "docs": {
+    "title": "Zrozumienie składni wyszukiwania",
+    "pageFilters": "Filtry strony",
+    "pageFiltersDesc": "Wyszukiwania są ograniczone do aktualnie wybranego filtra strony.",
+    "soGiven": "Tak więc, biorąc pod uwagę możliwe filtry strony",
+    "if": "Jeśli",
+    "isCurrentlySelectedIncludes": "jest aktualnie wybrany, wyszukiwanie obejmuje",
+    "bookmarks": "zakładki",
+    "isCurrentlySelectedOnly": "jest aktualnie wybrany, wyszukiwanie obejmuje tylko",
+    "bookmarksEtc": "zakładki itp.",
+    "combineAnd": "Łączenie wyszukiwań (AND)",
+    "separateBySpace": "Oddziel terminy spacją.",
+    "forExample": "Na przykład,",
+    "combineOr": "Łączenie wyszukiwań (OR)",
+    "put": "Umieść",
+    "betweenQuery": "między każdym zapytaniem wyszukiwania.",
+    "excludeWords": "Wyklucz słowa z wyszukiwania",
+    "inFrontWord": "przed słowem, które chcesz wykluczyć.",
+    "exactMatch": "Wyszukaj dokładne dopasowanie",
+    "putInQuotes": "Umieść słowo lub frazę w cudzysłowie.",
+    "specificField": "Wyszukaj w określonym polu",
+    "inFrontTerm": "przed terminem,",
+    "where": "gdzie",
+    "isOneOfOptions": "jest jedną z poniższych opcji",
+    "bookmarkSearch": "Wyszukiwanie zakładek",
+    "noteSearch": "Wyszukiwanie notatek",
+    "fieldHeader": "POLE",
+    "exampleHeader": "PRZYKŁAD",
+    "complexExamples": "Bardziej złożone przykłady",
+    "complexExample1Desc": "\"youtube\" w URL oraz tytuł \"haskell\" lub tytuł \"python\" i po 31.12.2017",
+    "complexExample2Desc": "\"hacker news\" nie w tytule, oraz \"news\", \"cnn\", \"npr\" gdziekolwiek lub \"the guardian\" w opisie"
+  }
+}
