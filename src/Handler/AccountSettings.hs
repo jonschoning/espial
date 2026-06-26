@@ -1,7 +1,6 @@
 module Handler.AccountSettings where
 
 import ClassyPrelude.Yesod qualified as CP
-import Data.CaseInsensitive qualified as CI
 import Import
 
 getAccountSettingsR :: Handler Html
@@ -35,8 +34,8 @@ postEditAccountSettingsR = do
   accountSettingsForm <- requireCheckJsonBody
   runDB (updateUserFromAccountSettingsForm userId accountSettingsForm)
   case _language accountSettingsForm of
-    Nothing -> setLanguage (CI.original $ fromI18nLang (appLanguageDefault (appSettings app)))
-    Just lang -> setLanguage (CI.original $ fromI18nLang lang)
+    Nothing -> setLanguage (fromI18nLang (appLanguageDefault (appSettings app)))
+    Just lang -> setLanguage (fromI18nLang lang)
 
 getChangePasswordR :: Handler Html
 getChangePasswordR = do
