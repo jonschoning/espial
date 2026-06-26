@@ -37,3 +37,5 @@ purs/docset/purescript-local.docset/
 *.html
 archivebox-data
 *.7z
+CLAUDE.md
+.claude

@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.0.37 (2026-07-XX)
+
 ## v0.0.36 (2026-06-26)
 
 - improve UI stability & positioning of elements after first render for less flash of content
