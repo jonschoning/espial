@@ -5,11 +5,12 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.35
+version:        0.0.36
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
                 - multi-user (w/ privacy scopes)
+                - multi-language (i18n)
                 - tags, stars, editing, deleting
 category:       Web
 homepage:       https://github.com/jonschoning/espial
@@ -23,8 +24,6 @@ build-type:     Simple
 tested-with:
     GHC == 9.10.3
 extra-source-files:
-    README.md
-    SECURITY.md
     Dockerfile
     Dockerfile.buildkit
     Makefile
@@ -32,7 +31,6 @@ extra-source-files:
     appmigrations/002-normalize-bookmark-utctime-remove-z.sql
     appmigrations/002-normalize-note-utctime-add-z.sql
     appmigrations/002-normalize-note-utctime-remove-z.sql
-    changelog.md
     config/favicon.ico
     config/keter.yml
     config/robots.txt
@@ -51,6 +49,8 @@ extra-source-files:
     frontend/package.json
     frontend/scripts/publish-bundle.mjs
     frontend/scripts/report-dist.mjs
+    frontend/src/@types/i18next.d.ts
+    frontend/src/@types/resources.ts
     frontend/src/api.ts
     frontend/src/components/AccountSettings.tsx
     frontend/src/components/AddForm.tsx
@@ -63,6 +63,7 @@ extra-source-files:
     frontend/src/components/TagSuggestionsDropdown.tsx
     frontend/src/globals.ts
     frontend/src/hooks/useTagSuggestions.ts
+    frontend/src/i18n.ts
     frontend/src/index.tsx
     frontend/src/stores/bookmarksStore.ts
     frontend/src/stores/tagCloudStore.ts
@@ -83,13 +84,27 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-WY46YY6F.min.js
-    static/js/app-WY46YY6F.min.js.gz
-    static/js/app-WY46YY6F.min.js.map
-    static/js/app-WY46YY6F.min.js.map.gz
+    static/js/app-MD5JJQMB.min.js
+    static/js/app-MD5JJQMB.min.js.gz
+    static/js/app-MD5JJQMB.min.js.map
+    static/js/app-MD5JJQMB.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
+    static/locales/de/translation.json
+    static/locales/en/translation.json
+    static/locales/es/translation.json
+    static/locales/fr/translation.json
+    static/locales/it/translation.json
+    static/locales/ja/translation.json
+    static/locales/ko/translation.json
+    static/locales/pl/translation.json
+    static/locales/pt-BR/translation.json
+    static/locales/ru/translation.json
+    static/locales/tr/translation.json
+    static/locales/uk/translation.json
+    static/locales/zh-Hans/translation.json
+    static/locales/zh-Hant/translation.json
     templates/change-password.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
@@ -103,6 +118,10 @@ extra-source-files:
     templates/search.hamlet
     templates/user-settings.hamlet
     templates/user.hamlet
+extra-doc-files:
+    changelog.md
+    README.md
+    SECURITY.md
 
 source-repository head
   type: git
@@ -140,8 +159,10 @@ library
       Handler.Docs
       Handler.Edit
       Handler.Home
+      Handler.Locales
       Handler.Notes
       Handler.User
+      I18n
       Import
       Import.NoFoundation
       Model
@@ -158,6 +179,7 @@ library
       Settings
       Settings.StaticFiles
       Types
+      Util
       Version
       Paths_espial
   autogen-modules:
@@ -182,6 +204,7 @@ library
     , base64 ==1.*
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1
+    , blaze-markup
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
@@ -198,6 +221,7 @@ library
     , fast-logger >=2.2 && <4
     , fgl
     , file-embed
+    , filepath
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
@@ -280,6 +304,7 @@ executable espial
     , base64 ==1.*
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1
+    , blaze-markup
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
@@ -297,6 +322,7 @@ executable espial
     , fast-logger >=2.2 && <4
     , fgl
     , file-embed
+    , filepath
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
@@ -369,6 +395,7 @@ executable migration
     , base64 ==1.*
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1
+    , blaze-markup
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
@@ -386,6 +413,7 @@ executable migration
     , fast-logger >=2.2 && <4
     , fgl
     , file-embed
+    , filepath
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
@@ -464,6 +492,7 @@ test-suite test
     , base64 ==1.*
     , bcrypt >=0.0.8
     , blaze-html >=0.9 && <1
+    , blaze-markup
     , bytestring >=0.11.5 && <0.13
     , case-insensitive
     , classy-prelude >=1.4 && <1.6
@@ -481,6 +510,7 @@ test-suite test
     , fast-logger >=2.2 && <4
     , fgl
     , file-embed
+    , filepath
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3

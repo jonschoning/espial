@@ -28,12 +28,15 @@ getUserTagsR uname = _getUser uname SharedAll FilterAll
 
 _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
-  frontendBundleName <- appFrontendBundleName <$> getYesod
-  mauthuname <- maybeAuthUsername
+  app <- getYesod
+  muser <- fmap entityVal <$> maybeAuth
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
+      t = \key -> appTranslate app lang (I18nKey key)
+      frontendBundleName = appFrontendBundleName app
   (limit', page') <- lookupPagingParams
   let limit = maybe 120 fromIntegral limit'
       page = maybe 1 fromIntegral page'
-      isowner = Just uname == mauthuname
+      isowner = Just uname == fmap userName muser
       sharedp = if isowner then sharedp' else SharedPublic
       filterp = case filterp' of
         FilterSingle _ -> filterp'
@@ -43,16 +46,26 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
-  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
-  let mqueryp = fmap (queryp,) mquery
+  mcursor <-
+    parsePagingCursorParams
+      (fmap PagingCursorBefore . parsePagingCursorTime)
+      (fmap PagingCursorAfter . parsePagingCursorTime)
+      <$> lookupGetParam beforep
+      <*> lookupGetParam afterp
   (suggestTags, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (bcount, btmarks, hasEarlier, hasLater) <- bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
+    (bcount, btmarks, hasEarlier, hasLater) <-
+      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
     pure (userSuggestTags user, bcount, btmarks, hasEarlier, hasLater)
-  let mfirstBookmark = headMay (map fst btmarks)
+  when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
+  mroute <- getCurrentRoute
+  tagCloudMode <- getTagCloudMode isowner pathtags
+  req <- getRequest
+  let archiveBackendEnabled = isJust (appArchiver app)
+      mfirstBookmark = headMay (map fst btmarks)
       mlastBookmark = lastMay (map fst btmarks)
       mqueryEarlierp =
         fmap
@@ -62,16 +75,13 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         fmap
           (afterp,)
           (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
-  when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
-  mroute <- getCurrentRoute
-  tagCloudMode <- getTagCloudMode isowner pathtags
-  req <- getRequest
-  archiveBackendEnabled <- isJust . appArchiver <$> getYesod
+      mqueryp = fmap (queryp,) mquery
+      renderEl = "bookmarks" :: Text
+      tagCloudRenderEl = "tagCloud" :: Text
+
   defaultLayout do
     let pager = $(widgetFile "pager")
         search = $(widgetFile "search")
-        renderEl = "bookmarks" :: Text
-        tagCloudRenderEl = "tagCloud" :: Text
     rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")
     toWidgetBody
@@ -168,15 +178,18 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
-  mbefore <- lookupGetParam beforep
-  mafter <- lookupGetParam afterp
-  let cursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
+  mcursor <-
+    parsePagingCursorParams
+      (fmap PagingCursorBefore . parsePagingCursorTime)
+      (fmap PagingCursorAfter . parsePagingCursorTime)
+      <$> lookupGetParam beforep
+      <*> lookupGetParam afterp
   (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery cursor limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

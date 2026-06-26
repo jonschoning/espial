@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Invalid username/password combination",
+    "incorrectOldPassword": "Incorrect Old Password",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "passUpdated": "Password updated",
+    "missingRequiredFields": "Missing Required Fields"
+  },
+  "error": {
+    "notFound": "Not Found",
+    "internalError": "Internal Server Error",
+    "invalidArgs": "Invalid Arguments",
+    "badMethod": "Bad Method",
+    "notAuthenticated": "Not Authenticated",
+    "permissionDenied": "Permission Denied"
+  },
+  "nav": {
+    "privateProfileEnabled": "private profile enabled",
+    "darkMode": "dark mode",
+    "lightMode": "light mode",
+    "addUrl": "add url",
+    "addNote": "add note",
+    "notes": "notes",
+    "settings": "settings",
+    "logout": "log out",
+    "login": "log in"
+  },
+  "footer": {
+    "sourceCode": "Source Code"
+  },
+  "login": {
+    "pageTitle": "Log In",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log In"
+  },
+  "changePassword": {
+    "oldPassword": "Old Password",
+    "newPassword": "New Password",
+    "submit": "Save Changes"
+  },
+  "settings": {
+    "serverDefault": "Server Default",
+    "bookmarklet": "add url bookmarklet",
+    "changePassword": "Change Password",
+    "accountTitle": "Account Settings",
+    "archiveDefault": "Archive new non-Private bookmarks by default",
+    "privateDefault": "Default new bookmarks to Private",
+    "suggestTags": "Enable tag suggestions",
+    "privacyLock": "Privacy Lock (Private Account)",
+    "archivingDisabled": "Archiving Disabled",
+    "language": "Language"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "all",
+    "private": "private",
+    "public": "public",
+    "unread": "unread",
+    "untagged": "untagged",
+    "starred": "starred"
+  },
+  "pagination": {
+    "perPage": "per page:"
+  },
+  "pager": {
+    "earlier": "« earlier",
+    "later": "later »"
+  },
+  "notes": {
+    "youHave": "You have",
+    "found": "Found",
+    "label": "notes:"
+  },
+  "search": {
+    "placeholder": "search",
+    "clearTitle": "clear search results",
+    "submitTitle": "submit search",
+    "syntaxTitle": "search syntax"
+  },
+  "noTitle": "[no title]",
+  "edit": "edit",
+  "delete": "delete",
+  "cancel": "cancel",
+  "destroy": "destroy",
+  "save": "save",
+  "fetch": "fetch",
+  "archive": "archive",
+  "archiving": "archiving",
+  "bmark": {
+    "archiveLinkTitle": "archive link",
+    "markAsRead": "mark as read",
+    "viewInContext": "view in context",
+    "url": "url",
+    "title": "title",
+    "description": "description",
+    "tags": "tags",
+    "private": "private",
+    "toread": "to-read"
+  },
+  "note": {
+    "killed": "you killed this note",
+    "titleLabel": "title:",
+    "descriptionLabel": "description:",
+    "useMarkdown": "use markdown?",
+    "publicLabel": "public?"
+  },
+  "addForm": {
+    "previouslySaved": "previously saved",
+    "url": "URL",
+    "archive": "archive",
+    "archiveUnavailable": "archiving is unavailable for private bookmarks",
+    "readLater": "read later",
+    "update": "update bookmark",
+    "add": "add bookmark",
+    "killed": "you killed this bookmark"
+  },
+  "tagCloud": {
+    "relatedTags": "Related Tags",
+    "topTags": "Top Tags",
+    "topTagsTitle": "show a cloud of your most-used tags",
+    "allTitle": "show all tags",
+    "min2Title": "show tags with at least 2 bookmarks",
+    "min5Title": "show tags with at least 5 bookmarks",
+    "min10Title": "show tags with at least 10 bookmarks",
+    "min20Title": "show tags with at least 20 bookmarks",
+    "hide": "hide",
+    "show": "show"
+  },
+  "docs": {
+    "title": "Understanding the Search Syntax",
+    "pageFilters": "Page filters",
+    "pageFiltersDesc": "Searches are scoped to the currently selected page filter.",
+    "soGiven": "So, given the possible page filters",
+    "if": "If",
+    "isCurrentlySelectedIncludes": "is currently selected, the search includes",
+    "bookmarks": "bookmarks",
+    "isCurrentlySelectedOnly": "is currently selected, the search only includes",
+    "bookmarksEtc": "bookmarks, etc..",
+    "combineAnd": "Combine Searches (AND)",
+    "separateBySpace": "Separate terms by a space.",
+    "forExample": "For example,",
+    "combineOr": "Combine Searches (OR)",
+    "put": "Put",
+    "betweenQuery": "between each search query.",
+    "excludeWords": "Exclude words from your search",
+    "inFrontWord": "in front of a word you want to leave out.",
+    "exactMatch": "Search for an exact match",
+    "putInQuotes": "Put a word or phrase inside quotes.",
+    "specificField": "Search on a specific field",
+    "inFrontTerm": "in front of the term,",
+    "where": "where",
+    "isOneOfOptions": "is one of the options below",
+    "bookmarkSearch": "Bookmark Search",
+    "noteSearch": "Note Search",
+    "fieldHeader": "FIELD",
+    "exampleHeader": "EXAMPLE",
+    "complexExamples": "More Complex Examples",
+    "complexExample1Desc": "\"youtube\" in url, and title of \"haskell\" or title of \"python\" and after 12/31/2017",
+    "complexExample2Desc": "\"hacker news\" not in title, and \"news\", \"cnn\", \"npr\" anywhere, or \"the guardian\" in the description"
+  }
+}

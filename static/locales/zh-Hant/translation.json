@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "無效的使用者名稱／密碼組合",
+    "incorrectOldPassword": "舊密碼不正確",
+    "passwordTooShort": "密碼長度至少必須為 6 個字元",
+    "passUpdated": "密碼已更新",
+    "missingRequiredFields": "缺少必填欄位"
+  },
+  "error": {
+    "notFound": "找不到",
+    "internalError": "伺服器內部錯誤",
+    "invalidArgs": "無效的引數",
+    "badMethod": "錯誤的方法",
+    "notAuthenticated": "未驗證",
+    "permissionDenied": "權限遭拒"
+  },
+  "nav": {
+    "privateProfileEnabled": "已啟用私人個人資料",
+    "darkMode": "深色模式",
+    "lightMode": "淺色模式",
+    "addUrl": "新增網址",
+    "addNote": "新增筆記",
+    "notes": "筆記",
+    "settings": "設定",
+    "logout": "登出",
+    "login": "登入"
+  },
+  "footer": {
+    "sourceCode": "原始碼"
+  },
+  "login": {
+    "pageTitle": "登入",
+    "username": "使用者名稱",
+    "password": "密碼",
+    "submit": "登入"
+  },
+  "changePassword": {
+    "oldPassword": "舊密碼",
+    "newPassword": "新密碼",
+    "submit": "儲存變更"
+  },
+  "settings": {
+    "serverDefault": "伺服器預設值",
+    "bookmarklet": "新增網址書籤小工具",
+    "changePassword": "變更密碼",
+    "accountTitle": "帳戶設定",
+    "archiveDefault": "預設封存新的非私人書籤",
+    "privateDefault": "預設將新書籤設為私人",
+    "suggestTags": "啟用標籤建議",
+    "privacyLock": "隱私鎖定（私人帳戶）",
+    "archivingDisabled": "封存功能已停用",
+    "language": "語言"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "全部",
+    "private": "私人",
+    "public": "公開",
+    "unread": "未讀",
+    "untagged": "未標籤",
+    "starred": "已加星號"
+  },
+  "pagination": {
+    "perPage": "每頁："
+  },
+  "pager": {
+    "earlier": "« 較早",
+    "later": "較晚 »"
+  },
+  "notes": {
+    "youHave": "你有",
+    "found": "找到",
+    "label": "筆記："
+  },
+  "search": {
+    "placeholder": "搜尋",
+    "clearTitle": "清除搜尋結果",
+    "submitTitle": "送出搜尋",
+    "syntaxTitle": "搜尋語法"
+  },
+  "noTitle": "[無標題]",
+  "edit": "編輯",
+  "delete": "刪除",
+  "cancel": "取消",
+  "destroy": "銷毀",
+  "save": "儲存",
+  "fetch": "擷取",
+  "archive": "封存",
+  "archiving": "封存中",
+  "bmark": {
+    "archiveLinkTitle": "封存連結",
+    "markAsRead": "標示為已讀",
+    "viewInContext": "在內容中檢視",
+    "url": "網址",
+    "title": "標題",
+    "description": "描述",
+    "tags": "標籤",
+    "private": "私人",
+    "toread": "稍後閱讀"
+  },
+  "note": {
+    "killed": "你刪除了這則筆記",
+    "titleLabel": "標題：",
+    "descriptionLabel": "描述：",
+    "useMarkdown": "使用 Markdown？",
+    "publicLabel": "公開？"
+  },
+  "addForm": {
+    "previouslySaved": "先前已儲存",
+    "url": "URL",
+    "archive": "封存",
+    "archiveUnavailable": "私人書籤無法使用封存功能",
+    "readLater": "稍後閱讀",
+    "update": "更新書籤",
+    "add": "新增書籤",
+    "killed": "你刪除了這個書籤"
+  },
+  "tagCloud": {
+    "relatedTags": "相關標籤",
+    "topTags": "熱門標籤",
+    "topTagsTitle": "顯示你最常用標籤的雲圖",
+    "allTitle": "顯示所有標籤",
+    "min2Title": "顯示至少有 2 個書籤的標籤",
+    "min5Title": "顯示至少有 5 個書籤的標籤",
+    "min10Title": "顯示至少有 10 個書籤的標籤",
+    "min20Title": "顯示至少有 20 個書籤的標籤",
+    "hide": "隱藏",
+    "show": "顯示"
+  },
+  "docs": {
+    "title": "了解搜尋語法",
+    "pageFilters": "頁面篩選",
+    "pageFiltersDesc": "搜尋範圍會限制在目前選取的頁面篩選條件內。",
+    "soGiven": "因此，給定下列可能的頁面篩選條件",
+    "if": "如果",
+    "isCurrentlySelectedIncludes": "目前被選取，搜尋會包含",
+    "bookmarks": "書籤",
+    "isCurrentlySelectedOnly": "目前被選取，搜尋只會包含",
+    "bookmarksEtc": "書籤等等。",
+    "combineAnd": "組合搜尋（AND）",
+    "separateBySpace": "以空格分隔搜尋詞。",
+    "forExample": "例如，",
+    "combineOr": "組合搜尋（OR）",
+    "put": "將",
+    "betweenQuery": "放在每個搜尋查詢之間。",
+    "excludeWords": "從搜尋中排除字詞",
+    "inFrontWord": "放在想排除字詞的前面。",
+    "exactMatch": "搜尋完全相符的內容",
+    "putInQuotes": "將單字或片語放在引號內。",
+    "specificField": "針對特定欄位搜尋",
+    "inFrontTerm": "放在查詢詞前面，",
+    "where": "其中",
+    "isOneOfOptions": "是下列選項之一",
+    "bookmarkSearch": "書籤搜尋",
+    "noteSearch": "筆記搜尋",
+    "fieldHeader": "欄位",
+    "exampleHeader": "範例",
+    "complexExamples": "更複雜的範例",
+    "complexExample1Desc": "URL 中含有 \"youtube\"，且標題為 \"haskell\" 或標題為 \"python\"，並且在 2017/12/31 之後",
+    "complexExample2Desc": "標題中不含 \"hacker news\"，且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或描述中包含 \"the guardian\""
+  }
+}

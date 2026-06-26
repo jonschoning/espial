@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { destroy, editBookmark, lookupTitle } from '../api';
-import { app, closeWindow, mmoment8601 } from '../globals';
+import { app, closeWindow, fromNow, shdatetime } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
 import { curQuerystring, lookupQueryStringValue, normalizeTags } from '../util';
@@ -9,6 +10,7 @@ import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
 /** Form for adding or editing a single bookmark, used in the popup window. */
 export function AddForm({ initial }: { initial: Bookmark }) {
+  const { t } = useTranslation();
   const a = app();
   const [bm, setBm] = React.useState<Bookmark>(initial);
   const [editBm, setEditBm] = React.useState<Bookmark>(initial);
@@ -17,6 +19,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
   const [destroyed, setDestroyed] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
   const suggestEnabled = a.dat.suggestTags === true;
+  const fromNowVal = React.useMemo(() => fromNow(a.lang, bm.time), [a.lang, bm.time]);
 
   const {
     tagInputRef,
@@ -35,8 +38,6 @@ export function AddForm({ initial }: { initial: Bookmark }) {
       setEditBm((x) => ({ ...x, tags }));
     },
   });
-
-  const mm = mmoment8601(bm.time);
 
   async function onFetchTitle() {
     setLoading(true);
@@ -79,7 +80,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
     }
   };
 
-  if (destroyed) return <p className="thm-text-killed">you killed this bookmark</p>;
+  if (destroyed) return <p className="thm-text-killed">{t('addForm.killed')}</p>;
 
   return (
     <form
@@ -94,12 +95,13 @@ export function AddForm({ initial }: { initial: Bookmark }) {
             <td>
               {bm.bid > 0 ? (
                 <div className="alert">
-                  previously saved&nbsp;
+                  {t('addForm.previouslySaved')}&nbsp;
                   <span
                     className="link f7 dib thm-text-tertiary thm-hover-link-color pr3"
-                    title={mm?.[1] ?? bm.time}
+                    data-time={bm.time}
+                    title={shdatetime(a.lang, bm.time)}
                   >
-                    {mm?.[0] ?? '\u00a0'}
+                    {fromNowVal}
                   </span>
                   <div className="edit_links dib ml1">
                     <div className="delete_link di">
@@ -111,7 +113,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                         className="delete"
                         hidden={deleteAsk}
                       >
-                        delete
+                        {t('delete')}
                       </button>
                       <span className="confirm thm-text-error" hidden={!deleteAsk}>
                         <button
@@ -120,14 +122,14 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                             setDeleteAsk(false);
                           }}
                         >
-                          cancel&nbsp;/&nbsp;
+                          {t('cancel')}&nbsp;/&nbsp;
                         </button>
                         <button
                           type="button"
                           onClick={() => void onDestroy()}
                           className="thm-text-error"
                         >
-                          destroy
+                          {t('destroy')}
                         </button>
                       </span>
                     </div>
@@ -140,7 +142,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
 
           <tr>
             <td>
-              <label htmlFor="url">URL</label>
+              <label htmlFor="url">{t('addForm.url')}</label>
             </td>
             <td>
               <input
@@ -160,7 +162,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
 
           <tr>
             <td>
-              <label htmlFor="title">title</label>
+              <label htmlFor="title">{t('bmark.title')}</label>
             </td>
             <td className="flex">
               <input
@@ -179,14 +181,14 @@ export function AddForm({ initial }: { initial: Bookmark }) {
                 onClick={() => void onFetchTitle()}
                 className={`ml2 input-reset ba thm-border-primary pointer f6 di dim pa1 ma1 mr0${loading ? ' thm-bg-disabled' : ''}`}
               >
-                fetch
+                {t('fetch')}
               </button>
             </td>
           </tr>
 
           <tr>
             <td>
-              <label htmlFor="description">description</label>
+              <label htmlFor="description">{t('bmark.description')}</label>
             </td>
             <td>
               <textarea
@@ -204,7 +206,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
 
           <tr>
             <td>
-              <label htmlFor="tags">tags</label>
+              <label htmlFor="tags">{t('bmark.tags')}</label>
             </td>
             <td>
               <div className="relative">
@@ -241,7 +243,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
 
           <tr>
             <td>
-              <label htmlFor="private">private</label>
+              <label htmlFor="private">{t('bmark.private')}</label>
             </td>
             <td>
               <div className="mr4 dib">
@@ -265,12 +267,10 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               {!(bm.bid > 0) && a.dat.archiveBackendEnabled ? (
                 <div
                   className={`dib ${editBm.private ? 'o-50' : ''}`}
-                  title={
-                    editBm.private ? 'archiving is unavailable for private bookmarks' : undefined
-                  }
+                  title={editBm.private ? t('addForm.archiveUnavailable') : undefined}
                 >
                   <label className="mr2 di" htmlFor="archiveRequested">
-                    archive
+                    {t('archive')}
                   </label>
                   <input
                     type="checkbox"
@@ -290,7 +290,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
 
           <tr>
             <td>
-              <label htmlFor="toread">read later</label>
+              <label htmlFor="toread">{t('addForm.readLater')}</label>
             </td>
             <td>
               <input
@@ -312,7 +312,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
               <input
                 type="submit"
                 className="ph3 pv2 input-reset thm-text-strong ba thm-border-primary bg-transparent pointer f6 dib mt1 dim"
-                value={bm.bid > 0 ? 'update bookmark' : 'add bookmark'}
+                value={bm.bid > 0 ? t('addForm.update') : t('addForm.add')}
               />
             </td>
           </tr>

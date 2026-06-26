@@ -2,11 +2,17 @@
 
 Espial is an open-source, web-based bookmarking server.
 
-It allows mutiple accounts, but currently intended for self-host scenarios.
+It supports multiple user accounts and is primarily intended for self-hosted deployments.
 
-The bookmarks are stored in a sqlite3 database, for ease of deployment & maintenence.
+Bookmarks are stored in a SQLite database to keep setup and maintenance straightforward.
+
+Espial also includes internationalization support.
+
+### Adding Bookmarks
 
 The easist way for logged-in users to add bookmarks, is with the "bookmarklet", found on the Settings page.
+
+Espial also supports file import options.
 
 ## Demo Server
 
@@ -19,15 +25,23 @@ https://espdemo.ae8.org/u:demo
 
 ![jpg](./docs/demo-bookmarks-page.png)
 
+## Related Projects
+
+Also, see the android app for adding bookmarks via an Android Share intent:
+
+https://github.com/jonschoning/espial-share-android
+
 ## Installation
 
-### Docker Setup
+### Docker Setup (Recommended Method)
+
+Docker installation is the recommended approach for most deployments.
 
 See:
 
 https://github.com/jonschoning/espial-docker
 
-### Server Setup (From Source)
+### Setup From Source
 
 1. Install the Stack executable here:
    - https://tech.fpcomplete.com/haskell/get-started
@@ -78,7 +92,32 @@ See `config/settings.yml` for changing default run-time parameters & environment
   - environment variable `PORT`
   - default app http port: `3000`
 
-### Request IP Logging
+## Internationalization
+
+Espial's frontend supports a selectable UI language per account, on the Account Settings (`settings`) page.
+
+The Server Language default is controlled by `language-default` in `config/settings.yml`, which can also be set with environment variable `LANGUAGE_DEFAULT` to the language code; the default value is `en`.
+
+#### Supported Languages:
+
+| Code      | English name          | Native name        |
+| --------- | --------------------- | ------------------ |
+| `en`      | English               | English            |
+| `de`      | German                | Deutsch            |
+| `es`      | Spanish               | Español            |
+| `fr`      | French                | Français           |
+| `it`      | Italian               | Italiano           |
+| `ja`      | Japanese              | 日本語             |
+| `ko`      | Korean                | 한국어             |
+| `pl`      | Polish                | Polski             |
+| `pt-BR`   | Portuguese (Brazil)   | Português (Brasil) |
+| `ru`      | Russian               | Русский            |
+| `tr`      | Turkish               | Türkçe             |
+| `uk`      | Ukrainian             | Українська         |
+| `zh-Hans` | Chinese (Simplified)  | 简体中文           |
+| `zh-Hant` | Chinese (Traditional) | 繁體中文           |
+
+## Request IP Logging
 
 Espial supports the `IP_FROM_HEADER` environment variable for request logging.
 
@@ -87,7 +126,7 @@ Espial supports the `IP_FROM_HEADER` environment variable for request logging.
 
 Only set `IP_FROM_HEADER=true` if your application is safely positioned **behind a trusted reverse proxy**.
 
-### SSL / Reverse Proxy
+## SSL / Reverse Proxy
 
 Espial does not terminate TLS itself. Run it behind a reverse proxy that handles HTTPS and forwards traffic to Espial over HTTP.
 
@@ -205,18 +244,6 @@ Optional proxy settings for archive requests:
 
 - `archive-socks-proxy-host`
 - `archive-socks-proxy-port`
-
-## Related Projects
-
-Also, see the android app for adding bookmarks via an Android Share intent:
-
-https://github.com/jonschoning/espial-share-android
-
-## Development
-
-### Frontend
-
-- See `frontend/` folder
 
 ## CLI
 

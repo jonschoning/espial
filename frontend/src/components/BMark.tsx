@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { archiveBookmark, destroy, editBookmark, lookupTitle, markRead, toggleStar } from '../api';
-import { app, setFocus, toLocaleDateString } from '../globals';
+import { app, setFocus, shdatetime, toLocaleDateString } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
 import { encodeTag, fromNullableStr, normalizeTags } from '../util';
@@ -18,6 +19,7 @@ export function BMark({
   onNotifyRemove: () => void;
   onUpdated: (bm: Bookmark) => void;
 }) {
+  const { t } = useTranslation();
   const a = app();
   const [bm, setBm] = React.useState<Bookmark>(initial);
   const [editBm, setEditBm] = React.useState<Bookmark>(initial);
@@ -38,8 +40,6 @@ export function BMark({
   };
   const linkToViewInContext = `${fromNullableStr(a.userR)}?before=${encodeURIComponent(viewInContextTime(new Date(bm.time)))}`;
 
-  const shdate = toLocaleDateString(bm.time);
-  const shdatetime = `${bm.time.slice(0, 16)}Z`;
   const suggestEnabled = a.dat.suggestTags === true;
 
   const {
@@ -145,7 +145,7 @@ export function BMark({
             rel="noreferrer"
             className={`link f5 lh-title${bm.toread ? ' unread' : ''}`}
           >
-            {bm.title === '' ? '[no title]' : bm.title}
+            {bm.title === '' ? t('noTitle') : bm.title}
           </a>
           <br />
           <a href={bm.url} className="link f7 thm-text-tertiary thm-hover-link-color">
@@ -157,7 +157,7 @@ export function BMark({
               className="link f7 thm-text-tertiary thm-hover-link-color ml2 thm-text-success"
               target="_blank"
               rel="noreferrer"
-              title="archive link"
+              title={t('bmark.archiveLinkTitle')}
             >
               ☑
             </a>
@@ -184,9 +184,10 @@ export function BMark({
             <a
               className="link f7 di mr5 thm-text-tertiary"
               href={linkToFilterSingle}
-              title={shdatetime}
+              data-time={bm.time}
+              title={shdatetime(a.lang, bm.time)}
             >
-              {shdate}
+              {toLocaleDateString(a.lang, bm.time)}
             </a>
 
             {a.dat.isowner ? (
@@ -198,7 +199,7 @@ export function BMark({
                   }}
                   className="edit thm-text-muted thm-hover-link-color"
                 >
-                  edit&nbsp;&nbsp;
+                  {t('edit')}&nbsp;&nbsp;
                 </button>
                 <div className="delete_link di">
                   <button
@@ -208,7 +209,7 @@ export function BMark({
                     }}
                     className={`delete thm-text-muted thm-hover-link-color${deleteAsk ? ' dn' : ''}`}
                   >
-                    delete
+                    {t('delete')}
                   </button>
                   <span className={`confirm thm-text-error${!deleteAsk ? ' dn' : ''}`}>
                     <button
@@ -217,14 +218,14 @@ export function BMark({
                         setDeleteAsk(false);
                       }}
                     >
-                      cancel&nbsp;/&nbsp;
+                      {t('cancel')}&nbsp;/&nbsp;
                     </button>
                     <button
                       type="button"
                       onClick={() => void onDestroy()}
                       className="thm-text-error"
                     >
-                      destroy
+                      {t('destroy')}
                     </button>
                   </span>
                 </div>
@@ -235,7 +236,7 @@ export function BMark({
               <div className="read di">
                 &nbsp;&nbsp;
                 <button onClick={() => void onMarkRead()} className="mark_read" type="button">
-                  mark as read
+                  {t('bmark.markAsRead')}
                 </button>
               </div>
             ) : null}
@@ -244,7 +245,7 @@ export function BMark({
           {a.dat.filter?.tag == 'FilterSingle' ? (
             <div className="mt2">
               <a className="link f7 di mr5" href={linkToViewInContext}>
-                view in context
+                {t('bmark.viewInContext')}
               </a>
             </div>
           ) : null}
@@ -253,7 +254,7 @@ export function BMark({
         <div className="edit_bookmark_form pa2 pt0 thm-bg-surface">
           {apiError ? <div className="alert alert-err">{apiError}</div> : null}
           <form onSubmit={(e) => void onSubmit(e)}>
-            <div>url</div>
+            <div>{t('bmark.url')}</div>
             <input
               type="url"
               className="url w-100 mb2 pt1 edit_form_input"
@@ -264,7 +265,7 @@ export function BMark({
                 setEditBm((x) => ({ ...x, url: e.target.value }));
               }}
             />
-            <div>title</div>
+            <div>{t('bmark.title')}</div>
             <div className="flex">
               <input
                 type="text"
@@ -283,10 +284,10 @@ export function BMark({
                   loading ? ' thm-bg-disabled' : ''
                 }`}
               >
-                fetch
+                {t('fetch')}
               </button>
             </div>
-            <div>description</div>
+            <div>{t('bmark.description')}</div>
             <textarea
               className="description w-100 mb1 pt1 edit_form_input"
               name="description"
@@ -297,7 +298,7 @@ export function BMark({
               }}
             />
             <div id="tags_input_box">
-              <div>tags</div>
+              <div>{t('bmark.tags')}</div>
               <div className="relative">
                 <input
                   id={tagInputId}
@@ -339,7 +340,7 @@ export function BMark({
                 }}
               />{' '}
               <label htmlFor="edit_private" className="mr2">
-                private
+                {t('bmark.private')}
               </label>{' '}
               <input
                 type="checkbox"
@@ -351,19 +352,19 @@ export function BMark({
                   setEditBm((x) => ({ ...x, toread: e.target.checked }));
                 }}
               />{' '}
-              <label htmlFor="edit_toread">to-read</label>
+              <label htmlFor="edit_toread">{t('bmark.toread')}</label>
             </div>
             <div className="flex justify-between items-center">
               <div>
                 <input
                   type="submit"
                   className="mr1 pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-                  value="save"
+                  value={t('save')}
                 />{' '}
                 <input
                   type="reset"
                   className="pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary pointer rdim"
-                  value="cancel"
+                  value={t('cancel')}
                   onClick={() => {
                     startEdit(false);
                   }}
@@ -376,7 +377,7 @@ export function BMark({
                   onClick={() => void onArchive()}
                   className={`pv1 ph2 thm-text-primary ba thm-border-default thm-bg-secondary${archiving ? ' thm-bg-disabled' : ''}${archivingDisabled ? ' not-allowed o-20' : ''}`}
                 >
-                  {archiving ? 'archiving' : 'archive'}
+                  {archiving ? t('archiving') : t('archive')}
                 </button>
               ) : null}
             </div>

@@ -7,7 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "ES2018", "ES2019"],
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
@@ -21,7 +21,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ES2018",
+    "target": "ES2020",
     "types": [],
     "useDefineForClassFields": true,
     "verbatimModuleSyntax": true,
@@ -31,4 +31,3 @@
   },
   "include": ["src"]
 }
-

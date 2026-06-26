@@ -1,3 +1,6 @@
+import './i18n';
+
+import { type ReactNode, useLayoutEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { logout } from './api';
@@ -19,16 +22,27 @@ function viewRendered(): void {
   if (el) el.setAttribute('view-rendered', '');
 }
 
+function RenderReady({ children }: { children: ReactNode }) {
+  useLayoutEffect(() => {
+    viewRendered();
+  }, []);
+
+  return children;
+}
+
+function renderView(renderElSelector: string, node: ReactNode): void {
+  const el = selectEl(renderElSelector);
+  if (!el) return;
+  createRoot(el).render(<RenderReady>{node}</RenderReady>);
+}
+
 export const logoutE = (e: Event) => () => {
   e.preventDefault();
   void logout();
 };
 
 export const renderBookmarks = (renderElSelector: string) => (bmarks: Bookmark[]) => () => {
-  const el = selectEl(renderElSelector);
-  if (!el) return;
-  createRoot(el).render(<BList initial={bmarks} />);
-  viewRendered();
+  renderView(renderElSelector, <BList initial={bmarks} />);
 };
 
 export const renderTagCloud = (renderElSelector: string) => (tagCloudMode: TagCloudMode) => () => {
@@ -38,32 +52,20 @@ export const renderTagCloud = (renderElSelector: string) => (tagCloudMode: TagCl
 };
 
 export const renderAddForm = (renderElSelector: string) => (bmark: Bookmark) => () => {
-  const el = selectEl(renderElSelector);
-  if (!el) return;
-  createRoot(el).render(<AddForm initial={bmark} />);
-  viewRendered();
+  renderView(renderElSelector, <AddForm initial={bmark} />);
 };
 
 export const renderNotes = (renderElSelector: string) => (notes: Note[]) => () => {
-  const el = selectEl(renderElSelector);
-  if (!el) return;
-  createRoot(el).render(<NList initial={notes} />);
-  viewRendered();
+  renderView(renderElSelector, <NList initial={notes} />);
 };
 
 export const renderNote = (renderElSelector: string) => (note: Note) => () => {
-  const el = selectEl(renderElSelector);
-  if (!el) return;
-  createRoot(el).render(<NNote initial={note} />);
-  viewRendered();
+  renderView(renderElSelector, <NNote initial={note} />);
 };
 
 export const renderAccountSettings =
   (renderElSelector: string) => (accountSettings: AccountSettings) => () => {
-    const el = selectEl(renderElSelector);
-    if (!el) return;
-    createRoot(el).render(<AccountSettingsView initial={accountSettings} />);
-    viewRendered();
+    renderView(renderElSelector, <AccountSettingsView initial={accountSettings} />);
   };
 
 export function initColorSchemeToggle(): void {

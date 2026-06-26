@@ -20,6 +20,9 @@ build-fast:
 	@stack build --fast
 
 build-watch:
+	@stack build --file-watch --fast
+
+build-watch-no-code:
 	@stack build --file-watch --fast --ghc-options=-fno-code 
 
 repl: 

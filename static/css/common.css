@@ -25,6 +25,7 @@ button {
   border: none;
   padding: 0;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 button:focus {

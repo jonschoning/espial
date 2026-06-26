@@ -3,6 +3,7 @@
 module Main where
 
 import ClassyPrelude
+import Data.CaseInsensitive qualified as CI
 import Data.Text qualified as T
 import Database.Persist qualified as P
 import Database.Persist.Sqlite qualified as P
@@ -12,7 +13,7 @@ import Model
 import Model.Custom
 import Model.File
 import Model.FileNetscape (exportNetscapeBookmarks)
-import Model.Migrations (dumpMigration, runPersistentMigrations, runAppMigrations)
+import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations)
 import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
@@ -29,7 +30,8 @@ data MigrationOpts
         privateDefault :: Maybe Bool,
         archiveDefault :: Maybe Bool,
         suggestTags :: Maybe Bool,
-        privacyLock :: Maybe Bool
+        privacyLock :: Maybe Bool,
+        userLanguage :: Maybe I18nLang
       }
   | CreateApiKey
       { conn :: Maybe Text,
@@ -82,6 +84,17 @@ data MigrationOpts
 
 instance ParseRecord MigrationOpts
 
+parseI18nLang :: OA.ReadM I18nLang
+parseI18nLang =
+  OA.str >>= \s ->
+    maybe
+      (OA.readerError $ "Invalid language: '" <> s <> "' Supported languages: " <> supportedLangs)
+      pure
+      (toI18nLang s)
+
+instance ParseField I18nLang where
+  readField = parseI18nLang
+
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
@@ -105,15 +118,21 @@ main = do
           PasswordText s -> pure s
           PasswordFile f -> readFileUtf8 f
         hash' <- liftIO (hashPassword passwordText)
+        let privateDefaultVal = fromMaybe False privateDefault
+            archiveDefaultVal = fromMaybe False archiveDefault
+            suggestTagsVal = fromMaybe True suggestTags
+            privacyLockVal = fromMaybe False privacyLock
+            userLanguageVal = userLanguage
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing False False True False)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
-              UserPrivateDefault P.=. fromMaybe False privateDefault,
-              UserArchiveDefault P.=. fromMaybe False archiveDefault,
-              UserSuggestTags P.=. fromMaybe True suggestTags,
-              UserPrivacyLock P.=. fromMaybe False privacyLock
+              UserPrivateDefault P.=. privateDefaultVal,
+              UserArchiveDefault P.=. archiveDefaultVal,
+              UserSuggestTags P.=. suggestTagsVal,
+              UserPrivacyLock P.=. privacyLockVal,
+              UserLanguage P.=. userLanguageVal
             ]
         pure () :: DB ()
     ShowUser {..} -> do

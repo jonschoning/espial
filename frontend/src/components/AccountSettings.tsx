@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { editAccountSettings } from '../api';
 import type { AccountSettings } from '../types';
 
 /** Displays and edits the current user's account settings. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
+  const { t } = useTranslation();
   const [us, setUs] = React.useState<AccountSettings>(initial);
   const archiveDisabled = !us.archiveBackendEnabled;
-  const archiveDisabledTitle = archiveDisabled ? 'Archiving Disabled' : undefined;
+  const archiveDisabledTitle = archiveDisabled ? t('settings.archivingDisabled') : undefined;
 
   async function update(next: AccountSettings) {
     setUs(next);
@@ -16,7 +18,42 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
 
   return (
     <div className="settings-form">
-      <div className="fw7 mb2">Account Settings</div>
+      <div className="fw7 mb2">{t('settings.accountTitle')}</div>
+
+      <div className="flex items-center mb2">
+        <label htmlFor="language" className="lh-copy mr2">
+          {t('settings.language')}
+        </label>
+        <select
+          id="language"
+          name="language"
+          className="pointer"
+          value={us.language ?? ''}
+          onChange={(e) => {
+            const next = { ...us, language: e.target.value === '' ? null : e.target.value };
+            setUs(next);
+            void editAccountSettings(next).then(() => {
+              window.location.reload();
+            });
+          }}
+        >
+          <option value="">{t('settings.serverDefault')}</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="it">Italiano</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="pl">Polski</option>
+          <option value="pt-BR">Português (Brasil)</option>
+          <option value="ru">Русский</option>
+          <option value="tr">Türkçe</option>
+          <option value="uk">Українська</option>
+          <option value="zh-Hans">简体中文</option>
+          <option value="zh-Hant">繁體中文</option>
+        </select>
+      </div>
 
       <div
         className={`flex items-center mb2${archiveDisabled ? ' o-50' : ''}`}
@@ -37,7 +74,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           className={`lh-copy${archiveDisabled ? ' thm-text-tertiary' : ''}`}
           title={archiveDisabledTitle}
         >
-          Archive new non-Private bookmarks by default
+          {t('settings.archiveDefault')}
         </label>
       </div>
 
@@ -51,7 +88,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           onChange={(e) => void update({ ...us, privateDefault: e.target.checked })}
         />
         <label htmlFor="privateDefault" className="lh-copy">
-          Default new bookmarks to Private
+          {t('settings.privateDefault')}
         </label>
       </div>
 
@@ -65,7 +102,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
         />
         <label htmlFor="suggestTags" className="lh-copy">
-          Enable tag suggestions
+          {t('settings.suggestTags')}
         </label>
       </div>
 
@@ -79,7 +116,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           onChange={(e) => void update({ ...us, privacyLock: e.target.checked })}
         />
         <label htmlFor="privacyLock" className="lh-copy">
-          Privacy Lock (Private Account)
+          {t('settings.privacyLock')}
         </label>
       </div>
     </div>

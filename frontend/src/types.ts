@@ -75,6 +75,8 @@ export type AccountSettings = {
   privacyLock: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
+  /** The user's preferred language (null means server default). */
+  language: string | null;
 };
 
 /** Raw tag cloud mode as stored/sent by the server. */

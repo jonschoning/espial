@@ -1,41 +1,41 @@
 <main .pt2.pb5.mh1>
-  <h1 lh-title.mt0 style="font-size:1.35rem">Understanding the Search Syntax
+  <h1 lh-title.mt0 style="font-size:1.35rem">#{t "docs.title"}
     
-  <h3>Page filters
-  <p .ml3>Searches are scoped to the currently selected page filter. 
+  <h3>#{t "docs.pageFilters"}
+  <p .ml3>#{t "docs.pageFiltersDesc"}
     <br>
-    <span>So, given the possible page filters</span>
+    <span>#{t "docs.soGiven"}</span>
     <br><span class="code fw9 docs-item-bg">all ‧ private ‧ public ‧ unread ‧ untagged ‧ starred</span>
-    <br><span>If <span class="code fw9 docs-item-bg">all</span> is currently selected, the search includes <span class="code fw9 docs-item-bg">all</span> bookmarks</span>
-    <br><span>If <span class="code fw9 docs-item-bg">private</span> is currently selected, the search only includes <span class="code fw9 docs-item-bg">private</span> bookmarks, etc..</span>
+    <br><span>#{t "docs.if"} <span class="code fw9 docs-item-bg">all</span> #{t "docs.isCurrentlySelectedIncludes"} <span class="code fw9 docs-item-bg">all</span> #{t "docs.bookmarks"}</span>
+    <br><span>#{t "docs.if"} <span class="code fw9 docs-item-bg">private</span> #{t "docs.isCurrentlySelectedOnly"} <span class="code fw9 docs-item-bg">private</span> #{t "docs.bookmarksEtc"}</span>
   
-  <h3>Combine Searches (AND)
-  <p .ml3>Separate terms by a space.
-    <br>For example, <span class="code fw9 docs-item-bg">marathon race</span>
+  <h3>#{t "docs.combineAnd"}
+  <p .ml3>#{t "docs.separateBySpace"}
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">marathon race</span>
   
-  <h3>Combine Searches (OR)
-  <p .ml3>Put <span class="code fw9 docs-item-bg">|</span>&nbsp;between each search query.&nbsp;
-    <br>For example, <span class="code fw9 docs-item-bg">marathon|race</span>
+  <h3>#{t "docs.combineOr"}
+  <p .ml3>#{t "docs.put"} <span class="code fw9 docs-item-bg">|</span>&nbsp;#{t "docs.betweenQuery"}&nbsp;
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">marathon|race</span>
   
-  <h3>Exclude words from your search
-  <p .ml3>Put <span class="code fw9 docs-item-bg">-</span>&nbsp;in front of a word you want to leave out.&nbsp;
-    <br>For example, <span class="code fw9 docs-item-bg">-car</span>
+  <h3>#{t "docs.excludeWords"}
+  <p .ml3>#{t "docs.put"} <span class="code fw9 docs-item-bg">-</span>&nbsp;#{t "docs.inFrontWord"}&nbsp;
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">-car</span>
   
-  <h3>Search for an exact match
-  <p .ml3>Put a word or phrase inside quotes.&nbsp;
-    <br>For example, <span class="code fw9 docs-item-bg">"tallest building"</span>
+  <h3>#{t "docs.exactMatch"}
+  <p .ml3>#{t "docs.putInQuotes"}&nbsp;
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">"tallest building"</span>
   
-  <h3>Search on a specific field
+  <h3>#{t "docs.specificField"}
   <p .ml3>
-    Put <span class="code fw9 docs-item-bg"><span class="i">field</span>:</span> in front of the term,
-    where <span class="code fw9 docs-item-bg"><span class="i">field</span></span> is one of the options below
+    #{t "docs.put"} <span class="code fw9 docs-item-bg"><span class="i">field</span>:</span> #{t "docs.inFrontTerm"}
+    #{t "docs.where"} <span class="code fw9 docs-item-bg"><span class="i">field</span></span> #{t "docs.isOneOfOptions"}
   <div .ml3>
-    <div .f5.fw6.pb3.underline>Bookmark Search
+    <div .f5.fw6.pb3.underline>#{t "docs.bookmarkSearch"}
     <table .collapse.ba.br2.thm-border-doc-table.pv2.ph3>
       <tbody>
         <tr .docs-striped-item>
-          <td .pv2.ph3>FIELD
-          <td .pv2.ph3>EXAMPLE
+          <td .pv2.ph3>#{t "docs.fieldHeader"}
+          <td .pv2.ph3>#{t "docs.exampleHeader"}
         <tr .docs-striped-item>
           <td .pv2.ph3><span class="code fw9">url</span>, <span class="code fw9">u
           <td .pv2.ph3><span class="code fw9">url:youtube.com</span><br><span class="code fw9">u:youtube.com
@@ -55,12 +55,12 @@
           <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
           <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
   
-    <div .f5.fw6.pv3.underline>Note Search
+    <div .f5.fw6.pv3.underline>#{t "docs.noteSearch"}
     <table .collapse.ba.br2.thm-border-doc-table.pv2.ph3>
       <tbody>
         <tr .docs-striped-item>
-          <td .pv2.ph3>FIELD
-          <td .pv2.ph3>EXAMPLE
+          <td .pv2.ph3>#{t "docs.fieldHeader"}
+          <td .pv2.ph3>#{t "docs.exampleHeader"}
         <tr .docs-striped-item>
           <td .pv2.ph3><span class="code fw9">title</span>, <span class="code fw9">ti
           <td .pv2.ph3><span class="code fw9">title:"hacker news"</span><br><span class="code fw9">ti:"hacker news"
@@ -74,13 +74,13 @@
           <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
           <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
 
-  <h3 .mb0>More Complex Examples
+  <h3 .mb0>#{t "docs.complexExamples"}
   <div .ml3.pt3>
-    <span>"youtube" in url, and title of "haskell" or title of "python" and after 12/31/2017
+    <span>#{t "docs.complexExample1Desc"}
     <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">u:youtube ti:haskell|ti:python a:12/31/2017
       
   <div .ml3.pt3>
-    <span>"hacker news" not in title, and "news", "cnn", "npr" anywhere, or "the guardian" in the description
+    <span>#{t "docs.complexExample2Desc"}
     <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">-ti:"hacker news" news|cnn|npr|d:"the guardian"
 
 

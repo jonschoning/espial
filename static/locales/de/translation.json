@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Ungültige Kombination aus Nutzername und Passwort",
+    "incorrectOldPassword": "Falsches altes Passwort",
+    "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein",
+    "passUpdated": "Passwort aktualisiert",
+    "missingRequiredFields": "Fehlende erforderliche Felder"
+  },
+  "error": {
+    "notFound": "Nicht gefunden",
+    "internalError": "Interner Serverfehler",
+    "invalidArgs": "Ungültige Argumente",
+    "badMethod": "Ungültige Methode",
+    "notAuthenticated": "Nicht authentifiziert",
+    "permissionDenied": "Zugriff verweigert"
+  },
+  "nav": {
+    "privateProfileEnabled": "privates Profil aktiviert",
+    "darkMode": "Dunkelmodus",
+    "lightMode": "Hellmodus",
+    "addUrl": "URL hinzufügen",
+    "addNote": "Notiz hinzufügen",
+    "notes": "Notizen",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "login": "Anmelden"
+  },
+  "footer": {
+    "sourceCode": "Quellcode"
+  },
+  "login": {
+    "pageTitle": "Anmelden",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Anmelden"
+  },
+  "changePassword": {
+    "oldPassword": "Altes Passwort",
+    "newPassword": "Neues Passwort",
+    "submit": "Änderungen speichern"
+  },
+  "settings": {
+    "serverDefault": "Serverstandard",
+    "bookmarklet": "URL-Bookmarklet hinzufügen",
+    "changePassword": "Passwort ändern",
+    "accountTitle": "Kontoeinstellungen",
+    "archiveDefault": "Neue nicht-private Lesezeichen standardmäßig archivieren",
+    "privateDefault": "Neue Lesezeichen standardmäßig auf privat setzen",
+    "suggestTags": "Tag-Vorschläge aktivieren",
+    "privacyLock": "Datenschutzsperre (privates Konto)",
+    "archivingDisabled": "Archivierung deaktiviert",
+    "language": "Sprache"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "alle",
+    "private": "privat",
+    "public": "öffentlich",
+    "unread": "ungelesen",
+    "untagged": "ohne Tags",
+    "starred": "markiert"
+  },
+  "pagination": {
+    "perPage": "pro Seite:"
+  },
+  "pager": {
+    "earlier": "« früher",
+    "later": "später »"
+  },
+  "notes": {
+    "youHave": "Sie haben",
+    "found": "Gefunden",
+    "label": "Notizen:"
+  },
+  "search": {
+    "placeholder": "suchen",
+    "clearTitle": "Suchergebnisse löschen",
+    "submitTitle": "Suche starten",
+    "syntaxTitle": "Suchsyntax"
+  },
+  "noTitle": "[kein Titel]",
+  "edit": "bearbeiten",
+  "delete": "löschen",
+  "cancel": "abbrechen",
+  "destroy": "vernichten",
+  "save": "speichern",
+  "fetch": "abrufen",
+  "archive": "archivieren",
+  "archiving": "wird archiviert",
+  "bmark": {
+    "archiveLinkTitle": "Archivlink",
+    "markAsRead": "als gelesen markieren",
+    "viewInContext": "im Kontext anzeigen",
+    "url": "URL",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "tags": "Tags",
+    "private": "privat",
+    "toread": "zu lesen"
+  },
+  "note": {
+    "killed": "Sie haben diese Notiz gelöscht",
+    "titleLabel": "Titel:",
+    "descriptionLabel": "Beschreibung:",
+    "useMarkdown": "Markdown verwenden?",
+    "publicLabel": "öffentlich?"
+  },
+  "addForm": {
+    "previouslySaved": "zuvor gespeichert",
+    "url": "URL",
+    "archive": "archivieren",
+    "archiveUnavailable": "Archivierung ist für private Lesezeichen nicht verfügbar",
+    "readLater": "später lesen",
+    "update": "Lesezeichen aktualisieren",
+    "add": "Lesezeichen hinzufügen",
+    "killed": "Sie haben dieses Lesezeichen gelöscht"
+  },
+  "tagCloud": {
+    "relatedTags": "Verwandte Tags",
+    "topTags": "Top-Tags",
+    "topTagsTitle": "Eine Wolke Ihrer meistgenutzten Tags anzeigen",
+    "allTitle": "Alle Tags anzeigen",
+    "min2Title": "Tags mit mindestens 2 Lesezeichen anzeigen",
+    "min5Title": "Tags mit mindestens 5 Lesezeichen anzeigen",
+    "min10Title": "Tags mit mindestens 10 Lesezeichen anzeigen",
+    "min20Title": "Tags mit mindestens 20 Lesezeichen anzeigen",
+    "hide": "ausblenden",
+    "show": "anzeigen"
+  },
+  "docs": {
+    "title": "Die Suchsyntax verstehen",
+    "pageFilters": "Seitenfilter",
+    "pageFiltersDesc": "Suchen sind auf den aktuell ausgewählten Seitenfilter beschränkt.",
+    "soGiven": "Angesichts der möglichen Seitenfilter",
+    "if": "Wenn",
+    "isCurrentlySelectedIncludes": "aktuell ausgewählt ist, umfasst die Suche",
+    "bookmarks": "Lesezeichen",
+    "isCurrentlySelectedOnly": "aktuell ausgewählt ist, umfasst die Suche nur",
+    "bookmarksEtc": "Lesezeichen usw.",
+    "combineAnd": "Suchen kombinieren (AND)",
+    "separateBySpace": "Begriffe durch ein Leerzeichen trennen.",
+    "forExample": "Zum Beispiel,",
+    "combineOr": "Suchen kombinieren (OR)",
+    "put": "Setzen Sie",
+    "betweenQuery": "zwischen jede Suchanfrage.",
+    "excludeWords": "Wörter aus der Suche ausschließen",
+    "inFrontWord": "vor ein Wort, das Sie ausschließen möchten.",
+    "exactMatch": "Nach einer genauen Übereinstimmung suchen",
+    "putInQuotes": "Ein Wort oder eine Phrase in Anführungszeichen setzen.",
+    "specificField": "In einem bestimmten Feld suchen",
+    "inFrontTerm": "vor dem Begriff,",
+    "where": "wobei",
+    "isOneOfOptions": "eine der folgenden Optionen ist",
+    "bookmarkSearch": "Lesezeichen-Suche",
+    "noteSearch": "Notizen-Suche",
+    "fieldHeader": "FELD",
+    "exampleHeader": "BEISPIEL",
+    "complexExamples": "Komplexere Beispiele",
+    "complexExample1Desc": "\"youtube\" in URL, und Titel \"haskell\" oder Titel \"python\" und nach dem 31.12.2017",
+    "complexExample2Desc": "\"hacker news\" nicht im Titel, und \"news\", \"cnn\", \"npr\" irgendwo, oder \"the guardian\" in der Beschreibung"
+  }
+}

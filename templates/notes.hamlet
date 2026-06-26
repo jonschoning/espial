@@ -1,21 +1,26 @@
-<main #main_column .pv2.ph3.mh1>
-  <div .w-100.mw8.center>
-    <div .fr.nt1 style="margin-bottom:.7rem">
-      ^{search}
-    <div .di>
-      <div .fr.f6.pr3.dib.mb2>
-          <a .link.rss
-             href="@{NotesFeedR unamep}">RSS
+<main #main_column .pv2.ph3.mh1.page-with-footer>
+  <div .w-100.mw8.center.page-with-footer-inner>
+    <div .page-main-content>
+      <div .fr.nt1.nowrap style="margin-bottom:.7rem">
+        <div .dib.v-mid.f6.pr2>
+            <a .link.rss
+               href="@{NotesFeedR unamep}">#{t "rss"}
+        <div .dib.v-mid>
+          ^{search}
+      <div .di>
 
-    <span .db .mb3>#{T.append "" (maybe "You have" (const "Found") mquery)} #{bcount} notes:
+      $maybe _ <- mquery
+        <span .db .mb3>#{t "notes.found"} #{bcount} #{t "notes.label"}
+      $nothing
+        <span .db .mb3>#{t "notes.youHave"} #{bcount} #{t "notes.label"}
 
-    ^{pager}
+      ^{pager}
 
-    <div .cf>
+      <div .cf>
 
-    <div ##{renderEl} .mt3>
+      <div ##{renderEl} .mt3>
 
-    <div .cf>
+      <div .cf>
 
     <div .user_footer hidden>
       ^{pager}
@@ -23,7 +28,7 @@
       $if (fromIntegral bcount >= limit) || (page > 1)
         $maybe route <- mroute
           <div .dib.ml5>
-            <span .silver.mr1>per page:
+            <span .silver.mr1>#{t "pagination.perPage"}
             <a .link.pager-link :limit == 20:.nav-active href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
             <a .link.pager-link :limit == 40:.nav-active href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
             <a .link.pager-link :limit == 80:.nav-active href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 

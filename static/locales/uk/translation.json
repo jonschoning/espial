@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Неправильна комбінація імені користувача та пароля",
+    "incorrectOldPassword": "Неправильний старий пароль",
+    "passwordTooShort": "Пароль має містити щонайменше 6 символів",
+    "passUpdated": "Пароль оновлено",
+    "missingRequiredFields": "Відсутні обов'язкові поля"
+  },
+  "error": {
+    "notFound": "Не знайдено",
+    "internalError": "Внутрішня помилка сервера",
+    "invalidArgs": "Неприпустимі аргументи",
+    "badMethod": "Неприпустимий метод",
+    "notAuthenticated": "Не автентифіковано",
+    "permissionDenied": "Доступ заборонено"
+  },
+  "nav": {
+    "privateProfileEnabled": "приватний профіль увімкнено",
+    "darkMode": "темний режим",
+    "lightMode": "світлий режим",
+    "addUrl": "додати url",
+    "addNote": "додати нотатку",
+    "notes": "нотатки",
+    "settings": "налаштування",
+    "logout": "вийти",
+    "login": "увійти"
+  },
+  "footer": {
+    "sourceCode": "Вихідний код"
+  },
+  "login": {
+    "pageTitle": "Увійти",
+    "username": "Ім'я користувача",
+    "password": "Пароль",
+    "submit": "Увійти"
+  },
+  "changePassword": {
+    "oldPassword": "Старий пароль",
+    "newPassword": "Новий пароль",
+    "submit": "Зберегти зміни"
+  },
+  "settings": {
+    "serverDefault": "Типове значення сервера",
+    "bookmarklet": "bookmarklet для додавання url",
+    "changePassword": "Змінити пароль",
+    "accountTitle": "Налаштування облікового запису",
+    "archiveDefault": "Типово архівувати нові неприховані закладки",
+    "privateDefault": "Типово робити нові закладки приватними",
+    "suggestTags": "Увімкнути підказки тегів",
+    "privacyLock": "Блокування приватності (приватний обліковий запис)",
+    "archivingDisabled": "Архівування вимкнено",
+    "language": "Мова"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "усі",
+    "private": "приватні",
+    "public": "публічні",
+    "unread": "непрочитані",
+    "untagged": "без тегів",
+    "starred": "із зіркою"
+  },
+  "pagination": {
+    "perPage": "на сторінці:"
+  },
+  "pager": {
+    "earlier": "« раніше",
+    "later": "пізніше »"
+  },
+  "notes": {
+    "youHave": "У вас є",
+    "found": "Знайдено",
+    "label": "нотатки:"
+  },
+  "search": {
+    "placeholder": "пошук",
+    "clearTitle": "очистити результати пошуку",
+    "submitTitle": "виконати пошук",
+    "syntaxTitle": "синтаксис пошуку"
+  },
+  "noTitle": "[без назви]",
+  "edit": "редагувати",
+  "delete": "видалити",
+  "cancel": "скасувати",
+  "destroy": "знищити",
+  "save": "зберегти",
+  "fetch": "отримати",
+  "archive": "архівувати",
+  "archiving": "архівування",
+  "bmark": {
+    "archiveLinkTitle": "посилання на архів",
+    "markAsRead": "позначити як прочитане",
+    "viewInContext": "переглянути в контексті",
+    "url": "url",
+    "title": "назва",
+    "description": "опис",
+    "tags": "теги",
+    "private": "приватне",
+    "toread": "прочитати пізніше"
+  },
+  "note": {
+    "killed": "ви видалили цю нотатку",
+    "titleLabel": "назва:",
+    "descriptionLabel": "опис:",
+    "useMarkdown": "використовувати markdown?",
+    "publicLabel": "публічна?"
+  },
+  "addForm": {
+    "previouslySaved": "збережено раніше",
+    "url": "URL",
+    "archive": "архівувати",
+    "archiveUnavailable": "архівування недоступне для приватних закладок",
+    "readLater": "прочитати пізніше",
+    "update": "оновити закладку",
+    "add": "додати закладку",
+    "killed": "ви видалили цю закладку"
+  },
+  "tagCloud": {
+    "relatedTags": "Пов'язані теги",
+    "topTags": "Найпопулярніші теги",
+    "topTagsTitle": "показати хмару ваших найуживаніших тегів",
+    "allTitle": "показати всі теги",
+    "min2Title": "показати теги щонайменше з 2 закладками",
+    "min5Title": "показати теги щонайменше з 5 закладками",
+    "min10Title": "показати теги щонайменше з 10 закладками",
+    "min20Title": "показати теги щонайменше з 20 закладками",
+    "hide": "сховати",
+    "show": "показати"
+  },
+  "docs": {
+    "title": "Розуміння синтаксису пошуку",
+    "pageFilters": "Фільтри сторінки",
+    "pageFiltersDesc": "Пошук обмежується поточним вибраним фільтром сторінки.",
+    "soGiven": "Отже, для можливих фільтрів сторінки",
+    "if": "Якщо",
+    "isCurrentlySelectedIncludes": "зараз вибрано, пошук включає",
+    "bookmarks": "закладки",
+    "isCurrentlySelectedOnly": "зараз вибрано, пошук включає лише",
+    "bookmarksEtc": "закладки тощо.",
+    "combineAnd": "Поєднання пошуків (AND)",
+    "separateBySpace": "Розділяйте терміни пробілом.",
+    "forExample": "Наприклад,",
+    "combineOr": "Поєднання пошуків (OR)",
+    "put": "Поставте",
+    "betweenQuery": "між кожним пошуковим запитом.",
+    "excludeWords": "Виключення слів із пошуку",
+    "inFrontWord": "перед словом, яке потрібно виключити.",
+    "exactMatch": "Пошук точного збігу",
+    "putInQuotes": "Візьміть слово або фразу в лапки.",
+    "specificField": "Пошук у конкретному полі",
+    "inFrontTerm": "перед терміном,",
+    "where": "де",
+    "isOneOfOptions": "є одним із варіантів нижче",
+    "bookmarkSearch": "Пошук закладок",
+    "noteSearch": "Пошук нотаток",
+    "fieldHeader": "ПОЛЕ",
+    "exampleHeader": "ПРИКЛАД",
+    "complexExamples": "Складніші приклади",
+    "complexExample1Desc": "\"youtube\" в url, і назва містить \"haskell\" або назва містить \"python\", і після 31.12.2017",
+    "complexExample2Desc": "\"hacker news\" не в назві, а \"news\", \"cnn\", \"npr\" будь-де, або \"the guardian\" в описі"
+  }
+}

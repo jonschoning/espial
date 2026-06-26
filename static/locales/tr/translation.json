@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "invalidUsernamePass": "Gecersiz kullanici adi/sifre kombinasyonu",
+    "incorrectOldPassword": "Eski sifre yanlis",
+    "passwordTooShort": "Sifre en az 6 karakter olmali",
+    "passUpdated": "Sifre guncellendi",
+    "missingRequiredFields": "Gerekli alanlar eksik"
+  },
+  "error": {
+    "notFound": "Bulunamadi",
+    "internalError": "Dahili sunucu hatasi",
+    "invalidArgs": "Gecersiz bagimsiz degiskenler",
+    "badMethod": "Gecersiz yontem",
+    "notAuthenticated": "Kimlik dogrulanmadi",
+    "permissionDenied": "Izin reddedildi"
+  },
+  "nav": {
+    "privateProfileEnabled": "ozel profil etkin",
+    "darkMode": "koyu mod",
+    "lightMode": "acik mod",
+    "addUrl": "url ekle",
+    "addNote": "not ekle",
+    "notes": "notlar",
+    "settings": "ayarlar",
+    "logout": "cikis yap",
+    "login": "giris yap"
+  },
+  "footer": {
+    "sourceCode": "Kaynak kodu"
+  },
+  "login": {
+    "pageTitle": "Giris yap",
+    "username": "Kullanici adi",
+    "password": "Sifre",
+    "submit": "Giris yap"
+  },
+  "changePassword": {
+    "oldPassword": "Eski sifre",
+    "newPassword": "Yeni sifre",
+    "submit": "Degisiklikleri kaydet"
+  },
+  "settings": {
+    "serverDefault": "Sunucu varsayilani",
+    "bookmarklet": "url ekleme bookmarklet'i",
+    "changePassword": "Sifre degistir",
+    "accountTitle": "Hesap ayarlari",
+    "archiveDefault": "Yeni ozel olmayan yer imlerini varsayilan olarak arsivle",
+    "privateDefault": "Yeni yer imlerini varsayilan olarak ozel yap",
+    "suggestTags": "Etiket onerilerini etkinlestir",
+    "privacyLock": "Gizlilik kilidi (ozel hesap)",
+    "archivingDisabled": "Arsivleme devre disi",
+    "language": "Dil"
+  },
+  "rss": "RSS",
+  "filter": {
+    "all": "tum",
+    "private": "ozel",
+    "public": "genel",
+    "unread": "okunmamis",
+    "untagged": "etiketsiz",
+    "starred": "yildizli"
+  },
+  "pagination": {
+    "perPage": "sayfa basi:"
+  },
+  "pager": {
+    "earlier": "« onceki",
+    "later": "sonraki »"
+  },
+  "notes": {
+    "youHave": "Sahipsin",
+    "found": "Bulundu",
+    "label": "notlar:"
+  },
+  "search": {
+    "placeholder": "ara",
+    "clearTitle": "arama sonuclarini temizle",
+    "submitTitle": "aramayi gonder",
+    "syntaxTitle": "arama sozdizimi"
+  },
+  "noTitle": "[baslik yok]",
+  "edit": "duzenle",
+  "delete": "sil",
+  "cancel": "iptal",
+  "destroy": "yok et",
+  "save": "kaydet",
+  "fetch": "getir",
+  "archive": "arsivle",
+  "archiving": "arsivleniyor",
+  "bmark": {
+    "archiveLinkTitle": "arsiv baglantisi",
+    "markAsRead": "okundu olarak isle",
+    "viewInContext": "baglam icinde goruntule",
+    "url": "url",
+    "title": "baslik",
+    "description": "aciklama",
+    "tags": "etiketler",
+    "private": "ozel",
+    "toread": "daha sonra oku"
+  },
+  "note": {
+    "killed": "bu notu sildin",
+    "titleLabel": "baslik:",
+    "descriptionLabel": "aciklama:",
+    "useMarkdown": "markdown kullanilsin mi?",
+    "publicLabel": "genel mi?"
+  },
+  "addForm": {
+    "previouslySaved": "daha once kaydedildi",
+    "url": "URL",
+    "archive": "arsivle",
+    "archiveUnavailable": "ozel yer imleri icin arsivleme kullanilamaz",
+    "readLater": "daha sonra oku",
+    "update": "yer imini guncelle",
+    "add": "yer imi ekle",
+    "killed": "bu yer imini sildin"
+  },
+  "tagCloud": {
+    "relatedTags": "Ilgili etiketler",
+    "topTags": "En cok kullanilan etiketler",
+    "topTagsTitle": "en cok kullandigin etiketlerin bulutunu goster",
+    "allTitle": "tum etiketleri goster",
+    "min2Title": "en az 2 yer imine sahip etiketleri goster",
+    "min5Title": "en az 5 yer imine sahip etiketleri goster",
+    "min10Title": "en az 10 yer imine sahip etiketleri goster",
+    "min20Title": "en az 20 yer imine sahip etiketleri goster",
+    "hide": "gizle",
+    "show": "goster"
+  },
+  "docs": {
+    "title": "Arama sozdizimini anlama",
+    "pageFilters": "Sayfa filtreleri",
+    "pageFiltersDesc": "Aramalar su anda secili sayfa filtresiyle sinirlandirilir.",
+    "soGiven": "Yani, olasi sayfa filtreleri verildiginde",
+    "if": "Eger",
+    "isCurrentlySelectedIncludes": "su anda seciliyse, arama sunlari icerir",
+    "bookmarks": "yer imleri",
+    "isCurrentlySelectedOnly": "su anda seciliyse, arama yalnizca sunlari icerir",
+    "bookmarksEtc": "yer imleri vb.",
+    "combineAnd": "Aramalari birlestir (AND)",
+    "separateBySpace": "Terimleri boslukla ayirin.",
+    "forExample": "Ornegin,",
+    "combineOr": "Aramalari birlestir (OR)",
+    "put": "Sunu koyun",
+    "betweenQuery": "her arama sorgusunun arasina.",
+    "excludeWords": "Aramadan kelime cikar",
+    "inFrontWord": "haric tutmak istediginiz kelimenin onune koyun.",
+    "exactMatch": "Tam eslesme ara",
+    "putInQuotes": "Bir kelimeyi veya ifadeyi tirnak icine alin.",
+    "specificField": "Belirli bir alanda ara",
+    "inFrontTerm": "terimin onune koyun,",
+    "where": "burada",
+    "isOneOfOptions": "asagidaki seceneklerden biridir",
+    "bookmarkSearch": "Yer imi aramasi",
+    "noteSearch": "Not aramasi",
+    "fieldHeader": "ALAN",
+    "exampleHeader": "ORNEK",
+    "complexExamples": "Daha karmasik ornekler",
+    "complexExample1Desc": "url icinde \"youtube\", ve baslikta \"haskell\" veya baslikta \"python\" ve 31/12/2017 sonrasinda",
+    "complexExample2Desc": "baslikta \"hacker news\" yok, ve herhangi bir yerde \"news\", \"cnn\", \"npr\", veya aciklamada \"the guardian\""
+  }
+}

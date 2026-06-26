@@ -11,6 +11,11 @@ form label {
   vertical-align: middle;
   display: table-cell;
   padding: 2px 0;
+  white-space: nowrap;
+}
+
+button {
+  white-space: nowrap;
 }
 
 li {

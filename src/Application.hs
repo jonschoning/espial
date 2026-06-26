@@ -35,8 +35,10 @@ import Handler.Common
 import Handler.Docs
 import Handler.Edit
 import Handler.Home
+import Handler.Locales
 import Handler.Notes
 import Handler.User
+import I18n qualified
 import Import
 import Language.Haskell.TH.Syntax (qLocation)
 import Lens.Micro
@@ -67,16 +69,22 @@ makeFoundation appSettings@AppSettings {..} = do
   appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
   appFrontendBundleName <- loadFrontendBundleName appStaticDir
   appStatic <- (if appMutableStatic then staticDevel else static) appStaticDir
-  let mkFoundation appConnPool appArchiver = App {..}
+  (appTranslationsHash, appTranslations) <- I18n.loadTranslations appStaticDir
+  let appTranslate lang = I18n.translate appTranslations lang (I18nNs "translation")
+      appI18nR = LocalesFileR appTranslationsHash []
+      mkFoundation appConnPool appArchiver = App {..}
       appLogFunc = messageLoggerSource (mkFoundation (error "connPool forced in tempFoundation") Nothing) appLogger
       startupLogFunc = if appEnableStartupLogging then appLogFunc else \_ _ _ _ -> pure ()
-  flip runLoggingT startupLogFunc (logInfoNS "startup" Version.versionSpec)
+  flip runLoggingT startupLogFunc $ do 
+    (logInfoNS "startup" Version.versionSpec)
   do migrationsPool <- mkPool startupLogFunc False
      runSqlPool (runPersistentMigrations appEnableStartupLogging) migrationsPool
      runSqlPool (runAppMigrations appEnableStartupLogging) migrationsPool
   appPool <- mkPool appLogFunc True
   appArchiver <- mkArchiverBackend appLogFunc appPool
-  flip runLoggingT startupLogFunc (logInfoNS "startup" $ "archive backend: " <> tshow appArchiveBackend)
+  flip runLoggingT startupLogFunc $ do 
+    (logInfoNS "startup" $ "archive backend: " <> tshow appArchiveBackend)
+    (logDebugNS "startup" ("language-default: " <> fromI18nLang' appLanguageDefault))
   return (mkFoundation appPool appArchiver)
   where
     mkPool :: _ -> Bool -> IO ConnectionPool
