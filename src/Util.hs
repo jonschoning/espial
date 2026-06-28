@@ -1,7 +1,11 @@
 module Util where
 
+import ClassyPrelude (Text)
+import Data.CaseInsensitive qualified as CI
+import Data.List (nubBy)
 import Data.Map.Strict qualified as M
-import Prelude
+import Data.Text (replace, words)
+import Prelude hiding (words)
 
 inverseMap ::
   forall a k.
@@ -17,3 +21,11 @@ inverseMap f = \k -> M.lookup k dict
 toFst :: (a -> b) -> a -> (b, a)
 toFst f a = (f a, a)
 {-# INLINE toFst #-}
+
+batchOf :: Int -> [a] -> [[a]]
+batchOf _ [] = []
+batchOf n xs = let (h, t) = splitAt n xs in h : batchOf n t
+{-# INLINE batchOf #-}
+
+normalizeTags :: Text -> [Text]
+normalizeTags = nubBy (\a b -> CI.mk a == CI.mk b) . words . replace "," " "

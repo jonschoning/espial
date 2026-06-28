@@ -12,7 +12,11 @@
     "invalidArgs": "Ungültige Argumente",
     "badMethod": "Ungültige Methode",
     "notAuthenticated": "Nicht authentifiziert",
-    "permissionDenied": "Zugriff verweigert"
+    "permissionDenied": "Zugriff verweigert",
+    "error": "Fehler: {{status}}",
+    "errorWithMsg": "Fehler {{status}}: {{msg}}",
+    "requestTimedOut": "Anfrage abgelaufen",
+    "networkError": "Netzwerkfehler"
   },
   "nav": {
     "privateProfileEnabled": "privates Profil aktiviert",
@@ -68,9 +72,10 @@
     "later": "später »"
   },
   "notes": {
-    "youHave": "Sie haben",
-    "found": "Gefunden",
-    "label": "Notizen:"
+    "youHave_one": "Sie haben 1 Notiz:",
+    "youHave_other": "Sie haben {{count}} Notizen:",
+    "found_one": "1 Notiz gefunden:",
+    "found_other": "{{count}} Notizen gefunden:"
   },
   "search": {
     "placeholder": "suchen",
@@ -126,6 +131,37 @@
     "min20Title": "Tags mit mindestens 20 Lesezeichen anzeigen",
     "hide": "ausblenden",
     "show": "anzeigen"
+  },
+  "bulkEdit": {
+    "edit": "bearbeiten",
+    "select": "auswählen:",
+    "oneBookmarkSelected": "1 Lesezeichen ausgewählt",
+    "bookmarksSelected": "{{count}} Lesezeichen ausgewählt",
+    "thisPage": "diese Seite",
+    "allPages": "alle Seiten",
+    "action": "Aktion:",
+    "markAsRead": "als gelesen markieren",
+    "unread": "ungelesen",
+    "addStars": "Sterne hinzufügen",
+    "removeStars": "Sterne entfernen",
+    "makePrivate": "privat machen",
+    "makePublic": "öffentlich machen",
+    "removeTags": "Tags entfernen:",
+    "addTags": "Tags hinzufügen:",
+    "submitting": "wird gesendet…",
+    "submit": "senden",
+    "destroyOne": "1 Lesezeichen löschen?",
+    "destroyMany": "{{count}} Lesezeichen löschen?",
+    "publicOne": "1 Lesezeichen öffentlich machen?",
+    "publicMany": "{{count}} Lesezeichen öffentlich machen?",
+    "pleaseAddSelection": "Bitte eine Lesezeichen-Auswahl treffen",
+    "pleaseChooseAction": "Bitte eine Aktion wählen oder Tags eingeben",
+    "tooManyTags": "Es können nicht mehr als 10 Tags gleichzeitig hinzugefügt werden, wenn mehr als 20.000 Lesezeichen betroffen wären",
+    "pageMismatch": "Anzahl der Seiten-Lesezeichen stimmt nicht überein",
+    "editedCount_one": "{{editedCount}} Lesezeichen bearbeitet",
+    "editedCount_other": "{{editedCount}} Lesezeichen bearbeitet",
+    "editedCountMismatch_one": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Lesezeichen bearbeitet, da sich die übereinstimmenden Lesezeichendaten geändert haben",
+    "editedCountMismatch_other": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Lesezeichen bearbeitet, da sich die übereinstimmenden Lesezeichendaten geändert haben"
   },
   "docs": {
     "title": "Die Suchsyntax verstehen",

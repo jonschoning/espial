@@ -12,7 +12,11 @@
     "invalidArgs": "Arguments invalides",
     "badMethod": "Méthode non autorisée",
     "notAuthenticated": "Non authentifié",
-    "permissionDenied": "Permission refusée"
+    "permissionDenied": "Permission refusée",
+    "error": "erreur : {{status}}",
+    "errorWithMsg": "erreur {{status}} : {{msg}}",
+    "requestTimedOut": "délai de la requête dépassé",
+    "networkError": "erreur réseau"
   },
   "nav": {
     "privateProfileEnabled": "profil privé activé",
@@ -68,9 +72,10 @@
     "later": "suivant »"
   },
   "notes": {
-    "youHave": "Vous avez",
-    "found": "Trouvé",
-    "label": "notes :"
+    "youHave_one": "Vous avez 1 note :",
+    "youHave_other": "Vous avez {{count}} notes :",
+    "found_one": "1 note trouvée :",
+    "found_other": "{{count}} notes trouvées :"
   },
   "search": {
     "placeholder": "rechercher",
@@ -126,6 +131,37 @@
     "min20Title": "afficher les tags avec au moins 20 favoris",
     "hide": "masquer",
     "show": "afficher"
+  },
+  "bulkEdit": {
+    "edit": "modifier",
+    "select": "sélectionner :",
+    "oneBookmarkSelected": "1 marque-page sélectionné",
+    "bookmarksSelected": "{{count}} marque-pages sélectionnés",
+    "thisPage": "cette page",
+    "allPages": "toutes les pages",
+    "action": "action :",
+    "markAsRead": "marquer comme lu",
+    "unread": "non lu",
+    "addStars": "ajouter des étoiles",
+    "removeStars": "supprimer les étoiles",
+    "makePrivate": "rendre privé",
+    "makePublic": "rendre public",
+    "removeTags": "supprimer les étiquettes :",
+    "addTags": "ajouter des étiquettes :",
+    "submitting": "envoi en cours…",
+    "submit": "envoyer",
+    "destroyOne": "supprimer 1 marque-page ?",
+    "destroyMany": "supprimer {{count}} marque-pages ?",
+    "publicOne": "rendre 1 marque-page public ?",
+    "publicMany": "rendre {{count}} marque-pages publics ?",
+    "pleaseAddSelection": "veuillez sélectionner des marque-pages",
+    "pleaseChooseAction": "veuillez choisir une action ou saisir des étiquettes",
+    "tooManyTags": "impossible d'ajouter plus de 10 étiquettes à la fois lorsque plus de 20 000 marque-pages seraient affectés",
+    "pageMismatch": "le nombre de marque-pages de la page ne correspond pas",
+    "editedCount_one": "{{editedCount}} marque-page modifié",
+    "editedCount_other": "{{editedCount}} marque-pages modifiés",
+    "editedCountMismatch_one": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} marque-page modifié, car les données du marque-page correspondant ont changé",
+    "editedCountMismatch_other": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} marque-pages modifiés, car les données des marque-pages correspondants ont changé"
   },
   "docs": {
     "title": "Comprendre la syntaxe de recherche",

@@ -109,6 +109,33 @@ export type TagSuggestionResponse = {
   suggestions: TSuggestion[];
 };
 
+export type BulkAction = 'read' | 'unread' | 'star' | 'unstar' | 'delete' | 'private' | 'public';
+export type SharedP = 'all' | 'public' | 'private';
+
+type BulkEditRequestBase = {
+  action: BulkAction | null;
+  addTags: string;
+  removeTags: string;
+  selectionCount: number;
+};
+
+export type BulkEditRequest =
+  | (BulkEditRequestBase & { selection: 'page'; bids: number[] })
+  | (BulkEditRequestBase & {
+      selection: 'all';
+      filter: Filter;
+      sharedp: SharedP;
+      tags: string[];
+      query: string | null;
+    });
+
+export type BulkEditResponse = {
+  ok: boolean;
+  status: number;
+  bodyText?: string;
+  data?: { editedCount: number };
+};
+
 /** Discriminated union representing the tag cloud filter mode. */
 export type TagCloudModeF =
   | { kind: 'top'; expanded: boolean; value: number }

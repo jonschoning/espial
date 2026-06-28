@@ -12,7 +12,11 @@
     "invalidArgs": "Неприпустимі аргументи",
     "badMethod": "Неприпустимий метод",
     "notAuthenticated": "Не автентифіковано",
-    "permissionDenied": "Доступ заборонено"
+    "permissionDenied": "Доступ заборонено",
+    "error": "помилка: {{status}}",
+    "errorWithMsg": "помилка {{status}}: {{msg}}",
+    "requestTimedOut": "час очікування запиту вичерпано",
+    "networkError": "помилка мережі"
   },
   "nav": {
     "privateProfileEnabled": "приватний профіль увімкнено",
@@ -68,9 +72,10 @@
     "later": "пізніше »"
   },
   "notes": {
-    "youHave": "У вас є",
-    "found": "Знайдено",
-    "label": "нотатки:"
+    "youHave_one": "У вас є 1 нотатка:",
+    "youHave_other": "У вас є {{count}} нотаток:",
+    "found_one": "Знайдено 1 нотатку:",
+    "found_other": "Знайдено {{count}} нотаток:"
   },
   "search": {
     "placeholder": "пошук",
@@ -126,6 +131,37 @@
     "min20Title": "показати теги щонайменше з 20 закладками",
     "hide": "сховати",
     "show": "показати"
+  },
+  "bulkEdit": {
+    "edit": "редагувати",
+    "select": "вибрати:",
+    "oneBookmarkSelected": "1 закладку вибрано",
+    "bookmarksSelected": "{{count}} закладок вибрано",
+    "thisPage": "ця сторінка",
+    "allPages": "всі сторінки",
+    "action": "дія:",
+    "markAsRead": "позначити як прочитане",
+    "unread": "непрочитане",
+    "addStars": "додати зірки",
+    "removeStars": "прибрати зірки",
+    "makePrivate": "зробити приватним",
+    "makePublic": "зробити публічним",
+    "removeTags": "видалити мітки:",
+    "addTags": "додати мітки:",
+    "submitting": "надсилання…",
+    "submit": "надіслати",
+    "destroyOne": "видалити 1 закладку?",
+    "destroyMany": "видалити {{count}} закладок?",
+    "publicOne": "зробити 1 закладку публічною?",
+    "publicMany": "зробити {{count}} закладок публічними?",
+    "pleaseAddSelection": "будь ласка, виберіть закладки",
+    "pleaseChooseAction": "будь ласка, виберіть дію або введіть мітки",
+    "tooManyTags": "не можна додавати більше 10 міток одночасно, якщо це зачіпає більше 20 000 закладок",
+    "pageMismatch": "кількість закладок на сторінці не збігається",
+    "editedCount_one": "відредаговано {{editedCount}} закладку",
+    "editedCount_other": "відредаговано {{editedCount}} закладок",
+    "editedCountMismatch_one": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} закладку, оскільки дані відповідних закладок змінилися",
+    "editedCountMismatch_other": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} закладок, оскільки дані відповідних закладок змінилися"
   },
   "docs": {
     "title": "Розуміння синтаксису пошуку",

@@ -12,7 +12,11 @@
     "invalidArgs": "Argomenti non validi",
     "badMethod": "Metodo non consentito",
     "notAuthenticated": "Non autenticato",
-    "permissionDenied": "Permesso negato"
+    "permissionDenied": "Permesso negato",
+    "error": "errore: {{status}}",
+    "errorWithMsg": "errore {{status}}: {{msg}}",
+    "requestTimedOut": "richiesta scaduta",
+    "networkError": "errore di rete"
   },
   "nav": {
     "privateProfileEnabled": "profilo privato abilitato",
@@ -68,9 +72,10 @@
     "later": "successivi »"
   },
   "notes": {
-    "youHave": "Hai",
-    "found": "Trovato",
-    "label": "note:"
+    "youHave_one": "Hai 1 nota:",
+    "youHave_other": "Hai {{count}} note:",
+    "found_one": "Trovata 1 nota:",
+    "found_other": "Trovate {{count}} note:"
   },
   "search": {
     "placeholder": "cerca",
@@ -126,6 +131,37 @@
     "min20Title": "mostra i tag con almeno 20 segnalibri",
     "hide": "nascondi",
     "show": "mostra"
+  },
+  "bulkEdit": {
+    "edit": "modifica",
+    "select": "seleziona:",
+    "oneBookmarkSelected": "1 segnalibro selezionato",
+    "bookmarksSelected": "{{count}} segnalibri selezionati",
+    "thisPage": "questa pagina",
+    "allPages": "tutte le pagine",
+    "action": "azione:",
+    "markAsRead": "segna come letto",
+    "unread": "non letto",
+    "addStars": "aggiungi stelle",
+    "removeStars": "rimuovi stelle",
+    "makePrivate": "rendi privato",
+    "makePublic": "rendi pubblico",
+    "removeTags": "rimuovi etichette:",
+    "addTags": "aggiungi etichette:",
+    "submitting": "invio in corso…",
+    "submit": "invia",
+    "destroyOne": "eliminare 1 segnalibro?",
+    "destroyMany": "eliminare {{count}} segnalibri?",
+    "publicOne": "rendere pubblico 1 segnalibro?",
+    "publicMany": "rendere pubblici {{count}} segnalibri?",
+    "pleaseAddSelection": "seleziona dei segnalibri",
+    "pleaseChooseAction": "scegli un'azione o inserisci etichette",
+    "tooManyTags": "non è possibile aggiungere più di 10 etichette contemporaneamente quando sono coinvolti più di 20.000 segnalibri",
+    "pageMismatch": "il numero di segnalibri nella pagina non corrisponde",
+    "editedCount_one": "{{editedCount}} segnalibro modificato",
+    "editedCount_other": "{{editedCount}} segnalibri modificati",
+    "editedCountMismatch_one": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} segnalibro modificato, poiché i dati del segnalibro corrispondente sono cambiati",
+    "editedCountMismatch_other": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} segnalibri modificati, poiché i dati dei segnalibri corrispondenti sono cambiati"
   },
   "docs": {
     "title": "Comprendere la sintassi di ricerca",

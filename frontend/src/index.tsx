@@ -7,6 +7,7 @@ import { logout } from './api';
 import { AccountSettingsView } from './components/AccountSettings';
 import { AddForm } from './components/AddForm';
 import { BList } from './components/BList';
+import { BulkEdit } from './components/BulkEdit';
 import { NList } from './components/NList';
 import { NNote } from './components/NNote';
 import { TagCloud } from './components/TagCloud';
@@ -43,6 +44,10 @@ export const logoutE = (e: Event) => () => {
 
 export const renderBookmarks = (renderElSelector: string) => (bmarks: Bookmark[]) => () => {
   renderView(renderElSelector, <BList initial={bmarks} />);
+};
+
+export const renderBulkEdit = (renderElSelector: string) => (bcount: number) => () => {
+  renderView(renderElSelector, <BulkEdit bcount={bcount} />);
 };
 
 export const renderTagCloud = (renderElSelector: string) => (tagCloudMode: TagCloudMode) => () => {

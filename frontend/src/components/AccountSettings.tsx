@@ -1,19 +1,30 @@
+import { TimeoutError } from 'ky';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { editAccountSettings } from '../api';
 import type { AccountSettings } from '../types';
+import { apiErrorMsg } from '../util';
 
 /** Displays and edits the current user's account settings. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const { t } = useTranslation();
   const [us, setUs] = React.useState<AccountSettings>(initial);
+  const [apiError, setApiError] = React.useState<string | null>(null);
   const archiveDisabled = !us.archiveBackendEnabled;
   const archiveDisabledTitle = archiveDisabled ? t('settings.archivingDisabled') : undefined;
 
   async function update(next: AccountSettings) {
     setUs(next);
-    await editAccountSettings(next);
+    try {
+      const res = await editAccountSettings(next);
+      if (!res.ok) setApiError(apiErrorMsg(t, res.status, res.bodyText));
+      else setApiError(null);
+    } catch (err) {
+      setApiError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
+    }
   }
 
   return (
@@ -32,9 +43,18 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           onChange={(e) => {
             const next = { ...us, language: e.target.value === '' ? null : e.target.value };
             setUs(next);
-            void editAccountSettings(next).then(() => {
-              window.location.reload();
-            });
+            void editAccountSettings(next)
+              .then((res) => {
+                if (res.ok) window.location.reload();
+                else setApiError(apiErrorMsg(t, res.status, res.bodyText));
+              })
+              .catch((err: unknown) => {
+                setApiError(
+                  err instanceof TimeoutError
+                    ? t('error.requestTimedOut')
+                    : t('error.networkError'),
+                );
+              });
           }}
         >
           <option value="">{t('settings.serverDefault')}</option>
@@ -119,6 +139,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           {t('settings.privacyLock')}
         </label>
       </div>
+      {apiError ? <div className="thm-text-error f7 mt2">{apiError}</div> : null}
     </div>
   );
 }

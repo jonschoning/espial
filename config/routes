@@ -46,11 +46,12 @@ api/tagcloudmode UserTagCloudModeR POST
 api/tagSuggestions TagSuggestionsR POST
 
 -- edit
-/bm/#Int64 DeleteR DELETE
-/bm/#Int64/read ReadR POST
-/bm/#Int64/star StarR POST
-/bm/#Int64/unstar UnstarR POST
-/bm/#Int64/archive ArchiveBookmarkR POST
+api/bm/#Int64 DeleteR DELETE
+api/bm/#Int64/read ReadR PATCH
+api/bm/#Int64/star StarR PATCH
+api/bm/#Int64/unstar UnstarR PATCH
+api/bm/#Int64/archive ArchiveBookmarkR POST
+!api/bm/bulk BmBulkR POST
 
 -- doc
 /docs/search DocsSearchR GET

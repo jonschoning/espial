@@ -32,7 +32,7 @@
 
   $maybe msg <- mmsg
     <div .pv2.ph3.mh1>
-      <div .pa2.mw8.center.flex.items-center.justify-center.ba.layout-msg>
+      <div .pa2.mw8.center.flex.items-center.justify-center.ba.layout-msg onclick="this.parentNode.style.display='none'" style="cursor:pointer">
         #{preEscapedToMarkup msg}
 
   <div .page-body>

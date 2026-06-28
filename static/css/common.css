@@ -268,6 +268,17 @@ a.unread {
   background-color: light-dark(#ffdfdf, #4a2323);
 }
 
+.bulk_bookmark_form {
+  border: 1px solid light-dark(#d1d1d1, #666);
+  /* background: light-dark(#ddd, #252525); */
+  /* color: light-dark(#888, #a0a0a0); */
+}
+
+.bulk_bookmark_form input,
+.bulk_bookmark_form textarea {
+  border: 1px solid light-dark(#ddd, #555);
+}
+
 .edit_bookmark_form {
   color: light-dark(#888, #a0a0a0);
 }
@@ -278,8 +289,9 @@ a.unread {
 }
 
 .nav-active {
+  /* color: light-dark(rgb(0, 0, 255), #9ec1ff); */
   background: light-dark(#ff8, #645700);
-  color: light-dark(rgb(0, 0, 255), #9ec1ff);
+  font-weight: 700;
 }
 
 .close-x {
@@ -317,19 +329,28 @@ a.unread {
   border-color: light-dark(#001b44, #5f88d6);
 }
 
+@keyframes flashIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .layout-msg {
-  color: light-dark(
-    oklch(23.191% 0.08487 257.743),
-    oklch(63.176% 0.04487 257.743)
-  );
+  color: light-dark(oklch(23.191% 0.08487 257.743), oklch(0.96 0.03 107.8));
   border-color: light-dark(
     oklch(23.191% 0.08487 257.743),
-    oklch(63.176% 0.04487 257.743)
+    oklch(0.69 0.03 105.53)
   );
   background-color: light-dark(
     oklch(98.883% 0.02238 98.671),
-    oklch(28.242% 0.02238 98.671)
+    oklch(0.26 0.03 111.5)
   );
+  animation: flashIn 0.35s ease-out;
 }
 
 .query-info-icon {

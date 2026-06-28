@@ -24,6 +24,11 @@ cradle:
           stack:
             component: "espial:lib"
 
+    - path: "./test/Spec.hs"
+      config:
+        cradle:
+          none:
+
     - path: "./test"
       config:
         cradle:

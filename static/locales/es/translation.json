@@ -12,7 +12,11 @@
     "invalidArgs": "Argumentos no validos",
     "badMethod": "Metodo no permitido",
     "notAuthenticated": "No autenticado",
-    "permissionDenied": "Permiso denegado"
+    "permissionDenied": "Permiso denegado",
+    "error": "error: {{status}}",
+    "errorWithMsg": "error {{status}}: {{msg}}",
+    "requestTimedOut": "tiempo de espera agotado",
+    "networkError": "error de red"
   },
   "nav": {
     "privateProfileEnabled": "perfil privado activado",
@@ -68,9 +72,10 @@
     "later": "siguientes »"
   },
   "notes": {
-    "youHave": "Tienes",
-    "found": "Encontrado",
-    "label": "notas:"
+    "youHave_one": "Tienes 1 nota:",
+    "youHave_other": "Tienes {{count}} notas:",
+    "found_one": "Encontrada 1 nota:",
+    "found_other": "Encontradas {{count}} notas:"
   },
   "search": {
     "placeholder": "buscar",
@@ -126,6 +131,37 @@
     "min20Title": "mostrar etiquetas con al menos 20 marcadores",
     "hide": "ocultar",
     "show": "mostrar"
+  },
+  "bulkEdit": {
+    "edit": "editar",
+    "select": "seleccionar:",
+    "oneBookmarkSelected": "1 marcador seleccionado",
+    "bookmarksSelected": "{{count}} marcadores seleccionados",
+    "thisPage": "esta página",
+    "allPages": "todas las páginas",
+    "action": "acción:",
+    "markAsRead": "marcar como leído",
+    "unread": "no leído",
+    "addStars": "añadir estrellas",
+    "removeStars": "quitar estrellas",
+    "makePrivate": "hacer privado",
+    "makePublic": "hacer público",
+    "removeTags": "eliminar etiquetas:",
+    "addTags": "añadir etiquetas:",
+    "submitting": "enviando…",
+    "submit": "enviar",
+    "destroyOne": "¿eliminar 1 marcador?",
+    "destroyMany": "¿eliminar {{count}} marcadores?",
+    "publicOne": "¿hacer público 1 marcador?",
+    "publicMany": "¿hacer públicos {{count}} marcadores?",
+    "pleaseAddSelection": "por favor seleccione un marcador",
+    "pleaseChooseAction": "por favor elija una acción o ingrese etiquetas",
+    "tooManyTags": "no se pueden añadir más de 10 etiquetas a la vez cuando hay más de 20.000 marcadores afectados",
+    "pageMismatch": "el número de marcadores de la página no coincide",
+    "editedCount_one": "se editó {{editedCount}} marcador",
+    "editedCount_other": "se editaron {{editedCount}} marcadores",
+    "editedCountMismatch_one": "el recuento de selección era {{selectionCount}}, pero se editó {{editedCount}} marcador, porque los datos del marcador coincidente han cambiado",
+    "editedCountMismatch_other": "el recuento de selección era {{selectionCount}}, pero se editaron {{editedCount}} marcadores, porque los datos de los marcadores coincidentes han cambiado"
   },
   "docs": {
     "title": "Entender la sintaxis de busqueda",

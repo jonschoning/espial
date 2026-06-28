@@ -48,10 +48,15 @@ $maybe route <- mroute
                  href="@{UserFilterR unamep FilterStarred}">#{t "filter.starred"}
     
         <div .cf>
-        
-        ^{pager}
-    
-        <div .cf>
+
+        <div .flex.items-center>
+          ^{pager}
+          $if isowner
+            <span .f6.pl2>
+              <a .link.silver.hover-alt #bulk-edit-toggle href="#">#{t "bulkEdit.edit"}
+
+        $if isowner
+          <div #bulkEditRenderEl>
     
         $if isowner
           <div ##{tagCloudRenderEl} .tag-cloud-placeholder>

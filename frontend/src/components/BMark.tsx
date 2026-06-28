@@ -1,3 +1,4 @@
+import { TimeoutError } from 'ky';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -5,7 +6,7 @@ import { archiveBookmark, destroy, editBookmark, lookupTitle, markRead, toggleSt
 import { app, setFocus, shdatetime, toLocaleDateString } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
-import { encodeTag, fromNullableStr, normalizeTags } from '../util';
+import { apiErrorMsg, encodeTag, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
 import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
@@ -27,7 +28,43 @@ export function BMark({
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [archiving, setArchiving] = React.useState(false);
-  const [apiError, setApiError] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState<string | null>(null);
+  const [errorFadingOut, setErrorFadingOut] = React.useState(false);
+  const errorTimer = React.useRef<number | null>(null);
+  const fadeTimer = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (errorTimer.current !== null) window.clearTimeout(errorTimer.current);
+      if (fadeTimer.current !== null) window.clearTimeout(fadeTimer.current);
+    };
+  }, []);
+
+  function clearErrorTimers() {
+    if (errorTimer.current !== null) {
+      window.clearTimeout(errorTimer.current);
+      errorTimer.current = null;
+    }
+    if (fadeTimer.current !== null) {
+      window.clearTimeout(fadeTimer.current);
+      fadeTimer.current = null;
+    }
+  }
+
+  function showActionError(msg: string) {
+    clearErrorTimers();
+    setErrorFadingOut(false);
+    setActionError(msg);
+    errorTimer.current = window.setTimeout(() => {
+      errorTimer.current = null;
+      setErrorFadingOut(true);
+      fadeTimer.current = window.setTimeout(() => {
+        setActionError(null);
+        setErrorFadingOut(false);
+        fadeTimer.current = null;
+      }, 5000);
+    }, 3000);
+  }
 
   const tagInputId = `${bm.bid.toString()}_tags`;
 
@@ -60,29 +97,65 @@ export function BMark({
   });
 
   async function onStar(next: boolean) {
-    await toggleStar(bm.bid, next ? 'star' : 'unstar');
-    const updated = { ...bm, selected: next };
-    setBm(updated);
-    setEditBm((x) => ({ ...x, selected: next }));
-    onUpdated(updated);
+    try {
+      const res = await toggleStar(bm.bid, next ? 'star' : 'unstar');
+      if (!res.ok) {
+        showActionError(apiErrorMsg(t, res.status, res.bodyText));
+        return;
+      }
+      clearErrorTimers();
+      setActionError(null);
+      const updated = { ...bm, selected: next };
+      setBm(updated);
+      setEditBm((x) => ({ ...x, selected: next }));
+      onUpdated(updated);
+    } catch (err) {
+      showActionError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
+    }
   }
 
   async function onDestroy() {
-    await destroy(bm.bid);
-    onNotifyRemove();
+    try {
+      const res = await destroy(bm.bid);
+      if (!res.ok) {
+        showActionError(apiErrorMsg(t, res.status, res.bodyText));
+        return;
+      }
+      onNotifyRemove();
+    } catch (err) {
+      showActionError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
+    }
   }
 
   async function onMarkRead() {
-    await markRead(bm.bid);
-    const updated = { ...bm, toread: false };
-    setBm(updated);
-    onUpdated(updated);
+    try {
+      const res = await markRead(bm.bid);
+      if (!res.ok) {
+        showActionError(apiErrorMsg(t, res.status, res.bodyText));
+        return;
+      }
+      clearErrorTimers();
+      setActionError(null);
+      const updated = { ...bm, toread: false };
+      setBm(updated);
+      onUpdated(updated);
+    } catch (err) {
+      showActionError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
+    }
   }
 
   function startEdit(next: boolean) {
     setEditBm(bm);
     setEdit(next);
-    setApiError(null);
+    clearErrorTimers();
+    setActionError(null);
+    setErrorFadingOut(false);
     setArchiving(false);
     closeSuggestions();
     if (next) setFocus(tagInputId);
@@ -105,16 +178,23 @@ export function BMark({
 
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
-    setApiError(null);
+    clearErrorTimers();
+    setActionError(null);
+    setErrorFadingOut(false);
     const editBm2 = { ...editBm, tags: normalizeTags(editBm.tags) };
-
-    const res = await editBookmark(editBm2);
-    if (res.ok && res.status >= 200 && res.status < 300) {
-      setBm(editBm2);
-      setEdit(false);
-      onUpdated(editBm2);
-    } else {
-      setApiError(res.bodyText);
+    try {
+      const res = await editBookmark(editBm2);
+      if (res.ok && res.status >= 200 && res.status < 300) {
+        setBm(editBm2);
+        setEdit(false);
+        onUpdated(editBm2);
+      } else {
+        showActionError(apiErrorMsg(t, res.status, res.bodyText));
+      }
+    } catch (err) {
+      showActionError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
     }
   };
 
@@ -250,9 +330,9 @@ export function BMark({
             </div>
           ) : null}
         </div>
-      ) : (
+      ) : null}
+      {edit ? (
         <div className="edit_bookmark_form pa2 pt0 thm-bg-surface">
-          {apiError ? <div className="alert alert-err">{apiError}</div> : null}
           <form onSubmit={(e) => void onSubmit(e)}>
             <div>{t('bmark.url')}</div>
             <input
@@ -383,7 +463,19 @@ export function BMark({
             </div>
           </form>
         </div>
-      )}
+      ) : null}
+
+      {actionError != null ? (
+        <span
+          className="thm-text-error f7 db mt1"
+          style={{
+            opacity: errorFadingOut ? 0 : 1,
+            transition: errorFadingOut ? 'opacity 5s' : 'none',
+          }}
+        >
+          {actionError}
+        </span>
+      ) : null}
     </div>
   );
 }

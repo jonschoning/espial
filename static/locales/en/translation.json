@@ -12,7 +12,11 @@
     "invalidArgs": "Invalid Arguments",
     "badMethod": "Bad Method",
     "notAuthenticated": "Not Authenticated",
-    "permissionDenied": "Permission Denied"
+    "permissionDenied": "Permission Denied",
+    "error": "error: {{status}}",
+    "errorWithMsg": "error {{status}}: {{msg}}",
+    "requestTimedOut": "request timed out",
+    "networkError": "network error"
   },
   "nav": {
     "privateProfileEnabled": "private profile enabled",
@@ -68,9 +72,10 @@
     "later": "later »"
   },
   "notes": {
-    "youHave": "You have",
-    "found": "Found",
-    "label": "notes:"
+    "youHave_one": "You have 1 note:",
+    "youHave_other": "You have {{count}} notes:",
+    "found_one": "Found 1 note:",
+    "found_other": "Found {{count}} notes:"
   },
   "search": {
     "placeholder": "search",
@@ -126,6 +131,37 @@
     "min20Title": "show tags with at least 20 bookmarks",
     "hide": "hide",
     "show": "show"
+  },
+  "bulkEdit": {
+    "edit": "edit",
+    "select": "select:",
+    "oneBookmarkSelected": "1 bookmark selected",
+    "bookmarksSelected": "{{count}} bookmarks selected",
+    "thisPage": "this page",
+    "allPages": "all pages",
+    "action": "action:",
+    "markAsRead": "mark as read",
+    "unread": "unread",
+    "addStars": "add stars",
+    "removeStars": "remove stars",
+    "makePrivate": "make private",
+    "makePublic": "make public",
+    "removeTags": "remove tags:",
+    "addTags": "add tags:",
+    "submitting": "submitting…",
+    "submit": "submit",
+    "destroyOne": "destroy 1 bookmark?",
+    "destroyMany": "destroy {{count}} bookmarks?",
+    "publicOne": "make 1 bookmark public?",
+    "publicMany": "make {{count}} bookmarks public?",
+    "pleaseAddSelection": "please add a bookmark selection",
+    "pleaseChooseAction": "please choose an action or enter tags",
+    "tooManyTags": "cannot add more than 10 tags at the same time when over 20,000 bookmarks would be affected",
+    "pageMismatch": "page bookmark count mismatch",
+    "editedCount_one": "edited {{editedCount}} bookmark",
+    "editedCount_other": "edited {{editedCount}} bookmarks",
+    "editedCountMismatch_one": "selection count was {{selectionCount}}, but edited {{editedCount}} bookmark, due to matching bookmark data having changed",
+    "editedCountMismatch_other": "selection count was {{selectionCount}}, but edited {{editedCount}} bookmarks, due to matching bookmark data having changed"
   },
   "docs": {
     "title": "Understanding the Search Syntax",

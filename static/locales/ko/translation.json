@@ -12,7 +12,11 @@
     "invalidArgs": "잘못된 인수",
     "badMethod": "잘못된 메서드",
     "notAuthenticated": "인증되지 않음",
-    "permissionDenied": "권한 거부됨"
+    "permissionDenied": "권한 거부됨",
+    "error": "오류: {{status}}",
+    "errorWithMsg": "오류 {{status}}: {{msg}}",
+    "requestTimedOut": "요청 시간 초과",
+    "networkError": "네트워크 오류"
   },
   "nav": {
     "privateProfileEnabled": "비공개 프로필 활성화됨",
@@ -68,9 +72,10 @@
     "later": "다음 »"
   },
   "notes": {
-    "youHave": "보유 중",
-    "found": "찾음",
-    "label": "노트:"
+    "youHave_one": "노트 1개 보유 중:",
+    "youHave_other": "노트 {{count}}개 보유 중:",
+    "found_one": "노트 1개 찾음:",
+    "found_other": "노트 {{count}}개 찾음:"
   },
   "search": {
     "placeholder": "검색",
@@ -126,6 +131,37 @@
     "min20Title": "북마크가 20개 이상인 태그 표시",
     "hide": "숨기기",
     "show": "표시"
+  },
+  "bulkEdit": {
+    "edit": "편집",
+    "select": "선택:",
+    "oneBookmarkSelected": "북마크 1개 선택됨",
+    "bookmarksSelected": "북마크 {{count}}개 선택됨",
+    "thisPage": "이 페이지",
+    "allPages": "모든 페이지",
+    "action": "동작:",
+    "markAsRead": "읽음으로 표시",
+    "unread": "읽지 않음",
+    "addStars": "별표 추가",
+    "removeStars": "별표 제거",
+    "makePrivate": "비공개로 설정",
+    "makePublic": "공개로 설정",
+    "removeTags": "태그 제거:",
+    "addTags": "태그 추가:",
+    "submitting": "제출 중…",
+    "submit": "제출",
+    "destroyOne": "북마크 1개를 삭제하시겠습니까?",
+    "destroyMany": "북마크 {{count}}개를 삭제하시겠습니까?",
+    "publicOne": "북마크 1개를 공개로 설정하시겠습니까?",
+    "publicMany": "북마크 {{count}}개를 공개로 설정하시겠습니까?",
+    "pleaseAddSelection": "북마크를 선택해주세요",
+    "pleaseChooseAction": "동작을 선택하거나 태그를 입력해주세요",
+    "tooManyTags": "20,000개 이상의 북마크가 영향을 받을 경우 한 번에 10개 이상의 태그를 추가할 수 없습니다",
+    "pageMismatch": "페이지 북마크 수가 일치하지 않습니다",
+    "editedCount_one": "{{editedCount}}개의 북마크를 편집했습니다",
+    "editedCount_other": "{{editedCount}}개의 북마크를 편집했습니다",
+    "editedCountMismatch_one": "선택 수는 {{selectionCount}}이었지만, 일치하는 북마크 데이터가 변경되어 {{editedCount}}개의 북마크를 편집했습니다",
+    "editedCountMismatch_other": "선택 수는 {{selectionCount}}이었지만, 일치하는 북마크 데이터가 변경되어 {{editedCount}}개의 북마크를 편집했습니다"
   },
   "docs": {
     "title": "검색 구문 이해하기",

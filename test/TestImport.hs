@@ -10,8 +10,6 @@ where
 
 import Application (makeFoundation, makeLogWare)
 import ClassyPrelude as X hiding (Handler, delete, deleteBy)
--- Wiping the database
-
 import Control.Monad.Logger (runLoggingT)
 import Database.Persist as X hiding (get)
 import Database.Persist.Sql (SqlPersistM, rawExecute, rawSql, runSqlPersistMPool, unSingle)
@@ -19,6 +17,7 @@ import Database.Persist.Sqlite (createSqlitePoolFromInfo, fkEnabled, mkSqliteCon
 import Foundation as X
 import Lens.Micro (set)
 import Model as X
+import Model.Migrations (runAppMigrations, runPersistentMigrations)
 import Settings (appDatabaseConf)
 import Test.Hspec as X
 import Types
@@ -55,19 +54,17 @@ withApp = before $ do
 -- spec to run in.
 wipeDB :: App -> IO ()
 wipeDB app = do
+  -- Wipe data with FK disabled (for file-based DBs; no-op for :memory:).
   let logFunc = messageLoggerSource app (appLogger app)
-
-  let dbName = sqlDatabase $ appDatabaseConf $ appSettings app
+      dbName = sqlDatabase $ appDatabaseConf $ appSettings app
       connInfo = set fkEnabled False $ mkSqliteConnectionInfo dbName
-
   pool <- runLoggingT (createSqlitePoolFromInfo connInfo 1) logFunc
-
   flip runSqlPersistMPool pool $ do
     tables <- getTables
-    -- sqlBackend <- ask
-    -- let queries = map (\t -> "DELETE FROM " ++ (connEscapeName sqlBackend $ DBName t)) tables
     let queries = map (\t -> "DELETE FROM " ++ t) tables
     forM_ queries (\q -> rawExecute q [])
+  -- Run migrations last so the pool tests use has the schema and tracking rows.
+  runSqlPersistMPool (runPersistentMigrations False >> runAppMigrations False) (appConnPool app)
 
 getTables :: DB [Text]
 getTables = do

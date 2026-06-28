@@ -10,9 +10,9 @@
       <div .di>
 
       $maybe _ <- mquery
-        <span .db .mb3>#{t "notes.found"} #{bcount} #{t "notes.label"}
+        <span .db .mb3>#{tc "notes.found" bcount}
       $nothing
-        <span .db .mb3>#{t "notes.youHave"} #{bcount} #{t "notes.label"}
+        <span .db .mb3>#{tc "notes.youHave" bcount}
 
       ^{pager}
 

@@ -1,6 +1,22 @@
 # Changelog
 
-## v0.0.37 (2026-07-XX)
+## v0.0.37 (2026-06-XX)
+
+- add Bulk Edit for bookmarks
+  - toggle the **bulk edit** panel via the `bulk edit` link in the bookmark listing toolbar
+  - **Select**: choose `this page` (visible bookmarks) or `all pages` (entire filtered result set)
+  - **Actions** (pick one, or omit to only modify tags):
+    - `make private` / `make public` — change visibility; making public requires confirmation
+    - `mark as read` / `unread` — toggle to-read flag
+    - `add stars` / `remove stars` — toggle starred flag
+    - `delete` — permanently remove selected bookmarks; requires confirmation
+  - **Add tags** / **Remove tags**: space-separated tags to add or remove across the selection
+  - Action and tag operations can be combined in a single submission
+  - Selection scope respects the current page's filter, tag, and search context
+    - e.g. rename a tag by tag-filtering on it in ui first, then bulk edit all pages, remove existing tag and add new tag
+- standardized bookmark api routes
+- improved error handling & feedback in UI for api requests
+- improved css for flash/temporary messages from server
 
 ## v0.0.36 (2026-06-26)
 

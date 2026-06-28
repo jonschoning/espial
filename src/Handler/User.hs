@@ -87,23 +87,31 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toWidgetBody
       [julius|
         app.dat.bmarks = #{ toRawJs $ toBookmarkFormListForViewer isowner btmarks } || [];
+        app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
         app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
-        app.dat.filter = #{ toJSON filterp' } || {};
+        app.dat.filter = #{ toJSON filterp } || {};
+        app.dat.sharedp = #{ toJSON sharedp };
+        app.dat.tags = #{ toJSON pathtags };
+        app.dat.query = #{ toJSON mquery };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
     |]
     toWidget
       [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
+        import { renderBookmarks, renderTagCloud, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);
         setTimeout(() => {
           renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
         }, 0);
+        $if isowner
+          setTimeout(() => {
+            renderBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
+          }, 0);
     |]
   where
     toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding

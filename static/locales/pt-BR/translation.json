@@ -12,7 +12,11 @@
     "invalidArgs": "Argumentos invalidos",
     "badMethod": "Metodo nao permitido",
     "notAuthenticated": "Nao autenticado",
-    "permissionDenied": "Permissao negada"
+    "permissionDenied": "Permissao negada",
+    "error": "erro: {{status}}",
+    "errorWithMsg": "erro {{status}}: {{msg}}",
+    "requestTimedOut": "tempo de requisição esgotado",
+    "networkError": "erro de rede"
   },
   "nav": {
     "privateProfileEnabled": "perfil privado ativado",
@@ -68,9 +72,10 @@
     "later": "proximos »"
   },
   "notes": {
-    "youHave": "Voce tem",
-    "found": "Encontrado",
-    "label": "notas:"
+    "youHave_one": "Você tem 1 nota:",
+    "youHave_other": "Você tem {{count}} notas:",
+    "found_one": "Encontrada 1 nota:",
+    "found_other": "Encontradas {{count}} notas:"
   },
   "search": {
     "placeholder": "buscar",
@@ -126,6 +131,37 @@
     "min20Title": "mostrar tags com pelo menos 20 favoritos",
     "hide": "ocultar",
     "show": "mostrar"
+  },
+  "bulkEdit": {
+    "edit": "editar",
+    "select": "selecionar:",
+    "oneBookmarkSelected": "1 favorito selecionado",
+    "bookmarksSelected": "{{count}} favoritos selecionados",
+    "thisPage": "esta página",
+    "allPages": "todas as páginas",
+    "action": "ação:",
+    "markAsRead": "marcar como lido",
+    "unread": "não lido",
+    "addStars": "adicionar estrelas",
+    "removeStars": "remover estrelas",
+    "makePrivate": "tornar privado",
+    "makePublic": "tornar público",
+    "removeTags": "remover tags:",
+    "addTags": "adicionar tags:",
+    "submitting": "enviando…",
+    "submit": "enviar",
+    "destroyOne": "excluir 1 favorito?",
+    "destroyMany": "excluir {{count}} favoritos?",
+    "publicOne": "tornar 1 favorito público?",
+    "publicMany": "tornar {{count}} favoritos públicos?",
+    "pleaseAddSelection": "por favor selecione favoritos",
+    "pleaseChooseAction": "por favor escolha uma ação ou insira tags",
+    "tooManyTags": "não é possível adicionar mais de 10 tags ao mesmo tempo quando mais de 20.000 favoritos seriam afetados",
+    "pageMismatch": "o número de favoritos na página não corresponde",
+    "editedCount_one": "{{editedCount}} favorito editado",
+    "editedCount_other": "{{editedCount}} favoritos editados",
+    "editedCountMismatch_one": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} favorito foi editado, pois os dados do favorito correspondente foram alterados",
+    "editedCountMismatch_other": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} favoritos foram editados, pois os dados dos favoritos correspondentes foram alterados"
   },
   "docs": {
     "title": "Entendendo a sintaxe de busca",

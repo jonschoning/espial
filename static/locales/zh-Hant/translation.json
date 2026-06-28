@@ -12,7 +12,11 @@
     "invalidArgs": "無效的引數",
     "badMethod": "錯誤的方法",
     "notAuthenticated": "未驗證",
-    "permissionDenied": "權限遭拒"
+    "permissionDenied": "權限遭拒",
+    "error": "錯誤：{{status}}",
+    "errorWithMsg": "錯誤 {{status}}：{{msg}}",
+    "requestTimedOut": "請求逾時",
+    "networkError": "網路錯誤"
   },
   "nav": {
     "privateProfileEnabled": "已啟用私人個人資料",
@@ -68,9 +72,10 @@
     "later": "較晚 »"
   },
   "notes": {
-    "youHave": "你有",
-    "found": "找到",
-    "label": "筆記："
+    "youHave_one": "你有 1 條筆記：",
+    "youHave_other": "你有 {{count}} 條筆記：",
+    "found_one": "找到 1 條筆記：",
+    "found_other": "找到 {{count}} 條筆記："
   },
   "search": {
     "placeholder": "搜尋",
@@ -126,6 +131,37 @@
     "min20Title": "顯示至少有 20 個書籤的標籤",
     "hide": "隱藏",
     "show": "顯示"
+  },
+  "bulkEdit": {
+    "edit": "編輯",
+    "select": "選擇：",
+    "oneBookmarkSelected": "已選擇 1 個書籤",
+    "bookmarksSelected": "已選擇 {{count}} 個書籤",
+    "thisPage": "本頁",
+    "allPages": "所有頁",
+    "action": "操作：",
+    "markAsRead": "標記為已讀",
+    "unread": "未讀",
+    "addStars": "新增星標",
+    "removeStars": "移除星標",
+    "makePrivate": "設為私密",
+    "makePublic": "設為公開",
+    "removeTags": "移除標籤：",
+    "addTags": "新增標籤：",
+    "submitting": "提交中…",
+    "submit": "提交",
+    "destroyOne": "刪除 1 個書籤？",
+    "destroyMany": "刪除 {{count}} 個書籤？",
+    "publicOne": "將 1 個書籤設為公開？",
+    "publicMany": "將 {{count}} 個書籤設為公開？",
+    "pleaseAddSelection": "請選擇書籤",
+    "pleaseChooseAction": "請選擇操作或輸入標籤",
+    "tooManyTags": "當超過 20,000 個書籤受影響時，不能一次新增超過 10 個標籤",
+    "pageMismatch": "頁面書籤數量不符合",
+    "editedCount_one": "已編輯 {{editedCount}} 個書籤",
+    "editedCount_other": "已編輯 {{editedCount}} 個書籤",
+    "editedCountMismatch_one": "選擇數量為 {{selectionCount}}，但由於符合的書籤資料已變更，實際編輯了 {{editedCount}} 個書籤",
+    "editedCountMismatch_other": "選擇數量為 {{selectionCount}}，但由於符合的書籤資料已變更，實際編輯了 {{editedCount}} 個書籤"
   },
   "docs": {
     "title": "了解搜尋語法",

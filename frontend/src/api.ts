@@ -4,6 +4,8 @@ import { app } from './globals';
 import type {
   AccountSettings,
   Bookmark,
+  BulkEditRequest,
+  BulkEditResponse,
   Note,
   TagCloud,
   TagCloudMode,
@@ -38,39 +40,74 @@ function toRelativePath(urlOrPath: string): string {
 async function request(
   method: string,
   path: string,
-  opts: { headers?: HeadersInit; body?: BodyInit | null } = {},
+  opts: { headers?: HeadersInit; body?: BodyInit | null; timeout?: number | false } = {},
 ) {
   const res = await ky(urlFor(path), {
     method,
     headers: withCsrf(opts.headers),
     body: opts.body ?? undefined,
     throwHttpErrors: false,
+    timeout: opts.timeout,
   });
   return res;
 }
 
-export async function toggleStar(bid: number, action: StarAction): Promise<void> {
-  await request('POST', `bm/${bid.toString()}/${action}`, {
+export async function toggleStar(
+  bid: number,
+  action: StarAction,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('PATCH', `api/bm/${bid.toString()}/${action}`, {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
-export async function destroy(bid: number): Promise<void> {
-  await request('DELETE', `bm/${bid.toString()}`, {
+export async function markRead(
+  bid: number,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('PATCH', `api/bm/${bid.toString()}/read`, {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
-export async function markRead(bid: number): Promise<void> {
-  await request('POST', `bm/${bid.toString()}/read`, {
+export async function destroy(
+  bid: number,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('DELETE', `api/bm/${bid.toString()}`, {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
-export async function archiveBookmark(bid: number): Promise<void> {
-  await request('POST', `bm/${bid.toString()}/archive`, {
+export async function bulkEdit(req: BulkEditRequest): Promise<BulkEditResponse> {
+  const res = await request('POST', 'api/bm/bulk', {
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(req),
+    timeout: 300_000,
+  });
+  const contentType = res.headers.get('content-type') ?? '';
+  let bodyText: string | undefined;
+  let data: { editedCount: number } | undefined;
+  if (contentType.includes('application/json')) {
+    try {
+      data = await res.json();
+    } catch {
+      data = undefined;
+    }
+  } else {
+    bodyText = await res.text();
+  }
+  return { ok: res.ok, status: res.status, bodyText, data };
+}
+
+export async function archiveBookmark(
+  bid: number,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('POST', `api/bm/${bid.toString()}/archive`, {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
 export async function editBookmark(
@@ -137,17 +174,23 @@ export async function fetchTagSuggestions(
   }
 }
 
-export async function destroyNote(nid: number): Promise<void> {
-  await request('DELETE', `api/note/${nid.toString()}`, {
+export async function destroyNote(
+  nid: number,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('DELETE', `api/note/${nid.toString()}`, {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
-export async function editAccountSettings(us: AccountSettings): Promise<void> {
-  await request('POST', 'api/accountSettings', {
+export async function editAccountSettings(
+  us: AccountSettings,
+): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('POST', 'api/accountSettings', {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(us),
   });
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
 export async function logout(): Promise<void> {

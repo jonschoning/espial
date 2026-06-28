@@ -1,4 +1,4 @@
-import type { Bookmark, Filter } from './types';
+import type { Bookmark, Filter, SharedP } from './types';
 
 /** Server-rendered page data. */
 export type AppData = {
@@ -14,6 +14,12 @@ export type AppData = {
   archiveBackendEnabled?: boolean;
   /** The current filter applied to the bookmarks. */
   filter?: Filter;
+  /** The current shared/private filter. */
+  sharedp?: SharedP;
+  /** The path tags currently filtering bookmarks. */
+  tags?: string[];
+  /** The current search query string, or null if none. */
+  query?: string | null;
 };
 
 /** Server-rendered global data. */

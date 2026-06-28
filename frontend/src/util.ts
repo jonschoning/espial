@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+
 export type QueryStringArray = Array<[string, string | null]>;
 
 function unsafeDecode(str: string): string {
@@ -42,6 +44,14 @@ export function fromNullableStr(s: string | null | undefined): string {
 
 export function normalizeTags(tags: string | null): string {
   return tags?.replace(/,/g, ' ').replace(/\s+/g, ' ').trim() ?? '';
+}
+
+export function apiErrorMsg(t: TFunction, status: number, bodyText: string): string {
+  const body = bodyText.trim();
+  if (!body.includes('\n') && !body.includes('doctype html') && body.length > 0) {
+    return t('error.errorWithMsg', { status, msg: body });
+  }
+  return t('error.error', { status });
 }
 
 /**
