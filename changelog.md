@@ -24,6 +24,7 @@
 - standardized bookmark api routes
 - improved error handling & feedback in UI for api requests
 - improved css for flash/temporary messages from server
+- update stack package set lts-24.42 -> lts-24.46
 
 ## v0.0.36 (2026-06-26)
 

@@ -13,7 +13,7 @@ packages:
     hackage: persistent-sqlite-2.13.3.0@sha256:04caa8dba2a310a4dcf06295fbb4be7eed2ca9c2da92076bac3dd1a66b946062,5155
 snapshots:
 - completed:
-    sha256: 85363ca92602ef9c8c3f6cfdb188efd3db3209ca3280eea4aad3b38b12a208a1
-    size: 729011
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/24/42.yaml
-  original: lts-24.42
+    sha256: 2e84de3088a8643c3743210ec31c50b2aeccf5fb085042d2e43e3ef700e7a2cd
+    size: 732461
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/24/46.yaml
+  original: lts-24.46
