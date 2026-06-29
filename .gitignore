@@ -39,3 +39,4 @@ archivebox-data
 *.7z
 CLAUDE.md
 .claude
+config/tls

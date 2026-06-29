@@ -99,6 +99,8 @@ dependencies:
   - http-conduit >=2.3 && <2.4
   - directory >=1.1 && <1.4
   - warp >=3.0 && <3.5
+  - warp-tls >=3.0 && <3.5
+  - tls
   - data-default
   - conduit >=1.0 && <2
   - monad-logger >=0.3 && <0.4

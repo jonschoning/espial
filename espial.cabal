@@ -247,6 +247,7 @@ library
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -254,6 +255,7 @@ library
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -348,6 +350,7 @@ executable espial
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -355,6 +358,7 @@ executable espial
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -441,6 +445,7 @@ executable migration
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -448,6 +453,7 @@ executable migration
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -538,6 +544,7 @@ test-suite test
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -545,6 +552,7 @@ test-suite test
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8

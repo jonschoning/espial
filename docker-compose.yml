@@ -14,6 +14,9 @@ services:
       SQLITE_DATABASE: /app/data/espial.sqlite3
       IP_FROM_HEADER: false
       # SSL_ONLY: false
+      # Optional: enable in-process TLS (reverse proxy is recommended; see README § TLS / Reverse Proxy)
+      # TLS_CERT_FILE: /app/data/tls/cert.pem
+      # TLS_KEY_FILE: /app/data/tls/key.pem
       SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
       # DETAILED_LOGGING: false
       # ALLOW_NON_HTTP_URL_SCHEMES: false

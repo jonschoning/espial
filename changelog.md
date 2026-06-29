@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.0.37 (2026-06-XX)
+## v0.0.37 (2026-06-29)
 
 - add Bulk Edit for bookmarks
-  - toggle the **bulk edit** panel via the `bulk edit` link in the bookmark listing toolbar
+  - toggle the **bulk edit** panel via the top-level `edit` link in the bookmark listing toolbar
   - **Select**: choose `this page` (visible bookmarks) or `all pages` (entire filtered result set)
   - **Actions** (pick one, or omit to only modify tags):
     - `make private` / `make public` — change visibility; making public requires confirmation
@@ -12,14 +12,18 @@
     - `delete` — permanently remove selected bookmarks; requires confirmation
   - **Add tags** / **Remove tags**: space-separated tags to add or remove across the selection
   - Action and tag operations can be combined in a single submission
-  - Selection scope respects the current page's filter, tag, and search context
-    - e.g. rename a tag by tag-filtering on it in ui first, then bulk edit all pages, remove existing tag and add new tag
+  - Selection scope respects the current page's filter, tag, and search context, allowing targeted bulk edits
+    - e.g. effective rename of a tag by first clicking on an instance of it to filter by that tag. Then, bulk edit all pages, removing the existing tag and adding the new tag
+- tag cloud improvements
+  - Related Tags includes `all‧2‧5‧10‧20` selectors (clicking `Related Tags` now only shows top 200 tags similar to `Top Tags`)
+  - Updated font-size scaling factors
+- add optional in-process TLS
+  - to enable HTTPS without a reverse proxy, set `TLS_CERT_FILE` and `TLS_KEY_FILE` (PEM)
+  - certificate is reloaded from disk automatically every 12 hours; send `SIGHUP` to trigger an immediate reload
+  - reverse proxy (Caddy, nginx, Cloudflare Tunnel, etc.) remains the recommended approach for production
 - standardized bookmark api routes
 - improved error handling & feedback in UI for api requests
 - improved css for flash/temporary messages from server
-- Tag Cloud improvements
-  - Related Tags defaults to closed, default mode shows top 200 Related Tags, instead of all related tags
-  - Related Tags includes `all‧2‧5‧10‧20` selectors (clicking `Related Tags` goes back to top 200)
 
 ## v0.0.36 (2026-06-26)
 

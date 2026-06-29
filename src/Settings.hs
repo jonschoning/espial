@@ -98,7 +98,11 @@ data AppSettings = AppSettings
     -- | Whether to allow non-http URL schemes (e.g. mailto:, ipfs:, etc.) in user input.
     appAllowNonHttpUrlSchemes :: Bool,
     -- | Default language for the application
-    appLanguageDefault :: I18nLang
+    appLanguageDefault :: I18nLang,
+    -- | Path to TLS certificate file; enables TLS when set with appTLSKeyFile
+    appTLSCertFile :: Maybe FilePath,
+    -- | Path to TLS private key file; enables TLS when set with appTLSCertFile
+    appTLSKeyFile :: Maybe FilePath
   }
 
 instance FromJSON AppSettings where
@@ -153,6 +157,9 @@ instance FromJSON AppSettings where
     appAllowNonHttpUrlSchemes <- o .:? "allow-non-http-url-schemes" .!= False
 
     appLanguageDefault <- o .:? "language-default" .!= I18nLangEn
+
+    appTLSCertFile <- o .:? "tls-cert-file"
+    appTLSKeyFile  <- o .:? "tls-key-file"
 
     return AppSettings {..}
     where
