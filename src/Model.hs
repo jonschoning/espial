@@ -775,36 +775,38 @@ mkBookmarkTags userId bookmarkId tags =
 -- * Bookmark Tag Cloud
 
 data TagCloudMode
-  = TagCloudModeTop Bool Int -- { mode: "top", value: 200 }
-  | TagCloudModeLowerBound Bool Int -- { mode: "lowerBound", value: 20 }
-  | TagCloudModeRelated Bool [Tag]
+  = TagCloudModeTop Bool -- { mode: "top" }
+  | TagCloudModeTopLowerBound Bool Int -- { mode: "lowerBound", value: 20 }
+  | TagCloudModeRelated Bool [Tag] -- { mode: "related", value: "tag1 tag2" }
+  | TagCloudModeRelatedLowerBound Bool [Tag] Int -- { mode: "relatedLowerBound", value: "tag1 tag2", lowerBound: 5 }
   | TagCloudModeNone
   deriving (Show, Eq, Read, Generic)
 
 isExpanded :: TagCloudMode -> Bool
-isExpanded (TagCloudModeTop e _) = e
-isExpanded (TagCloudModeLowerBound e _) = e
+isExpanded (TagCloudModeTop e) = e
+isExpanded (TagCloudModeTopLowerBound e _) = e
 isExpanded (TagCloudModeRelated e _) = e
+isExpanded (TagCloudModeRelatedLowerBound e _ _) = e
 isExpanded TagCloudModeNone = False
 
 instance FromJSON TagCloudMode where
   parseJSON (Object o) =
     case KM.lookup "mode" o of
-      Just (String "top") -> TagCloudModeTop <$> o .: "expanded" <*> o .: "value"
-      Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
+      Just (String "top") -> TagCloudModeTop <$> o .: "expanded"
+      Just (String "lowerBound") -> TagCloudModeTopLowerBound <$> o .: "expanded" <*> o .: "value"
       Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> fmap words (o .: "value")
+      Just (String "relatedLowerBound") -> TagCloudModeRelatedLowerBound <$> o .: "expanded" <*> fmap words (o .: "value") <*> o .: "lowerBound"
       Just (String "none") -> pure TagCloudModeNone
       _ -> A.parseFail "bad parse"
   parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON TagCloudMode where
-  toJSON (TagCloudModeTop e i) =
+  toJSON (TagCloudModeTop e) =
     object
       [ "mode" .= String "top",
-        "value" .= toJSON i,
         "expanded" .= Bool e
       ]
-  toJSON (TagCloudModeLowerBound e i) =
+  toJSON (TagCloudModeTopLowerBound e i) =
     object
       [ "mode" .= String "lowerBound",
         "value" .= toJSON i,
@@ -816,6 +818,13 @@ instance ToJSON TagCloudMode where
         "value" .= String (unwords tags),
         "expanded" .= Bool e
       ]
+  toJSON (TagCloudModeRelatedLowerBound e tags lb) =
+    object
+      [ "mode" .= String "relatedLowerBound",
+        "value" .= String (unwords tags),
+        "lowerBound" .= toJSON lb,
+        "expanded" .= Bool e
+      ]
   toJSON TagCloudModeNone =
     object
       [ "mode" .= String "none",
@@ -825,8 +834,8 @@ instance ToJSON TagCloudMode where
 
 type Tag = Text
 
-tagCountTop :: Key User -> Int -> DB [(Text, Int)]
-tagCountTop user top =
+tagCountTop :: Key User -> DB [(Text, Int)]
+tagCountTop user =
   sortOn (toLower . fst)
     . fmap (bimap unValue unValue)
     <$> ( select $ do
@@ -835,7 +844,7 @@ tagCountTop user top =
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
             orderBy [desc countRows']
-            limit (fromIntegral top)
+            limit 200
             pure (t ^. BookmarkTagTag, countRows')
         )
 
@@ -854,29 +863,47 @@ tagCountLowerBound user lowerBound =
 
 tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
 tagCountRelated user tags =
+  sortOn (toLower . fst)
+    . fmap (bimap unValue unValue)
+    <$> ( select $ do
+            t <- from (table @BookmarkTag)
+            where_ (relatedTagWhere user tags t)
+            groupBy (lower_ $ t ^. BookmarkTagTag)
+            let countRows' = countRows
+            orderBy [desc countRows']
+            limit 200
+            pure (t ^. BookmarkTagTag, countRows')
+        )
+
+tagCountRelatedLowerBound :: Key User -> [Tag] -> Int -> DB [(Text, Int)]
+tagCountRelatedLowerBound user tags lowerBound =
   fmap (bimap unValue unValue)
     <$> ( select $ do
             t <- from (table @BookmarkTag)
-            where_
-              $ foldl
-                ( \expr tag ->
-                    expr
-                      &&. exists
-                        ( do
-                            u <- from (table @BookmarkTag)
-                            where_
-                              ( u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId
-                                  &&. (u ^. BookmarkTagTag `like` val tag)
-                              )
-                        )
-                )
-                (t ^. BookmarkTagUserId ==. val user)
-                tags
+            where_ (relatedTagWhere user tags t)
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
+            having (countRows' >=. val lowerBound)
             orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
             pure (t ^. BookmarkTagTag, countRows')
         )
+
+relatedTagWhere :: Key User -> [Tag] -> SqlExpr (Entity BookmarkTag) -> SqlExpr (Value Bool)
+relatedTagWhere user tags t =
+  foldl
+    ( \expr tag ->
+        expr
+          &&. exists
+            ( do
+                u <- from (table @BookmarkTag)
+                where_
+                  ( u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId
+                      &&. (u ^. BookmarkTagTag `like` val tag)
+                  )
+            )
+    )
+    (t ^. BookmarkTagUserId ==. val user)
+    tags
 
 fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
 fetchBookmarkByUrl userId murl = runMaybeT do

@@ -17,6 +17,9 @@
 - standardized bookmark api routes
 - improved error handling & feedback in UI for api requests
 - improved css for flash/temporary messages from server
+- Tag Cloud improvements
+  - Related Tags defaults to closed, default mode shows top 200 Related Tags, instead of all related tags
+  - Related Tags includes `all‧2‧5‧10‧20` selectors (clicking `Related Tags` goes back to top 200)
 
 ## v0.0.36 (2026-06-26)
 

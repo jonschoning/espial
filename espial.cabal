@@ -85,10 +85,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-IOMU6LPE.min.js
-    static/js/app-IOMU6LPE.min.js.gz
-    static/js/app-IOMU6LPE.min.js.map
-    static/js/app-IOMU6LPE.min.js.map.gz
+    static/js/app-NYNC2KZ4.min.js
+    static/js/app-NYNC2KZ4.min.js.gz
+    static/js/app-NYNC2KZ4.min.js.map
+    static/js/app-NYNC2KZ4.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json

@@ -6,7 +6,6 @@ import { app } from '../globals';
 import { useTagCloudStore } from '../stores/tagCloudStore';
 import {
   isExpanded,
-  isRelated,
   setExpanded,
   type TagCloud as TagCloudT,
   type TagCloudModeF,
@@ -37,7 +36,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
 
   if (mode.kind === 'none') return <div className="tag_cloud" />;
 
-  const modetop: TagCloudModeF = { kind: 'top', expanded: isExpanded(mode), value: 200 };
+  const modetop: TagCloudModeF = { kind: 'top', expanded: isExpanded(mode) };
   const modelb1: TagCloudModeF = { kind: 'lowerBound', expanded: isExpanded(mode), value: 1 };
   const modelb2: TagCloudModeF = { kind: 'lowerBound', expanded: isExpanded(mode), value: 2 };
   const modelb5: TagCloudModeF = { kind: 'lowerBound', expanded: isExpanded(mode), value: 5 };
@@ -62,17 +61,97 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
     }
   }
 
+  function onChangeRelatedLowerBound(lb: number) {
+    if (mode.kind !== 'related' && mode.kind !== 'relatedLowerBound') return;
+    const tags = mode.value;
+    if (lb === 0) {
+      if (mode.kind === 'related') {
+        void onExpanded(!isExpanded(mode));
+      } else {
+        setMode({ kind: 'related', expanded: true, value: tags });
+      }
+    } else {
+      if (mode.kind === 'relatedLowerBound' && mode.lowerBound === lb) {
+        void onExpanded(!isExpanded(mode));
+      } else {
+        setMode({ kind: 'relatedLowerBound', expanded: true, value: tags, lowerBound: lb });
+      }
+    }
+  }
+
+  const isRelatedMode = mode.kind === 'related' || mode.kind === 'relatedLowerBound';
+  const activeLb = mode.kind === 'relatedLowerBound' ? mode.lowerBound : 0;
+
   return (
     <div className="tag_cloud mv3">
       <div className="tag_cloud_header mb2">
-        {isRelated(mode) ? (
-          <button
-            type="button"
-            className="pa1 f7 link thm-hover-link-color mr1 b"
-            onClick={() => void onExpanded(!isExpanded(mode))}
-          >
-            {t('tagCloud.relatedTags')}
-          </button>
+        {isRelatedMode ? (
+          <>
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color mr1${mode.kind === 'related' ? ' b' : ''}`}
+              title={t('tagCloud.topTagsTitle')}
+              onClick={() => {
+                onChangeRelatedLowerBound(0);
+              }}
+            >
+              {t('tagCloud.relatedTags')}
+            </button>
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color ml2${activeLb === 1 ? ' b' : ''}`}
+              title={t('tagCloud.allTitle')}
+              onClick={() => {
+                onChangeRelatedLowerBound(1);
+              }}
+            >
+              {t('filter.all')}
+            </button>
+            {'‧'}
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color${activeLb === 2 ? ' b' : ''}`}
+              title={t('tagCloud.min2Title')}
+              onClick={() => {
+                onChangeRelatedLowerBound(2);
+              }}
+            >
+              2
+            </button>
+            {'‧'}
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color${activeLb === 5 ? ' b' : ''}`}
+              title={t('tagCloud.min5Title')}
+              onClick={() => {
+                onChangeRelatedLowerBound(5);
+              }}
+            >
+              5
+            </button>
+            {'‧'}
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color${activeLb === 10 ? ' b' : ''}`}
+              title={t('tagCloud.min10Title')}
+              onClick={() => {
+                onChangeRelatedLowerBound(10);
+              }}
+            >
+              10
+            </button>
+            {'‧'}
+            <button
+              type="button"
+              className={`pa1 f7 link thm-hover-link-color${activeLb === 20 ? ' b' : ''}`}
+              title={t('tagCloud.min20Title')}
+              onClick={() => {
+                onChangeRelatedLowerBound(20);
+              }}
+            >
+              20
+            </button>
+          </>
         ) : (
           <>
             <button
@@ -140,9 +219,7 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
 
       {isExpanded(mode) ? (
         <div className="tag_cloud_body">
-          {mode.kind === 'related'
-            ? toArray(mode.value, n, m, tagcloud)
-            : toArray([], n, m, tagcloud)}
+          {isRelatedMode ? toArray(mode.value, n, m, tagcloud) : toArray([], n, m, tagcloud)}
         </div>
       ) : null}
     </div>
@@ -162,7 +239,7 @@ function toArray(curtags: string[], n: number, m: number, tagcloud: TagCloudT) {
   const out: Array<React.ReactNode> = [];
   for (const [k, v] of entries) {
     const kLower = k.toLowerCase();
-    const fontsize = rescale((x) => x, v, n, m, 100.0, 150.0);
+    const fontsize = rescale((x) => Math.log(1.0 + x), v, n, m, 100.0, 133.0);
     const opacity = rescale((x) => Math.log(1.0 + x), v, n, m, 0.6, 1.0);
     const style: React.CSSProperties = { fontSize: `${fontsize.toString()}%`, opacity };
 
@@ -203,6 +280,15 @@ function toArray(curtags: string[], n: number, m: number, tagcloud: TagCloudT) {
   return out;
 }
 
+/**  Rescales a value v in the range [n, m] to a value in the range [l, h] using a function f.
+ *  @param f - The function to apply to the value.
+ *  @param v - The value to rescale.
+ *  @param n - The minimum of the input range.
+ *  @param m - The maximum of the input range.
+ *  @param l - The minimum of the output range.
+ *  @param h - The maximum of the output range.
+ *  @returns The rescaled value.
+ */
 function rescale(
   f: (x: number) => number,
   v: number,

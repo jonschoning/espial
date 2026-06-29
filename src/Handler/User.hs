@@ -124,9 +124,10 @@ postUserTagCloudR = do
   mode <- requireCheckJsonBody
   _updateTagCloudMode mode
   tc <- runDB $ case mode of
-    TagCloudModeTop _ n -> tagCountTop userId n
-    TagCloudModeLowerBound _ n -> tagCountLowerBound userId n
+    TagCloudModeTop _ -> tagCountTop userId
+    TagCloudModeTopLowerBound _ n -> tagCountLowerBound userId n
     TagCloudModeRelated _ tags -> tagCountRelated userId tags
+    TagCloudModeRelatedLowerBound _ tags lb -> tagCountRelatedLowerBound userId tags lb
     TagCloudModeNone -> notFound
   sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
 
@@ -139,9 +140,10 @@ postUserTagCloudModeR = do
 _updateTagCloudMode :: TagCloudMode -> Handler ()
 _updateTagCloudMode mode =
   case mode of
-    TagCloudModeTop _ _ -> setTagCloudMode mode
-    TagCloudModeLowerBound _ _ -> setTagCloudMode mode
+    TagCloudModeTop _ -> setTagCloudMode mode
+    TagCloudModeTopLowerBound _ _ -> setTagCloudMode mode
     TagCloudModeRelated _ _ -> setTagCloudMode mode
+    TagCloudModeRelatedLowerBound _ _ _ -> setTagCloudMode mode
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
