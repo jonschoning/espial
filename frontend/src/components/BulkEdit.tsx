@@ -36,32 +36,7 @@ function disabledReason(
   return null;
 }
 
-function sel(
-  current: BulkSelection | null,
-  value: BulkSelection,
-  label: string,
-  onClick: (v: BulkSelection) => void,
-) {
-  return (
-    <a
-      href="#"
-      className={`dib mt1 link${current === value ? ' nav-active' : ' silver hover-alt'}`}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick(value);
-      }}
-    >
-      {label}
-    </a>
-  );
-}
-
-function act(
-  current: BulkAction | null,
-  value: BulkAction,
-  label: string,
-  onClick: (v: BulkAction) => void,
-) {
+function navLink<T>(current: T | null, value: T, label: string, onClick: (v: T) => void) {
   return (
     <a
       href="#"
@@ -164,13 +139,7 @@ export function BulkEdit({ bcount }: Props) {
     if (!el) return;
     const handler = (e: Event) => {
       e.preventDefault();
-      setSelection(null);
-      setAction(null);
-      setAddTags('');
-      setRemoveTags('');
-      setConfirmDelete(false);
-      setConfirmPublic(false);
-      setValidationMsg(null);
+      resetForm();
       setVisible((v) => !v);
     };
     el.addEventListener('click', handler);
@@ -308,9 +277,9 @@ export function BulkEdit({ bcount }: Props) {
           )}
         </div>
         <div>
-          {sel(selection, 'page', t('bulkEdit.thisPage'), setSelection)}
+          {navLink(selection, 'page', t('bulkEdit.thisPage'), setSelection)}
           {' ‧ '}
-          {sel(selection, 'all', t('bulkEdit.allPages'), setSelection)}
+          {navLink(selection, 'all', t('bulkEdit.allPages'), setSelection)}
         </div>
       </div>
 
@@ -319,19 +288,19 @@ export function BulkEdit({ bcount }: Props) {
           <span className="fw7">{t('bulkEdit.action')}</span>
         </div>
         <div>
-          {act(action, 'private', t('bulkEdit.makePrivate'), toggleAction)}
+          {navLink(action, 'private', t('bulkEdit.makePrivate'), toggleAction)}
           {' ‧ '}
-          {act(action, 'public', t('bulkEdit.makePublic'), toggleAction)}
+          {navLink(action, 'public', t('bulkEdit.makePublic'), toggleAction)}
           {' ‧ '}
-          {act(action, 'read', t('bulkEdit.markAsRead'), toggleAction)}
+          {navLink(action, 'read', t('bulkEdit.markAsRead'), toggleAction)}
           {' ‧ '}
-          {act(action, 'unread', t('bulkEdit.unread'), toggleAction)}
+          {navLink(action, 'unread', t('bulkEdit.unread'), toggleAction)}
           {' ‧ '}
-          {act(action, 'star', t('bulkEdit.addStars'), toggleAction)}
+          {navLink(action, 'star', t('bulkEdit.addStars'), toggleAction)}
           {' ‧ '}
-          {act(action, 'unstar', t('bulkEdit.removeStars'), toggleAction)}
+          {navLink(action, 'unstar', t('bulkEdit.removeStars'), toggleAction)}
           {' ‧ '}
-          {act(action, 'delete', t('delete'), toggleAction)}
+          {navLink(action, 'delete', t('delete'), toggleAction)}
         </div>
       </div>
 

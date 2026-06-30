@@ -1,31 +1,24 @@
 # Changelog
 
-## v0.0.37 (2026-06-29)
+## v0.0.37 (2026-06-30)
 
 - add Bulk Edit for bookmarks
   - toggle the **bulk edit** panel via the top-level `edit` link in the bookmark listing toolbar
-  - **Select**: choose `this page` (visible bookmarks) or `all pages` (entire filtered result set)
-  - **Actions** (pick one, or omit to only modify tags):
-    - `make private` / `make public` — change visibility; making public requires confirmation
-    - `mark as read` / `unread` — toggle to-read flag
-    - `add stars` / `remove stars` — toggle starred flag
-    - `delete` — permanently remove selected bookmarks; requires confirmation
-  - **Add tags** / **Remove tags**: space-separated tags to add or remove across the selection
   - Action and tag operations can be combined in a single submission
   - Selection scope respects the current page's filter, tag, and search context, allowing targeted bulk edits
     - e.g. effective rename of a tag by first clicking on an instance of it to filter by that tag. Then, bulk edit all pages, removing the existing tag and adding the new tag
-- tag cloud improvements
-  - Related Tags includes `all‧2‧5‧10‧20` selectors (clicking `Related Tags` now only shows top 200 tags similar to `Top Tags`)
-  - Updated font-size scaling factors
+- Tag Cloud improvements
+  - Related Tags includes `all‧2‧5‧10‧20` selectors
+  - By default, or when clicked, `Related Tags` only shows top 200 tags similar to `Top Tags`
+  - Related Tags section is now always closed by default
 - add optional in-process TLS
   - to enable HTTPS without a reverse proxy, set `TLS_CERT_FILE` and `TLS_KEY_FILE` (PEM)
   - certificate is reloaded from disk automatically every 12 hours; send `SIGHUP` to trigger an immediate reload
   - reverse proxy (Caddy, nginx, Cloudflare Tunnel, etc.) remains the recommended approach for production
-- property escape `_` and `%` in queries so they're treated as literals, not SQL wildcards
 - standardized bookmark api routes
-- improved error handling & feedback in UI for api requests
-- improved css for flash/temporary messages from server
 - update stack package set lts-24.42 -> lts-24.46
+- improved error handling & feedback in UI for api requests
+- bug fix: properly escape `_` and `%` in queries so they're treated as literals, not SQL wildcards
 
 ## v0.0.36 (2026-06-26)
 

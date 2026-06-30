@@ -13,7 +13,6 @@ import Data.Aeson qualified as A
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types qualified as A (parseFail)
 import Data.Attoparsec.Text qualified as P
-import Data.Text qualified as T
 import Data.CaseInsensitive (CI)
 import Data.CaseInsensitive qualified as CI
 import Data.Char (isSpace)
@@ -21,6 +20,7 @@ import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
+import Data.Text qualified as T
 import Data.Time qualified as TI (ParseTime)
 import Data.Time.ISO8601 qualified as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
@@ -285,8 +285,6 @@ sqliteGroupConcat ::
   SqlExpr (Value a) ->
   SqlExpr (Value Text)
 sqliteGroupConcat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
-
-
 
 -- | Case-insensitive exact tag match via SQLite's three-arg like(pattern, string, escape).
 -- Equivalent to: col LIKE f v ESCAPE e
@@ -571,53 +569,25 @@ bookmarksBulkEdit userId BulkEditForm {..} = do
             pure (b ^. BookmarkId)
 
     applyAction = \case
-      BulkActionRead -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkToRead CP.=. False]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkToRead =. val False]
-            bookmarkWhereClause userId sp fp ts q b
-      BulkActionUnread -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkToRead CP.=. True]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkToRead =. val True]
-            bookmarkWhereClause userId sp fp ts q b
-      BulkActionStar -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkSelected CP.=. True]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkSelected =. val True]
-            bookmarkWhereClause userId sp fp ts q b
-      BulkActionUnstar -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkSelected CP.=. False]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkSelected =. val False]
-            bookmarkWhereClause userId sp fp ts q b
+      BulkActionPrivate -> bulkUpdate BookmarkShared False
+      BulkActionPublic -> bulkUpdate BookmarkShared True
+      BulkActionRead -> bulkUpdate BookmarkToRead False
+      BulkActionStar -> bulkUpdate BookmarkSelected True
+      BulkActionUnread -> bulkUpdate BookmarkToRead True
+      BulkActionUnstar -> bulkUpdate BookmarkSelected False
       BulkActionDelete -> case _beSelection of
         BulkSelectionPage bids ->
           CP.deleteWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId]
         BulkSelectionAll fp sp ts q ->
           delete $ from (table @Bookmark) >>= bookmarkWhereClause userId sp fp ts q
-      BulkActionPrivate -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkShared CP.=. False]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkShared =. val False]
-            bookmarkWhereClause userId sp fp ts q b
-      BulkActionPublic -> case _beSelection of
-        BulkSelectionPage bids ->
-          CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [BookmarkShared CP.=. True]
-        BulkSelectionAll fp sp ts q ->
-          update $ \b -> do
-            set b [BookmarkShared =. val True]
-            bookmarkWhereClause userId sp fp ts q b
+
+    bulkUpdate field v = case _beSelection of
+      BulkSelectionPage bids ->
+        CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [field CP.=. v]
+      BulkSelectionAll fp sp ts q ->
+        update $ \b -> do
+          set b [field =. val v]
+          bookmarkWhereClause userId sp fp ts q b
 
     applyRemoveTags kbids removeTags =
       mapM_

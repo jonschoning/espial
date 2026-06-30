@@ -142,8 +142,8 @@ _updateTagCloudMode mode =
   case mode of
     TagCloudModeTop _ -> setTagCloudMode mode
     TagCloudModeTopLowerBound _ _ -> setTagCloudMode mode
-    TagCloudModeRelated _ _ -> setTagCloudMode mode
-    TagCloudModeRelatedLowerBound _ _ _ -> setTagCloudMode mode
+    TagCloudModeRelated _ _ -> pure ()
+    TagCloudModeRelatedLowerBound _ _ _ -> pure ()
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text

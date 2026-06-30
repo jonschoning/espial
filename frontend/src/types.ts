@@ -146,6 +146,9 @@ export type TagCloudModeF =
   | { kind: 'relatedLowerBound'; expanded: boolean; value: string[]; lowerBound: number }
   | { kind: 'none' };
 
+export type TagCloudModeBrowse = Extract<TagCloudModeF, { kind: 'top' | 'lowerBound' }>;
+export type TagCloudModeRelated = Extract<TagCloudModeF, { kind: 'related' | 'relatedLowerBound' }>;
+
 export function tagCloudModeToF(mode: TagCloudMode): TagCloudModeF {
   switch (mode.mode) {
     case 'top':
@@ -197,25 +200,6 @@ export function isExpanded(mode: TagCloudModeF): boolean {
   return mode.kind === 'none' ? false : mode.expanded;
 }
 
-export function isRelated(mode: TagCloudModeF): boolean {
-  return mode.kind === 'related' || mode.kind === 'relatedLowerBound';
-}
-
 export function setExpanded(mode: TagCloudModeF, expanded: boolean): TagCloudModeF {
   return mode.kind === 'none' ? mode : { ...mode, expanded };
-}
-
-export function showMode(mode: TagCloudModeF): string {
-  switch (mode.kind) {
-    case 'top':
-      return 'top';
-    case 'lowerBound':
-      return 'lowerBound';
-    case 'related':
-      return 'related';
-    case 'relatedLowerBound':
-      return 'relatedLowerBound';
-    case 'none':
-      return '';
-  }
 }
