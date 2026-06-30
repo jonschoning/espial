@@ -8,7 +8,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -35,18 +35,28 @@ jobs:
     name: Stack Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: haskell-actions/setup@v2
         with:
           enable-stack: true
           stack-version: "latest"
 
-      - uses: actions/cache@v3
-        name: Cache ~/.stack
+      - uses: actions/cache@v4
+        name: Cache ~/.stack (global package store)
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-stack-lts-24.37
+          key: ${{ runner.os }}-stack-global-lts-24.46
+          restore-keys: |
+            ${{ runner.os }}-stack-global-
+
+      - uses: actions/cache@v4
+        name: Cache .stack-work (project build artifacts)
+        with:
+          path: .stack-work
+          key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml', 'stack.yaml.lock', 'package.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-work-
 
       - name: Build
         run: |
