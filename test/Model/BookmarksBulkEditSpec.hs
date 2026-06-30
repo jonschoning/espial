@@ -77,7 +77,7 @@ spec = withApp $ do
           return (uid, bid1, bid2)
         let form = mkBulkEditForm uid 2 ["tag1"] FilterAll "tag2" "tag1" Nothing []
         result <- runDB $ bookmarksBulkEdit uid form
-        liftIO $ result `shouldBe` Right 2 
+        liftIO $ result `shouldBe` Right 2
         tags1 <- runDB $ getBookmarkTags bid1
         tags2 <- runDB $ getBookmarkTags bid2
         liftIO $ tags1 `shouldBe` ["tag2"]

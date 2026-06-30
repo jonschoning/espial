@@ -184,26 +184,30 @@ main = do
           Nothing -> liftIO (print (userName ++ "not found"))
     ImportBookmarks {..} -> do
       connText <- getConnText conn
-      P.runSqlite connText $ do
-        muser <- P.getBy (UniqueUserName userName)
-        case muser of
-          Just (P.Entity uid _) -> do
-            result <- insertFileBookmarks uid bookmarkFile
-            case result of
-              Left e -> liftIO (print e)
-              Right n -> liftIO (print (show n ++ " bookmarks imported."))
-          Nothing -> liftIO (print (userName ++ "not found"))
+      mfmarks <- readFileBookmarks bookmarkFile
+      case mfmarks of
+        Left e -> print e
+        Right fmarks ->
+          P.runSqlite connText $ do
+            muser <- P.getBy (UniqueUserName userName)
+            case muser of
+              Just (P.Entity uid _) -> do
+                n <- insertFileBookmarks uid fmarks
+                liftIO (print (show n ++ " bookmarks imported."))
+              Nothing -> liftIO (print (userName ++ "not found"))
     ImportFirefoxBookmarks {..} -> do
       connText <- getConnText conn
-      P.runSqlite connText $ do
-        muser <- P.getBy (UniqueUserName userName)
-        case muser of
-          Just (P.Entity uid _) -> do
-            result <- insertFirefoxBookmarks uid bookmarkFile
-            case result of
-              Left e -> liftIO (print e)
-              Right n -> liftIO (print (show n ++ " bookmarks imported."))
-          Nothing -> liftIO (print (userName ++ "not found"))
+      mfmarks <- readFirefoxBookmarks bookmarkFile
+      case mfmarks of
+        Left e -> print e
+        Right fmarks ->
+          P.runSqlite connText $ do
+            muser <- P.getBy (UniqueUserName userName)
+            case muser of
+              Just (P.Entity uid _) -> do
+                n <- insertFirefoxBookmarks uid fmarks
+                liftIO (print (show n ++ " bookmarks imported."))
+              Nothing -> liftIO (print (userName ++ "not found"))
     ImportNotes {..} -> do
       connText <- getConnText conn
       P.runSqlite connText $ do
@@ -217,15 +221,20 @@ main = do
           Nothing -> liftIO (print (userName ++ "not found"))
     ImportNetscapeBookmarks {..} -> do
       connText <- getConnText conn
-      P.runSqlite connText $ do
-        muser <- P.getBy (UniqueUserName userName)
-        case muser of
-          Just (P.Entity uid _) -> do
-            result <- insertNetscapeBookmarks uid bookmarkFile
-            case result of
-              Left e -> liftIO (print e)
-              Right n -> liftIO (print (show n ++ " bookmarks imported."))
-          Nothing -> liftIO (print (userName ++ "not found"))
+      mcontent <- tryAny (readFile bookmarkFile)
+      case mcontent of
+        Left _ -> print ("Could not read file" :: Text)
+        Right (bs :: ByteString) ->
+          case parseNetscapeBookmarks (decodeUtf8 bs) of
+            Left e -> print e
+            Right nbmarks ->
+              P.runSqlite connText $ do
+                muser <- P.getBy (UniqueUserName userName)
+                case muser of
+                  Just (P.Entity uid _) -> do
+                    n <- insertNetscapeBookmarks uid nbmarks
+                    liftIO (print (show n ++ " bookmarks imported."))
+                  Nothing -> liftIO (print (userName ++ "not found"))
     ExportNetscapeBookmarks {..} -> do
       connText <- getConnText conn
       P.runSqlite connText $ do

@@ -20,6 +20,11 @@ createBm uid href = do
   slug <- liftIO mkBmSlug
   insert $ Bookmark uid slug href "desc" "" t0 False False False Nothing
 
+createSharedBm :: Key User -> Text -> DB (Key Bookmark)
+createSharedBm uid href = do
+  slug <- liftIO mkBmSlug
+  insert $ Bookmark uid slug href "desc" "" t0 True False False Nothing
+
 tagBm :: Key User -> Key Bookmark -> Text -> Int -> DB ()
 tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
 
@@ -121,3 +126,46 @@ spec = withApp $ do
       let tagNames = map fst related
       liftIO $ tagNames `shouldContain` ["related"]
       liftIO $ tagNames `shouldNotContain` ["unrelated"]
+
+  -- These back Handler.User.postUserPublicTagCloudR, which calls tagCount*
+  -- with isOwner=False directly for anonymous visitors. A bug here leaks
+  -- private tags or private-bookmark-only tags to the public.
+  describe "tagCountTop privacy (isOwner=False)" $ do
+    it "excludes tags starting with . on a shared bookmark" $ do
+      uid <- runDB $ do
+        uid <- createTestUser
+        bid <- createSharedBm uid "https://a.com"
+        tagBm uid bid ".secret" 1
+        tagBm uid bid "public" 2
+        return uid
+      counts <- runDB $ tagCountTop uid False
+      let tagNames = map fst counts
+      liftIO $ tagNames `shouldNotContain` [".secret"]
+      liftIO $ tagNames `shouldContain` ["public"]
+
+    it "excludes tags that only exist on a private (non-shared) bookmark" $ do
+      uid <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" -- createBm makes shared=False
+        tagBm uid bid "onlyprivate" 1
+        return uid
+      nonOwnerCounts <- runDB $ tagCountTop uid False
+      liftIO $ map fst nonOwnerCounts `shouldNotContain` ["onlyprivate"]
+      ownerCounts <- runDB $ tagCountTop uid True
+      liftIO $ map fst ownerCounts `shouldContain` ["onlyprivate"]
+
+  describe "tagCountRelated privacy (isOwner=False)" $ do
+    it "ignores a private tag as a relatedness filter rather than using it to narrow results" $ do
+      uid <- runDB $ do
+        uid <- createTestUser
+        bid1 <- createSharedBm uid "https://a.com"
+        bid2 <- createSharedBm uid "https://b.com"
+        tagBm uid bid1 ".secret" 1
+        tagBm uid bid1 "shared_tag" 2
+        tagBm uid bid2 "shared_tag" 1
+        return uid
+      -- If ".secret" were used as a co-tag filter, only bid1 would match,
+      -- giving shared_tag a count of 1. Since it's stripped for non-owners,
+      -- both bookmarks count, giving shared_tag a count of 2.
+      related <- runDB $ tagCountRelated uid [".secret"] False
+      liftIO $ related `shouldBe` [("shared_tag", 2)]

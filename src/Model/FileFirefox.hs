@@ -76,12 +76,8 @@ readFirefoxBookmarks :: (MonadIO m) => FilePath -> m (Either String FirefoxBookm
 readFirefoxBookmarks fpath =
   A.eitherDecode' . fromStrict <$> readFile fpath
 
-insertFirefoxBookmarks :: Key User -> FilePath -> DB (Either String Int)
-insertFirefoxBookmarks userId bookmarkFile = do
-  mfmarks <- liftIO $ readFirefoxBookmarks bookmarkFile
-  case mfmarks of
-    Left e -> pure $ Left e
-    Right fmarks -> do
-      bmarks <- liftIO $ firefoxBookmarkNodeToBookmark userId fmarks
-      mapM_ (void . insertUnique) bmarks
-      pure $ Right (length bmarks)
+insertFirefoxBookmarks :: Key User -> FirefoxBookmarkNode -> DB Int
+insertFirefoxBookmarks userId fmarks = do
+  bmarks <- liftIO $ firefoxBookmarkNodeToBookmark userId fmarks
+  mapM_ (void . insertUnique) bmarks
+  pure (length bmarks)

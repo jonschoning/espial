@@ -791,35 +791,25 @@ instance FromJSON TagCloudMode where
 
 instance ToJSON TagCloudMode where
   toJSON (TagCloudModeTop e) =
-    object
-      [ "mode" .= String "top",
-        "expanded" .= Bool e
-      ]
+    object ["mode" .= ("top" :: Text), "expanded" .= e]
   toJSON (TagCloudModeTopLowerBound e i) =
-    object
-      [ "mode" .= String "lowerBound",
-        "value" .= toJSON i,
-        "expanded" .= Bool e
-      ]
+    object ["mode" .= ("lowerBound" :: Text), "value" .= i, "expanded" .= e]
   toJSON (TagCloudModeRelated e tags) =
-    object
-      [ "mode" .= String "related",
-        "value" .= String (unwords tags),
-        "expanded" .= Bool e
-      ]
+    object ["mode" .= ("related" :: Text), "value" .= unwords tags, "expanded" .= e]
   toJSON (TagCloudModeRelatedLowerBound e tags lb) =
-    object
-      [ "mode" .= String "relatedLowerBound",
-        "value" .= String (unwords tags),
-        "lowerBound" .= toJSON lb,
-        "expanded" .= Bool e
-      ]
+    object ["mode" .= ("relatedLowerBound" :: Text), "value" .= unwords tags, "lowerBound" .= lb, "expanded" .= e]
   toJSON TagCloudModeNone =
-    object
-      [ "mode" .= String "none",
-        "value" .= Null,
-        "expanded" .= Bool False
-      ]
+    object ["mode" .= ("none" :: Text), "value" .= A.Null, "expanded" .= False]
+  toEncoding (TagCloudModeTop e) =
+    A.pairs ("mode" .= ("top" :: Text) <> "expanded" .= e)
+  toEncoding (TagCloudModeTopLowerBound e i) =
+    A.pairs ("mode" .= ("lowerBound" :: Text) <> "value" .= i <> "expanded" .= e)
+  toEncoding (TagCloudModeRelated e tags) =
+    A.pairs ("mode" .= ("related" :: Text) <> "value" .= unwords tags <> "expanded" .= e)
+  toEncoding (TagCloudModeRelatedLowerBound e tags lb) =
+    A.pairs ("mode" .= ("relatedLowerBound" :: Text) <> "value" .= unwords tags <> "lowerBound" .= lb <> "expanded" .= e)
+  toEncoding TagCloudModeNone =
+    A.pairs ("mode" .= ("none" :: Text) <> "value" .= A.Null <> "expanded" .= False)
 
 type Tag = Text
 

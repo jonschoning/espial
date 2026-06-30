@@ -39,13 +39,22 @@ instance FromJSON FileNote where
 instance ToJSON FileNote where
   toJSON FileNote {..} =
     object
-      [ "id" .= toJSON fileNoteId,
-        "title" .= toJSON fileNoteTitle,
-        "text" .= toJSON fileNoteText,
-        "length" .= toJSON fileNoteLength,
-        "created_at" .= toJSON (showFileNoteTime fileNoteCreatedAt),
-        "updated_at" .= toJSON (showFileNoteTime fileNoteUpdatedAt)
+      [ "id" .= fileNoteId,
+        "title" .= fileNoteTitle,
+        "text" .= fileNoteText,
+        "length" .= fileNoteLength,
+        "created_at" .= showFileNoteTime fileNoteCreatedAt,
+        "updated_at" .= showFileNoteTime fileNoteUpdatedAt
       ]
+  toEncoding FileNote {..} =
+    A.pairs
+      ( "id" .= fileNoteId
+      <> "title" .= fileNoteTitle
+      <> "text" .= fileNoteText
+      <> "length" .= fileNoteLength
+      <> "created_at" .= showFileNoteTime fileNoteCreatedAt
+      <> "updated_at" .= showFileNoteTime fileNoteUpdatedAt
+      )
 
 readFileNoteTime ::
   (MonadFail m) =>
@@ -71,18 +80,21 @@ fileNoteToNote user FileNote {..} = do
         noteUpdated = fileNoteUpdatedAt
       }
 
+readDirFileNotes :: (MonadIO m) => FilePath -> m (Either String [FileNote])
+readDirFileNotes fdir = liftIO $ do
+  files <- listDirectory fdir
+  noteBSS <- mapM (readFile . (fdir </>)) files
+  pure (mapM (A.eitherDecode' . fromStrict) noteBSS)
+
+insertFileNotes :: Key User -> [FileNote] -> DB Int
+insertFileNotes userId fnotes = do
+  notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
+  void $ mapM insertUnique notes
+  pure (length notes)
+
 insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
 insertDirFileNotes userId noteDirectory = do
-  mfnotes <- liftIO $ readFileNotes noteDirectory
+  mfnotes <- liftIO $ readDirFileNotes noteDirectory
   case mfnotes of
     Left e -> pure $ Left e
-    Right fnotes -> do
-      notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
-      void $ mapM insertUnique notes
-      pure $ Right (length notes)
-  where
-    readFileNotes :: (MonadIO m) => FilePath -> m (Either String [FileNote])
-    readFileNotes fdir = do
-      files <- liftIO (listDirectory fdir)
-      noteBSS <- mapM (readFile . (fdir </>)) files
-      pure (mapM (A.eitherDecode' . fromStrict) noteBSS)
+    Right fnotes -> Right <$> insertFileNotes userId fnotes

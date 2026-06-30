@@ -171,37 +171,32 @@ renderNetscapeBookmarks bmarks =
     escapeHtml :: Text -> Text
     escapeHtml = HE.text
 
-insertNetscapeBookmarks :: Key User -> FilePath -> DB (Either String Int)
-insertNetscapeBookmarks userId bookmarkFile = do
-  meither <- liftIO $ tryAny (readFile bookmarkFile)
-  case meither of
-    Left _ -> pure $ Left "Could not read file"
-    Right (content :: ByteString) ->
-      let contentText = decodeUtf8 content
-       in case parseNetscapeBookmarks contentText of
-            Left e -> pure $ Left e
-            Right nbmarks -> do
-              bmarks <- liftIO $ mapM (netscapeBookmarkToBookmark userId) nbmarks
-              mbids <- mapM insertUnique bmarks
-              mapM_ (void . insertUnique)
-                $ concatMap (uncurry (mkBookmarkTags userId))
-                $ catMaybes
-                $ zipWith
-                  (\mbid nbm -> (,parseNetscapeTags $ nsbTags nbm) <$> mbid)
-                  mbids
-                  nbmarks
-              pure $ Right (length bmarks)
-              where
-                parseNetscapeTags :: Text -> [Text]
-                parseNetscapeTags tagsText =
-                  filter (not . null)
-                    . map strip
-                    $ if ',' `elem` unpack tagsText
-                      then splitOn "," tagsText
-                      else words tagsText
+insertNetscapeBookmarks :: Key User -> [NetscapeBookmark] -> DB Int
+insertNetscapeBookmarks userId nbmarks = do
+  bmarks <- liftIO $ mapM (netscapeBookmarkToBookmark userId) nbmarks
+  mbids <- mapM insertUnique bmarks
+  mapM_ (void . insertUnique)
+    $ concatMap (uncurry (mkBookmarkTags userId))
+    $ catMaybes
+    $ zipWith
+      (\mbid nbm -> (,parseNetscapeTags $ nsbTags nbm) <$> mbid)
+      mbids
+      nbmarks
+  pure (length nbmarks)
+  where
+    parseNetscapeTags :: Text -> [Text]
+    parseNetscapeTags tagsText =
+      filter (not . null)
+        . map strip
+        $ if ',' `elem` unpack tagsText
+          then splitOn "," tagsText
+          else words tagsText
+
+getNetscapeBookmarks :: Key User -> DB [NetscapeBookmark]
+getNetscapeBookmarks user = do
+  marks <- allUserBookmarks user
+  pure $ fmap (\(bm, t) -> bookmarkToNetscapeBookmark (entityVal bm) t) marks
 
 exportNetscapeBookmarks :: Key User -> FilePath -> DB ()
-exportNetscapeBookmarks user fpath = do
-  marks <- allUserBookmarks user
-  let bmarks = fmap (\(bm, t) -> bookmarkToNetscapeBookmark (entityVal bm) t) marks
-  liftIO $ writeFileUtf8 fpath (renderNetscapeBookmarks bmarks)
+exportNetscapeBookmarks user fpath =
+  liftIO . writeFileUtf8 fpath . renderNetscapeBookmarks =<< getNetscapeBookmarks user

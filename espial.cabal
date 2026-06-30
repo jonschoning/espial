@@ -475,7 +475,10 @@ test-suite test
       Handler.CommonSpec
       Handler.HomeSpec
       Model.BookmarksBulkEditSpec
+      Model.BookmarksPagingSpec
       Model.BookmarksQuerySpec
+      Model.BookmarksSearchSpec
+      Model.FileImportExportSpec
       TestImport
       Paths_espial
   autogen-modules:

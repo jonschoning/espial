@@ -46,16 +46,28 @@ instance FromJSON FileBookmark where
 instance ToJSON FileBookmark where
   toJSON FileBookmark {..} =
     object
-      [ "href" .= toJSON fileBookmarkHref,
-        "description" .= toJSON fileBookmarkDescription,
-        "extended" .= toJSON fileBookmarkExtended,
-        "time" .= toJSON fileBookmarkTime,
-        "shared" .= toJSON (boolToYesNo fileBookmarkShared),
-        "toread" .= toJSON (boolToYesNo fileBookmarkToRead),
-        "selected" .= toJSON fileBookmarkSelected,
-        "archive_url" .= toJSON fileBookmarkArchiveHref,
-        "tags" .= toJSON fileBookmarkTags
+      [ "href" .= fileBookmarkHref,
+        "description" .= fileBookmarkDescription,
+        "extended" .= fileBookmarkExtended,
+        "time" .= fileBookmarkTime,
+        "shared" .= boolToYesNo fileBookmarkShared,
+        "toread" .= boolToYesNo fileBookmarkToRead,
+        "selected" .= fileBookmarkSelected,
+        "archive_url" .= fileBookmarkArchiveHref,
+        "tags" .= fileBookmarkTags
       ]
+  toEncoding FileBookmark {..} =
+    A.pairs
+      ( "href" .= fileBookmarkHref
+      <> "description" .= fileBookmarkDescription
+      <> "extended" .= fileBookmarkExtended
+      <> "time" .= fileBookmarkTime
+      <> "shared" .= boolToYesNo fileBookmarkShared
+      <> "toread" .= boolToYesNo fileBookmarkToRead
+      <> "selected" .= fileBookmarkSelected
+      <> "archive_url" .= fileBookmarkArchiveHref
+      <> "tags" .= fileBookmarkTags
+      )
 
 boolFromYesNo :: Text -> Bool
 boolFromYesNo "yes" = True
@@ -100,30 +112,26 @@ readFileBookmarks :: (MonadIO m) => FilePath -> m (Either String [FileBookmark])
 readFileBookmarks fpath =
   A.eitherDecode' . fromStrict <$> readFile fpath
 
-insertFileBookmarks :: Key User -> FilePath -> DB (Either String Int)
-insertFileBookmarks userId bookmarkFile = do
-  mfmarks <- liftIO $ readFileBookmarks bookmarkFile
-  case mfmarks of
-    Left e -> pure $ Left e
-    Right fmarks -> do
-      bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
-      mbids <- mapM insertUnique bmarks
-      mapM_ (void . insertUnique)
-        $ concatMap (uncurry (mkBookmarkTags userId))
-        $ catMaybes
-        $ zipWith
-          (\mbid tags -> (,tags) <$> mbid)
-          mbids
-          (extractTags <$> fmarks)
-      pure $ Right (length bmarks)
+insertFileBookmarks :: Key User -> [FileBookmark] -> DB Int
+insertFileBookmarks userId fmarks = do
+  bmarks <- liftIO $ mapM (fileBookmarkToBookmark userId) fmarks
+  mbids <- mapM insertUnique bmarks
+  mapM_ (void . insertUnique)
+    $ concatMap (uncurry (mkBookmarkTags userId))
+    $ catMaybes
+    $ zipWith
+      (\mbid tags -> (,tags) <$> mbid)
+      mbids
+      (extractTags <$> fmarks)
+  pure (length bmarks)
   where
     extractTags = words . fileBookmarkTags
 
+getFileBookmarks :: Key User -> DB [FileBookmark]
+getFileBookmarks user = do
+  marks <- allUserBookmarks user
+  pure $ fmap (\(bm, t) -> bookmarkTofileBookmark (entityVal bm) t) marks
+
 exportFileBookmarks :: Key User -> FilePath -> DB ()
 exportFileBookmarks user fpath =
-  liftIO . A.encodeFile fpath =<< getFileBookmarks
-  where
-    getFileBookmarks :: DB [FileBookmark]
-    getFileBookmarks = do
-      marks <- allUserBookmarks user
-      pure $ fmap (\(bm, t) -> bookmarkTofileBookmark (entityVal bm) t) marks
+  liftIO . A.encodeFile fpath =<< getFileBookmarks user
