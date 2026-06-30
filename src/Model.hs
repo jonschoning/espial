@@ -13,6 +13,7 @@ import Data.Aeson qualified as A
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types qualified as A (parseFail)
 import Data.Attoparsec.Text qualified as P
+import Data.Text qualified as T
 import Data.CaseInsensitive (CI)
 import Data.CaseInsensitive qualified as CI
 import Data.Char (isSpace)
@@ -285,6 +286,25 @@ sqliteGroupConcat ::
   SqlExpr (Value Text)
 sqliteGroupConcat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
 
+
+
+-- | Case-insensitive exact tag match via SQLite's three-arg like(pattern, string, escape).
+-- Equivalent to: col LIKE f v ESCAPE e
+sqliteLike :: (Text -> Text) -> Text -> SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLike f e col v = unsafeSqlFunction "like" [val (f v), col, val e]
+
+-- Equivalent to: col LIKE escapedTag ESCAPE '\'
+sqliteLikeExact :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikeExact col = sqliteLike escapeLike "\\" col
+
+-- Equivalent to: col LIKE '%' || escaped_term || '%' ESCAPE '\'
+sqliteLikeContains :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikeContains col = sqliteLike (\v -> "%" <> escapeLike v <> "%") "\\" col
+
+-- | Escape wildcards in a string for use in a LIKE pattern, so that _ and % match literally.
+escapeLike :: Text -> Text
+escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
+
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
   getBy (UniqueUserName username) >>= \case
@@ -386,7 +406,7 @@ bookmarkWhereClause userId sharedp filterp tags mquery b = do
               ( from (table @BookmarkTag) >>= \t ->
                   where_
                     ( t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
-                        &&. (t ^. BookmarkTagTag `like` val tag)
+                        &&. sqliteLikeExact (t ^. BookmarkTagTag) tag
                     )
               )
       )
@@ -409,8 +429,7 @@ bookmarkWhereClause userId sharedp filterp tags mquery b = do
 bookmarkLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
 bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
   where
-    wild s = (%) ++. val s ++. (%)
-    toLikeB field s = b ^. field `like` wild s
+    toLikeB field s = sqliteLikeContains (b ^. field) s
     p_allFields =
       toLikeB BookmarkHref term
         ||. toLikeB BookmarkDescription term
@@ -419,7 +438,7 @@ bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
           ( from (table @BookmarkTag) >>= \t ->
               where_
                 $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                &&. (t ^. BookmarkTagTag `like` wild term)
+                &&. sqliteLikeContains (t ^. BookmarkTagTag) term
           )
     p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
       where
@@ -433,7 +452,7 @@ bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
                   exists $ from (table @BookmarkTag) >>= \t ->
                     where_
                       $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                      &&. (t ^. BookmarkTagTag `like` wild term')
+                      &&. sqliteLikeContains (t ^. BookmarkTagTag) term'
               )
               P.takeText
         p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
@@ -610,7 +629,7 @@ bookmarksBulkEdit userId BulkEditForm {..} = do
                 where_ (t ^. BookmarkTagUserId ==. val userId)
                 where_
                   $ foldl1 (||.)
-                  $ map (\tag -> t ^. BookmarkTagTag `like` val tag) removeTags
+                  $ map (sqliteLikeExact (t ^. BookmarkTagTag)) removeTags
         )
         (batchOf sqliteMaxParameters kbids)
 
@@ -746,8 +765,7 @@ getNoteList key mquery mcursor sharedp limit' page = do
         SharedPrivate -> where_ (b ^. NoteShared ==. val False)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
-        wild s = (%) ++. val s ++. (%)
-        toLikeN field s = b ^. field `like` wild s
+        toLikeN field s = sqliteLikeContains (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_after <|> p_before
           where
@@ -898,7 +916,7 @@ relatedTagWhere user tags t =
                 u <- from (table @BookmarkTag)
                 where_
                   ( u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId
-                      &&. (u ^. BookmarkTagTag `like` val tag)
+                      &&. sqliteLikeExact (u ^. BookmarkTagTag) tag
                   )
             )
     )

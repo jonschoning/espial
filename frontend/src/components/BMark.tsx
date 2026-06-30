@@ -173,7 +173,15 @@ export function BMark({
 
   async function onArchive() {
     setArchiving(true);
-    await archiveBookmark(bm.bid);
+    try {
+      const res = await archiveBookmark(bm.bid);
+      if (!res.ok) {
+        showActionError(apiErrorMsg(t, res.status, res.bodyText));
+        return;
+      }
+    } finally {
+      setArchiving(false);
+    }
   }
 
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {

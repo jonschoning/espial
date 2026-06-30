@@ -21,6 +21,7 @@
   - to enable HTTPS without a reverse proxy, set `TLS_CERT_FILE` and `TLS_KEY_FILE` (PEM)
   - certificate is reloaded from disk automatically every 12 hours; send `SIGHUP` to trigger an immediate reload
   - reverse proxy (Caddy, nginx, Cloudflare Tunnel, etc.) remains the recommended approach for production
+- property escape `_` and `%` in queries so they're treated as literals, not SQL wildcards
 - standardized bookmark api routes
 - improved error handling & feedback in UI for api requests
 - improved css for flash/temporary messages from server

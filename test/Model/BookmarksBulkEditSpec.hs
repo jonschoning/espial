@@ -113,6 +113,23 @@ spec = withApp $ do
         tags <- runDB $ getBookmarkTags bid1
         liftIO $ tags `shouldBe` ["tag1", "tag2"]
 
+      it "remove treats _ and % in tag names as literals, not SQL wildcards" $ do
+        (uid, bid1, bid2) <- runDB $ do
+          uid <- createTestUser
+          bid1 <- createBm uid "https://a.com"
+          bid2 <- createBm uid "https://b.com"
+          tagBm uid bid1 "foo_bar" 1
+          tagBm uid bid1 "fooXbar" 2
+          tagBm uid bid2 "fooXbar" 1
+          return (uid, bid1, bid2)
+        let form = mkBulkEditForm uid 2 [] FilterAll "" "foo_bar" Nothing []
+        result <- runDB $ bookmarksBulkEdit uid form
+        liftIO $ result `shouldBe` Right 2
+        tags1 <- runDB $ getBookmarkTags bid1
+        tags2 <- runDB $ getBookmarkTags bid2
+        liftIO $ tags1 `shouldBe` ["fooXbar"]
+        liftIO $ tags2 `shouldBe` ["fooXbar"]
+
       it "remove is case-insensitive when stored tag casing differs from input" $ do
         (uid, bid1) <- runDB $ do
           uid <- createTestUser
