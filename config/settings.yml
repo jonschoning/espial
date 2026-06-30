@@ -68,3 +68,5 @@ tls-key-file: "_env:TLS_KEY_FILE" # path to TLS private key file (PEM, unencrypt
 allow-non-http-url-schemes: "_env:ALLOW_NON_HTTP_URL_SCHEMES:false"
 
 language-default: "_env:LANGUAGE_DEFAULT:en"
+
+public-tag-cloud-cache-duration-seconds: "_env:PUBLIC_TAG_CLOUD_CACHE_DURATION_SECONDS:30"

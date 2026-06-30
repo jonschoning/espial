@@ -51,7 +51,7 @@
     "archiveDefault": "Neue nicht-private Lesezeichen standardmäßig archivieren",
     "privateDefault": "Neue Lesezeichen standardmäßig auf privat setzen",
     "suggestTags": "Tag-Vorschläge aktivieren",
-    "privacyLock": "Datenschutzsperre (privates Konto)",
+    "privacyLock": "Datenschutzsperre (privates Konto)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Archivierung deaktiviert",
     "language": "Sprache"
   },

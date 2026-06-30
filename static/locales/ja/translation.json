@@ -51,7 +51,7 @@
     "archiveDefault": "新しい非プライベートブックマークをデフォルトでアーカイブする",
     "privateDefault": "新しいブックマークをデフォルトでプライベートにする",
     "suggestTags": "タグの候補を有効にする",
-    "privacyLock": "プライバシーロック（非公開アカウント）",
+    "privacyLock": "プライバシーロック（非公開アカウント）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "アーカイブ無効",
     "language": "言語"
   },

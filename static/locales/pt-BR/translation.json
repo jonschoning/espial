@@ -51,7 +51,7 @@
     "archiveDefault": "Arquivar novos favoritos nao privados por padrao",
     "privateDefault": "Definir novos favoritos como privados por padrao",
     "suggestTags": "Ativar sugestoes de tags",
-    "privacyLock": "Bloqueio de privacidade (conta privada)",
+    "privacyLock": "Bloqueio de privacidade (conta privada)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Arquivamento desativado",
     "language": "Idioma"
   },

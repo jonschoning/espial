@@ -14,7 +14,7 @@ t0 = UTCTime (fromGregorian 2024 1 1) 0
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPassword "pass"
-  insert $ User "testuser" pwHash Nothing False False True False Nothing
+  insert $ User "testuser" pwHash Nothing False False True False False Nothing
 
 createBm :: Key User -> Text -> DB (Key Bookmark)
 createBm uid href = do

@@ -73,6 +73,8 @@ export type AccountSettings = {
   suggestTags: boolean;
   /** Whether the account is locked to private-only mode. */
   privacyLock: boolean;
+  /** Whether the tag cloud is visible to non-authenticated visitors. */
+  publicTagCloud: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
   /** The user's preferred language (null means server default). */

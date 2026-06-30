@@ -51,7 +51,7 @@
     "archiveDefault": "預設封存新的非私人書籤",
     "privateDefault": "預設將新書籤設為私人",
     "suggestTags": "啟用標籤建議",
-    "privacyLock": "隱私鎖定（私人帳戶）",
+    "privacyLock": "隱私鎖定（私人帳戶）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "封存功能已停用",
     "language": "語言"
   },

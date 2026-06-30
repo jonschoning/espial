@@ -1,6 +1,6 @@
 import ky from 'ky';
 
-import { app } from './globals';
+import { app, tagCloudEndpoint } from './globals';
 import type {
   AccountSettings,
   Bookmark,
@@ -140,7 +140,7 @@ export async function lookupTitle(bm: Bookmark): Promise<string | null> {
 }
 
 export async function getTagCloud(mode: TagCloudMode): Promise<TagCloud | null> {
-  const res = await request('POST', 'api/tagcloud', {
+  const res = await request('POST', toRelativePath(tagCloudEndpoint()), {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(mode),
   });

@@ -51,7 +51,7 @@
     "archiveDefault": "默认归档新的非私密书签",
     "privateDefault": "默认将新书签设为私密",
     "suggestTags": "启用标签建议",
-    "privacyLock": "隐私锁定（私密账户）",
+    "privacyLock": "隐私锁定（私密账户）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "归档已禁用",
     "language": "语言"
   },

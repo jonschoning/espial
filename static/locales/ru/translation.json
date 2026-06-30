@@ -51,7 +51,7 @@
     "archiveDefault": "Архивировать новые не-приватные закладки по умолчанию",
     "privateDefault": "Делать новые закладки приватными по умолчанию",
     "suggestTags": "Включить предложение тегов",
-    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",
+    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Архивирование отключено",
     "language": "Язык"
   },

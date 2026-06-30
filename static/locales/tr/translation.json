@@ -51,7 +51,7 @@
     "archiveDefault": "Yeni ozel olmayan yer imlerini varsayilan olarak arsivle",
     "privateDefault": "Yeni yer imlerini varsayilan olarak ozel yap",
     "suggestTags": "Etiket onerilerini etkinlestir",
-    "privacyLock": "Gizlilik kilidi (ozel hesap)",
+    "privacyLock": "Gizlilik kilidi (ozel hesap)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Arsivleme devre disi",
     "language": "Dil"
   },

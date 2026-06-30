@@ -105,11 +105,11 @@ lookupTagCloudMode = do
 setTagCloudMode :: (MonadHandler m) => TagCloudMode -> m ()
 setTagCloudMode = setSessionBS "tagCloudMode" . toStrict . A.encode
 
-getTagCloudMode :: (MonadHandler m) => Bool -> [Tag] -> m TagCloudMode
-getTagCloudMode isowner tags = do
+getTagCloudMode :: (MonadHandler m) => Bool -> Bool -> [Tag] -> m TagCloudMode
+getTagCloudMode isowner publicTagCloud tags = do
   ms <- lookupTagCloudMode
   let expanded = maybe False isExpanded ms
-  if not isowner
+  if not isowner && not publicTagCloud
     then pure TagCloudModeNone
     else if not (null tags)
       then pure $ TagCloudModeRelated False tags

@@ -61,7 +61,9 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
   async function onExpanded(expanded: boolean) {
     const next = setExpanded(mode, expanded);
     setMode(next);
-    await updateTagCloudMode(tagCloudModeFromF(next));
+    if (app().dat.isowner) {
+      await updateTagCloudMode(tagCloudModeFromF(next));
+    }
   }
 
   async function onChangeBrowse(next: TagCloudModeBrowse) {

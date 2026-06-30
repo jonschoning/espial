@@ -102,7 +102,9 @@ data AppSettings = AppSettings
     -- | Path to TLS certificate file; enables TLS when set with appTLSKeyFile
     appTLSCertFile :: Maybe FilePath,
     -- | Path to TLS private key file; enables TLS when set with appTLSCertFile
-    appTLSKeyFile :: Maybe FilePath
+    appTLSKeyFile :: Maybe FilePath,
+    -- | TTL in seconds for the public tag cloud response cache
+    appPublicTagCloudCacheDurationSeconds :: Int
   }
 
 instance FromJSON AppSettings where
@@ -160,6 +162,8 @@ instance FromJSON AppSettings where
 
     appTLSCertFile <- o .:? "tls-cert-file"
     appTLSKeyFile  <- o .:? "tls-key-file"
+
+    appPublicTagCloudCacheDurationSeconds <- o .:? "public-tag-cloud-cache-duration-seconds" .!= 30
 
     return AppSettings {..}
     where

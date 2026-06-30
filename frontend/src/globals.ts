@@ -38,6 +38,8 @@ export type App = {
   authRlogoutR: string;
   /** URL for the current user's profile, or null if not logged in. */
   userR: string | null;
+  /** Endpoint URL for fetching tag cloud data. */
+  tagCloudR?: string;
   /** URL for the current note, or null if not viewing a note. */
   noteR: string | null;
   /** URL for the i18n backend */
@@ -56,6 +58,18 @@ declare global {
 
 export function app(): App {
   return globalThis.app;
+}
+
+export function tagCloudEndpoint(): string {
+  const raw = globalThis.app.tagCloudR;
+  if (!raw) return 'api/tagcloud';
+  try {
+    const u = new URL(raw, window.location.origin);
+    const rel = `${u.pathname}${u.search}${u.hash}`;
+    return rel.startsWith('/') ? rel.slice(1) : rel;
+  } catch {
+    return raw.replace(/^\/+/, '');
+  }
 }
 
 export function fromNow(locale = navigator.language, date: Date | number | string): string {

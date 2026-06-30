@@ -139,6 +139,20 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           {t('settings.privacyLock')}
         </label>
       </div>
+
+      <div className="flex items-center mb2">
+        <input
+          type="checkbox"
+          className="pointer mr2"
+          id="publicTagCloud"
+          name="publicTagCloud"
+          checked={us.publicTagCloud}
+          onChange={(e) => void update({ ...us, publicTagCloud: e.target.checked })}
+        />
+        <label htmlFor="publicTagCloud" className="lh-copy">
+          {t('settings.publicTagCloud')}
+        </label>
+      </div>
       {apiError ? <div className="thm-text-error f7 mt2">{apiError}</div> : null}
     </div>
   );

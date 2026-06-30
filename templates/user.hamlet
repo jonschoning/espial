@@ -58,7 +58,7 @@ $maybe route <- mroute
         $if isowner
           <div #bulkEditRenderEl>
     
-        $if isowner
+        $if showTagCloud
           <div ##{tagCloudRenderEl} .tag-cloud-placeholder>
 
         <div ##{renderEl} .mt3>

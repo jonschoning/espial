@@ -19,6 +19,8 @@ import Yesod.Core.Unsafe qualified as Unsafe
 
 -- * App
 
+type PublicTagCloudCache = IORef (Map (Text, TagCloudMode) (UTCTime, Map Text Int))
+
 data App = App
   { appSettings :: AppSettings,
     -- | Settings for static file serving.
@@ -36,7 +38,9 @@ data App = App
     -- | i18n translation function
     appTranslate :: I18nLang -> I18nKey -> Text,
     -- | Route to the i18n json data
-    appI18nR :: Route App
+    appI18nR :: Route App,
+    -- | In-memory cache for public tag cloud responses (30s TTL, 1000-entry cap).
+    appPublicTagCloudCache :: PublicTagCloudCache
   }
   deriving (Typeable)
 

@@ -51,7 +51,7 @@
     "archiveDefault": "Archivar por defecto los nuevos marcadores no privados",
     "privateDefault": "Marcar como privados por defecto los nuevos marcadores",
     "suggestTags": "Activar sugerencias de etiquetas",
-    "privacyLock": "Bloqueo de privacidad (cuenta privada)",
+    "privacyLock": "Bloqueo de privacidad (cuenta privada)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Archivado desactivado",
     "language": "Idioma"
   },

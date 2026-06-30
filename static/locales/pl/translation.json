@@ -51,7 +51,7 @@
     "archiveDefault": "Domyślnie archiwizuj nowe niepubliczne zakładki",
     "privateDefault": "Domyślnie ustawiaj nowe zakładki jako prywatne",
     "suggestTags": "Włącz sugestie tagów",
-    "privacyLock": "Blokada prywatności (konto prywatne)",
+    "privacyLock": "Blokada prywatności (konto prywatne)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Archiwizacja wyłączona",
     "language": "Język"
   },

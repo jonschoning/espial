@@ -59,6 +59,7 @@ User json
   archiveDefault Bool
   suggestTags Bool default=True
   privacyLock Bool
+  publicTagCloud Bool default=False
   language I18nLang Maybe
   UniqueUserName name
   deriving Show Eq Typeable Ord
@@ -768,7 +769,7 @@ data TagCloudMode
   | TagCloudModeRelated Bool [Tag] -- { mode: "related", value: "tag1 tag2" }
   | TagCloudModeRelatedLowerBound Bool [Tag] Int -- { mode: "relatedLowerBound", value: "tag1 tag2", lowerBound: 5 }
   | TagCloudModeNone
-  deriving (Show, Eq, Read, Generic)
+  deriving (Show, Eq, Ord, Read, Generic)
 
 isExpanded :: TagCloudMode -> Bool
 isExpanded (TagCloudModeTop e) = e
@@ -822,13 +823,17 @@ instance ToJSON TagCloudMode where
 
 type Tag = Text
 
-tagCountTop :: Key User -> DB [(Text, Int)]
-tagCountTop user =
+tagCountTop :: Key User -> Bool -> DB [(Text, Int)]
+tagCountTop user isOwner =
   sortOn (toLower . fst)
     . fmap (bimap unValue unValue)
     <$> ( select $ do
             t <- from (table @BookmarkTag)
             where_ (t ^. BookmarkTagUserId ==. val user)
+            when (not isOwner) $ do
+              b <- from (table @Bookmark)
+              where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+              where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
             orderBy [desc countRows']
@@ -836,12 +841,16 @@ tagCountTop user =
             pure (t ^. BookmarkTagTag, countRows')
         )
 
-tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
-tagCountLowerBound user lowerBound =
+tagCountLowerBound :: Key User -> Int -> Bool -> DB [(Text, Int)]
+tagCountLowerBound user lowerBound isOwner =
   fmap (bimap unValue unValue)
     <$> ( select $ do
             t <- from (table @BookmarkTag)
             where_ (t ^. BookmarkTagUserId ==. val user)
+            when (not isOwner) $ do
+              b <- from (table @Bookmark)
+              where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+              where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
             orderBy [asc (t ^. BookmarkTagTag)]
@@ -849,32 +858,45 @@ tagCountLowerBound user lowerBound =
             pure (t ^. BookmarkTagTag, countRows')
         )
 
-tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
-tagCountRelated user tags =
-  sortOn (toLower . fst)
-    . fmap (bimap unValue unValue)
-    <$> ( select $ do
-            t <- from (table @BookmarkTag)
-            where_ (relatedTagWhere user tags t)
-            groupBy (lower_ $ t ^. BookmarkTagTag)
-            let countRows' = countRows
-            orderBy [desc countRows']
-            limit 200
-            pure (t ^. BookmarkTagTag, countRows')
-        )
+tagCountRelated :: Key User -> [Tag] -> Bool -> DB [(Text, Int)]
+tagCountRelated user tags isOwner =
+  let effectiveTags = if isOwner then tags else filter (not . T.isPrefixOf ".") tags
+   in sortOn (toLower . fst)
+        . fmap (bimap unValue unValue)
+        <$> ( select $ do
+                t <- from (table @BookmarkTag)
+                where_ (relatedTagWhere user effectiveTags t)
+                when (not isOwner) $ do
+                  b <- from (table @Bookmark)
+                  where_
+                    ( b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId
+                        &&. b ^. BookmarkShared ==. val True
+                    )
+                  where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
+                groupBy (lower_ $ t ^. BookmarkTagTag)
+                let countRows' = countRows
+                orderBy [desc countRows']
+                limit 200
+                pure (t ^. BookmarkTagTag, countRows')
+            )
 
-tagCountRelatedLowerBound :: Key User -> [Tag] -> Int -> DB [(Text, Int)]
-tagCountRelatedLowerBound user tags lowerBound =
-  fmap (bimap unValue unValue)
-    <$> ( select $ do
-            t <- from (table @BookmarkTag)
-            where_ (relatedTagWhere user tags t)
-            groupBy (lower_ $ t ^. BookmarkTagTag)
-            let countRows' = countRows
-            having (countRows' >=. val lowerBound)
-            orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
-            pure (t ^. BookmarkTagTag, countRows')
-        )
+tagCountRelatedLowerBound :: Key User -> [Tag] -> Int -> Bool -> DB [(Text, Int)]
+tagCountRelatedLowerBound user tags lowerBound isOwner =
+  let effectiveTags = if isOwner then tags else filter (not . T.isPrefixOf ".") tags
+   in fmap (bimap unValue unValue)
+        <$> ( select $ do
+                t <- from (table @BookmarkTag)
+                where_ (relatedTagWhere user effectiveTags t)
+                when (not isOwner) $ do
+                  b <- from (table @Bookmark)
+                  where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+                  where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
+                groupBy (lower_ $ t ^. BookmarkTagTag)
+                let countRows' = countRows
+                having (countRows' >=. val lowerBound)
+                orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
+                pure (t ^. BookmarkTagTag, countRows')
+            )
 
 relatedTagWhere :: Key User -> [Tag] -> SqlExpr (Entity BookmarkTag) -> SqlExpr (Value Bool)
 relatedTagWhere user tags t =
@@ -884,10 +906,7 @@ relatedTagWhere user tags t =
           &&. exists
             ( do
                 u <- from (table @BookmarkTag)
-                where_
-                  ( u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId
-                      &&. sqliteLikeExact (u ^. BookmarkTagTag) tag
-                  )
+                where_ (u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId &&. sqliteLikeExact (u ^. BookmarkTagTag) tag)
             )
     )
     (t ^. BookmarkTagUserId ==. val user)

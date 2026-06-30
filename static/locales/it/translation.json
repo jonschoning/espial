@@ -51,7 +51,7 @@
     "archiveDefault": "Archivia per impostazione predefinita i nuovi segnalibri non privati",
     "privateDefault": "Imposta come privati per default i nuovi segnalibri",
     "suggestTags": "Abilita i suggerimenti per i tag",
-    "privacyLock": "Blocco privacy (account privato)",
+    "privacyLock": "Blocco privacy (account privato)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Archiviazione disabilitata",
     "language": "Lingua"
   },

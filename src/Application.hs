@@ -74,6 +74,7 @@ makeFoundation appSettings@AppSettings {..} = do
   appFrontendBundleName <- loadFrontendBundleName appStaticDir
   appStatic <- (if appMutableStatic then staticDevel else static) appStaticDir
   (appTranslationsHash, appTranslations) <- I18n.loadTranslations appStaticDir
+  appPublicTagCloudCache <- newIORef mempty
   let appTranslate lang = I18n.translate appTranslations lang (I18nNs "translation")
       appI18nR = LocalesFileR appTranslationsHash []
       mkFoundation appConnPool appArchiver = App {..}

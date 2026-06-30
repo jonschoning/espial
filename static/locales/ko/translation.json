@@ -51,7 +51,7 @@
     "archiveDefault": "새 비공개가 아닌 북마크를 기본적으로 아카이브",
     "privateDefault": "새 북마크를 기본적으로 비공개로 설정",
     "suggestTags": "태그 제안 사용",
-    "privacyLock": "개인정보 잠금(비공개 계정)",
+    "privacyLock": "개인정보 잠금(비공개 계정)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "아카이브 비활성화됨",
     "language": "언어"
   },
