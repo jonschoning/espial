@@ -136,7 +136,7 @@ postUserTagCloudR = do
     TagCloudModeTopLowerBound _ n -> tagCountLowerBound userId n True
     TagCloudModeRelated _ tags -> tagCountRelated userId tags True
     TagCloudModeRelatedLowerBound _ tags lb -> tagCountRelatedLowerBound userId tags lb True
-    TagCloudModeNone -> notFound
+    TagCloudModeNone -> pure []
   sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
 
 postUserPublicTagCloudR :: UserNameP -> Handler ()
@@ -161,15 +161,12 @@ postUserPublicTagCloudR (UserNameP uname) = do
         TagCloudModeTopLowerBound _ n -> tagCountLowerBound userId n False
         TagCloudModeRelated _ tags -> tagCountRelated userId tags False
         TagCloudModeRelatedLowerBound _ tags lb -> tagCountRelatedLowerBound userId tags lb False
-        TagCloudModeNone -> notFound
+        TagCloudModeNone -> pure []
       let tc = Map.fromList tcList
       liftIO $ atomicModifyIORef' cacheRef $ \m ->
         let pruned = Map.filter (\(t, _) -> diffUTCTime now t < ttl) m
-            m' =
-              if Map.size pruned < 1000
-                then Map.insert (uname, mode) (now, tc) pruned
-                else pruned
-         in (m', ())
+            evicted = if Map.size pruned >= 1000 then Map.deleteMin pruned else pruned
+         in (Map.insert (uname, mode) (now, tc) evicted, ())
       sendStatusJSON ok200 tc
 
 postUserTagCloudModeR :: Handler ()

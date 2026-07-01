@@ -14,20 +14,23 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const archiveDisabled = !us.archiveBackendEnabled;
   const archiveDisabledTitle = archiveDisabled ? t('settings.archivingDisabled') : undefined;
 
-  async function update(next: AccountSettings) {
-    setUs(next);
+  async function update(next: AccountSettings): Promise<boolean> {
     try {
       const res = await editAccountSettings(next);
-      if (!res.ok) setApiError(apiErrorMsg(t, res.status, res.bodyText));
-      else {
-        setApiError(null);
-        const lockIcon = document.getElementById('privacy-lock-icon');
-        if (lockIcon) lockIcon.style.display = next.privacyLock ? '' : 'none';
+      if (!res.ok) {
+        setApiError(apiErrorMsg(t, res.status, res.bodyText));
+        return false;
       }
+      setApiError(null);
+      setUs(next);
+      const lockIcon = document.getElementById('privacy-lock-icon');
+      if (lockIcon) lockIcon.style.display = next.privacyLock ? '' : 'none';
+      return true;
     } catch (err) {
       setApiError(
         err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
       );
+      return false;
     }
   }
 
@@ -46,19 +49,9 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
           value={us.language ?? ''}
           onChange={(e) => {
             const next = { ...us, language: e.target.value === '' ? null : e.target.value };
-            setUs(next);
-            void editAccountSettings(next)
-              .then((res) => {
-                if (res.ok) window.location.reload();
-                else setApiError(apiErrorMsg(t, res.status, res.bodyText));
-              })
-              .catch((err: unknown) => {
-                setApiError(
-                  err instanceof TimeoutError
-                    ? t('error.requestTimedOut')
-                    : t('error.networkError'),
-                );
-              });
+            void update(next).then((ok) => {
+              if (ok) window.location.reload();
+            });
           }}
         >
           <option value="">{t('settings.serverDefault')}</option>
