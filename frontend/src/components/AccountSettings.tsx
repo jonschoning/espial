@@ -19,7 +19,11 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
     try {
       const res = await editAccountSettings(next);
       if (!res.ok) setApiError(apiErrorMsg(t, res.status, res.bodyText));
-      else setApiError(null);
+      else {
+        setApiError(null);
+        const lockIcon = document.getElementById('privacy-lock-icon');
+        if (lockIcon) lockIcon.style.display = next.privacyLock ? '' : 'none';
+      }
     } catch (err) {
       setApiError(
         err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
@@ -102,6 +106,20 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         <input
           type="checkbox"
           className="pointer mr2"
+          id="suggestTags"
+          name="suggestTags"
+          checked={us.suggestTags}
+          onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
+        />
+        <label htmlFor="suggestTags" className="lh-copy">
+          {t('settings.suggestTags')}
+        </label>
+      </div>
+
+      <div className="flex items-center mb2">
+        <input
+          type="checkbox"
+          className="pointer mr2"
           id="privateDefault"
           name="privateDefault"
           checked={us.privateDefault}
@@ -116,13 +134,13 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         <input
           type="checkbox"
           className="pointer mr2"
-          id="suggestTags"
-          name="suggestTags"
-          checked={us.suggestTags}
-          onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
+          id="publicTagCloud"
+          name="publicTagCloud"
+          checked={us.publicTagCloud}
+          onChange={(e) => void update({ ...us, publicTagCloud: e.target.checked })}
         />
-        <label htmlFor="suggestTags" className="lh-copy">
-          {t('settings.suggestTags')}
+        <label htmlFor="publicTagCloud" className="lh-copy">
+          {t('settings.publicTagCloud')}
         </label>
       </div>
 
@@ -140,19 +158,6 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         </label>
       </div>
 
-      <div className="flex items-center mb2">
-        <input
-          type="checkbox"
-          className="pointer mr2"
-          id="publicTagCloud"
-          name="publicTagCloud"
-          checked={us.publicTagCloud}
-          onChange={(e) => void update({ ...us, publicTagCloud: e.target.checked })}
-        />
-        <label htmlFor="publicTagCloud" className="lh-copy">
-          {t('settings.publicTagCloud')}
-        </label>
-      </div>
       {apiError ? <div className="thm-text-error f7 mt2">{apiError}</div> : null}
     </div>
   );

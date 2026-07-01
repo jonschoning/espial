@@ -8,6 +8,7 @@
   - Selection scope respects the current page's filter, tag, and search context, allowing targeted bulk edits
     - e.g. effective rename of a tag by first clicking on an instance of it to filter by that tag. Then, bulk edit all pages, removing the existing tag and adding the new tag
 - Tag Cloud improvements
+  - Add account setting `Public Tag Cloud` to make user's tag cloud available for public users (fixes #48)
   - Related Tags includes `all‧2‧5‧10‧20` selectors
   - By default, or when clicked, `Related Tags` only shows top 200 tags similar to `Top Tags`
   - Related Tags section is now always closed by default

@@ -43,8 +43,9 @@ https://github.com/jonschoning/espial-docker
 
 ### Setup From Source
 
-1. Install the Stack executable here:
-   - https://tech.fpcomplete.com/haskell/get-started
+1. Install Haskell tooling (choose one):
+   - **Stack**: https://docs.haskellstack.org/en/stable/
+   - **GHCup** (installs GHC, Stack, and more): https://www.haskell.org/ghcup/install/
 2. Build executables:
 
 ```bash
@@ -185,7 +186,7 @@ Or in `config/settings.yml`:
 
 ```yaml
 tls-cert-file: "/path/to/cert.pem"
-tls-key-file:  "/path/to/key.pem"
+tls-key-file: "/path/to/key.pem"
 ```
 
 When both values are set Espial listens on HTTPS with HTTP/2 enabled. When either is absent Espial falls back to plain HTTP.
