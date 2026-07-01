@@ -15,13 +15,13 @@ getFaviconR :: Handler TypedContent
 getFaviconR = do
   cacheSeconds $ 60 * 5
   -- cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
-  return
+  pure
     $ TypedContent "image/x-icon"
     $ toContent $(embedFile "config/favicon.ico")
 
 getRobotsR :: Handler TypedContent
 getRobotsR =
-  return
+  pure
     $ TypedContent typePlain
     $ toContent $(embedFile "config/robots.txt")
 

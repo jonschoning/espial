@@ -20,7 +20,7 @@ data FileBookmark = FileBookmark
     fileBookmarkArchiveHref :: !(Maybe Text),
     fileBookmarkTags :: !Text
   }
-  deriving (Show, Eq, Typeable, Ord)
+  deriving (Show, Eq, Ord)
 
 instance FromJSON FileBookmark where
   parseJSON (Object o) =

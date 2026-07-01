@@ -84,7 +84,7 @@ postAddR = do
           res <- runDB (upsertBookmark userId mkbid bm tags)
           case res of
             Created kbid
-              | (maybe (userArchiveDefault user) id (_archiveRequested bookmarkForm)) ->
+              | fromMaybe (userArchiveDefault user) (_archiveRequested bookmarkForm) ->
                   whenM
                     (shouldArchiveBookmark bm)
                     (void $ async $ archiveBookmarkUrl kbid (Url (bookmarkHref bm)))

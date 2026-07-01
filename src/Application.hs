@@ -90,7 +90,7 @@ makeFoundation appSettings@AppSettings {..} = do
   flip runLoggingT startupLogFunc $ do 
     (logInfoNS "startup" $ "archive backend: " <> tshow appArchiveBackend)
     (logDebugNS "startup" ("language-default: " <> fromI18nLang' appLanguageDefault))
-  return (mkFoundation appPool appArchiver)
+  pure (mkFoundation appPool appArchiver)
   where
     mkPool :: _ -> Bool -> IO ConnectionPool
     mkPool logFunc isFkEnabled =
@@ -145,7 +145,7 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
   logWare <- makeLogWare foundation
   appPlain <- toWaiAppPlain foundation
-  return (logWare (makeMiddleware appPlain))
+  pure (logWare (makeMiddleware appPlain))
 
 makeMiddleware :: Middleware
 makeMiddleware =
@@ -220,7 +220,7 @@ getApplicationDev = do
   foundation <- makeFoundation settings
   wsettings <- getDevSettings (warpSettings foundation)
   app <- makeApplication foundation
-  return (wsettings, app)
+  pure (wsettings, app)
 
 getAppSettings :: IO AppSettings
 getAppSettings = loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv
@@ -256,10 +256,10 @@ getApplicationRepl = do
   foundation <- makeFoundation settings
   wsettings <- getDevSettings (warpSettings foundation)
   app1 <- makeApplication foundation
-  return (getPort wsettings, foundation, app1)
+  pure (getPort wsettings, foundation, app1)
 
 shutdownApp :: App -> IO ()
-shutdownApp _ = return ()
+shutdownApp _ = pure ()
 
 -- | Run a handler
 handler :: Handler a -> IO a

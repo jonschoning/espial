@@ -42,11 +42,7 @@ data App = App
     -- | In-memory cache for public tag cloud responses (30s TTL, 1000-entry cap).
     appPublicTagCloudCache :: PublicTagCloudCache
   }
-  deriving (Typeable)
-
 mkYesodData "App" $(parseRoutesFile "config/routes")
-
-deriving instance Typeable Route
 
 deriving instance Generic (Route App)
 
@@ -122,7 +118,7 @@ instance Yesod App where
       )
   shouldLogIO app source level = pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
 
-  makeLogger = return . appLogger
+  makeLogger = pure . appLogger
 
   authRoute _ = Just (AuthR LoginR)
 
@@ -133,7 +129,7 @@ instance Yesod App where
   errorHandler err = do
     app <- getYesod
     session <- getSession
-    let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+    let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
         t = \key -> appTranslate app lang (I18nKey key)
     case err of
       NotFound -> _notFoundErrorHandler (t "error.notFound")
@@ -149,37 +145,37 @@ instance Yesod App where
           provideRep $ defaultLayout $ do
             r <- waiRequest
             let path' = TE.decodeUtf8With TEE.lenientDecode $ Wai.rawPathInfo r
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p>#{path'}|]
-          provideRep $ return $ object ["message" .= title]
-          provideRep $ return title
+            defaultMessageWidget (toHtml title) [hamlet|<p>#{path'}|]
+          provideRep $ pure $ object ["message" .= title]
+          provideRep $ pure title
       _internalErrorHandler :: Text -> Text -> HandlerFor App TypedContent
       _internalErrorHandler e title = do
         $logErrorS "yesod-core" e
         selectRep $ do
           provideRep $ defaultLayout $ do
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<pre>#{e}|]
-          provideRep $ return $ object ["message" .= title, "error" .= e]
-          provideRep $ return $ title <> ": " <> e
+            defaultMessageWidget (toHtml title) [hamlet|<pre>#{e}|]
+          provideRep $ pure $ object ["message" .= title, "error" .= e]
+          provideRep $ pure $ title <> ": " <> e
       _notAuthenticatedErrorHandler :: Text -> HandlerFor App TypedContent
       _notAuthenticatedErrorHandler title = selectRep $ do
         provideRep $
           defaultLayout $
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p style="display:none;"><p>#{title} |]
+            defaultMessageWidget (toHtml title) [hamlet|<p style="display:none;"><p>#{title} |]
         provideRep $ do
           addHeader "WWW-Authenticate" "RedirectJSON realm=\"application\", param=\"authentication_url\""
           site <- getYesod
           rend <- getUrlRender
           let apair u = ["authentication_url" .= rend u]
               content = maybe [] apair (authRoute site)
-          return $ object $ ("message" .= title) : content
-        provideRep $ return title
+          pure $ object $ ("message" .= title) : content
+        provideRep $ pure title
       _genericErrorHandler :: Text -> HandlerFor App TypedContent
       _genericErrorHandler title = do
         selectRep $ do
           provideRep $ defaultLayout $ do
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p>#{title}|]
-          provideRep $ return $ object ["message" .= title]
-          provideRep $ return $ title
+            defaultMessageWidget (toHtml title) [hamlet|<p>#{title}|]
+          provideRep $ pure $ object ["message" .= title]
+          provideRep $ pure title
 
   defaultMessageWidget :: Html -> HtmlUrl (Route App) -> WidgetFor App ()
   defaultMessageWidget title body = do
@@ -255,9 +251,9 @@ instance YesodAuth App where
               _ -> pure ()
             app <- getYesod
             session <- getSession
-            let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
                 t = \key -> appTranslate app lang (I18nKey key)
-            setTitle ("Espial | " <> fromString (unpack (t "login.pageTitle")))
+            setTitle (toHtml ("Espial | " <> t "login.pageTitle"))
             $(widgetFile "login")
 
           dbPostLoginR :: (master ~ App) => AuthHandler master TypedContent
@@ -273,7 +269,7 @@ instance YesodAuth App where
               _ -> do
                 app <- getYesod
                 session <- getSession
-                let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+                let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
                     t = \key -> appTranslate app lang (I18nKey key)
                 loginErrorMessage (AuthR LoginR) (t "auth.invalidUsernamePass")
             where
@@ -307,7 +303,7 @@ instance YesodAuth App where
   logoutDest = const HomeR
   onLogin =
     maybeAuth >>= \case
-      Nothing -> cpprint ("onLogin: could not find user" :: Text)
+      Nothing -> $(logWarn) "onLogin: could not find user"
       Just (Entity user uname) -> do
         app <- getYesod
         let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage uname)

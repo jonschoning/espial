@@ -21,7 +21,7 @@ patchReadR bid = do
     let k_bid = toSqlKey bid
     _ <- _requireResource userId k_bid
     update k_bid [BookmarkToRead =. False]
-  return ""
+  pure ""
 
 deleteDeleteR :: Int64 -> Handler Html
 deleteDeleteR bid = do
@@ -30,7 +30,7 @@ deleteDeleteR bid = do
     let k_bid = toSqlKey bid
     _ <- _requireResource userId k_bid
     delete k_bid
-  return ""
+  pure ""
 
 postBmBulkR :: Handler ()
 postBmBulkR = do
@@ -47,12 +47,12 @@ postBmBulkR = do
       if (editedCount == _beSelectionCount bmBulkForm)
         then
           setMessage
-            $ (fromString . unpack)
+            $ toHtml
             $ T.replace "{{editedCount}}" (tshow editedCount)
             $ t ("bulkEdit.editedCount" <> tsuffix)
         else
           setMessage
-            $ (fromString . unpack)
+            $ toHtml
             $ T.replace "{{selectionCount}}" (tshow (_beSelectionCount bmBulkForm))
             $ T.replace "{{editedCount}}" (tshow editedCount)
             $ t ("bulkEdit.editedCountMismatch" <> tsuffix)
@@ -77,5 +77,5 @@ _requireResource :: UserId -> Key Bookmark -> DBM Handler Bookmark
 _requireResource userId k_bid = do
   bmark <- get404 k_bid
   if userId == bookmarkUserId bmark
-    then return bmark
+    then pure bmark
     else notFound

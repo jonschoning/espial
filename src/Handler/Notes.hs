@@ -134,7 +134,7 @@ deleteDeleteNoteR nid = do
     let k_nid = toSqlKey nid
     _ <- requireResource userId k_nid
     delete k_nid
-  return ""
+  pure ""
 
 postAddNoteR :: Handler Text
 postAddNoteR = do
@@ -148,7 +148,7 @@ requireResource :: UserId -> Key Note -> DBM Handler Note
 requireResource userId k_nid = do
   nnote <- get404 k_nid
   if userId == noteUserId nnote
-    then return nnote
+    then pure nnote
     else notFound
 
 _handleFormSuccess :: NoteForm -> Handler (UpsertResult (Key Note))
@@ -248,7 +248,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
       entries = map (noteToRssEntry render unamep) notes
   updated <- case maximumMay (map feedEntryUpdated entries) of
     Nothing -> liftIO getCurrentTime
-    Just m -> return m
+    Just m -> pure m
   (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
   rssFeedText
     $ Feed

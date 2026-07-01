@@ -242,7 +242,7 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of
     Nothing -> liftIO getCurrentTime
-    Just m -> return m
+    Just m -> pure m
   (feedLinkSelf, feedLinkHome) <- getFeedLinkSelf
   rssFeedText
     $ Feed

@@ -22,7 +22,7 @@ import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Time qualified as TI (ParseTime)
-import Data.Time.ISO8601 qualified as TISO (formatISO8601Millis, parseISO8601)
+
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
@@ -42,18 +42,18 @@ AppMigration
     appVersionSpec Text
     appliedAt UTCTime
     UniqueAppMigrationDbVersion dbVersion
-    deriving Show Eq Typeable Ord
+    deriving Show Eq Ord
 
 AppVersion
     appVersionSpec Text
     appVersion Text
     appGitSha Text
     created UTCTime
-    deriving Show Eq Typeable Ord
+    deriving Show Eq Ord
 
 User json
   name Text
-  passwordHash BCrypt
+  passwordHash PasswordHash
   apiToken HashedApiKey Maybe
   privateDefault Bool
   archiveDefault Bool
@@ -62,7 +62,7 @@ User json
   publicTagCloud Bool default=False
   language I18nLang Maybe
   UniqueUserName name
-  deriving Show Eq Typeable Ord
+  deriving Show Eq Ord
 
 Bookmark json
   userId UserId OnDeleteCascade
@@ -77,7 +77,7 @@ Bookmark json
   archiveHref Text Maybe
   UniqueUserHref userId href
   UniqueUserSlug userId slug
-  deriving Show Eq Typeable Ord
+  deriving Show Eq Ord
 
 BookmarkTag json
   userId UserId OnDeleteCascade
@@ -86,7 +86,7 @@ BookmarkTag json
   seq Int
   UniqueUserTagBookmarkId userId tag bookmarkId
   UniqueUserBookmarkIdTagSeq userId bookmarkId tag seq
-  deriving Show Eq Typeable Ord
+  deriving Show Eq Ord
 
 Note json
   userId UserId  OnDeleteCascade
@@ -98,7 +98,7 @@ Note json
   shared Bool default=False
   created UTCTime
   updated UTCTime
-  deriving Show Eq Typeable Ord
+  deriving Show Eq Ord
 |]
 
 -- * Custom types
@@ -122,8 +122,8 @@ newtype UTCTimeStr
   deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
 
 instance PathPiece UTCTimeStr where
-  toPathPiece (UTCTimeStr u) = pack (TISO.formatISO8601Millis u)
-  fromPathPiece s = UTCTimeStr <$> TISO.parseISO8601 (unpack s)
+  toPathPiece (UTCTimeStr u) = pack (formatTime defaultTimeLocale "%FT%T%QZ" u)
+  fromPathPiece s = UTCTimeStr <$> parseTimeM True defaultTimeLocale "%FT%T%QZ" (unpack s)
 
 newtype UserNameP
   = UserNameP {unUserNameP :: Text}
@@ -308,10 +308,15 @@ authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
   getBy (UniqueUserName username) >>= \case
     Nothing -> pure Nothing
-    Just dbuser ->
-      if validatePasswordHash (userPasswordHash (entityVal dbuser)) password
-        then pure (Just dbuser)
-        else pure Nothing
+    Just entity@(Entity uid user) ->
+      let stored = userPasswordHash user
+       in if validatePasswordHash stored password
+            then do
+              when (needsRehash stored) $ do
+                newHash <- liftIO (hashPassword password)
+                CP.update uid [UserPasswordHash CP.=. newHash]
+              pure (Just entity)
+            else pure Nothing
 
 getUserByName :: UserNameP -> DB (Maybe (Entity User))
 getUserByName (UserNameP uname) =
@@ -531,7 +536,7 @@ bookmarksBulkEdit :: Key User -> BulkEditForm -> DB (Either BulkEditError Int)
 bookmarksBulkEdit userId BulkEditForm {..} = do
   eValid <- validateCount
   case eValid of
-    Left err -> return (Left err)
+    Left err -> pure (Left err)
     Right n -> do
       let removeTags = normalizeTags _beRemoveTags
           addTags' = normalizeTags _beAddTags
@@ -543,24 +548,24 @@ bookmarksBulkEdit userId BulkEditForm {..} = do
       forM_ mTagKbids $ \kbids -> do
         unless (null removeTags) $ applyRemoveTags kbids removeTags
         unless (null addTags') $ applyAddTags kbids addTags'
-      return (Right n)
+      pure (Right n)
   where
     toKbids = map (toSqlKey @Bookmark)
 
     validateCount = case _beSelection of
       BulkSelectionPage bids ->
         if length bids /= _beSelectionCount
-          then return $ Left BulkEditErrorPageMismatch
-          else return (Right (length bids))
+          then pure $ Left BulkEditErrorPageMismatch
+          else pure (Right (length bids))
       BulkSelectionAll fp sp ts q -> do
         result <-
           select $ from (table @Bookmark) >>= \b -> do
             bookmarkWhereClause userId sp fp ts q b
             pure countRows
-        return $ Right $ maybe 0 unValue (listToMaybe result)
+        pure $ Right $ maybe 0 unValue (listToMaybe result)
 
     resolveKbids = case _beSelection of
-      BulkSelectionPage bids -> return (toKbids bids)
+      BulkSelectionPage bids -> pure (toKbids bids)
       BulkSelectionAll fp sp ts q ->
         fmap (map unValue)
           $ select

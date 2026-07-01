@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.38 (2020-07-XX)
+
+- fix translations from v0.0.37 which introduced malforfmed json into non-english translation files
+- fix APPROOT behavior, allowing espial to be run on a subpath url (fixes #58)
+
 ## v0.0.37 (2026-06-30)
 
 - add Bulk Edit for bookmarks

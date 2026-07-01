@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.37
+version:        0.0.38
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
@@ -85,10 +85,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-SAXM5TAE.min.js
-    static/js/app-SAXM5TAE.min.js.gz
-    static/js/app-SAXM5TAE.min.js.map
-    static/js/app-SAXM5TAE.min.js.map.gz
+    static/js/app-EJ2SR3J4.min.js
+    static/js/app-EJ2SR3J4.min.js.gz
+    static/js/app-EJ2SR3J4.min.js.map
+    static/js/app-EJ2SR3J4.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -199,7 +199,7 @@ library
       TypeFamilies
       ViewPatterns
   build-depends:
-      aeson >=1.4
+      aeson >=2.0
     , attoparsec
     , base >=4.18.1.0 && <5
     , base64 ==1.*
@@ -213,7 +213,7 @@ library
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
-    , cryptohash-sha256
+    , crypton >=0.30
     , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
@@ -226,14 +226,13 @@ library
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
-    , hscolour
     , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , iso8601-time >=0.1.3
+    , memory
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -241,7 +240,6 @@ library
     , persistent >=2.14 && <2.18
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
-    , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
@@ -276,6 +274,9 @@ library
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs
     cpp-options: -DDEVELOPMENT
+    build-depends:
+        hscolour
+      , pretty-show
   else
     ghc-options: -Wall -fwarn-tabs -O2
 
@@ -301,7 +302,7 @@ executable espial
       ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson >=1.4
+      aeson >=2.0
     , attoparsec
     , base >=4.18.1.0 && <5
     , base64 ==1.*
@@ -315,7 +316,7 @@ executable espial
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
-    , cryptohash-sha256
+    , crypton >=0.30
     , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
@@ -329,14 +330,13 @@ executable espial
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
-    , hscolour
     , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , iso8601-time >=0.1.3
+    , memory
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -344,7 +344,6 @@ executable espial
     , persistent >=2.14 && <2.18
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
-    , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
@@ -394,7 +393,7 @@ executable migration
       ViewPatterns
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson >=1.4
+      aeson >=2.0
     , attoparsec
     , base >=4.18.1.0 && <5
     , base64 ==1.*
@@ -408,7 +407,7 @@ executable migration
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
-    , cryptohash-sha256
+    , crypton >=0.30
     , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
@@ -422,14 +421,13 @@ executable migration
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
-    , hscolour
     , html-entities
     , http-api-data >=0.3.4
     , http-client
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , iso8601-time >=0.1.3
+    , memory
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -439,7 +437,6 @@ executable migration
     , persistent >=2.14 && <2.18
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
-    , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell
@@ -479,6 +476,7 @@ test-suite test
       Model.BookmarksQuerySpec
       Model.BookmarksSearchSpec
       Model.FileImportExportSpec
+      Model.PasswordHashSpec
       TestImport
       Paths_espial
   autogen-modules:
@@ -498,7 +496,7 @@ test-suite test
       ViewPatterns
   ghc-options: -Wall
   build-depends:
-      aeson >=1.4
+      aeson >=2.0
     , attoparsec
     , base >=4.18.1.0 && <5
     , base64 ==1.*
@@ -512,7 +510,7 @@ test-suite test
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
-    , cryptohash-sha256
+    , crypton >=0.30
     , crypton-connection
     , data-default
     , directory >=1.1 && <1.4
@@ -526,7 +524,6 @@ test-suite test
     , foreign-store
     , gitrev
     , hjsmin >=0.1 && <0.3
-    , hscolour
     , hspec >=2
     , html-entities
     , http-api-data >=0.3.4
@@ -534,7 +531,7 @@ test-suite test
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , iso8601-time >=0.1.3
+    , memory
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -542,7 +539,6 @@ test-suite test
     , persistent >=2.14 && <2.18
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
-    , pretty-show
     , safe
     , shakespeare >=2.0 && <2.2
     , template-haskell

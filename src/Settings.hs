@@ -7,6 +7,7 @@ module Settings where
 
 import ClassyPrelude.Yesod
 import qualified Control.Exception as Exception
+import Control.Monad.Fail (fail)
 import Data.Aeson
   ( Result (..),
     encode,
@@ -165,7 +166,7 @@ instance FromJSON AppSettings where
 
     appPublicTagCloudCacheDurationSeconds <- o .:? "public-tag-cloud-cache-duration-seconds" .!= 30
 
-    return AppSettings {..}
+    pure AppSettings {..}
     where
       toText (String t) = t
       toText other = (decodeUtf8 . toStrict . encode) other
@@ -181,7 +182,7 @@ instance FromJSON ArchiveBackend where
     "archive-li" -> pure ArchiveBackendArchiveLi
     "wayback-machine" -> pure ArchiveBackendWaybackMachine
     "archivebox07" -> pure ArchiveBackendArchiveBox07
-    _ -> mzero
+    _ -> fail "Unknown archive backend"
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
