@@ -60,18 +60,6 @@ export function app(): App {
   return globalThis.app;
 }
 
-export function tagCloudEndpoint(): string {
-  const raw = globalThis.app.tagCloudR;
-  if (!raw) return 'api/tagcloud';
-  try {
-    const u = new URL(raw, window.location.origin);
-    const rel = `${u.pathname}${u.search}${u.hash}`;
-    return rel.startsWith('/') ? rel.slice(1) : rel;
-  } catch {
-    return raw.replace(/^\/+/, '');
-  }
-}
-
 export function fromNow(locale = navigator.language, date: Date | number | string): string {
   const target = date instanceof Date ? date.getTime() : new Date(date).getTime();
 

@@ -255,8 +255,15 @@ instance YesodAuth App where
           dbDispatch _ _ = notFound
           dbLoginHandler toParent = do
             req <- getRequest
+            currentApproot <- ($ HomeR) <$> getUrlRender
+            loginR <- ($ AuthR LoginR) <$> getUrlRender
+            -- Discard a stale/self-referential ultdest (old approot, or the login page
+            -- itself via `redirectToReferer`) rather than bounce there post-login.
             lookupSession ultDestKey >>= \case
-              Just dest | "logout" `isInfixOf` dest -> deleteSession ultDestKey
+              Just dest
+                | "logout" `isInfixOf` dest -> deleteSession ultDestKey
+                | loginR `isInfixOf` dest -> deleteSession ultDestKey
+                | not (currentApproot `isPrefixOf` dest) -> deleteSession ultDestKey
               _ -> pure ()
             app <- getYesod
             session <- getSession

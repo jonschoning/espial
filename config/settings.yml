@@ -7,8 +7,9 @@ port: "_env:PORT:3000" # NB: The port `yesod devel` uses is distinct from this v
 ip-from-header: "_env:IP_FROM_HEADER:false"
 
 # Default behavior: determine the application root from the request headers.
-# Uncomment to set an explicit approot
-#approot:        "_env:APPROOT:http://localhost:3000"
+approot: "_env:APPROOT"
+# subpath example (with reverse proxy on port 80)
+# approot: "_env:APPROOT:http://localhost/myespialsubpath"
 
 # By default, `yesod devel` runs in development, and built executables use
 # production settings (see below). To override this, use the following:

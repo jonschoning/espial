@@ -1,0 +1,7 @@
+:80 {
+    redir /espial /espial/
+    
+    handle_path /espial/* {
+        reverse_proxy host.docker.internal:3000
+    }
+}

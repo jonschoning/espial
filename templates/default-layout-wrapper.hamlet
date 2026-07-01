@@ -7,6 +7,7 @@ $newline never
 <html class="no-js" lang="en"> <!--<![endif]-->
   <head>
     <meta charset="UTF-8">
+    <base href="@{HomeR}">
 
     <title>#{pageTitle pc}
     <meta name="description" content="Espial is an open-source, web-based bookmarking server.">
