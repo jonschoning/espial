@@ -15,6 +15,7 @@ data AccountSettingsForm = AccountSettingsForm
     _archiveDefault :: Bool,
     _suggestTags :: Bool,
     _privacyLock :: Bool,
+    _publicTagCloud :: Bool,
     _archiveBackendEnabled :: Bool,
     _language :: Maybe I18nLang
   }
@@ -31,6 +32,7 @@ toAccountSettingsForm archiveBackendEnabled User {..} =
       _archiveDefault = userArchiveDefault,
       _suggestTags = userSuggestTags,
       _privacyLock = userPrivacyLock,
+      _publicTagCloud = userPublicTagCloud,
       _archiveBackendEnabled = archiveBackendEnabled,
       _language = userLanguage
     }
@@ -43,6 +45,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
       UserArchiveDefault CP.=. _archiveDefault,
       UserSuggestTags CP.=. _suggestTags,
       UserPrivacyLock CP.=. _privacyLock,
+      UserPublicTagCloud CP.=. _publicTagCloud,
       UserLanguage CP.=. _language
     ]
 

@@ -43,8 +43,9 @@ https://github.com/jonschoning/espial-docker
 
 ### Setup From Source
 
-1. Install the Stack executable here:
-   - https://tech.fpcomplete.com/haskell/get-started
+1. Install Haskell tooling (choose one):
+   - **Stack**: https://docs.haskellstack.org/en/stable/
+   - **GHCup** (installs GHC, Stack, and more): https://www.haskell.org/ghcup/install/
 2. Build executables:
 
 ```bash
@@ -126,9 +127,15 @@ Espial supports the `IP_FROM_HEADER` environment variable for request logging.
 
 Only set `IP_FROM_HEADER=true` if your application is safely positioned **behind a trusted reverse proxy**.
 
-## SSL / Reverse Proxy
+## TLS / Reverse Proxy
 
-Espial does not terminate TLS itself. Run it behind a reverse proxy that handles HTTPS and forwards traffic to Espial over HTTP.
+A reverse proxy is the recommended approach for production and most self-hosted deployments. For simple local or LAN setups where that is impractical, Espial can also terminate TLS directly — see [Optional: In-Process TLS](#optional-in-process-tls) below.
+
+Set `SSL_ONLY=true` whenever Espial is served over HTTPS (via reverse proxy or in-process TLS) to enable the `Secure` cookie flag and HTTP→HTTPS redirects.
+
+### Recommended: Reverse Proxy (Caddy, nginx, Cloudflare Tunnel, …)
+
+Running Espial behind a reverse proxy is the recommended approach for production and most self-hosted deployments. The proxy terminates TLS and forwards plain HTTP to Espial. This gives you automatic certificate management, HTTP/2 and HTTP/3 at the edge, and cleaner separation of concerns.
 
 For container-based deployment examples, including production-oriented layouts, see the `espial-docker` repository:
 
@@ -156,7 +163,7 @@ With the domain setup:
 
 - Caddy terminates TLS for `espial.example.com`.
 - Espial continues listening on HTTP, locally on `127.0.0.1:3000`
-  - If using Docker Compose, it would like like `espial:3000`
+  - If using Docker Compose, it would look like `espial:3000`
 - Set `IP_FROM_HEADER=true` only when Espial is reachable solely through that trusted proxy.
 
 If you are using Cloudflare:
@@ -164,6 +171,43 @@ If you are using Cloudflare:
 - Prefer Cloudflare SSL mode `Full (strict)`.
 - use `header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}`
 - If traffic can reach Espial directly without passing through your trusted proxy, do not enable `IP_FROM_HEADER=true`, because client IP headers can be spoofed.
+
+### Optional: In-Process TLS
+
+For simple local or LAN deployments where adding a reverse proxy is impractical, Espial can terminate TLS directly using your own certificate and key files (PEM format, unencrypted key).
+
+Set the `TLS_CERT_FILE` and `TLS_KEY_FILE` environment variables (or the corresponding `tls-cert-file` / `tls-key-file` keys in `config/settings.yml`) to the paths of your certificate and private key:
+
+```bash
+TLS_CERT_FILE=/path/to/cert.pem TLS_KEY_FILE=/path/to/key.pem stack exec espial
+```
+
+Or in `config/settings.yml`:
+
+```yaml
+tls-cert-file: "/path/to/cert.pem"
+tls-key-file: "/path/to/key.pem"
+```
+
+When both values are set Espial listens on HTTPS with HTTP/2 enabled. When either is absent Espial falls back to plain HTTP.
+
+**Certificate rotation** — Espial reloads the certificate from disk automatically every 12 hours without restarting or dropping existing connections. To trigger an immediate reload send `SIGHUP` to the process:
+
+```bash
+kill -HUP <espial-pid>
+```
+
+**Notes:**
+
+- Let's Encrypt certificates (`fullchain.pem` + `privkey.pem`) work directly.
+- A self-signed certificate for local testing can be generated with:
+  ```bash
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout key.pem -out cert.pem -days 3650 \
+    -subj "/CN=localhost" \
+    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+  ```
+- A reverse proxy is still preferred for production: it provides HTTP/3, edge caching, and hides the Espial process from the public internet.
 
 ## Archive Backends
 

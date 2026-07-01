@@ -73,24 +73,13 @@ export type AccountSettings = {
   suggestTags: boolean;
   /** Whether the account is locked to private-only mode. */
   privacyLock: boolean;
+  /** Whether the tag cloud is visible to non-authenticated visitors. */
+  publicTagCloud: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
   /** The user's preferred language (null means server default). */
   language: string | null;
 };
-
-/** Raw tag cloud mode as stored/sent by the server. */
-export type TagCloudMode = {
-  /** The mode name (e.g. 'top', 'lowerBound', 'related', 'none'). */
-  mode: string;
-  /** Mode-specific parameter value. */
-  value: unknown;
-  /** Whether the tag cloud panel is expanded. */
-  expanded: boolean;
-};
-
-/** Map of tag name to usage count. */
-export type TagCloud = Record<string, number>;
 
 /** A single tag suggestion with its usage count. */
 export type TSuggestion = {
@@ -109,21 +98,63 @@ export type TagSuggestionResponse = {
   suggestions: TSuggestion[];
 };
 
+export type BulkAction = 'read' | 'unread' | 'star' | 'unstar' | 'delete' | 'private' | 'public';
+export type SharedP = 'all' | 'public' | 'private';
+
+type BulkEditRequestBase = {
+  action: BulkAction | null;
+  addTags: string;
+  removeTags: string;
+  selectionCount: number;
+};
+
+export type BulkEditRequest =
+  | (BulkEditRequestBase & { selection: 'page'; bids: number[] })
+  | (BulkEditRequestBase & {
+      selection: 'all';
+      filter: Filter;
+      sharedp: SharedP;
+      tags: string[];
+      query: string | null;
+    });
+
+export type BulkEditResponse = {
+  ok: boolean;
+  status: number;
+  bodyText?: string;
+  data?: { editedCount: number };
+};
+
+/** Raw tag cloud mode as stored/sent by the server. */
+export type TagCloudMode = {
+  /** The mode name (e.g. 'top', 'lowerBound', 'related', 'none'). */
+  mode: string;
+  /** Mode-specific parameter value. */
+  value: unknown;
+  /** Whether the tag cloud panel is expanded. */
+  expanded: boolean;
+  /** Minimum bookmark count for related tags (only used in 'related' mode). */
+  lowerBound?: number;
+};
+
+/** Map of tag name to usage count. */
+export type TagCloud = Record<string, number>;
+
 /** Discriminated union representing the tag cloud filter mode. */
 export type TagCloudModeF =
-  | { kind: 'top'; expanded: boolean; value: number }
+  | { kind: 'top'; expanded: boolean }
   | { kind: 'lowerBound'; expanded: boolean; value: number }
   | { kind: 'related'; expanded: boolean; value: string[] }
+  | { kind: 'relatedLowerBound'; expanded: boolean; value: string[]; lowerBound: number }
   | { kind: 'none' };
+
+export type TagCloudModeBrowse = Extract<TagCloudModeF, { kind: 'top' | 'lowerBound' }>;
+export type TagCloudModeRelated = Extract<TagCloudModeF, { kind: 'related' | 'relatedLowerBound' }>;
 
 export function tagCloudModeToF(mode: TagCloudMode): TagCloudModeF {
   switch (mode.mode) {
-    case 'top': {
-      const n = typeof mode.value === 'number' ? mode.value : Number(mode.value);
-      return Number.isFinite(n)
-        ? { kind: 'top', expanded: mode.expanded, value: n }
-        : { kind: 'none' };
-    }
+    case 'top':
+      return { kind: 'top', expanded: mode.expanded };
     case 'lowerBound': {
       const n = typeof mode.value === 'number' ? mode.value : Number(mode.value);
       return Number.isFinite(n)
@@ -135,6 +166,13 @@ export function tagCloudModeToF(mode: TagCloudMode): TagCloudModeF {
       const tags = s ? s.split(' ') : [];
       return { kind: 'related', expanded: mode.expanded, value: tags };
     }
+    case 'relatedLowerBound': {
+      const s = typeof mode.value === 'string' ? mode.value : '';
+      const tags = s ? s.split(' ') : [];
+      const lowerBound =
+        typeof mode.lowerBound === 'number' && mode.lowerBound > 0 ? mode.lowerBound : 1;
+      return { kind: 'relatedLowerBound', expanded: mode.expanded, value: tags, lowerBound };
+    }
     default:
       return { kind: 'none' };
   }
@@ -143,11 +181,18 @@ export function tagCloudModeToF(mode: TagCloudMode): TagCloudModeF {
 export function tagCloudModeFromF(mode: TagCloudModeF): TagCloudMode {
   switch (mode.kind) {
     case 'top':
-      return { mode: 'top', value: mode.value, expanded: mode.expanded };
+      return { mode: 'top', value: null, expanded: mode.expanded };
     case 'lowerBound':
       return { mode: 'lowerBound', value: mode.value, expanded: mode.expanded };
     case 'related':
       return { mode: 'related', value: mode.value.join(' '), expanded: mode.expanded };
+    case 'relatedLowerBound':
+      return {
+        mode: 'relatedLowerBound',
+        value: mode.value.join(' '),
+        expanded: mode.expanded,
+        lowerBound: mode.lowerBound,
+      };
     case 'none':
       return { mode: 'none', value: '', expanded: false };
   }
@@ -157,23 +202,6 @@ export function isExpanded(mode: TagCloudModeF): boolean {
   return mode.kind === 'none' ? false : mode.expanded;
 }
 
-export function isRelated(mode: TagCloudModeF): boolean {
-  return mode.kind === 'related';
-}
-
 export function setExpanded(mode: TagCloudModeF, expanded: boolean): TagCloudModeF {
   return mode.kind === 'none' ? mode : { ...mode, expanded };
-}
-
-export function showMode(mode: TagCloudModeF): string {
-  switch (mode.kind) {
-    case 'top':
-      return 'top';
-    case 'lowerBound':
-      return 'lowerBound';
-    case 'related':
-      return 'related';
-    case 'none':
-      return '';
-  }
 }

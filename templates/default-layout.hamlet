@@ -7,8 +7,7 @@
             <span>
                (<a class="link" data-username="#{userName}" href="@{UserR (UserNameP userName)}">#{userName}</a>)
             $maybe user <- muser
-              $if (userPrivacyLock user)
-                <a .dib.no-underline style="height:10px;width:10px" href="@{AccountSettingsR}" title="#{t "nav.privateProfileEnabled"}">🔒
+              <a #privacy-lock-icon .dib.no-underline :userPrivacyLock user:style="height:10px;width:10px" :not (userPrivacyLock user):style="height:10px;width:10px;display:none" href="@{AccountSettingsR}" title="#{t "nav.privateProfileEnabled"}">🔒
                
           <!-- <div #timer>#{pageLoadTime} s -->
       <div .top_menu.fr>
@@ -32,7 +31,7 @@
 
   $maybe msg <- mmsg
     <div .pv2.ph3.mh1>
-      <div .pa2.mw8.center.flex.items-center.justify-center.ba.layout-msg>
+      <div .pa2.mw8.center.flex.items-center.justify-center.ba.layout-msg onclick="this.parentNode.style.display='none'" style="cursor:pointer">
         #{preEscapedToMarkup msg}
 
   <div .page-body>

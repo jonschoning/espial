@@ -12,7 +12,11 @@
     "invalidArgs": "Недопустимые аргументы",
     "badMethod": "Недопустимый метод",
     "notAuthenticated": "Не аутентифицирован",
-    "permissionDenied": "Доступ запрещён"
+    "permissionDenied": "Доступ запрещён",
+    "error": "ошибка: {{status}}",
+    "errorWithMsg": "ошибка {{status}}: {{msg}}",
+    "requestTimedOut": "время ожидания запроса истекло",
+    "networkError": "ошибка сети"
   },
   "nav": {
     "privateProfileEnabled": "приватный профиль включён",
@@ -47,7 +51,7 @@
     "archiveDefault": "Архивировать новые не-приватные закладки по умолчанию",
     "privateDefault": "Делать новые закладки приватными по умолчанию",
     "suggestTags": "Включить предложение тегов",
-    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",
+    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Архивирование отключено",
     "language": "Язык"
   },
@@ -68,9 +72,10 @@
     "later": "позже »"
   },
   "notes": {
-    "youHave": "У вас",
-    "found": "Найдено",
-    "label": "заметок:"
+    "youHave_one": "У вас 1 заметка:",
+    "youHave_other": "У вас {{count}} заметок:",
+    "found_one": "Найдена 1 заметка:",
+    "found_other": "Найдено {{count}} заметок:"
   },
   "search": {
     "placeholder": "поиск",
@@ -126,6 +131,37 @@
     "min20Title": "показать теги с не менее чем 20 закладками",
     "hide": "скрыть",
     "show": "показать"
+  },
+  "bulkEdit": {
+    "edit": "редактировать",
+    "select": "выбрать:",
+    "oneBookmarkSelected": "1 закладка выбрана",
+    "bookmarksSelected": "{{count}} закладок выбрано",
+    "thisPage": "эта страница",
+    "allPages": "все страницы",
+    "action": "действие:",
+    "markAsRead": "отметить как прочитанное",
+    "unread": "непрочитанное",
+    "addStars": "добавить звёзды",
+    "removeStars": "убрать звёзды",
+    "makePrivate": "сделать приватным",
+    "makePublic": "сделать публичным",
+    "removeTags": "удалить метки:",
+    "addTags": "добавить метки:",
+    "submitting": "отправка…",
+    "submit": "отправить",
+    "destroyOne": "удалить 1 закладку?",
+    "destroyMany": "удалить {{count}} закладок?",
+    "publicOne": "сделать 1 закладку публичной?",
+    "publicMany": "сделать {{count}} закладок публичными?",
+    "pleaseAddSelection": "пожалуйста, выберите закладки",
+    "pleaseChooseAction": "пожалуйста, выберите действие или введите метки",
+    "tooManyTags": "нельзя добавить более 10 меток одновременно, если это затронет более 20 000 закладок",
+    "pageMismatch": "количество закладок на странице не совпадает",
+    "editedCount_one": "изменена {{editedCount}} закладка",
+    "editedCount_other": "изменено {{editedCount}} закладок",
+    "editedCountMismatch_one": "количество выбранных было {{selectionCount}}, но изменена {{editedCount}} закладка, так как данные совпадающих закладок изменились",
+    "editedCountMismatch_other": "количество выбранных было {{selectionCount}}, но изменено {{editedCount}} закладок, так как данные совпадающих закладок изменились"
   },
   "docs": {
     "title": "Понимание синтаксиса поиска",

@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.36
+version:        0.0.37
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
@@ -56,6 +56,7 @@ extra-source-files:
     frontend/src/components/AddForm.tsx
     frontend/src/components/BList.tsx
     frontend/src/components/BMark.tsx
+    frontend/src/components/BulkEdit.tsx
     frontend/src/components/Markdown.tsx
     frontend/src/components/NList.tsx
     frontend/src/components/NNote.tsx
@@ -84,10 +85,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-MD5JJQMB.min.js
-    static/js/app-MD5JJQMB.min.js.gz
-    static/js/app-MD5JJQMB.min.js.map
-    static/js/app-MD5JJQMB.min.js.map.gz
+    static/js/app-SAXM5TAE.min.js
+    static/js/app-SAXM5TAE.min.js.gz
+    static/js/app-SAXM5TAE.min.js.map
+    static/js/app-SAXM5TAE.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -246,6 +247,7 @@ library
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -253,6 +255,7 @@ library
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -347,6 +350,7 @@ executable espial
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -354,6 +358,7 @@ executable espial
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -440,6 +445,7 @@ executable migration
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -447,6 +453,7 @@ executable migration
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8
@@ -467,6 +474,11 @@ test-suite test
   other-modules:
       Handler.CommonSpec
       Handler.HomeSpec
+      Model.BookmarksBulkEditSpec
+      Model.BookmarksPagingSpec
+      Model.BookmarksQuerySpec
+      Model.BookmarksSearchSpec
+      Model.FileImportExportSpec
       TestImport
       Paths_espial
   autogen-modules:
@@ -536,6 +548,7 @@ test-suite test
     , template-haskell
     , text ==2.*
     , time
+    , tls
     , transformers >=0.2.2
     , unordered-containers
     , vector
@@ -543,6 +556,7 @@ test-suite test
     , wai-extra >=3.0 && <3.2
     , wai-logger
     , warp >=3.0 && <3.5
+    , warp-tls >=3.0 && <3.5
     , yaml >=0.8 && <0.12
     , yesod >=1.6 && <1.8
     , yesod-auth >=1.6 && <1.8

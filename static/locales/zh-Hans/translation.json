@@ -12,7 +12,11 @@
     "invalidArgs": "参数无效",
     "badMethod": "错误的方法",
     "notAuthenticated": "未认证",
-    "permissionDenied": "权限被拒绝"
+    "permissionDenied": "权限被拒绝",
+    "error": "错误：{{status}}",
+    "errorWithMsg": "错误 {{status}}：{{msg}}",
+    "requestTimedOut": "请求超时",
+    "networkError": "网络错误"
   },
   "nav": {
     "privateProfileEnabled": "已启用私密个人资料",
@@ -47,7 +51,7 @@
     "archiveDefault": "默认归档新的非私密书签",
     "privateDefault": "默认将新书签设为私密",
     "suggestTags": "启用标签建议",
-    "privacyLock": "隐私锁定（私密账户）",
+    "privacyLock": "隐私锁定（私密账户）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "归档已禁用",
     "language": "语言"
   },
@@ -68,9 +72,10 @@
     "later": "更晚 »"
   },
   "notes": {
-    "youHave": "你有",
-    "found": "找到",
-    "label": "笔记:"
+    "youHave_one": "你有 1 条笔记:",
+    "youHave_other": "你有 {{count}} 条笔记:",
+    "found_one": "找到 1 条笔记:",
+    "found_other": "找到 {{count}} 条笔记:"
   },
   "search": {
     "placeholder": "搜索",
@@ -126,6 +131,37 @@
     "min20Title": "显示至少有 20 个书签的标签",
     "hide": "隐藏",
     "show": "显示"
+  },
+  "bulkEdit": {
+    "edit": "编辑",
+    "select": "选择：",
+    "oneBookmarkSelected": "已选择 1 个书签",
+    "bookmarksSelected": "已选择 {{count}} 个书签",
+    "thisPage": "本页",
+    "allPages": "所有页",
+    "action": "操作：",
+    "markAsRead": "标记为已读",
+    "unread": "未读",
+    "addStars": "添加星标",
+    "removeStars": "移除星标",
+    "makePrivate": "设为私密",
+    "makePublic": "设为公开",
+    "removeTags": "移除标签：",
+    "addTags": "添加标签：",
+    "submitting": "提交中…",
+    "submit": "提交",
+    "destroyOne": "删除 1 个书签？",
+    "destroyMany": "删除 {{count}} 个书签？",
+    "publicOne": "将 1 个书签设为公开？",
+    "publicMany": "将 {{count}} 个书签设为公开？",
+    "pleaseAddSelection": "请选择书签",
+    "pleaseChooseAction": "请选择操作或输入标签",
+    "tooManyTags": "当超过 20,000 个书签受影响时，不能一次添加超过 10 个标签",
+    "pageMismatch": "页面书签数量不匹配",
+    "editedCount_one": "已编辑 {{editedCount}} 个书签",
+    "editedCount_other": "已编辑 {{editedCount}} 个书签",
+    "editedCountMismatch_one": "选择数量为 {{selectionCount}}，但由于匹配的书签数据已更改，实际编辑了 {{editedCount}} 个书签",
+    "editedCountMismatch_other": "选择数量为 {{selectionCount}}，但由于匹配的书签数据已更改，实际编辑了 {{editedCount}} 个书签"
   },
   "docs": {
     "title": "理解搜索语法",

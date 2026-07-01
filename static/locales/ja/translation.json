@@ -12,7 +12,11 @@
     "invalidArgs": "無効な引数",
     "badMethod": "無効なメソッド",
     "notAuthenticated": "認証されていません",
-    "permissionDenied": "権限がありません"
+    "permissionDenied": "権限がありません",
+    "error": "エラー: {{status}}",
+    "errorWithMsg": "エラー {{status}}: {{msg}}",
+    "requestTimedOut": "リクエストがタイムアウトしました",
+    "networkError": "ネットワークエラー"
   },
   "nav": {
     "privateProfileEnabled": "プライベートプロフィールが有効",
@@ -47,7 +51,7 @@
     "archiveDefault": "新しい非プライベートブックマークをデフォルトでアーカイブする",
     "privateDefault": "新しいブックマークをデフォルトでプライベートにする",
     "suggestTags": "タグの候補を有効にする",
-    "privacyLock": "プライバシーロック（非公開アカウント）",
+    "privacyLock": "プライバシーロック（非公開アカウント）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "アーカイブ無効",
     "language": "言語"
   },
@@ -68,9 +72,10 @@
     "later": "次へ »"
   },
   "notes": {
-    "youHave": "あなたは",
-    "found": "見つかりました",
-    "label": "件のメモ:"
+    "youHave_one": "メモが1件あります:",
+    "youHave_other": "メモが{{count}}件あります:",
+    "found_one": "1件のメモが見つかりました:",
+    "found_other": "{{count}}件のメモが見つかりました:"
   },
   "search": {
     "placeholder": "検索",
@@ -126,6 +131,37 @@
     "min20Title": "20件以上のブックマークがあるタグを表示",
     "hide": "非表示",
     "show": "表示"
+  },
+  "bulkEdit": {
+    "edit": "編集",
+    "select": "選択:",
+    "oneBookmarkSelected": "1件のブックマークを選択",
+    "bookmarksSelected": "{{count}}件のブックマークを選択",
+    "thisPage": "このページ",
+    "allPages": "すべてのページ",
+    "action": "操作:",
+    "markAsRead": "既読にする",
+    "unread": "未読",
+    "addStars": "星を追加",
+    "removeStars": "星を削除",
+    "makePrivate": "非公開にする",
+    "makePublic": "公開にする",
+    "removeTags": "タグを削除:",
+    "addTags": "タグを追加:",
+    "submitting": "送信中…",
+    "submit": "送信",
+    "destroyOne": "1件のブックマークを削除しますか？",
+    "destroyMany": "{{count}}件のブックマークを削除しますか？",
+    "publicOne": "1件のブックマークを公開にしますか？",
+    "publicMany": "{{count}}件のブックマークを公開にしますか？",
+    "pleaseAddSelection": "ブックマークを選択してください",
+    "pleaseChooseAction": "操作を選択するかタグを入力してください",
+    "tooManyTags": "20,000件を超えるブックマークに影響する場合、一度に10個以上のタグを追加できません",
+    "pageMismatch": "ページのブックマーク数が一致しません",
+    "editedCount_one": "{{editedCount}}件のブックマークを編集しました",
+    "editedCount_other": "{{editedCount}}件のブックマークを編集しました",
+    "editedCountMismatch_one": "選択数は{{selectionCount}}でしたが、一致するブックマークデータが変更されたため、{{editedCount}}件のブックマークを編集しました",
+    "editedCountMismatch_other": "選択数は{{selectionCount}}でしたが、一致するブックマークデータが変更されたため、{{editedCount}}件のブックマークを編集しました"
   },
   "docs": {
     "title": "検索構文の説明",

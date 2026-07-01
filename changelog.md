@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.0.37 (2026-06-30)
+
+- add Bulk Edit for bookmarks
+  - toggle the **bulk edit** panel via the top-level `edit` link in the bookmark listing toolbar
+  - Action and tag operations can be combined in a single submission
+  - Selection scope respects the current page's filter, tag, and search context, allowing targeted bulk edits
+    - e.g. effective rename of a tag by first clicking on an instance of it to filter by that tag. Then, bulk edit all pages, removing the existing tag and adding the new tag
+- Tag Cloud improvements
+  - Add account setting `Public Tag Cloud` to make user's tag cloud available for public users (fixes #48)
+  - Related Tags includes `all‧2‧5‧10‧20` selectors
+  - By default, or when clicked, `Related Tags` only shows top 200 tags similar to `Top Tags`
+  - Related Tags section is now always closed by default
+- add optional in-process TLS
+  - to enable HTTPS without a reverse proxy, set `TLS_CERT_FILE` and `TLS_KEY_FILE` (PEM)
+  - certificate is reloaded from disk automatically every 12 hours; send `SIGHUP` to trigger an immediate reload
+  - reverse proxy (Caddy, nginx, Cloudflare Tunnel, etc.) remains the recommended approach for production
+- standardized bookmark api routes
+- update stack package set lts-24.42 -> lts-24.46
+- improved error handling & feedback in UI for api requests
+- bug fix: properly escape `_` and `%` in queries so they're treated as literals, not SQL wildcards
+
 ## v0.0.36 (2026-06-26)
 
 - improve UI stability & positioning of elements after first render for less flash of content

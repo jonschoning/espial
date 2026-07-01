@@ -17,6 +17,9 @@ getNotesR unamep@(UserNameP uname) = do
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
       frontendBundleName = appFrontendBundleName app
       t = \key -> appTranslate app lang (I18nKey key)
+      tc = \key n ->
+        let suffix = if n == (1 :: Int) then "_one" else "_other"
+         in T.replace "{{count}}" (tshow n) (t (key <> suffix))
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams
   let queryp = "query"

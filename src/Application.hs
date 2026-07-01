@@ -48,6 +48,10 @@ import Network.HTTP.Client.TLS
 import Network.HTTP.Client.TLS qualified as NHT
 import Network.Wai (Middleware)
 import Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplayException, getPort, runSettings, setHost, setOnException, setPort)
+import Network.Wai.Handler.WarpTLS (TLSSettings (..), runTLS, tlsSettings)
+import Network.TLS (Credentials (..), ServerHooks (..))
+import Network.TLS qualified as TLS
+import Control.Concurrent (forkIO, threadDelay)
 import Network.Wai.Middleware.AcceptOverride
 import Network.Wai.Middleware.Autohead
 import Network.Wai.Middleware.Gzip hiding (def)
@@ -57,7 +61,7 @@ import System.Log.FastLogger (defaultBufSize, newStdoutLoggerSet)
 import Version qualified as Version
 
 #ifndef mingw32_HOST_OS
-import System.Posix.Signals qualified as PS (Handler (CatchOnce), installHandler, sigTERM)
+import System.Posix.Signals qualified as PS (Handler (Catch, CatchOnce), installHandler, sigHUP, sigTERM)
 import Control.Concurrent qualified as CC (killThread, myThreadId)
 #endif
 
@@ -70,6 +74,7 @@ makeFoundation appSettings@AppSettings {..} = do
   appFrontendBundleName <- loadFrontendBundleName appStaticDir
   appStatic <- (if appMutableStatic then staticDevel else static) appStaticDir
   (appTranslationsHash, appTranslations) <- I18n.loadTranslations appStaticDir
+  appPublicTagCloudCache <- newIORef mempty
   let appTranslate lang = I18n.translate appTranslations lang (I18nNs "translation")
       appI18nR = LocalesFileR appTranslationsHash []
       mkFoundation appConnPool appArchiver = App {..}
@@ -185,6 +190,29 @@ warpSettings foundation =
       )
       defaultSettings
 
+makeTlsSettings :: FilePath -> FilePath -> IO TLSSettings
+makeTlsSettings certPath keyPath = do
+  creds <- loadCreds
+  credsRef <- newIORef creds
+  void $ forkIO $ forever $ do
+    threadDelay reloadCredsFrequency
+    reloadCreds credsRef
+#ifndef mingw32_HOST_OS
+  void $ PS.installHandler PS.sigHUP (PS.Catch $ reloadCreds credsRef) Nothing
+#endif
+  pure (tlsSettings certPath keyPath)
+    { tlsServerHooks = def { onServerNameIndication = \_ -> readIORef credsRef } }
+  where
+    reloadCredsFrequency = 12 * 60 * 60 * 1_000_000 -- 12 hours in microseconds
+    loadCreds =
+      TLS.credentialLoadX509 certPath keyPath >>= \case
+        Left e  -> throwString $ "TLS credential load failed: " ++ e
+        Right c -> pure $ Credentials [c]
+    reloadCreds ref =
+      tryAny loadCreds >>= \case
+        Left e  -> putStrLn $ "TLS cert reload failed: " <> tshow e
+        Right c -> writeIORef ref c
+
 -- | For yesod devel, return the Warp settings and WAI Application.
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
@@ -213,8 +241,14 @@ appMain = do
   mainThreadId <- CC.myThreadId
   void $ PS.installHandler PS.sigTERM (PS.CatchOnce (CC.killThread mainThreadId)) Nothing
 #endif
-  flip runLoggingT (messageLoggerSource foundation (appLogger foundation)) (logInfoNS "startup" "starting espial server")
-  runSettings (warpSettings foundation) app
+  case (appTLSCertFile (appSettings foundation), appTLSKeyFile (appSettings foundation)) of
+    (Just certFile, Just keyFile) -> do
+      tlsS <- makeTlsSettings certFile keyFile
+      flip runLoggingT (messageLoggerSource foundation (appLogger foundation)) (logInfoNS "startup" "starting espial server [tls]")
+      runTLS tlsS (warpSettings foundation) app
+    _ -> do
+      flip runLoggingT (messageLoggerSource foundation (appLogger foundation)) (logInfoNS "startup" "starting espial server [http]")
+      runSettings (warpSettings foundation) app
 
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do

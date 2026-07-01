@@ -12,7 +12,11 @@
     "invalidArgs": "Nieprawidłowe argumenty",
     "badMethod": "Nieprawidłowa metoda",
     "notAuthenticated": "Brak uwierzytelnienia",
-    "permissionDenied": "Brak uprawnień"
+    "permissionDenied": "Brak uprawnień",
+    "error": "błąd: {{status}}",
+    "errorWithMsg": "błąd {{status}}: {{msg}}",
+    "requestTimedOut": "przekroczono limit czasu żądania",
+    "networkError": "błąd sieci"
   },
   "nav": {
     "privateProfileEnabled": "profil prywatny wlaczony",
@@ -47,7 +51,7 @@
     "archiveDefault": "Domyślnie archiwizuj nowe niepubliczne zakładki",
     "privateDefault": "Domyślnie ustawiaj nowe zakładki jako prywatne",
     "suggestTags": "Włącz sugestie tagów",
-    "privacyLock": "Blokada prywatności (konto prywatne)",
+    "privacyLock": "Blokada prywatności (konto prywatne)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Archiwizacja wyłączona",
     "language": "Język"
   },
@@ -68,9 +72,10 @@
     "later": "późniejsze »"
   },
   "notes": {
-    "youHave": "Masz",
-    "found": "Znaleziono",
-    "label": "notatek:"
+    "youHave_one": "Masz 1 notatkę:",
+    "youHave_other": "Masz {{count}} notatki:",
+    "found_one": "Znaleziono 1 notatkę:",
+    "found_other": "Znaleziono {{count}} notatek:"
   },
   "search": {
     "placeholder": "szukaj",
@@ -126,6 +131,37 @@
     "min20Title": "pokaż tagi z co najmniej 20 zakładkami",
     "hide": "ukryj",
     "show": "pokaż"
+  },
+  "bulkEdit": {
+    "edit": "edytuj",
+    "select": "zaznacz:",
+    "oneBookmarkSelected": "1 zakładka zaznaczona",
+    "bookmarksSelected": "{{count}} zakładek zaznaczonych",
+    "thisPage": "ta strona",
+    "allPages": "wszystkie strony",
+    "action": "akcja:",
+    "markAsRead": "oznacz jako przeczytane",
+    "unread": "nieprzeczytane",
+    "addStars": "dodaj gwiazdki",
+    "removeStars": "usuń gwiazdki",
+    "makePrivate": "ustaw jako prywatne",
+    "makePublic": "ustaw jako publiczne",
+    "removeTags": "usuń tagi:",
+    "addTags": "dodaj tagi:",
+    "submitting": "wysyłanie…",
+    "submit": "wyślij",
+    "destroyOne": "usunąć 1 zakładkę?",
+    "destroyMany": "usunąć {{count}} zakładek?",
+    "publicOne": "ustawić 1 zakładkę jako publiczną?",
+    "publicMany": "ustawić {{count}} zakładek jako publiczne?",
+    "pleaseAddSelection": "proszę wybrać zakładki",
+    "pleaseChooseAction": "proszę wybrać akcję lub wprowadzić tagi",
+    "tooManyTags": "nie można dodać więcej niż 10 tagów jednocześnie, gdy dotyczyłoby to ponad 20 000 zakładek",
+    "pageMismatch": "liczba zakładek na stronie nie zgadza się",
+    "editedCount_one": "edytowano {{editedCount}} zakładkę",
+    "editedCount_other": "edytowano {{editedCount}} zakładek",
+    "editedCountMismatch_one": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} zakładkę, ponieważ pasujące dane zakładek uległy zmianie",
+    "editedCountMismatch_other": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} zakładek, ponieważ pasujące dane zakładek uległy zmianie"
   },
   "docs": {
     "title": "Zrozumienie składni wyszukiwania",

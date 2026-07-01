@@ -5,8 +5,6 @@ import Data.Attoparsec.ByteString qualified as AP
 import Data.ByteString.Lazy qualified as LBS
 import Data.Char (ord)
 import Data.Function ((&))
-import Data.List (nub)
-import Data.Text qualified as T (replace)
 import Data.Text.Lazy.Builder (toLazyText)
 import HTMLEntities.Decoder (htmlEncodedText)
 import Handler.Archive
@@ -14,6 +12,7 @@ import Handler.Common (browserUserAgent)
 import Import
 import Network.HTTP.Client qualified as NH
 import Network.HTTP.Client.TLS qualified as NHT
+import Util
 
 -- * View
 
@@ -80,7 +79,7 @@ postAddR = do
         (False, Nothing) -> pure $ Failed "Invalid URL"
         _ -> do
           let mkbid = toSqlKey <$> _bid bookmarkForm
-              tags = maybe [] toTagList (_tags bookmarkForm)
+              tags = maybe [] normalizeTags (_tags bookmarkForm)
           bm <- liftIO $ bookmarkFormToBookmark userId bookmarkForm
           res <- runDB (upsertBookmark userId mkbid bm tags)
           case res of
@@ -91,8 +90,6 @@ postAddR = do
                     (void $ async $ archiveBookmarkUrl kbid (Url (bookmarkHref bm)))
             _ -> pure ()
           pure res
-      where
-        toTagList = nub . words . T.replace "," " "
 
 postLookupTitleR :: Handler ()
 postLookupTitleR = do

@@ -12,7 +12,11 @@
     "invalidArgs": "Gecersiz bagimsiz degiskenler",
     "badMethod": "Gecersiz yontem",
     "notAuthenticated": "Kimlik dogrulanmadi",
-    "permissionDenied": "Izin reddedildi"
+    "permissionDenied": "Izin reddedildi",
+    "error": "hata: {{status}}",
+    "errorWithMsg": "hata {{status}}: {{msg}}",
+    "requestTimedOut": "istek zaman aşımına uğradı",
+    "networkError": "ağ hatası"
   },
   "nav": {
     "privateProfileEnabled": "ozel profil etkin",
@@ -47,7 +51,7 @@
     "archiveDefault": "Yeni ozel olmayan yer imlerini varsayilan olarak arsivle",
     "privateDefault": "Yeni yer imlerini varsayilan olarak ozel yap",
     "suggestTags": "Etiket onerilerini etkinlestir",
-    "privacyLock": "Gizlilik kilidi (ozel hesap)",
+    "privacyLock": "Gizlilik kilidi (ozel hesap)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "archivingDisabled": "Arsivleme devre disi",
     "language": "Dil"
   },
@@ -68,9 +72,10 @@
     "later": "sonraki »"
   },
   "notes": {
-    "youHave": "Sahipsin",
-    "found": "Bulundu",
-    "label": "notlar:"
+    "youHave_one": "1 notunuz var:",
+    "youHave_other": "{{count}} notunuz var:",
+    "found_one": "1 not bulundu:",
+    "found_other": "{{count}} not bulundu:"
   },
   "search": {
     "placeholder": "ara",
@@ -126,6 +131,37 @@
     "min20Title": "en az 20 yer imine sahip etiketleri goster",
     "hide": "gizle",
     "show": "goster"
+  },
+  "bulkEdit": {
+    "edit": "düzenle",
+    "select": "seç:",
+    "oneBookmarkSelected": "1 yer imi seçildi",
+    "bookmarksSelected": "{{count}} yer imi seçildi",
+    "thisPage": "bu sayfa",
+    "allPages": "tüm sayfalar",
+    "action": "eylem:",
+    "markAsRead": "okundu olarak işaretle",
+    "unread": "okunmamış",
+    "addStars": "yıldız ekle",
+    "removeStars": "yıldızı kaldır",
+    "makePrivate": "gizli yap",
+    "makePublic": "herkese açık yap",
+    "removeTags": "etiketleri kaldır:",
+    "addTags": "etiket ekle:",
+    "submitting": "gönderiliyor…",
+    "submit": "gönder",
+    "destroyOne": "1 yer imini sil?",
+    "destroyMany": "{{count}} yer imini sil?",
+    "publicOne": "1 yer imini herkese açık yap?",
+    "publicMany": "{{count}} yer imini herkese açık yap?",
+    "pleaseAddSelection": "lütfen yer imi seçin",
+    "pleaseChooseAction": "lütfen bir eylem seçin veya etiket girin",
+    "tooManyTags": "20.000'den fazla yer imi etkilendiğinde aynı anda 10'dan fazla etiket eklenemez",
+    "pageMismatch": "sayfa yer imi sayısı uyuşmuyor",
+    "editedCount_one": "{{editedCount}} yer imi düzenlendi",
+    "editedCount_other": "{{editedCount}} yer imi düzenlendi",
+    "editedCountMismatch_one": "seçim sayısı {{selectionCount}} iken, eşleşen yer imi verileri değiştiği için {{editedCount}} yer imi düzenlendi",
+    "editedCountMismatch_other": "seçim sayısı {{selectionCount}} iken, eşleşen yer imi verileri değiştiği için {{editedCount}} yer imi düzenlendi"
   },
   "docs": {
     "title": "Arama sozdizimini anlama",

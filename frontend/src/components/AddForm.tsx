@@ -50,7 +50,11 @@ export function AddForm({ initial }: { initial: Bookmark }) {
   }
 
   async function onDestroy() {
-    await destroy(bm.bid);
+    const res = await destroy(bm.bid);
+    if (!res.ok) {
+      setApiError(res.bodyText);
+      return;
+    }
     setDestroyed(true);
   }
 

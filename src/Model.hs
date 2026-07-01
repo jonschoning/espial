@@ -3,7 +3,7 @@
 
 module Model where
 
-import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
+import ClassyPrelude.Yesod hiding (Value, delete, exists, groupBy, on, update, (<=.), (=.), (==.), (>=.), (||.))
 import ClassyPrelude.Yesod qualified as CP
 import Control.Monad (fail)
 import Control.Monad.Combinators qualified as PC (between)
@@ -13,9 +13,14 @@ import Data.Aeson qualified as A
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types qualified as A (parseFail)
 import Data.Attoparsec.Text qualified as P
+import Data.CaseInsensitive (CI)
+import Data.CaseInsensitive qualified as CI
 import Data.Char (isSpace)
 import Data.Either (fromRight)
 import Data.Foldable (foldl, foldl1, sequenceA_)
+import Data.Map.Strict qualified as Map
+import Data.Set qualified as Set
+import Data.Text qualified as T
 import Data.Time qualified as TI (ParseTime)
 import Data.Time.ISO8601 qualified as TISO (formatISO8601Millis, parseISO8601)
 import Database.Esqueleto.Experimental hiding ((<&>))
@@ -54,6 +59,7 @@ User json
   archiveDefault Bool
   suggestTags Bool default=True
   privacyLock Bool
+  publicTagCloud Bool default=False
   language I18nLang Maybe
   UniqueUserName name
   deriving Show Eq Typeable Ord
@@ -133,6 +139,18 @@ data SharedP
   | SharedPrivate
   deriving (Eq, Show, Read)
 
+instance ToJSON SharedP where
+  toJSON SharedAll = "all"
+  toJSON SharedPublic = "public"
+  toJSON SharedPrivate = "private"
+
+instance FromJSON SharedP where
+  parseJSON = A.withText "SharedP" \case
+    "all" -> pure SharedAll
+    "public" -> pure SharedPublic
+    "private" -> pure SharedPrivate
+    _ -> empty
+
 data FilterP
   = FilterAll
   | FilterUnread
@@ -210,10 +228,10 @@ instance ToMarkup I18nLang where toMarkup = toMarkup . fromI18nLang'
 instance PersistField I18nLang where
   toPersistValue = PersistText . fromI18nLang'
   fromPersistValue (PersistText t) =
-    maybe 
-    (Right I18nLangEn) -- in case of version downgrade, default to English if the language is not recognized
-    Right 
-    (toI18nLang t)
+    maybe
+      (Right I18nLangEn) -- in case of version downgrade, default to English if the language is not recognized
+      Right
+      (toI18nLang t)
   fromPersistValue _ = Left "Invalid PersistValue for I18nLang"
 
 instance PersistFieldSql I18nLang where sqlType _ = SqlString
@@ -257,12 +275,34 @@ supportedLangs = intercalate ", " (fmap fromI18nLang [minBound .. maxBound])
 
 -- * Model functions
 
+-- | Maximum number of parameters for SQLite queries
+sqliteMaxParameters :: Int
+sqliteMaxParameters = 32000
+
+-- | SQLite GROUP_CONCAT function for concatenating values with a separator
 sqliteGroupConcat ::
   (PersistField a) =>
   SqlExpr (Value a) ->
   SqlExpr (Value a) ->
   SqlExpr (Value Text)
 sqliteGroupConcat expr sep = unsafeSqlFunction "GROUP_CONCAT" [expr, sep]
+
+-- | Case-insensitive exact tag match via SQLite's three-arg like(pattern, string, escape).
+-- Equivalent to: col LIKE f v ESCAPE e
+sqliteLike :: (Text -> Text) -> Text -> SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLike f e col v = unsafeSqlFunction "like" [val (f v), col, val e]
+
+-- Equivalent to: col LIKE escapedTag ESCAPE '\'
+sqliteLikeExact :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikeExact col = sqliteLike escapeLike "\\" col
+
+-- Equivalent to: col LIKE '%' || escaped_term || '%' ESCAPE '\'
+sqliteLikeContains :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikeContains col = sqliteLike (\v -> "%" <> escapeLike v <> "%") "\\" col
+
+-- | Escape wildcards in a string for use in a LIKE pattern, so that _ and % match literally.
+escapeLike :: Text -> Text
+escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
 
 authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
 authenticatePassword username password = do
@@ -298,14 +338,14 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
     fmap
       (sum . fmap unValue)
       ( select $ from (table @Bookmark) >>= \b -> do
-          _whereClause b
+          bookmarkWhereClause userId sharedp filterp tags mquery b
           pure countRows
       )
   rows <-
     (fmap . fmap . fmap)
       unValue
       ( select $ from (table @Bookmark) >>= \b -> do
-          _whereClause b
+          bookmarkWhereClause userId sharedp filterp tags mquery b
           for_ mcursor $ \case
             PagingCursorBefore before -> where_ (isBeforeCursor b before)
             PagingCursorAfter after -> where_ (isAfterCursor b after)
@@ -337,66 +377,6 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
           Nothing -> False
   pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
-    _whereClause b = do
-      where_
-        $ foldl
-          ( \expr tag ->
-              expr
-                &&. exists
-                  ( -- each tag becomes an exists constraint
-                    from (table @BookmarkTag) >>= \t ->
-                      where_
-                        ( t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
-                            &&. (t ^. BookmarkTagTag `like` val tag)
-                        )
-                  )
-          )
-          (b ^. BookmarkUserId ==. val userId)
-          tags
-      case sharedp of
-        SharedAll -> pure ()
-        SharedPublic -> where_ (b ^. BookmarkShared ==. val True)
-        SharedPrivate -> where_ (b ^. BookmarkShared ==. val False)
-      case filterp of
-        FilterAll -> pure ()
-        FilterUnread -> where_ (b ^. BookmarkToRead ==. val True)
-        FilterStarred -> where_ (b ^. BookmarkSelected ==. val True)
-        FilterSingle slug -> where_ (b ^. BookmarkSlug ==. val slug)
-        FilterUntagged ->
-          where_ $ notExists $ from (table @BookmarkTag) >>= \t ->
-            where_ $ t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
-      sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
-    toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
-      where
-        wild s = (%) ++. val s ++. (%)
-        toLikeB field s = b ^. field `like` wild s
-        p_allFields =
-          toLikeB BookmarkHref term
-            ||. toLikeB BookmarkDescription term
-            ||. toLikeB BookmarkExtended term
-            ||. exists
-              ( from (table @BookmarkTag) >>= \t ->
-                  where_
-                    $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                    &&. (t ^. BookmarkTagTag `like` wild term)
-              )
-        p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
-          where
-            p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
-            p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
-            p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
-            p_tags =
-              ("tags:" <|> "t:")
-                *> fmap
-                  ( \term' ->
-                      exists $ from (table @BookmarkTag) >>= \t ->
-                        where_
-                          $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                          &&. (t ^. BookmarkTagTag `like` wild term')
-                  )
-                  P.takeText
-            p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
     bookmarkOrder b = case mcursor of
       Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
       _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
@@ -407,6 +387,252 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
     isAfterCursor b after =
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
+
+bookmarkWhereClause ::
+  Key User ->
+  SharedP ->
+  FilterP ->
+  [Tag] ->
+  Maybe Text ->
+  SqlExpr (Entity Bookmark) ->
+  SqlQuery ()
+bookmarkWhereClause userId sharedp filterp tags mquery b = do
+  where_
+    $ foldl
+      ( \expr tag ->
+          expr
+            &&. exists
+              ( from (table @BookmarkTag) >>= \t ->
+                  where_
+                    ( t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
+                        &&. sqliteLikeExact (t ^. BookmarkTagTag) tag
+                    )
+              )
+      )
+      (b ^. BookmarkUserId ==. val userId)
+      tags
+  case sharedp of
+    SharedAll -> pure ()
+    SharedPublic -> where_ (b ^. BookmarkShared ==. val True)
+    SharedPrivate -> where_ (b ^. BookmarkShared ==. val False)
+  case filterp of
+    FilterAll -> pure ()
+    FilterUnread -> where_ (b ^. BookmarkToRead ==. val True)
+    FilterStarred -> where_ (b ^. BookmarkSelected ==. val True)
+    FilterSingle slug -> where_ (b ^. BookmarkSlug ==. val slug)
+    FilterUntagged ->
+      where_ $ notExists $ from (table @BookmarkTag) >>= \t ->
+        where_ $ t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId
+  sequenceA_ (parseSearchQuery (bookmarkLikeExpr b) =<< mquery)
+
+bookmarkLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
+bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
+  where
+    toLikeB field s = sqliteLikeContains (b ^. field) s
+    p_allFields =
+      toLikeB BookmarkHref term
+        ||. toLikeB BookmarkDescription term
+        ||. toLikeB BookmarkExtended term
+        ||. exists
+          ( from (table @BookmarkTag) >>= \t ->
+              where_
+                $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+                &&. sqliteLikeContains (t ^. BookmarkTagTag) term
+          )
+    p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
+      where
+        p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
+        p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
+        p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
+        p_tags =
+          ("tags:" <|> "t:")
+            *> fmap
+              ( \term' ->
+                  exists $ from (table @BookmarkTag) >>= \t ->
+                    where_
+                      $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+                      &&. sqliteLikeContains (t ^. BookmarkTagTag) term'
+              )
+              P.takeText
+        p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
+        p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+
+-- * BulkEdit types
+
+data BulkEditError
+  = BulkEditErrorPageMismatch
+  deriving (Show, Eq)
+
+data BulkSelection
+  = BulkSelectionPage
+      -- | selected bookmark IDs on the current page
+      [Int64]
+  | BulkSelectionAll
+      -- | filter
+      FilterP
+      -- | shared
+      SharedP
+      -- | tags
+      [Tag]
+      -- | query
+      (Maybe Text)
+  deriving (Show, Eq)
+
+data BulkAction = BulkActionRead | BulkActionUnread | BulkActionStar | BulkActionUnstar | BulkActionDelete | BulkActionPrivate | BulkActionPublic
+  deriving (Show, Eq, Generic)
+
+data BulkEditForm = BulkEditForm
+  { _beSelection :: BulkSelection,
+    _beAction :: Maybe BulkAction,
+    _beAddTags :: Text,
+    _beRemoveTags :: Text,
+    _beSelectionCount :: Int
+  }
+  deriving (Show, Eq)
+
+instance FromJSON BulkAction where
+  parseJSON = A.withText "BulkAction" \case
+    "read" -> pure BulkActionRead
+    "unread" -> pure BulkActionUnread
+    "star" -> pure BulkActionStar
+    "unstar" -> pure BulkActionUnstar
+    "delete" -> pure BulkActionDelete
+    "private" -> pure BulkActionPrivate
+    "public" -> pure BulkActionPublic
+    _ -> empty
+
+instance FromJSON BulkEditForm where
+  parseJSON = A.withObject "BulkEditForm" \o -> do
+    selTag <- o .: "selection"
+    selection <- case (selTag :: Text) of
+      "page" -> BulkSelectionPage <$> o .: "bids"
+      "all" ->
+        BulkSelectionAll
+          <$> o
+          .: "filter"
+          <*> o
+          .: "sharedp"
+          <*> o
+          .: "tags"
+          <*> o
+          A..:? "query"
+      _ -> fail $ "Unknown selection: " <> unpack selTag
+    BulkEditForm selection
+      <$> o
+      A..:? "action"
+      <*> o
+      .: "addTags"
+      <*> o
+      .: "removeTags"
+      <*> o
+      .: "selectionCount"
+
+bookmarksBulkEdit :: Key User -> BulkEditForm -> DB (Either BulkEditError Int)
+bookmarksBulkEdit userId BulkEditForm {..} = do
+  eValid <- validateCount
+  case eValid of
+    Left err -> return (Left err)
+    Right n -> do
+      let removeTags = normalizeTags _beRemoveTags
+          addTags' = normalizeTags _beAddTags
+      mTagKbids <-
+        if null removeTags && null addTags'
+          then pure Nothing
+          else Just <$> resolveKbids
+      forM_ _beAction applyAction
+      forM_ mTagKbids $ \kbids -> do
+        unless (null removeTags) $ applyRemoveTags kbids removeTags
+        unless (null addTags') $ applyAddTags kbids addTags'
+      return (Right n)
+  where
+    toKbids = map (toSqlKey @Bookmark)
+
+    validateCount = case _beSelection of
+      BulkSelectionPage bids ->
+        if length bids /= _beSelectionCount
+          then return $ Left BulkEditErrorPageMismatch
+          else return (Right (length bids))
+      BulkSelectionAll fp sp ts q -> do
+        result <-
+          select $ from (table @Bookmark) >>= \b -> do
+            bookmarkWhereClause userId sp fp ts q b
+            pure countRows
+        return $ Right $ maybe 0 unValue (listToMaybe result)
+
+    resolveKbids = case _beSelection of
+      BulkSelectionPage bids -> return (toKbids bids)
+      BulkSelectionAll fp sp ts q ->
+        fmap (map unValue)
+          $ select
+          $ from (table @Bookmark)
+          >>= \b -> do
+            bookmarkWhereClause userId sp fp ts q b
+            pure (b ^. BookmarkId)
+
+    applyAction = \case
+      BulkActionPrivate -> bulkUpdate BookmarkShared False
+      BulkActionPublic -> bulkUpdate BookmarkShared True
+      BulkActionRead -> bulkUpdate BookmarkToRead False
+      BulkActionStar -> bulkUpdate BookmarkSelected True
+      BulkActionUnread -> bulkUpdate BookmarkToRead True
+      BulkActionUnstar -> bulkUpdate BookmarkSelected False
+      BulkActionDelete -> case _beSelection of
+        BulkSelectionPage bids ->
+          CP.deleteWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId]
+        BulkSelectionAll fp sp ts q ->
+          delete $ from (table @Bookmark) >>= bookmarkWhereClause userId sp fp ts q
+
+    bulkUpdate field v = case _beSelection of
+      BulkSelectionPage bids ->
+        CP.updateWhere [BookmarkId CP.<-. toKbids bids, BookmarkUserId CP.==. userId] [field CP.=. v]
+      BulkSelectionAll fp sp ts q ->
+        update $ \b -> do
+          set b [field =. val v]
+          bookmarkWhereClause userId sp fp ts q b
+
+    applyRemoveTags kbids removeTags =
+      mapM_
+        ( \batch ->
+            delete
+              $ from (table @BookmarkTag)
+              >>= \t -> do
+                where_ (t ^. BookmarkTagBookmarkId `in_` valList batch)
+                where_ (t ^. BookmarkTagUserId ==. val userId)
+                where_
+                  $ foldl1 (||.)
+                  $ map (sqliteLikeExact (t ^. BookmarkTagTag)) removeTags
+        )
+        (batchOf sqliteMaxParameters kbids)
+
+    applyAddTags kbids addTags' =
+      mapM_ (`addTagsToBids` addTags') (batchOf sqliteMaxParameters kbids)
+
+    addTagsToBids kbids addTags' = do
+      existingTags <-
+        selectList
+          [BookmarkTagBookmarkId CP.<-. kbids, BookmarkTagUserId CP.==. userId]
+          [Asc BookmarkTagSeq]
+      let bidTagMap :: Map BookmarkId (Int, Set (CI Tag))
+          bidTagMap =
+            foldl
+              ( \m (Entity _ bt) ->
+                  let bid = bookmarkTagBookmarkId bt
+                      tag = bookmarkTagTag bt
+                      seq' = bookmarkTagSeq bt
+                   in Map.insertWith
+                        (\(newSeq, newTags) (oldSeq, oldTags) -> (max newSeq oldSeq, Set.union newTags oldTags))
+                        bid
+                        (seq', Set.singleton (CI.mk tag))
+                        m
+              )
+              Map.empty
+              existingTags
+          newEntries =
+            kbids >>= \kbid ->
+              let (maxSeq, existingSet) = Map.findWithDefault (0, Set.empty) kbid bidTagMap
+                  newTags = filter (`Set.notMember` existingSet) (map CI.mk addTags')
+               in zipWith (\i tag -> BookmarkTag userId tag kbid i) [maxSeq + 1 ..] (map CI.original newTags)
+      insertMany_ newEntries
 
 -- returns a list of pair of bookmark with tags merged into a string
 allUserBookmarks :: Key User -> DB [(Entity Bookmark, Text)]
@@ -510,8 +736,7 @@ getNoteList key mquery mcursor sharedp limit' page = do
         SharedPrivate -> where_ (b ^. NoteShared ==. val False)
     toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
-        wild s = (%) ++. val s ++. (%)
-        toLikeN field s = b ^. field `like` wild s
+        toLikeN field s = sqliteLikeContains (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_after <|> p_before
           where
@@ -539,76 +764,83 @@ mkBookmarkTags userId bookmarkId tags =
 -- * Bookmark Tag Cloud
 
 data TagCloudMode
-  = TagCloudModeTop Bool Int -- { mode: "top", value: 200 }
-  | TagCloudModeLowerBound Bool Int -- { mode: "lowerBound", value: 20 }
-  | TagCloudModeRelated Bool [Tag]
+  = TagCloudModeTop Bool -- { mode: "top" }
+  | TagCloudModeTopLowerBound Bool Int -- { mode: "lowerBound", value: 20 }
+  | TagCloudModeRelated Bool [Tag] -- { mode: "related", value: "tag1 tag2" }
+  | TagCloudModeRelatedLowerBound Bool [Tag] Int -- { mode: "relatedLowerBound", value: "tag1 tag2", lowerBound: 5 }
   | TagCloudModeNone
-  deriving (Show, Eq, Read, Generic)
+  deriving (Show, Eq, Ord, Read, Generic)
 
 isExpanded :: TagCloudMode -> Bool
-isExpanded (TagCloudModeTop e _) = e
-isExpanded (TagCloudModeLowerBound e _) = e
+isExpanded (TagCloudModeTop e) = e
+isExpanded (TagCloudModeTopLowerBound e _) = e
 isExpanded (TagCloudModeRelated e _) = e
+isExpanded (TagCloudModeRelatedLowerBound e _ _) = e
 isExpanded TagCloudModeNone = False
 
 instance FromJSON TagCloudMode where
   parseJSON (Object o) =
     case KM.lookup "mode" o of
-      Just (String "top") -> TagCloudModeTop <$> o .: "expanded" <*> o .: "value"
-      Just (String "lowerBound") -> TagCloudModeLowerBound <$> o .: "expanded" <*> o .: "value"
+      Just (String "top") -> TagCloudModeTop <$> o .: "expanded"
+      Just (String "lowerBound") -> TagCloudModeTopLowerBound <$> o .: "expanded" <*> o .: "value"
       Just (String "related") -> TagCloudModeRelated <$> o .: "expanded" <*> fmap words (o .: "value")
+      Just (String "relatedLowerBound") -> TagCloudModeRelatedLowerBound <$> o .: "expanded" <*> fmap words (o .: "value") <*> o .: "lowerBound"
       Just (String "none") -> pure TagCloudModeNone
       _ -> A.parseFail "bad parse"
   parseJSON _ = A.parseFail "bad parse"
 
 instance ToJSON TagCloudMode where
-  toJSON (TagCloudModeTop e i) =
-    object
-      [ "mode" .= String "top",
-        "value" .= toJSON i,
-        "expanded" .= Bool e
-      ]
-  toJSON (TagCloudModeLowerBound e i) =
-    object
-      [ "mode" .= String "lowerBound",
-        "value" .= toJSON i,
-        "expanded" .= Bool e
-      ]
+  toJSON (TagCloudModeTop e) =
+    object ["mode" .= ("top" :: Text), "expanded" .= e]
+  toJSON (TagCloudModeTopLowerBound e i) =
+    object ["mode" .= ("lowerBound" :: Text), "value" .= i, "expanded" .= e]
   toJSON (TagCloudModeRelated e tags) =
-    object
-      [ "mode" .= String "related",
-        "value" .= String (unwords tags),
-        "expanded" .= Bool e
-      ]
+    object ["mode" .= ("related" :: Text), "value" .= unwords tags, "expanded" .= e]
+  toJSON (TagCloudModeRelatedLowerBound e tags lb) =
+    object ["mode" .= ("relatedLowerBound" :: Text), "value" .= unwords tags, "lowerBound" .= lb, "expanded" .= e]
   toJSON TagCloudModeNone =
-    object
-      [ "mode" .= String "none",
-        "value" .= Null,
-        "expanded" .= Bool False
-      ]
+    object ["mode" .= ("none" :: Text), "value" .= A.Null, "expanded" .= False]
+  toEncoding (TagCloudModeTop e) =
+    A.pairs ("mode" .= ("top" :: Text) <> "expanded" .= e)
+  toEncoding (TagCloudModeTopLowerBound e i) =
+    A.pairs ("mode" .= ("lowerBound" :: Text) <> "value" .= i <> "expanded" .= e)
+  toEncoding (TagCloudModeRelated e tags) =
+    A.pairs ("mode" .= ("related" :: Text) <> "value" .= unwords tags <> "expanded" .= e)
+  toEncoding (TagCloudModeRelatedLowerBound e tags lb) =
+    A.pairs ("mode" .= ("relatedLowerBound" :: Text) <> "value" .= unwords tags <> "lowerBound" .= lb <> "expanded" .= e)
+  toEncoding TagCloudModeNone =
+    A.pairs ("mode" .= ("none" :: Text) <> "value" .= A.Null <> "expanded" .= False)
 
 type Tag = Text
 
-tagCountTop :: Key User -> Int -> DB [(Text, Int)]
-tagCountTop user top =
+tagCountTop :: Key User -> Bool -> DB [(Text, Int)]
+tagCountTop user isOwner =
   sortOn (toLower . fst)
     . fmap (bimap unValue unValue)
     <$> ( select $ do
             t <- from (table @BookmarkTag)
             where_ (t ^. BookmarkTagUserId ==. val user)
+            when (not isOwner) $ do
+              b <- from (table @Bookmark)
+              where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+              where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
             orderBy [desc countRows']
-            limit (fromIntegral top)
+            limit 200
             pure (t ^. BookmarkTagTag, countRows')
         )
 
-tagCountLowerBound :: Key User -> Int -> DB [(Text, Int)]
-tagCountLowerBound user lowerBound =
+tagCountLowerBound :: Key User -> Int -> Bool -> DB [(Text, Int)]
+tagCountLowerBound user lowerBound isOwner =
   fmap (bimap unValue unValue)
     <$> ( select $ do
             t <- from (table @BookmarkTag)
             where_ (t ^. BookmarkTagUserId ==. val user)
+            when (not isOwner) $ do
+              b <- from (table @Bookmark)
+              where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+              where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
             groupBy (lower_ $ t ^. BookmarkTagTag)
             let countRows' = countRows
             orderBy [asc (t ^. BookmarkTagTag)]
@@ -616,31 +848,59 @@ tagCountLowerBound user lowerBound =
             pure (t ^. BookmarkTagTag, countRows')
         )
 
-tagCountRelated :: Key User -> [Tag] -> DB [(Text, Int)]
-tagCountRelated user tags =
-  fmap (bimap unValue unValue)
-    <$> ( select $ do
-            t <- from (table @BookmarkTag)
-            where_
-              $ foldl
-                ( \expr tag ->
-                    expr
-                      &&. exists
-                        ( do
-                            u <- from (table @BookmarkTag)
-                            where_
-                              ( u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId
-                                  &&. (u ^. BookmarkTagTag `like` val tag)
-                              )
-                        )
-                )
-                (t ^. BookmarkTagUserId ==. val user)
-                tags
-            groupBy (lower_ $ t ^. BookmarkTagTag)
-            let countRows' = countRows
-            orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
-            pure (t ^. BookmarkTagTag, countRows')
-        )
+tagCountRelated :: Key User -> [Tag] -> Bool -> DB [(Text, Int)]
+tagCountRelated user tags isOwner =
+  let effectiveTags = if isOwner then tags else filter (not . T.isPrefixOf ".") tags
+   in sortOn (toLower . fst)
+        . fmap (bimap unValue unValue)
+        <$> ( select $ do
+                t <- from (table @BookmarkTag)
+                where_ (relatedTagWhere user effectiveTags t)
+                when (not isOwner) $ do
+                  b <- from (table @Bookmark)
+                  where_
+                    ( b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId
+                        &&. b ^. BookmarkShared ==. val True
+                    )
+                  where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
+                groupBy (lower_ $ t ^. BookmarkTagTag)
+                let countRows' = countRows
+                orderBy [desc countRows']
+                limit 200
+                pure (t ^. BookmarkTagTag, countRows')
+            )
+
+tagCountRelatedLowerBound :: Key User -> [Tag] -> Int -> Bool -> DB [(Text, Int)]
+tagCountRelatedLowerBound user tags lowerBound isOwner =
+  let effectiveTags = if isOwner then tags else filter (not . T.isPrefixOf ".") tags
+   in fmap (bimap unValue unValue)
+        <$> ( select $ do
+                t <- from (table @BookmarkTag)
+                where_ (relatedTagWhere user effectiveTags t)
+                when (not isOwner) $ do
+                  b <- from (table @Bookmark)
+                  where_ (b ^. BookmarkId ==. t ^. BookmarkTagBookmarkId &&. b ^. BookmarkShared ==. val True)
+                  where_ (not_ (t ^. BookmarkTagTag `like` val ".%"))
+                groupBy (lower_ $ t ^. BookmarkTagTag)
+                let countRows' = countRows
+                having (countRows' >=. val lowerBound)
+                orderBy [asc $ lower_ $ (t ^. BookmarkTagTag)]
+                pure (t ^. BookmarkTagTag, countRows')
+            )
+
+relatedTagWhere :: Key User -> [Tag] -> SqlExpr (Entity BookmarkTag) -> SqlExpr (Value Bool)
+relatedTagWhere user tags t =
+  foldl
+    ( \expr tag ->
+        expr
+          &&. exists
+            ( do
+                u <- from (table @BookmarkTag)
+                where_ (u ^. BookmarkTagBookmarkId ==. t ^. BookmarkTagBookmarkId &&. sqliteLikeExact (u ^. BookmarkTagTag) tag)
+            )
+    )
+    (t ^. BookmarkTagUserId ==. val user)
+    tags
 
 fetchBookmarkByUrl :: Key User -> Maybe Text -> DB (Maybe (Entity Bookmark, [Entity BookmarkTag]))
 fetchBookmarkByUrl userId murl = runMaybeT do

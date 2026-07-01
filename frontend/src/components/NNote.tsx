@@ -1,10 +1,11 @@
+import { TimeoutError } from 'ky';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { destroyNote, editNote } from '../api';
 import { app, closeWindow, fromNow, setFocus, shdatetime } from '../globals';
 import type { Note } from '../types';
-import { curQuerystring, fromNullableStr, lookupQueryStringValue } from '../util';
+import { apiErrorMsg, curQuerystring, fromNullableStr, lookupQueryStringValue } from '../util';
 import { Markdown } from './Markdown';
 
 function toTextarea(input: string) {
@@ -47,35 +48,48 @@ export function NNote({ initial }: { initial: Note }) {
   }
 
   async function onDestroy() {
-    await destroyNote(note.id);
-    setDestroyed(true);
+    try {
+      const res = await destroyNote(note.id);
+      if (!res.ok) {
+        setApiError(apiErrorMsg(t, res.status, res.bodyText));
+        return;
+      }
+      setDestroyed(true);
+    } catch (err) {
+      setApiError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
+    }
   }
 
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>): Promise<void> => {
     e.preventDefault();
     setApiError(null);
+    try {
+      const res = await editNote(editNoteState);
+      if (res.ok && res.status >= 200 && res.status < 300) {
+        const qs = curQuerystring();
+        const next = lookupQueryStringValue(qs, 'next');
+        const ref = document.referrer;
+        const org = window.location.origin;
 
-    const res = await editNote(editNoteState);
-    if (res.ok && res.status >= 200 && res.status < 300) {
-      const qs = curQuerystring();
-      const next = lookupQueryStringValue(qs, 'next');
-      const ref = document.referrer;
-      const org = window.location.origin;
-
-      if (next === 'closeWindow') closeWindow(window);
-      else if (next === 'back') {
-        if (ref.startsWith(org)) window.location.href = ref;
-        else window.location.href = org;
-      } else if (editNoteState.id === 0) {
-        window.location.href = fromNullableStr(a.noteR);
+        if (next === 'closeWindow') closeWindow(window);
+        else if (next === 'back') {
+          if (ref.startsWith(org)) window.location.href = ref;
+          else window.location.href = org;
+        } else if (editNoteState.id === 0) {
+          window.location.href = fromNullableStr(a.noteR);
+        } else {
+          setNote(editNoteState);
+          setEdit(false);
+        }
       } else {
-        setNote(editNoteState);
-        setEdit(false);
+        setApiError(apiErrorMsg(t, res.status, res.bodyText));
       }
-    } else {
-      setApiError(res.bodyText);
-      // eslint-disable-next-line no-console
-      console.log(res.bodyText);
+    } catch (err) {
+      setApiError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'),
+      );
     }
   };
 
@@ -83,6 +97,7 @@ export function NNote({ initial }: { initial: Note }) {
 
   return (
     <div id={String(note.id)} className="note w-100 mw7 pa1 mb2">
+      {apiError ? <div className="alert alert-err mb2">{apiError}</div> : null}
       {!edit ? (
         <>
           <div className="display">
@@ -150,7 +165,6 @@ export function NNote({ initial }: { initial: Note }) {
             void onSubmit(e);
           }}
         >
-          {apiError ? <div className="alert alert-err">{apiError}</div> : null}
           <p className="mt2 mb1">{t('note.titleLabel')}</p>
           <input
             type="text"

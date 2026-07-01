@@ -5,6 +5,7 @@ module Handler.User where
 import Data.Aeson.Encoding (encodingToLazyByteString)
 import Data.Map qualified as Map
 import Data.Text qualified as T
+import Data.Time (diffUTCTime)
 import Handler.Common
 import Import
 import Network.Wai.Internal qualified as W
@@ -52,18 +53,18 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       (fmap PagingCursorAfter . parsePagingCursorTime)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
-  (suggestTags, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
+  (suggestTags, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     (bcount, btmarks, hasEarlier, hasLater) <-
       bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
-    pure (userSuggestTags user, bcount, btmarks, hasEarlier, hasLater)
+    pure (userSuggestTags user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
-  tagCloudMode <- getTagCloudMode isowner pathtags
-  req <- getRequest
+  tagCloudMode <- getTagCloudMode isowner publicTagCloud pathtags
+  render <- getUrlRender
   let archiveBackendEnabled = isJust (appArchiver app)
       mfirstBookmark = headMay (map fst btmarks)
       mlastBookmark = lastMay (map fst btmarks)
@@ -78,6 +79,12 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       mqueryp = fmap (queryp,) mquery
       renderEl = "bookmarks" :: Text
       tagCloudRenderEl = "tagCloud" :: Text
+      showTagCloud = isowner || publicTagCloud
+      tagCloudUrl :: Text
+      tagCloudUrl
+        | isowner = render UserTagCloudR
+        | publicTagCloud = render (UserPublicTagCloudR unamep)
+        | otherwise = ""
 
   defaultLayout do
     let pager = $(widgetFile "pager")
@@ -87,23 +94,32 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toWidgetBody
       [julius|
         app.dat.bmarks = #{ toRawJs $ toBookmarkFormListForViewer isowner btmarks } || [];
+        app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
         app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
-        app.dat.filter = #{ toJSON filterp' } || {};
+        app.dat.filter = #{ toJSON filterp } || {};
+        app.dat.sharedp = #{ toJSON sharedp };
+        app.dat.tags = #{ toJSON pathtags };
+        app.dat.query = #{ toJSON mquery };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
+        app.tagCloudR = #{toJSON tagCloudUrl};
     |]
     toWidget
       [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
+        import { renderBookmarks, renderTagCloud, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);
         setTimeout(() => {
           renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
         }, 0);
+        $if isowner
+          setTimeout(() => {
+            renderBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
+          }, 0);
     |]
   where
     toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding
@@ -116,11 +132,42 @@ postUserTagCloudR = do
   mode <- requireCheckJsonBody
   _updateTagCloudMode mode
   tc <- runDB $ case mode of
-    TagCloudModeTop _ n -> tagCountTop userId n
-    TagCloudModeLowerBound _ n -> tagCountLowerBound userId n
-    TagCloudModeRelated _ tags -> tagCountRelated userId tags
-    TagCloudModeNone -> notFound
+    TagCloudModeTop _ -> tagCountTop userId True
+    TagCloudModeTopLowerBound _ n -> tagCountLowerBound userId n True
+    TagCloudModeRelated _ tags -> tagCountRelated userId tags True
+    TagCloudModeRelatedLowerBound _ tags lb -> tagCountRelatedLowerBound userId tags lb True
+    TagCloudModeNone -> pure []
   sendStatusJSON ok200 (Map.fromList tc :: Map.Map Text Int)
+
+postUserPublicTagCloudR :: UserNameP -> Handler ()
+postUserPublicTagCloudR (UserNameP uname) = do
+  Entity userId user <- runDB $ getBy404 (UniqueUserName uname)
+  unless (userPublicTagCloud user) notFound
+  when (userPrivacyLock user) notFound
+  mode <- requireCheckJsonBody
+  _updateTagCloudMode mode
+  app' <- getYesod
+  let cacheRef = appPublicTagCloudCache app'
+      ttl = fromIntegral (appPublicTagCloudCacheDurationSeconds (appSettings app'))
+  now <- liftIO getCurrentTime
+  cacheMap <- liftIO $ readIORef cacheRef
+  case Map.lookup (uname, mode) cacheMap of
+    Just (storedAt, tc)
+      | diffUTCTime now storedAt < ttl ->
+          sendStatusJSON ok200 tc
+    _ -> do
+      tcList <- runDB $ case mode of
+        TagCloudModeTop _ -> tagCountTop userId False
+        TagCloudModeTopLowerBound _ n -> tagCountLowerBound userId n False
+        TagCloudModeRelated _ tags -> tagCountRelated userId tags False
+        TagCloudModeRelatedLowerBound _ tags lb -> tagCountRelatedLowerBound userId tags lb False
+        TagCloudModeNone -> pure []
+      let tc = Map.fromList tcList
+      liftIO $ atomicModifyIORef' cacheRef $ \m ->
+        let pruned = Map.filter (\(t, _) -> diffUTCTime now t < ttl) m
+            evicted = if Map.size pruned >= 1000 then Map.deleteMin pruned else pruned
+         in (Map.insert (uname, mode) (now, tc) evicted, ())
+      sendStatusJSON ok200 tc
 
 postUserTagCloudModeR :: Handler ()
 postUserTagCloudModeR = do
@@ -131,9 +178,10 @@ postUserTagCloudModeR = do
 _updateTagCloudMode :: TagCloudMode -> Handler ()
 _updateTagCloudMode mode =
   case mode of
-    TagCloudModeTop _ _ -> setTagCloudMode mode
-    TagCloudModeLowerBound _ _ -> setTagCloudMode mode
-    TagCloudModeRelated _ _ -> setTagCloudMode mode
+    TagCloudModeTop _ -> setTagCloudMode mode
+    TagCloudModeTopLowerBound _ _ -> setTagCloudMode mode
+    TagCloudModeRelated _ _ -> pure ()
+    TagCloudModeRelatedLowerBound _ _ _ -> pure ()
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
