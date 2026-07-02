@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Combinazione nome utente/password non valida",
+    "tooManyAttempts": "Troppi tentativi di accesso. Riprova più tardi.",
     "incorrectOldPassword": "Vecchia password non corretta",
     "passwordTooShort": "La password deve contenere almeno 6 caratteri",
     "passUpdated": "Password aggiornata",
@@ -51,7 +52,8 @@
     "archiveDefault": "Archivia per impostazione predefinita i nuovi segnalibri non privati",
     "privateDefault": "Imposta come privati per default i nuovi segnalibri",
     "suggestTags": "Abilita i suggerimenti per i tag",
-    "privacyLock": "Blocco privacy (account privato)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Blocco privacy (account privato)",
+    "publicTagCloud": "Nuvola di tag pubblica (visibile ai visitatori)",
     "archivingDisabled": "Archiviazione disabilitata",
     "language": "Lingua"
   },

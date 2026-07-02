@@ -121,10 +121,6 @@ newtype UTCTimeStr
   = UTCTimeStr {unUTCTimeStr :: UTCTime}
   deriving (Eq, Show, Read, Generic, FromJSON, ToJSON)
 
-instance PathPiece UTCTimeStr where
-  toPathPiece (UTCTimeStr u) = pack (formatTime defaultTimeLocale "%FT%T%QZ" u)
-  fromPathPiece s = UTCTimeStr <$> parseTimeM True defaultTimeLocale "%FT%T%QZ" (unpack s)
-
 newtype UserNameP
   = UserNameP {unUserNameP :: Text}
   deriving (Eq, Show, Read)
@@ -170,11 +166,7 @@ data PagingCursor a
   | PagingCursorAfter a
   deriving (Eq, Show, Read)
 
-type BookmarkPagingCursor = PagingCursor BookmarkId
-
 type BookmarkPagingCursorTime = PagingCursor UTCTime
-
-type NotePagingCursor = PagingCursor NoteId
 
 type NotePagingCursorTime = PagingCursor UTCTime
 
@@ -483,7 +475,14 @@ data BulkSelection
       (Maybe Text)
   deriving (Show, Eq)
 
-data BulkAction = BulkActionRead | BulkActionUnread | BulkActionStar | BulkActionUnstar | BulkActionDelete | BulkActionPrivate | BulkActionPublic
+data BulkAction
+  = BulkActionRead
+  | BulkActionUnread
+  | BulkActionStar
+  | BulkActionUnstar
+  | BulkActionDelete
+  | BulkActionPrivate
+  | BulkActionPublic
   deriving (Show, Eq, Generic)
 
 data BulkEditForm = BulkEditForm

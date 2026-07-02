@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Invalid username/password combination",
+    "tooManyAttempts": "Too many login attempts. Please try again later.",
     "incorrectOldPassword": "Incorrect Old Password",
     "passwordTooShort": "Password must be at least 6 characters long",
     "passUpdated": "Password updated",

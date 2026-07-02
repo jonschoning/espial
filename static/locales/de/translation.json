@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Ungültige Kombination aus Nutzername und Passwort",
+    "tooManyAttempts": "Zu viele Anmeldeversuche. Bitte versuchen Sie es später erneut.",
     "incorrectOldPassword": "Falsches altes Passwort",
     "passwordTooShort": "Das Passwort muss mindestens 6 Zeichen lang sein",
     "passUpdated": "Passwort aktualisiert",
@@ -51,7 +52,8 @@
     "archiveDefault": "Neue nicht-private Lesezeichen standardmäßig archivieren",
     "privateDefault": "Neue Lesezeichen standardmäßig auf privat setzen",
     "suggestTags": "Tag-Vorschläge aktivieren",
-    "privacyLock": "Datenschutzsperre (privates Konto)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Datenschutzsperre (privates Konto)",
+    "publicTagCloud": "Öffentliche Tag-Cloud (für Besucher sichtbar)",
     "archivingDisabled": "Archivierung deaktiviert",
     "language": "Sprache"
   },

@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Неправильна комбінація імені користувача та пароля",
+    "tooManyAttempts": "Забагато спроб входу. Спробуйте пізніше.",
     "incorrectOldPassword": "Неправильний старий пароль",
     "passwordTooShort": "Пароль має містити щонайменше 6 символів",
     "passUpdated": "Пароль оновлено",
@@ -51,7 +52,8 @@
     "archiveDefault": "Типово архівувати нові неприховані закладки",
     "privateDefault": "Типово робити нові закладки приватними",
     "suggestTags": "Увімкнути підказки тегів",
-    "privacyLock": "Блокування приватності (приватний обліковий запис)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Блокування приватності (приватний обліковий запис)",
+    "publicTagCloud": "Публічна хмара тегів (видно відвідувачам)",
     "archivingDisabled": "Архівування вимкнено",
     "language": "Мова"
   },

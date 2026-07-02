@@ -274,6 +274,10 @@ instance YesodAuth App where
 
           dbPostLoginR :: (master ~ App) => AuthHandler master TypedContent
           dbPostLoginR = do
+            app <- getYesod
+            session <- getSession
+            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+                t = \key -> appTranslate app lang (I18nKey key)
             mresult <-
               runInputPostResult
                 ( dbLoginCreds
@@ -283,16 +287,13 @@ instance YesodAuth App where
             case mresult of
               FormSuccess creds -> do
                 throttled <- isLoginThrottled (credsIdent creds)
-                if throttled then rejectLogin else setCredsRedirect creds
-              _ -> rejectLogin
+                if throttled
+                  then rejectLogin (t "auth.tooManyAttempts")
+                  else setCredsRedirect creds
+              _ -> rejectLogin (t "auth.invalidUsernamePass")
             where
-              rejectLogin :: (master ~ App) => AuthHandler master TypedContent
-              rejectLogin = do
-                app <- getYesod
-                session <- getSession
-                let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                    t = \key -> appTranslate app lang (I18nKey key)
-                loginErrorMessage (AuthR LoginR) (t "auth.invalidUsernamePass")
+              rejectLogin :: (master ~ App) => Text -> AuthHandler master TypedContent
+              rejectLogin msg = loginErrorMessage (AuthR LoginR) msg
 
               -- Checked (and recorded) before any password hashing happens, so a flood of
               -- login attempts against one IP or one username gets rejected without paying

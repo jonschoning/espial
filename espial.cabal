@@ -477,6 +477,7 @@ test-suite test
   other-modules:
       Handler.CommonSpec
       Handler.HomeSpec
+      I18nSpec
       Model.BookmarksBulkEditSpec
       Model.BookmarksPagingSpec
       Model.BookmarksQuerySpec

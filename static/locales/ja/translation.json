@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "ユーザ名とパスワードの組み合わせが間違っています",
+    "tooManyAttempts": "ログイン試行回数が多すぎます。しばらくしてからもう一度お試しください。",
     "incorrectOldPassword": "現在のパスワードが間違っています",
     "passwordTooShort": "パスワードは6文字以上である必要があります",
     "passUpdated": "パスワードが更新されました",
@@ -51,7 +52,8 @@
     "archiveDefault": "新しい非プライベートブックマークをデフォルトでアーカイブする",
     "privateDefault": "新しいブックマークをデフォルトでプライベートにする",
     "suggestTags": "タグの候補を有効にする",
-    "privacyLock": "プライバシーロック（非公開アカウント）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "プライバシーロック（非公開アカウント）",
+    "publicTagCloud": "公開タグクラウド（訪問者に表示されます）",
     "archivingDisabled": "アーカイブ無効",
     "language": "言語"
   },

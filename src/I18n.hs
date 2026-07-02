@@ -1,6 +1,7 @@
 module I18n
   ( loadTranslations,
     translate,
+    translate',
   )
 where
 
@@ -62,9 +63,12 @@ loadTranslations staticDir = do
         byteHex b = let s = showHex b "" in if length s == 1 then '0' : s else s
 
 translate :: I18nMap -> I18nLang -> I18nNs -> I18nKey -> Text
-translate trans lang ns key =
+translate trans lang ns key = fromMaybe (unI18nKey key) (translate' trans lang ns key)
+
+translate' :: I18nMap -> I18nLang -> I18nNs -> I18nKey -> Maybe Text
+translate' trans lang ns key =
   case lookup lang trans of
-    Nothing -> unI18nKey key
+    Nothing -> Nothing
     Just nsmap -> case lookup ns nsmap of
-      Nothing -> unI18nKey key
-      Just keymap -> findWithDefault (unI18nKey key) key keymap
+      Nothing -> Nothing
+      Just keymap -> HM.lookup key keymap
