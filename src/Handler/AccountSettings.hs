@@ -54,14 +54,15 @@ postChangePasswordR = do
   (userId, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t = \key -> appTranslate app lang (I18nKey key)
+  let hashAlgo = appPasswordHashConfig (appSettings app)
   runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
     FormSuccess (old, new) -> do
-      runDB (authenticatePassword (userName user) old) >>= \case
+      runDB (authenticatePassword hashAlgo (userName user) old) >>= \case
         Nothing -> setMessage (toHtml (t "auth.incorrectOldPassword"))
         Just _ ->
           validateNewPassword t new >>= \case
             Just newValid -> do
-              newHash <- liftIO (hashPassword newValid)
+              newHash <- liftIO (hashPasswordWith hashAlgo newValid)
               void $ runDB (update userId [UserPasswordHash CP.=. newHash])
               setMessage (toHtml (t "auth.passUpdated"))
             _ -> pure ()

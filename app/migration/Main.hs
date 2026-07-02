@@ -17,7 +17,7 @@ import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigration
 import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
-import Settings (AppSettings (..))
+import Settings (AppSettings (..), appPasswordHashConfig)
 import Types
 import Yesod.Default.Config2 (configSettingsYml, loadYamlSettings, useEnv)
 
@@ -114,11 +114,12 @@ main = do
       P.runSqliteInfo connInfo (runAppMigrations True)
     CreateUser {..} -> do
       connText <- getConnText conn
+      settings <- loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv
       P.runSqlite connText $ do
         passwordText <- liftIO . fmap T.strip $ case userPassword of
           PasswordText s -> pure s
           PasswordFile f -> readFileUtf8 f
-        hash' <- liftIO (hashPassword passwordText)
+        hash' <- liftIO (hashPasswordWith (appPasswordHashConfig settings) passwordText)
         let privateDefaultVal = fromMaybe False privateDefault
             archiveDefaultVal = fromMaybe False archiveDefault
             suggestTagsVal = fromMaybe True suggestTags

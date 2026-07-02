@@ -4,9 +4,7 @@ module I18n
   )
 where
 
-import Crypto.Hash (Digest, SHA256)
-import Crypto.Hash qualified as CH
-import Data.ByteArray qualified as BA (convert)
+import Crypto.Hash.SHA256 qualified as SHA256
 import Data.Aeson qualified as A
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap qualified as KM
@@ -58,7 +56,7 @@ loadTranslations staticDir = do
       _ -> HM.empty
 
     getHash :: [[ByteString]] -> Text
-    getHash bs = pack $ take 7 $ concatMap byteHex $ unpack (BA.convert (CH.hash (concat (concat bs)) :: Digest SHA256) :: ByteString)
+    getHash bs = pack $ take 7 $ concatMap byteHex $ unpack (SHA256.hash (concat (concat bs)))
       where
         byteHex :: Word8 -> String
         byteHex b = let s = showHex b "" in if length s == 1 then '0' : s else s

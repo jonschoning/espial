@@ -304,16 +304,16 @@ sqliteLikeContains col = sqliteLike (\v -> "%" <> escapeLike v <> "%") "\\" col
 escapeLike :: Text -> Text
 escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
 
-authenticatePassword :: Text -> Text -> DB (Maybe (Entity User))
-authenticatePassword username password = do
+authenticatePassword :: HashAlgoConfig -> Text -> Text -> DB (Maybe (Entity User))
+authenticatePassword hashAlgo username password = do
   getBy (UniqueUserName username) >>= \case
     Nothing -> pure Nothing
     Just entity@(Entity uid user) ->
       let stored = userPasswordHash user
        in if validatePasswordHash stored password
             then do
-              when (needsRehash stored) $ do
-                newHash <- liftIO (hashPassword password)
+              when (needsRehash hashAlgo stored) $ do
+                newHash <- liftIO (hashPasswordWith hashAlgo password)
                 CP.update uid [UserPasswordHash CP.=. newHash]
               pure (Just entity)
             else pure Nothing

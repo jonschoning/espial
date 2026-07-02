@@ -35,7 +35,7 @@ devel:
 	@stack exec -- yesod devel
 
 serve:
-	@stack exec espial -- +RTS -T
+	@stack exec espial -- +RTS -T -F1.3 -Fd2 --disable-delayed-os-memory-return
 
 _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')

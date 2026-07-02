@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.39.1.
+-- This file has been generated from package.yaml by hpack version 0.39.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -213,6 +213,7 @@ library
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
+    , cryptohash-sha256
     , crypton >=0.30
     , crypton-connection
     , data-default
@@ -232,7 +233,7 @@ library
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , memory
+    , iproute
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -244,6 +245,7 @@ library
     , shakespeare >=2.0 && <2.2
     , template-haskell
     , text ==2.*
+    , text-short
     , time
     , tls
     , transformers >=0.2.2
@@ -316,6 +318,7 @@ executable espial
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
+    , cryptohash-sha256
     , crypton >=0.30
     , crypton-connection
     , data-default
@@ -336,7 +339,7 @@ executable espial
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , memory
+    , iproute
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -348,6 +351,7 @@ executable espial
     , shakespeare >=2.0 && <2.2
     , template-haskell
     , text ==2.*
+    , text-short
     , time
     , tls
     , transformers >=0.2.2
@@ -407,6 +411,7 @@ executable migration
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
+    , cryptohash-sha256
     , crypton >=0.30
     , crypton-connection
     , data-default
@@ -427,7 +432,7 @@ executable migration
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , memory
+    , iproute
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -441,6 +446,7 @@ executable migration
     , shakespeare >=2.0 && <2.2
     , template-haskell
     , text ==2.*
+    , text-short
     , time
     , tls
     , transformers >=0.2.2
@@ -510,6 +516,7 @@ test-suite test
     , classy-prelude-yesod >=1.4 && <1.6
     , conduit >=1.0 && <2
     , containers
+    , cryptohash-sha256
     , crypton >=0.30
     , crypton-connection
     , data-default
@@ -531,7 +538,7 @@ test-suite test
     , http-client-tls ==0.3.*
     , http-conduit ==2.3.*
     , http-types
-    , memory
+    , iproute
     , microlens
     , monad-logger ==0.3.*
     , mtl
@@ -543,6 +550,7 @@ test-suite test
     , shakespeare >=2.0 && <2.2
     , template-haskell
     , text ==2.*
+    , text-short
     , time
     , tls
     , transformers >=0.2.2

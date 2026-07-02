@@ -6,7 +6,7 @@
 module Settings where
 
 import ClassyPrelude.Yesod
-import qualified Control.Exception as Exception
+import Control.Exception qualified as Exception
 import Control.Monad.Fail (fail)
 import Data.Aeson
   ( Result (..),
@@ -21,6 +21,8 @@ import Data.FileEmbed (embedFile)
 import Data.Yaml (decodeEither')
 import Database.Persist.Sqlite (SqliteConf)
 import Language.Haskell.TH.Syntax (Exp, Name, Q)
+import Model
+import Model.Custom (HashAlgoConfig (..), bcryptPolicy)
 import Network.Wai.Handler.Warp (HostPreference)
 import Yesod.Default.Config2 (applyEnvValue, configSettingsYml)
 import Yesod.Default.Util
@@ -28,7 +30,6 @@ import Yesod.Default.Util
     widgetFileNoReload,
     widgetFileReload,
   )
-import Model
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
@@ -105,12 +106,25 @@ data AppSettings = AppSettings
     -- | Path to TLS private key file; enables TLS when set with appTLSCertFile
     appTLSKeyFile :: Maybe FilePath,
     -- | TTL in seconds for the public tag cloud response cache
-    appPublicTagCloudCacheDurationSeconds :: Int
+    appPublicTagCloudCacheDurationSeconds :: Int,
+    -- | Which password hashing algorithm to use for newly-created/rehashed password hashes.
+    appPasswordHashAlgo :: PasswordHashAlgo,
+    -- | Argon2id memory cost in KiB, for newly-created/rehashed password hashes.
+    -- appArgon2MemoryKib :: Int,
+    -- -- | Argon2id iteration (time) cost.
+    -- appArgon2Iterations :: Int,
+    -- -- | Argon2id parallelism (lanes).
+    -- appArgon2Parallelism :: Int,
+    -- | Max login attempts allowed per IP or per username within the rate-limit window,
+    -- checked before the password hash is computed.
+    appLoginRateLimitMaxAttempts :: Int,
+    -- | Login rate-limit window, in seconds.
+    appLoginRateLimitWindowSeconds :: Int
   }
 
 instance FromJSON AppSettings where
   parseJSON = withObject "AppSettings" \o -> do
-    let defaultDev =
+    let defaultDev = 
 #ifdef DEVELOPMENT
                 True
 #else
@@ -162,14 +176,41 @@ instance FromJSON AppSettings where
     appLanguageDefault <- o .:? "language-default" .!= I18nLangEn
 
     appTLSCertFile <- o .:? "tls-cert-file"
-    appTLSKeyFile  <- o .:? "tls-key-file"
+    appTLSKeyFile <- o .:? "tls-key-file"
 
     appPublicTagCloudCacheDurationSeconds <- o .:? "public-tag-cloud-cache-duration-seconds" .!= 30
+
+    appPasswordHashAlgo <- o .:? "password-hash-algo" .!= PasswordHashAlgoBCrypt
+    -- appArgon2MemoryKib <- o .:? "argon2-memory-kib" .!= 19456
+    -- appArgon2Iterations <- o .:? "argon2-iterations" .!= 2
+    -- appArgon2Parallelism <- o .:? "argon2-parallelism" .!= 1
+
+    appLoginRateLimitMaxAttempts <- o .:? "login-rate-limit-max-attempts" .!= 10
+    appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
 
     pure AppSettings {..}
     where
       toText (String t) = t
       toText other = (decodeUtf8 . toStrict . encode) other
+
+-- | Top-level password hashing algorithm selection.
+data PasswordHashAlgo = PasswordHashAlgoBCrypt
+  deriving (Show, Eq)
+
+instance FromJSON PasswordHashAlgo where
+  parseJSON = withText "PasswordHashAlgo" $ \case
+    "bcrypt" -> pure PasswordHashAlgoBCrypt
+    --    "argon2" -> pure PasswordHashAlgoArgon2id
+    _ -> fail "Unknown password hash algorithm"
+
+-- | Builds the password hashing configuration (algorithm + its parameters) used for
+-- newly-created/rehashed password hashes, from the configured 'AppSettings'.
+appPasswordHashConfig :: AppSettings -> HashAlgoConfig
+appPasswordHashConfig AppSettings {..} =
+  case appPasswordHashAlgo of
+    PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
+
+--    PasswordHashAlgoArgon2id -> HashAlgoArgon2id (mkArgon2idOptions appArgon2MemoryKib appArgon2Iterations appArgon2Parallelism)
 
 -- | Selects which archive backend is active.
 data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
