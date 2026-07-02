@@ -86,16 +86,16 @@ dependencies:
   - classy-prelude-yesod >=1.4 && <1.6
   - bytestring >=0.11.5 && <0.13
   - text >=2 && <3
-  - persistent >=2.14 && <2.18
+  - persistent >=2.14 && <2.19
   - blaze-html >= 0.9 && < 1
   - persistent-template >=2.12 && <2.13
   - template-haskell
-  - shakespeare >=2.0 && <2.2
+  - shakespeare >=2.0 && <2.3
   - blaze-markup
   - hjsmin >=0.1 && <0.3
   - wai-extra >=3.0 && <3.2
   - yaml >=0.8 && <0.12
-  - http-client-tls >=0.3 && <0.4
+  - http-client-tls >=0.3 && <0.5
   - http-conduit >=2.3 && <2.4
   - directory >=1.1 && <1.4
   - warp >=3.0 && <3.5
@@ -138,7 +138,7 @@ dependencies:
   - microlens
   - mtl
   - parser-combinators
-  - persistent-sqlite == 2.13.3.0
+  - persistent-sqlite == 2.13.3.0 # do not upgrade to 2.13.3.1 due to UTCTime behavior in that version (see https://github.com/yesodweb/persistent/issues/1628)
   - transformers >= 0.2.2
 
 when:
