@@ -12,7 +12,7 @@
 
 module Model.BookmarksSearchSpec (spec) where
 
-import Model.Custom (hashPassword, mkBmSlug)
+import Model.Custom (hashPasswordBCryptWithPolicy, mkBmSlug)
 import TestImport
 import Types (DB)
 
@@ -23,7 +23,7 @@ t2019 = UTCTime (fromGregorian 2019 1 1) 0
 
 createTestUser :: DB (Key User)
 createTestUser = do
-  pwHash <- liftIO $ hashPassword "pass"
+  pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
   insert $ User "testuser" pwHash Nothing False False True False False Nothing
 
 -- href=url, description=title, extended=notes

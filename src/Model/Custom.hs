@@ -45,9 +45,6 @@ mkNtSlug = NtSlug <$> mkSlug 10
 
 -- * Password Hashing
 
--- | Opaque password hash stored as TEXT in the database.
--- Inspect the prefix to determine the algorithm:
--- @$2a$@ / @$2b$@ indicates BCrypt; @$argon2id$@ indicates Argon2id.
 newtype PasswordHash = PasswordHash
   { unPasswordHash :: T.Text
   }
@@ -64,13 +61,14 @@ data HashAlgoConfig
 
 --  | HashAlgoArgon2id Argon2.HashOptions
 
--- | Hash a password with BCrypt. Retained for testing BCrypt→Argon2id migration paths.
+-- | Hash a password with BCrypt.
 hashPasswordBCrypt :: T.Text -> IO PasswordHash
 hashPasswordBCrypt = hashPasswordWith (HashAlgoBCrypt bcryptPolicy)
 
--- | True when the stored hash should be rehashed under 'targetAlgo' -- either because
--- it's a different algorithm, or (for Argon2id) because its embedded parameters no
--- longer match (e.g. after an AppSettings change).
+hashPasswordBCryptWithPolicy :: HashingPolicy -> T.Text -> IO PasswordHash
+hashPasswordBCryptWithPolicy policy = hashPasswordWith (HashAlgoBCrypt policy)
+
+-- | True when the stored hash should be rehashed under 'targetAlgo'
 needsRehash :: HashAlgoConfig -> PasswordHash -> Bool
 needsRehash (HashAlgoBCrypt _) (PasswordHash stored) = not ("$2" `T.isPrefixOf` stored)
 

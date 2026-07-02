@@ -6,7 +6,7 @@
 module Model.FileImportExportSpec (spec) where
 
 import Data.Aeson qualified as A
-import Model.Custom (hashPassword)
+import Model.Custom (hashPasswordBCryptWithPolicy)
 import Model.FileBookmark
 import Model.FileFirefox
 import Model.FileNetscape
@@ -287,7 +287,7 @@ note2Json =
 
 createTestUser :: DB (Key User)
 createTestUser = do
-  pwHash <- liftIO $ hashPassword "pass"
+  pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
   insert $ User "testuser" pwHash Nothing False False True False False Nothing
 
 -- Decode ByteString or abort the test with an informative message.
