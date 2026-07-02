@@ -9,7 +9,7 @@ TITLE := $(shell sed -n 's/^name:[[:space:]]*//p' espial.cabal)
 DESCRIPTION := $(shell sed -n 's/^synopsis:[[:space:]]*//p' espial.cabal)
 LICENSES := $(shell sed -n 's/^license:[[:space:]]*//p' espial.cabal)
 
-.PHONY: clean build
+.PHONY: clean build loadtest loadtest-build loadtest-clean
 
 all: build
 
@@ -93,6 +93,29 @@ ifeq ($(_HUB_REPO),)
 endif
 
 docker_espial = $(_DOCKER_COMPOSE) exec espial
+
+# Builds an image, spins up one container per RTS/MALLOC_ARENA_MAX "variant",
+# load-tests the login page and bookmark page against each, reports a
+# memory + throughput comparison, then removes the containers/volumes it
+# created. See loadtest/run.sh for all parameters (pass as env vars), e.g.:
+#
+#   make loadtest VARIANTS="baseline arena" ROUNDS=4
+#   make loadtest CPUSET_CPUS=0             # pin to one real core
+#   make loadtest KEEP=1                    # leave containers up for inspection
+loadtest:
+	@bash loadtest/run.sh
+
+# Builds the load-test image without running any tests (useful to pre-warm
+# the build cache, or with SKIP_BUILD=1 later to iterate on tests quickly).
+loadtest-build:
+	@$(_DOCKER) build -f Dockerfile.buildkit -t espial-loadtest:latest .
+
+# Manual cleanup in case a run was interrupted before its own trap could run.
+loadtest-clean:
+	@for v in baseline arena rts both; do \
+		docker rm -f espial-lt-$$v >/dev/null 2>&1 || true; \
+		docker volume rm espial-lt-$$v-data >/dev/null 2>&1 || true; \
+	done
 
 clean:
 	@stack clean
