@@ -35,7 +35,7 @@ devel:
 	@stack exec -- yesod devel
 
 serve:
-	@stack exec espial -- +RTS -T -F1.3 -Fd2 --disable-delayed-os-memory-return
+	@stack exec espial -- +RTS -T
 
 _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')
@@ -94,25 +94,33 @@ endif
 
 docker_espial = $(_DOCKER_COMPOSE) exec espial
 
-# Builds an image, spins up one container per RTS/MALLOC_ARENA_MAX "variant",
-# load-tests the login page and bookmark page against each, reports a
-# memory + throughput comparison, then removes the containers/volumes it
-# created. See loadtest/run.sh for all parameters (pass as env vars), e.g.:
+# Spins up one container per "variant" (RTS flags / extra env vars / image),
+# load-tests it with the concurrency/rounds/resource parameters -- all
+# defined in loadtest/config.yaml, add more there (or comment lines out to
+# drop them), no Makefile or script changes needed -- reports a memory +
+# throughput comparison, then removes the containers/volumes it created. By
+# default this reuses whatever espial-loadtest:latest image already exists
+# (pass LOADTEST_BUILD=1 to rebuild it first). See loadtest/run.sh for all
+# parameters (pass as LOADTEST_-prefixed env vars to override their
+# config.yaml defaults), e.g.:
 #
-#   make loadtest VARIANTS="baseline arena" ROUNDS=4
-#   make loadtest CPUSET_CPUS=0             # pin to one real core
-#   make loadtest KEEP=1                    # leave containers up for inspection
+#   make loadtest LOADTEST_BUILD=1          # rebuild the image first
+#   make loadtest LOADTEST_VARIANTS="baseline arena" LOADTEST_ROUNDS=4
+#   make loadtest LOADTEST_CPUSET_CPUS=0    # pin to one real core
+#   make loadtest LOADTEST_KEEP=1           # leave containers up for inspection
 loadtest:
 	@bash loadtest/run.sh
 
 # Builds the load-test image without running any tests (useful to pre-warm
-# the build cache, or with SKIP_BUILD=1 later to iterate on tests quickly).
+# the build cache, or to refresh the image before a LOADTEST_BUILD-less
+# `make loadtest` run).
 loadtest-build:
 	@$(_DOCKER) build -f Dockerfile.buildkit -t espial-loadtest:latest .
 
 # Manual cleanup in case a run was interrupted before its own trap could run.
+# Covers every variant defined in config.yaml, not just the default set.
 loadtest-clean:
-	@for v in baseline arena rts both; do \
+	@for v in $$(yq -o=json '.' loadtest/config.yaml | jq -r '.variants | keys[]'); do \
 		docker rm -f espial-lt-$$v >/dev/null 2>&1 || true; \
 		docker volume rm espial-lt-$$v-data >/dev/null 2>&1 || true; \
 	done

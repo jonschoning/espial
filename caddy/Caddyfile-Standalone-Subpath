@@ -1,7 +1,15 @@
 :80 {
     redir /espial /espial/
-    
+
     handle_path /espial/* {
-        reverse_proxy host.docker.internal:3000
+        # keepalive off: host.docker.internal crosses Docker Desktop's NAT layer,
+        # which can silently drop idle connections sooner than either Caddy's or
+        # Warp's configured timeouts -- disable pooling so Caddy always dials fresh
+        # instead of racing an idle-connection reaper it doesn't control
+        reverse_proxy host.docker.internal:3000 {
+            transport http {
+                keepalive off
+            }
+        }
     }
 }

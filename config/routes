@@ -30,29 +30,29 @@
 
 -- settings
 /Settings AccountSettingsR GET
-api/accountSettings EditAccountSettingsR POST
+/api/accountSettings EditAccountSettingsR POST
 
 -- settings/password
 /Settings/Password ChangePasswordR GET POST
 
 -- add
 /add AddViewR GET
-api/add AddR POST
+/api/add AddR POST
 
 -- api
-api/lookuptitle LookupTitleR POST
-api/tagSuggestions TagSuggestionsR POST
-api/tagcloud UserTagCloudR POST
-api/tagcloudmode UserTagCloudModeR POST
-api/user/#UserNameP/tagcloud UserPublicTagCloudR POST
+/api/lookuptitle LookupTitleR POST
+/api/tagSuggestions TagSuggestionsR POST
+/api/tagcloud UserTagCloudR POST
+/api/tagcloudmode UserTagCloudModeR POST
+/api/user/#UserNameP/tagcloud UserPublicTagCloudR POST
 
 -- edit
-api/bm/#Int64 DeleteR DELETE
-api/bm/#Int64/read ReadR PATCH
-api/bm/#Int64/star StarR PATCH
-api/bm/#Int64/unstar UnstarR PATCH
-api/bm/#Int64/archive ArchiveBookmarkR POST
-!api/bm/bulk BmBulkR POST
+/api/bm/#Int64 DeleteR DELETE
+/api/bm/#Int64/read ReadR PATCH
+/api/bm/#Int64/star StarR PATCH
+/api/bm/#Int64/unstar UnstarR PATCH
+/api/bm/#Int64/archive ArchiveBookmarkR POST
+/!api/bm/bulk BmBulkR POST
 
 -- doc
 /docs/search DocsSearchR GET

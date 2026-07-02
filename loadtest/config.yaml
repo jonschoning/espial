@@ -1,0 +1,70 @@
+# Load-test harness config -- see run.sh/lib.sh for how this is consumed.
+
+defaultVariants: [baseline]
+
+variants:
+  baseline:
+    rtsFlags: "-T"
+    env: {}
+    # image: espial-loadtest:other-tag   # optional; defaults to $LOADTEST_IMAGE
+  arena:
+    rtsFlags: "-T"
+    env:
+      MALLOC_ARENA_MAX: "1"
+  rts:
+    rtsFlags: "-T -F1.3 -Fd2 --disable-delayed-os-memory-return"
+    env: {}
+  both:
+    rtsFlags: "-T -F1.3 -Fd2 --disable-delayed-os-memory-return"
+    env:
+      MALLOC_ARENA_MAX: "1"
+
+defaultTestRoutes: [db]
+#defaultTestRoutes: [login, db, root]
+
+routes:
+  login:
+    type: login
+    loginPage: /auth/login
+    loginPost: /auth/page/db/login
+    expectedStatus: 303
+    description: login page load test (pw hashing path)
+  db:
+    type: get
+    path: /u:{username}
+    expectedStatus: 200
+    description: bookmark page load test (DB-fetch path)
+  root:
+    type: get
+    path: /
+    expectedStatus: 303
+    description: root
+
+params:
+  login:
+    rounds: 2
+    concurrency: 10
+    roundWait: 10
+  db:
+    rounds: 2
+    concurrency: 300
+    roundWait: 2
+  root:
+    rounds: 2
+    concurrency: 800
+    roundWait: 2
+  container:
+    # memory/memorySwap/cpus/cpusetCpus are all optional -- leave any of them
+    # empty (or comment the line out) to skip passing that docker flag
+    # entirely, so the container gets Docker's own default for it.
+    memory: 430m
+    memorySwap: 646m
+    # CFS CPU-time quota (doesn't limit visible core count).
+    cpus: 1
+    # e.g. "0" to pin to one real core; affects glibc's default arena-count heuristic; empty = unset
+    cpusetCpus: "0"
+  user:
+    username: loadtest
+    password: loadtestpass123
+  bookmarkFile: sample-bookmarks.json
+  basePort: 3100

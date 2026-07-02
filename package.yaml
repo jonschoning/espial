@@ -117,7 +117,6 @@ dependencies:
   - foreign-store
 
   - aeson >=2.0
-  #  - argon2
   - attoparsec
   - base64 >=1 && < 2
   - bcrypt >= 0.0.8

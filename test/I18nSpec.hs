@@ -23,7 +23,7 @@ collectKeys prefix = \case
 
 spec :: Spec
 spec = describe "I18n translations" $
-  it "every key discovered from en/translation.json resolves to a real translation (not the key itself) for every I18nLang" $ do
+  it "every key discovered from en/translation.json resolves to a translation for every I18nLang" $ do
     enJson <- BS.readFile "static/locales/en/translation.json"
     enValue <- case A.decodeStrict' enJson of
       Nothing -> expectationFailure "failed to parse static/locales/en/translation.json" >> pure A.Null

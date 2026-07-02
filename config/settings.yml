@@ -72,14 +72,5 @@ language-default: "_env:LANGUAGE_DEFAULT:en"
 
 public-tag-cloud-cache-duration-seconds: "_env:PUBLIC_TAG_CLOUD_CACHE_DURATION_SECONDS:30"
 
-# Password hashing algorithm for new/rehashed passwords: "bcrypt"
-# Existing hashes still validate under whatever algorithm/params they were created with.
-password-hash-algo: "_env:PASSWORD_HASH_ALGO:bcrypt"
-
-# Argon2id cost (used when password-hash-algo is "argon2")
-#argon2-memory-kib: "_env:ARGON2_MEMORY_KIB:19456"
-#argon2-iterations: "_env:ARGON2_ITERATIONS:2"
-#argon2-parallelism: "_env:ARGON2_PARALLELISM:1"
-
 login-rate-limit-max-attempts: "_env:LOGIN_RATE_LIMIT_MAX_ATTEMPTS:10"
 login-rate-limit-window-seconds: "_env:LOGIN_RATE_LIMIT_WINDOW_SECONDS:60"

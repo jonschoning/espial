@@ -327,11 +327,10 @@ instance YesodAuth App where
         Creds App ->
         m (AuthenticationResult App)
       authenticateCreds Creds {..} = do
-        muser <- case (credsPlugin, lookup "password" credsExtra) of
-          (plugin, Just pwd)
-            | plugin == dbAuthPluginName -> do
-                hashAlgo <- appPasswordHashConfig . appSettings <$> getYesod
-                liftHandler $ runDB $ authenticatePassword hashAlgo credsIdent pwd
+        muser <- case lookup "password" credsExtra of
+          Just pwd | credsPlugin == dbAuthPluginName -> do
+            rehashAlgo <- appPasswordHashConfig . appSettings <$> getYesod
+            liftHandler $ runDB $ authenticatePassword rehashAlgo credsIdent pwd
           _ -> pure Nothing
         case muser of
           Nothing -> pure (UserError InvalidUsernamePass)

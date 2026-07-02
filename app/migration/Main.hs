@@ -22,7 +22,10 @@ import Types
 import Yesod.Default.Config2 (configSettingsYml, loadYamlSettings, useEnv)
 
 data MigrationOpts
-  = CreateDB {conn :: Maybe Text}
+  = CreateDB
+      { conn :: Maybe Text,
+        silent :: Maybe Bool
+      }
   | CreateUser
       { conn :: Maybe Text,
         userName :: Text,
@@ -110,8 +113,8 @@ main = do
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
-      P.runSqliteInfo connInfo (runPersistentMigrations True)
-      P.runSqliteInfo connInfo (runAppMigrations True)
+      P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
+      P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateUser {..} -> do
       connText <- getConnText conn
       settings <- loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv

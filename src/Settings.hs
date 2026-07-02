@@ -109,13 +109,6 @@ data AppSettings = AppSettings
     appPublicTagCloudCacheDurationSeconds :: Int,
     -- | Which password hashing algorithm to use for newly-created/rehashed password hashes.
     appPasswordHashAlgo :: PasswordHashAlgo,
-    -- | Argon2id memory cost in KiB, for newly-created/rehashed password hashes.
-    -- appArgon2MemoryKib :: Int,
-    -- -- | Argon2id iteration (time) cost.
-    -- appArgon2Iterations :: Int,
-    -- -- | Argon2id parallelism (lanes).
-    -- appArgon2Parallelism :: Int,
-    -- | Max login attempts allowed per IP or per username within the rate-limit window,
     -- checked before the password hash is computed.
     appLoginRateLimitMaxAttempts :: Int,
     -- | Login rate-limit window, in seconds.
@@ -181,9 +174,6 @@ instance FromJSON AppSettings where
     appPublicTagCloudCacheDurationSeconds <- o .:? "public-tag-cloud-cache-duration-seconds" .!= 30
 
     appPasswordHashAlgo <- o .:? "password-hash-algo" .!= PasswordHashAlgoBCrypt
-    -- appArgon2MemoryKib <- o .:? "argon2-memory-kib" .!= 19456
-    -- appArgon2Iterations <- o .:? "argon2-iterations" .!= 2
-    -- appArgon2Parallelism <- o .:? "argon2-parallelism" .!= 1
 
     appLoginRateLimitMaxAttempts <- o .:? "login-rate-limit-max-attempts" .!= 10
     appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
@@ -200,7 +190,6 @@ data PasswordHashAlgo = PasswordHashAlgoBCrypt
 instance FromJSON PasswordHashAlgo where
   parseJSON = withText "PasswordHashAlgo" $ \case
     "bcrypt" -> pure PasswordHashAlgoBCrypt
-    --    "argon2" -> pure PasswordHashAlgoArgon2id
     _ -> fail "Unknown password hash algorithm"
 
 -- | Builds the password hashing configuration (algorithm + its parameters) used for
@@ -209,8 +198,6 @@ appPasswordHashConfig :: AppSettings -> HashAlgoConfig
 appPasswordHashConfig AppSettings {..} =
   case appPasswordHashAlgo of
     PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
-
---    PasswordHashAlgoArgon2id -> HashAlgoArgon2id (mkArgon2idOptions appArgon2MemoryKib appArgon2Iterations appArgon2Parallelism)
 
 -- | Selects which archive backend is active.
 data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07

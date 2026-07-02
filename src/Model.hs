@@ -22,7 +22,6 @@ import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Time qualified as TI (ParseTime)
-
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
@@ -297,15 +296,15 @@ escapeLike :: Text -> Text
 escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
 
 authenticatePassword :: HashAlgoConfig -> Text -> Text -> DB (Maybe (Entity User))
-authenticatePassword hashAlgo username password = do
+authenticatePassword rehashAlgo username password = do
   getBy (UniqueUserName username) >>= \case
     Nothing -> pure Nothing
     Just entity@(Entity uid user) ->
       let stored = userPasswordHash user
        in if validatePasswordHash stored password
             then do
-              when (needsRehash hashAlgo stored) $ do
-                newHash <- liftIO (hashPasswordWith hashAlgo password)
+              when (needsRehash rehashAlgo stored) $ do
+                newHash <- liftIO (hashPasswordWith rehashAlgo password)
                 CP.update uid [UserPasswordHash CP.=. newHash]
               pure (Just entity)
             else pure Nothing
