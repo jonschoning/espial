@@ -40,3 +40,4 @@ archivebox-data
 CLAUDE.md
 .claude
 config/tls
+loadtest/results/

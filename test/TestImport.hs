@@ -10,6 +10,7 @@ where
 
 import Application (makeFoundation, makeLogWare)
 import ClassyPrelude as X hiding (Handler, delete, deleteBy)
+import Crypto.BCrypt (HashingPolicy (..))
 import Database.Persist as X hiding (get)
 import Database.Persist.Sql (SqlPersistM, rawExecute, rawSql, runSqlPersistMPool, unSingle)
 import Foundation as X
@@ -21,6 +22,12 @@ import Yesod.Auth as X
 import Yesod.Core.Unsafe (fakeHandlerGetLogger)
 import Yesod.Default.Config2 (loadYamlSettings, useEnv)
 import Yesod.Test as X
+
+-- | Minimum-cost BCrypt policy for test fixtures -- the production policy's
+-- cost factor (12) is deliberately slow, and tests hash passwords far more
+-- often than a real login flow does.
+bcryptTestPolicy :: HashingPolicy
+bcryptTestPolicy = HashingPolicy {preferredHashCost = 4, preferredHashAlgorithm = "$2a$"}
 
 runDB :: SqlPersistM a -> YesodExample App a
 runDB query = do

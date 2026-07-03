@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Неверное сочетание имени пользователя и пароля",
+    "tooManyAttempts": "Слишком много попыток входа. Повторите попытку позже.",
     "incorrectOldPassword": "Неверный старый пароль",
     "passwordTooShort": "Пароль должен быть не менее 6 символов",
     "passUpdated": "Пароль обновлён",
@@ -48,10 +49,16 @@
     "bookmarklet": "букмарклет добавления URL",
     "changePassword": "Изменить пароль",
     "accountTitle": "Настройки аккаунта",
+    "groupLanguage": "Язык",
+    "groupArchive": "Архивирование",
+    "groupGeneral": "Общие",
+    "groupPrivacy": "Конфиденциальность и доступ",
     "archiveDefault": "Архивировать новые не-приватные закладки по умолчанию",
     "privateDefault": "Делать новые закладки приватными по умолчанию",
     "suggestTags": "Включить предложение тегов",
-    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Блокировка конфиденциальности (приватный аккаунт)",
+    "publicTagCloud": "Публичное облако тегов (видно посетителям)",
+    "previewNotes": "Показывать превью заметок в списке",
     "archivingDisabled": "Архивирование отключено",
     "language": "Язык"
   },

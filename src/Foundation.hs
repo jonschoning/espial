@@ -4,9 +4,13 @@ module Foundation where
 
 import Archiver.Backend (ArchiverBackend)
 import ClassyPrelude.Yesod qualified as CP (Lang)
+import Data.ByteString.Char8 qualified as BS8
 import Data.CaseInsensitive qualified as CI
+import Data.IP (fromSockAddr)
+import Data.Map.Strict qualified as Map
 import Data.Text.Encoding qualified as TE
 import Data.Text.Encoding.Error qualified as TEE
+import Data.Time (NominalDiffTime, diffUTCTime)
 import Data.Type.Equality (type (~))
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Import.NoFoundation
@@ -20,6 +24,9 @@ import Yesod.Core.Unsafe qualified as Unsafe
 -- * App
 
 type PublicTagCloudCache = IORef (Map (Text, TagCloudMode) (UTCTime, Map Text Int))
+
+-- | Sliding-window login-attempt counters, keyed by e.g. @"ip:1.2.3.4"@ or @"user:alice"@.
+type LoginRateLimiter = IORef (Map Text (UTCTime, Int))
 
 data App = App
   { appSettings :: AppSettings,
@@ -40,13 +47,11 @@ data App = App
     -- | Route to the i18n json data
     appI18nR :: Route App,
     -- | In-memory cache for public tag cloud responses (30s TTL, 1000-entry cap).
-    appPublicTagCloudCache :: PublicTagCloudCache
+    appPublicTagCloudCache :: PublicTagCloudCache,
+    -- | Login-attempt counters used to throttle the login endpoint.
+    appLoginRateLimiter :: LoginRateLimiter
   }
-  deriving (Typeable)
-
 mkYesodData "App" $(parseRoutesFile "config/routes")
-
-deriving instance Typeable Route
 
 deriving instance Generic (Route App)
 
@@ -122,7 +127,7 @@ instance Yesod App where
       )
   shouldLogIO app source level = pure $ appShouldLogAll (appSettings app) || level == LevelWarn || level == LevelError
 
-  makeLogger = return . appLogger
+  makeLogger = pure . appLogger
 
   authRoute _ = Just (AuthR LoginR)
 
@@ -133,7 +138,7 @@ instance Yesod App where
   errorHandler err = do
     app <- getYesod
     session <- getSession
-    let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+    let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
         t = \key -> appTranslate app lang (I18nKey key)
     case err of
       NotFound -> _notFoundErrorHandler (t "error.notFound")
@@ -149,37 +154,37 @@ instance Yesod App where
           provideRep $ defaultLayout $ do
             r <- waiRequest
             let path' = TE.decodeUtf8With TEE.lenientDecode $ Wai.rawPathInfo r
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p>#{path'}|]
-          provideRep $ return $ object ["message" .= title]
-          provideRep $ return title
+            defaultMessageWidget (toHtml title) [hamlet|<p>#{path'}|]
+          provideRep $ pure $ object ["message" .= title]
+          provideRep $ pure title
       _internalErrorHandler :: Text -> Text -> HandlerFor App TypedContent
       _internalErrorHandler e title = do
         $logErrorS "yesod-core" e
         selectRep $ do
           provideRep $ defaultLayout $ do
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<pre>#{e}|]
-          provideRep $ return $ object ["message" .= title, "error" .= e]
-          provideRep $ return $ title <> ": " <> e
+            defaultMessageWidget (toHtml title) [hamlet|<pre>#{e}|]
+          provideRep $ pure $ object ["message" .= title, "error" .= e]
+          provideRep $ pure $ title <> ": " <> e
       _notAuthenticatedErrorHandler :: Text -> HandlerFor App TypedContent
       _notAuthenticatedErrorHandler title = selectRep $ do
         provideRep $
           defaultLayout $
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p style="display:none;"><p>#{title} |]
+            defaultMessageWidget (toHtml title) [hamlet|<p style="display:none;"><p>#{title} |]
         provideRep $ do
           addHeader "WWW-Authenticate" "RedirectJSON realm=\"application\", param=\"authentication_url\""
           site <- getYesod
           rend <- getUrlRender
           let apair u = ["authentication_url" .= rend u]
               content = maybe [] apair (authRoute site)
-          return $ object $ ("message" .= title) : content
-        provideRep $ return title
+          pure $ object $ ("message" .= title) : content
+        provideRep $ pure title
       _genericErrorHandler :: Text -> HandlerFor App TypedContent
       _genericErrorHandler title = do
         selectRep $ do
           provideRep $ defaultLayout $ do
-            defaultMessageWidget (fromString (unpack (title))) [hamlet|<p>#{title}|]
-          provideRep $ return $ object ["message" .= title]
-          provideRep $ return $ title
+            defaultMessageWidget (toHtml title) [hamlet|<p>#{title}|]
+          provideRep $ pure $ object ["message" .= title]
+          provideRep $ pure title
 
   defaultMessageWidget :: Html -> HtmlUrl (Route App) -> WidgetFor App ()
   defaultMessageWidget title body = do
@@ -250,18 +255,29 @@ instance YesodAuth App where
           dbDispatch _ _ = notFound
           dbLoginHandler toParent = do
             req <- getRequest
+            currentApproot <- ($ HomeR) <$> getUrlRender
+            loginR <- ($ AuthR LoginR) <$> getUrlRender
+            -- Discard a stale/self-referential ultdest (old approot, or the login page
+            -- itself via `redirectToReferer`) rather than bounce there post-login.
             lookupSession ultDestKey >>= \case
-              Just dest | "logout" `isInfixOf` dest -> deleteSession ultDestKey
+              Just dest
+                | "logout" `isInfixOf` dest -> deleteSession ultDestKey
+                | loginR `isInfixOf` dest -> deleteSession ultDestKey
+                | not (currentApproot `isPrefixOf` dest) -> deleteSession ultDestKey
               _ -> pure ()
             app <- getYesod
             session <- getSession
-            let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
                 t = \key -> appTranslate app lang (I18nKey key)
-            setTitle ("Espial | " <> fromString (unpack (t "login.pageTitle")))
+            setTitle (toHtml ("Espial | " <> t "login.pageTitle"))
             $(widgetFile "login")
 
           dbPostLoginR :: (master ~ App) => AuthHandler master TypedContent
           dbPostLoginR = do
+            app <- getYesod
+            session <- getSession
+            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
+                t = \key -> appTranslate app lang (I18nKey key)
             mresult <-
               runInputPostResult
                 ( dbLoginCreds
@@ -269,14 +285,30 @@ instance YesodAuth App where
                     <*> ireq textField "password"
                 )
             case mresult of
-              FormSuccess creds -> setCredsRedirect creds
-              _ -> do
-                app <- getYesod
-                session <- getSession
-                let lang = maybe (appLanguageDefault (appSettings app)) id (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                    t = \key -> appTranslate app lang (I18nKey key)
-                loginErrorMessage (AuthR LoginR) (t "auth.invalidUsernamePass")
+              FormSuccess creds -> do
+                throttled <- isLoginThrottled (credsIdent creds)
+                if throttled
+                  then rejectLogin (t "auth.tooManyAttempts")
+                  else setCredsRedirect creds
+              _ -> rejectLogin (t "auth.invalidUsernamePass")
             where
+              rejectLogin :: (master ~ App) => Text -> AuthHandler master TypedContent
+              rejectLogin msg = loginErrorMessage (AuthR LoginR) msg
+
+              -- Checked (and recorded) before any password hashing happens, so a flood of
+              -- login attempts against one IP or one username gets rejected without paying
+              -- the hashing cost.
+              isLoginThrottled :: (master ~ App) => Text -> AuthHandler master Bool
+              isLoginThrottled username = do
+                app <- getYesod
+                req <- waiRequest
+                let AppSettings {..} = appSettings app
+                    window = fromIntegral appLoginRateLimitWindowSeconds
+                    ip = clientIpText appIpFromHeader req
+                byIp <- liftIO $ checkLoginRateLimit (appLoginRateLimiter app) appLoginRateLimitMaxAttempts window ("ip:" <> ip)
+                byUser <- liftIO $ checkLoginRateLimit (appLoginRateLimiter app) appLoginRateLimitMaxAttempts window ("user:" <> username)
+                pure (byIp || byUser)
+
               dbLoginCreds :: Text -> Text -> Creds master
               dbLoginCreds username password =
                 Creds
@@ -295,10 +327,10 @@ instance YesodAuth App where
         Creds App ->
         m (AuthenticationResult App)
       authenticateCreds Creds {..} = do
-        muser <- case (credsPlugin, lookup "password" credsExtra) of
-          (plugin, Just pwd)
-            | plugin == dbAuthPluginName ->
-                liftHandler $ runDB $ authenticatePassword credsIdent pwd
+        muser <- case lookup "password" credsExtra of
+          Just pwd | credsPlugin == dbAuthPluginName -> do
+            rehashAlgo <- appPasswordHashConfig . appSettings <$> getYesod
+            liftHandler $ runDB $ authenticatePassword rehashAlgo credsIdent pwd
           _ -> pure Nothing
         case muser of
           Nothing -> pure (UserError InvalidUsernamePass)
@@ -307,7 +339,7 @@ instance YesodAuth App where
   logoutDest = const HomeR
   onLogin =
     maybeAuth >>= \case
-      Nothing -> cpprint ("onLogin: could not find user" :: Text)
+      Nothing -> $(logWarn) "onLogin: could not find user"
       Just (Entity user uname) -> do
         app <- getYesod
         let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage uname)
@@ -360,6 +392,34 @@ instance YesodAuth App where
         "sv" -> swedishMessage msg
         "zh" -> chineseMessage msg
         _ -> pickLang ls
+
+-- | Client IP for rate-limiting purposes: the first @x-real-ip@ or @x-forwarded-for@
+-- header value when trusted (i.e. behind a reverse proxy), else the raw peer address.
+clientIpText :: Bool -> Wai.Request -> Text
+clientIpText trustHeaders req =
+  fromMaybe peerIp (if trustHeaders then headerIp else Nothing)
+  where
+    peerIp = maybe "unknown" (tshow . fst) (fromSockAddr (Wai.remoteHost req))
+    headerIp =
+      TE.decodeUtf8With TEE.lenientDecode . BS8.takeWhile (/= ',')
+        <$> (lookup "x-real-ip" hdrs <|> lookup "x-forwarded-for" hdrs)
+    hdrs = Wai.requestHeaders req
+
+-- | Records this attempt for @key@ and reports whether it has exceeded @maxAttempts@
+-- within the trailing @window@. Prunes expired entries and caps map size the same way
+-- as the public tag cloud cache above.
+checkLoginRateLimit :: LoginRateLimiter -> Int -> NominalDiffTime -> Text -> IO Bool
+checkLoginRateLimit ref maxAttempts window key = do
+  !now <- getCurrentTime
+  atomicModifyIORef' ref $ \m ->
+    let pruned = Map.filter (\(t, _) -> diffUTCTime now t < window) m
+        evicted = if Map.size pruned >= 5000 then Map.deleteMin pruned else pruned
+     in case Map.lookup key evicted of
+          Just (windowStart, attempts) ->
+            let !attempts' = attempts + 1
+                !throttled = attempts' > maxAttempts
+             in (Map.insert key (windowStart, attempts') evicted, throttled)
+          Nothing -> (Map.insert key (now, 1 :: Int) evicted, False)
 
 instance YesodAuthPersist App
 

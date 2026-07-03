@@ -24,7 +24,7 @@ data FirefoxBookmarkNode = FirefoxBookmarkNode
     firefoxBookmarkTypeCode :: !Int,
     firefoxBookmarkUri :: !(Maybe Text)
   }
-  deriving (Show, Eq, Typeable, Ord)
+  deriving (Show, Eq, Ord)
 
 instance FromJSON FirefoxBookmarkNode where
   parseJSON (Object o) =

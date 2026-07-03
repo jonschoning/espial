@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Gecersiz kullanici adi/sifre kombinasyonu",
+    "tooManyAttempts": "Cok fazla giris denemesi. Lutfen daha sonra tekrar deneyin.",
     "incorrectOldPassword": "Eski sifre yanlis",
     "passwordTooShort": "Sifre en az 6 karakter olmali",
     "passUpdated": "Sifre guncellendi",
@@ -48,10 +49,16 @@
     "bookmarklet": "url ekleme bookmarklet'i",
     "changePassword": "Sifre degistir",
     "accountTitle": "Hesap ayarlari",
+    "groupLanguage": "Dil",
+    "groupArchive": "Arşivleme",
+    "groupGeneral": "Genel",
+    "groupPrivacy": "Gizlilik ve Paylaşım",
     "archiveDefault": "Yeni ozel olmayan yer imlerini varsayilan olarak arsivle",
     "privateDefault": "Yeni yer imlerini varsayilan olarak ozel yap",
     "suggestTags": "Etiket onerilerini etkinlestir",
-    "privacyLock": "Gizlilik kilidi (ozel hesap)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Gizlilik kilidi (ozel hesap)",
+    "publicTagCloud": "Genel etiket bulutu (ziyaretcilere gorunur)",
+    "previewNotes": "Not listesinde onizlemeyi goster",
     "archivingDisabled": "Arsivleme devre disi",
     "language": "Dil"
   },

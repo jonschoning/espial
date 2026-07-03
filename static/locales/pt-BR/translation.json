@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Combinacao de usuario/senha invalida",
+    "tooManyAttempts": "Muitas tentativas de login. Tente novamente mais tarde.",
     "incorrectOldPassword": "Senha antiga incorreta",
     "passwordTooShort": "A senha deve ter pelo menos 6 caracteres",
     "passUpdated": "Senha atualizada",
@@ -48,10 +49,16 @@
     "bookmarklet": "bookmarklet para adicionar url",
     "changePassword": "Alterar senha",
     "accountTitle": "Configuracoes da conta",
+    "groupLanguage": "Idioma",
+    "groupArchive": "Arquivamento",
+    "groupGeneral": "Geral",
+    "groupPrivacy": "Privacidade e Compartilhamento",
     "archiveDefault": "Arquivar novos favoritos nao privados por padrao",
     "privateDefault": "Definir novos favoritos como privados por padrao",
     "suggestTags": "Ativar sugestoes de tags",
-    "privacyLock": "Bloqueio de privacidade (conta privada)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Bloqueio de privacidade (conta privada)",
+    "publicTagCloud": "Nuvem de tags publica (visivel para visitantes)",
+    "previewNotes": "Mostrar previa das notas na lista",
     "archivingDisabled": "Arquivamento desativado",
     "language": "Idioma"
   },

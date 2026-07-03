@@ -1,6 +1,6 @@
 import ky from 'ky';
 
-import { app, tagCloudEndpoint } from './globals';
+import { app } from './globals';
 import type {
   AccountSettings,
   Bookmark,
@@ -22,27 +22,15 @@ function withCsrf(headers?: HeadersInit): HeadersInit {
   return h;
 }
 
-function urlFor(path: string): string {
-  // Preserve PureScript semantics: simple string concatenation.
-  return `${app().homeR}${path}`;
-}
-
-function toRelativePath(urlOrPath: string): string {
-  try {
-    const u = new URL(urlOrPath, window.location.origin);
-    const rel = `${u.pathname}${u.search}${u.hash}`;
-    return rel.startsWith('/') ? rel.slice(1) : rel;
-  } catch {
-    return urlOrPath.replace(/^\/+/, '');
-  }
-}
-
+// Paths below are relative to the document's `<base href>` (set by the server to the
+// approot), so they resolve correctly regardless of the current page's URL depth or
+// whether the app is served from a subpath.
 async function request(
   method: string,
   path: string,
   opts: { headers?: HeadersInit; body?: BodyInit | null; timeout?: number | false } = {},
 ) {
-  const res = await ky(urlFor(path), {
+  const res = await ky(path, {
     method,
     headers: withCsrf(opts.headers),
     body: opts.body ?? undefined,
@@ -140,7 +128,9 @@ export async function lookupTitle(bm: Bookmark): Promise<string | null> {
 }
 
 export async function getTagCloud(mode: TagCloudMode): Promise<TagCloud | null> {
-  const res = await request('POST', toRelativePath(tagCloudEndpoint()), {
+  const tagCloudR = app().tagCloudR;
+  if (!tagCloudR) return null;
+  const res = await request('POST', tagCloudR, {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(mode),
   });
@@ -195,6 +185,6 @@ export async function editAccountSettings(
 
 export async function logout(): Promise<void> {
   const a = app();
-  await request('POST', toRelativePath(a.authRlogoutR));
+  await request('POST', a.authRlogoutR);
   window.location.reload();
 }

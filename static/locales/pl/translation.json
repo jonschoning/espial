@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Nieprawidłowa nazwa użytkownika lub hasło",
+    "tooManyAttempts": "Zbyt wiele prób logowania. Spróbuj ponownie później.",
     "incorrectOldPassword": "Nieprawidłowe stare hasło",
     "passwordTooShort": "Hasło musi mieć co najmniej 6 znaków",
     "passUpdated": "Hasło zostało zaktualizowane",
@@ -48,10 +49,16 @@
     "bookmarklet": "bookmarklet dodawania URL",
     "changePassword": "Zmień hasło",
     "accountTitle": "Ustawienia konta",
+    "groupLanguage": "Język",
+    "groupArchive": "Archiwizacja",
+    "groupGeneral": "Ogólne",
+    "groupPrivacy": "Prywatność i udostępnianie",
     "archiveDefault": "Domyślnie archiwizuj nowe niepubliczne zakładki",
     "privateDefault": "Domyślnie ustawiaj nowe zakładki jako prywatne",
     "suggestTags": "Włącz sugestie tagów",
-    "privacyLock": "Blokada prywatności (konto prywatne)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Blokada prywatności (konto prywatne)",
+    "publicTagCloud": "Publiczna chmura tagów (widoczna dla odwiedzających)",
+    "previewNotes": "Pokaż podgląd notatek na liście",
     "archivingDisabled": "Archiwizacja wyłączona",
     "language": "Język"
   },

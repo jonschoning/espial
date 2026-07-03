@@ -75,6 +75,8 @@ export type AccountSettings = {
   privacyLock: boolean;
   /** Whether the tag cloud is visible to non-authenticated visitors. */
   publicTagCloud: boolean;
+  /** Whether note listings show a text preview, or just the title. */
+  previewNotes: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
   /** The user's preferred language (null means server default). */

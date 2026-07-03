@@ -1,0 +1,7 @@
+services:
+  caddy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile-Standalone-Subpath:/etc/caddy/Caddyfile:ro

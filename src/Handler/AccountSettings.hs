@@ -54,23 +54,24 @@ postChangePasswordR = do
   (userId, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t = \key -> appTranslate app lang (I18nKey key)
+  let hashAlgo = appPasswordHashConfig (appSettings app)
   runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
     FormSuccess (old, new) -> do
-      runDB (authenticatePassword (userName user) old) >>= \case
-        Nothing -> setMessage (fromString (unpack (t "auth.incorrectOldPassword")))
+      runDB (authenticatePassword hashAlgo (userName user) old) >>= \case
+        Nothing -> setMessage (toHtml (t "auth.incorrectOldPassword"))
         Just _ ->
           validateNewPassword t new >>= \case
             Just newValid -> do
-              newHash <- liftIO (hashPassword newValid)
+              newHash <- liftIO (hashPasswordWith hashAlgo newValid)
               void $ runDB (update userId [UserPasswordHash CP.=. newHash])
-              setMessage (fromString (unpack (t "auth.passUpdated")))
+              setMessage (toHtml (t "auth.passUpdated"))
             _ -> pure ()
-    _ -> setMessage (fromString (unpack (t "auth.missingRequiredFields")))
+    _ -> setMessage (toHtml (t "auth.missingRequiredFields"))
   redirect ChangePasswordR
   where
     validateNewPassword :: (Text -> Text) -> Text -> Handler (Maybe Text)
     validateNewPassword t = \case
       new | length new < 6 -> do
-        setMessage (fromString (unpack (t "auth.passwordTooShort")))
+        setMessage (toHtml (t "auth.passwordTooShort"))
         pure Nothing
       new -> pure $ Just new

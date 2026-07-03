@@ -3,6 +3,7 @@ module Model.Migrations where
 import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=.), (||.))
 import Data.FileEmbed (embedFile)
 import Data.Text qualified as T
+import Data.Text.IO qualified as TIO
 import Database.Persist.Sql
 import GraphUtils (getPathValues)
 import Model
@@ -42,7 +43,7 @@ runPersistentMigrations enableLogging = do
 runAppMigrations :: Bool -> DB ()
 runAppMigrations enableLogging = do
   insertCurrentAppVersion
-  runAppMigrations' (if enableLogging then putStrLn else const (pure ()))
+  runAppMigrations' (if enableLogging then liftIO . TIO.hPutStrLn stderr else const (pure ()))
 
 insertCurrentAppVersion :: DB ()
 insertCurrentAppVersion = do

@@ -6,7 +6,8 @@
 module Settings where
 
 import ClassyPrelude.Yesod
-import qualified Control.Exception as Exception
+import Control.Exception qualified as Exception
+import Control.Monad.Fail (fail)
 import Data.Aeson
   ( Result (..),
     encode,
@@ -20,6 +21,8 @@ import Data.FileEmbed (embedFile)
 import Data.Yaml (decodeEither')
 import Database.Persist.Sqlite (SqliteConf)
 import Language.Haskell.TH.Syntax (Exp, Name, Q)
+import Model
+import Model.Custom (HashAlgoConfig (..), bcryptPolicy)
 import Network.Wai.Handler.Warp (HostPreference)
 import Yesod.Default.Config2 (applyEnvValue, configSettingsYml)
 import Yesod.Default.Util
@@ -27,7 +30,6 @@ import Yesod.Default.Util
     widgetFileNoReload,
     widgetFileReload,
   )
-import Model
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
@@ -104,12 +106,18 @@ data AppSettings = AppSettings
     -- | Path to TLS private key file; enables TLS when set with appTLSCertFile
     appTLSKeyFile :: Maybe FilePath,
     -- | TTL in seconds for the public tag cloud response cache
-    appPublicTagCloudCacheDurationSeconds :: Int
+    appPublicTagCloudCacheDurationSeconds :: Int,
+    -- | Which password hashing algorithm to use for newly-created/rehashed password hashes.
+    appPasswordHashAlgo :: PasswordHashAlgo,
+    -- checked before the password hash is computed.
+    appLoginRateLimitMaxAttempts :: Int,
+    -- | Login rate-limit window, in seconds.
+    appLoginRateLimitWindowSeconds :: Int
   }
 
 instance FromJSON AppSettings where
   parseJSON = withObject "AppSettings" \o -> do
-    let defaultDev =
+    let defaultDev = 
 #ifdef DEVELOPMENT
                 True
 #else
@@ -161,14 +169,35 @@ instance FromJSON AppSettings where
     appLanguageDefault <- o .:? "language-default" .!= I18nLangEn
 
     appTLSCertFile <- o .:? "tls-cert-file"
-    appTLSKeyFile  <- o .:? "tls-key-file"
+    appTLSKeyFile <- o .:? "tls-key-file"
 
     appPublicTagCloudCacheDurationSeconds <- o .:? "public-tag-cloud-cache-duration-seconds" .!= 30
 
-    return AppSettings {..}
+    appPasswordHashAlgo <- o .:? "password-hash-algo" .!= PasswordHashAlgoBCrypt
+
+    appLoginRateLimitMaxAttempts <- o .:? "login-rate-limit-max-attempts" .!= 10
+    appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
+
+    pure AppSettings {..}
     where
       toText (String t) = t
       toText other = (decodeUtf8 . toStrict . encode) other
+
+-- | Top-level password hashing algorithm selection.
+data PasswordHashAlgo = PasswordHashAlgoBCrypt
+  deriving (Show, Eq)
+
+instance FromJSON PasswordHashAlgo where
+  parseJSON = withText "PasswordHashAlgo" $ \case
+    "bcrypt" -> pure PasswordHashAlgoBCrypt
+    _ -> fail "Unknown password hash algorithm"
+
+-- | Builds the password hashing configuration (algorithm + its parameters) used for
+-- newly-created/rehashed password hashes, from the configured 'AppSettings'.
+appPasswordHashConfig :: AppSettings -> HashAlgoConfig
+appPasswordHashConfig AppSettings {..} =
+  case appPasswordHashAlgo of
+    PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
 
 -- | Selects which archive backend is active.
 data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
@@ -181,7 +210,7 @@ instance FromJSON ArchiveBackend where
     "archive-li" -> pure ArchiveBackendArchiveLi
     "wayback-machine" -> pure ArchiveBackendWaybackMachine
     "archivebox07" -> pure ArchiveBackendArchiveBox07
-    _ -> mzero
+    _ -> fail "Unknown archive backend"
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.

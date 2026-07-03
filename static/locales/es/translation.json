@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "Combinacion de usuario/contrasena no valida",
+    "tooManyAttempts": "Demasiados intentos de inicio de sesion. Intente de nuevo mas tarde.",
     "incorrectOldPassword": "Contrasena anterior incorrecta",
     "passwordTooShort": "La contrasena debe tener al menos 6 caracteres",
     "passUpdated": "Contrasena actualizada",
@@ -48,10 +49,16 @@
     "bookmarklet": "bookmarklet para anadir url",
     "changePassword": "Cambiar contrasena",
     "accountTitle": "Configuracion de la cuenta",
+    "groupLanguage": "Idioma",
+    "groupArchive": "Archivado",
+    "groupGeneral": "General",
+    "groupPrivacy": "Privacidad y uso compartido",
     "archiveDefault": "Archivar por defecto los nuevos marcadores no privados",
     "privateDefault": "Marcar como privados por defecto los nuevos marcadores",
     "suggestTags": "Activar sugerencias de etiquetas",
-    "privacyLock": "Bloqueo de privacidad (cuenta privada)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Bloqueo de privacidad (cuenta privada)",
+    "publicTagCloud": "Nube de etiquetas publica (visible para visitantes)",
+    "previewNotes": "Mostrar vista previa de notas en la lista",
     "archivingDisabled": "Archivado desactivado",
     "language": "Idioma"
   },

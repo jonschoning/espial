@@ -17,12 +17,15 @@ import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigration
 import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
-import Settings (AppSettings (..))
+import Settings (AppSettings (..), appPasswordHashConfig)
 import Types
 import Yesod.Default.Config2 (configSettingsYml, loadYamlSettings, useEnv)
 
 data MigrationOpts
-  = CreateDB {conn :: Maybe Text}
+  = CreateDB
+      { conn :: Maybe Text,
+        silent :: Maybe Bool
+      }
   | CreateUser
       { conn :: Maybe Text,
         userName :: Text,
@@ -32,6 +35,7 @@ data MigrationOpts
         suggestTags :: Maybe Bool,
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
+        previewNotes :: Maybe Bool,
         userLanguage :: Maybe I18nLang
       }
   | CreateApiKey
@@ -110,31 +114,34 @@ main = do
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
-      P.runSqliteInfo connInfo (runPersistentMigrations True)
-      P.runSqliteInfo connInfo (runAppMigrations True)
+      P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
+      P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateUser {..} -> do
       connText <- getConnText conn
+      settings <- loadYamlSettings [configSettingsYml] [configSettingsYmlValue] useEnv
       P.runSqlite connText $ do
         passwordText <- liftIO . fmap T.strip $ case userPassword of
           PasswordText s -> pure s
           PasswordFile f -> readFileUtf8 f
-        hash' <- liftIO (hashPassword passwordText)
+        hash' <- liftIO (hashPasswordWith (appPasswordHashConfig settings) passwordText)
         let privateDefaultVal = fromMaybe False privateDefault
             archiveDefaultVal = fromMaybe False archiveDefault
             suggestTagsVal = fromMaybe True suggestTags
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
+            previewNotesVal = fromMaybe True previewNotes
             userLanguageVal = userLanguage
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal userLanguageVal)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
               UserPrivateDefault P.=. privateDefaultVal,
               UserArchiveDefault P.=. archiveDefaultVal,
               UserSuggestTags P.=. suggestTagsVal,
               UserPrivacyLock P.=. privacyLockVal,
               UserPublicTagCloud P.=. publicTagCloudVal,
+              UserPreviewNotes P.=. previewNotesVal,
               UserLanguage P.=. userLanguageVal
             ]
         pure () :: DB ()
@@ -260,6 +267,7 @@ main = do
           "suggestTags: " <> tshow userSuggestTags,
           "privacyLock: " <> tshow userPrivacyLock,
           "publicTagCloud: " <> tshow userPublicTagCloud,
+          "previewNotes: " <> tshow userPreviewNotes,
           "hasApiKey: " <> tshow (isJust userApiToken)
         ]
 

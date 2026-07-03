@@ -19,7 +19,7 @@ data FileNote = FileNote
     fileNoteCreatedAt :: !UTCTime,
     fileNoteUpdatedAt :: !UTCTime
   }
-  deriving (Show, Eq, Typeable, Ord)
+  deriving (Show, Eq, Ord)
 
 instance FromJSON FileNote where
   parseJSON (Object o) =

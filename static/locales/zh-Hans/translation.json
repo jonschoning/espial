@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "用户名或密码组合无效",
+    "tooManyAttempts": "登录尝试次数过多，请稍后再试。",
     "incorrectOldPassword": "旧密码不正确",
     "passwordTooShort": "密码长度至少为 6 个字符",
     "passUpdated": "密码已更新",
@@ -48,10 +49,16 @@
     "bookmarklet": "添加 url 的书签小工具",
     "changePassword": "修改密码",
     "accountTitle": "账户设置",
+    "groupLanguage": "语言",
+    "groupArchive": "归档",
+    "groupGeneral": "常规",
+    "groupPrivacy": "隐私与共享",
     "archiveDefault": "默认归档新的非私密书签",
     "privateDefault": "默认将新书签设为私密",
     "suggestTags": "启用标签建议",
-    "privacyLock": "隐私锁定（私密账户）",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "隐私锁定（私密账户）",
+    "publicTagCloud": "公开标签云（访客可见）",
+    "previewNotes": "在笔记列表中显示预览",
     "archivingDisabled": "归档已禁用",
     "language": "语言"
   },

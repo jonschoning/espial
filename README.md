@@ -172,6 +172,45 @@ If you are using Cloudflare:
 - use `header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}`
 - If traffic can reach Espial directly without passing through your trusted proxy, do not enable `IP_FROM_HEADER=true`, because client IP headers can be spoofed.
 
+#### Running on a Subpath
+
+Espial can also be served under a path prefix on a shared domain, e.g. `https://www.domain.com/espial` alongside other apps on the same host. This needs two pieces working together:
+
+1. **`APPROOT`** — tell Espial the full external URL (including the subpath) it's being served at, so generated links, redirects, and static asset URLs come out correct:
+
+   ```yaml
+   approot: "_env:APPROOT:https://www.domain.com/espial"
+   ```
+
+   or via environment variable:
+
+   ```bash
+   APPROOT=https://www.domain.com/espial stack exec espial
+   ```
+
+2. **Reverse proxy** — strip the `/espial` prefix before forwarding to Espial, since Espial itself always routes as if mounted at `/`. Also redirect the bare `/espial` (no trailing slash) to `/espial/` so relative URLs in the page resolve against the right base.
+
+   Minimal Caddy example (see `caddy/Caddyfile-Standalone-Subpath`, which runs Caddy in Docker alongside an Espial instance on the host):
+
+   ```caddyfile
+   :80 {
+       redir /espial /espial/
+
+       handle_path /espial/* {
+           # Caddy pools and reuses idle connections to the backend
+           # by default, but Espial's Warp server closes idle connections after 30s
+           # set keepalive to off or 15s
+           reverse_proxy host.docker.internal:3000 {
+               transport http {
+                   keepalive off
+               }
+           }
+       }
+   }
+   ```
+
+   `handle_path` strips the `/espial` prefix before proxying, matching what `APPROOT` told Espial to expect. If Caddy and Espial run on the same host (not in Docker), replace `host.docker.internal:3000` with `localhost:3000`.
+
 ### Optional: In-Process TLS
 
 For simple local or LAN deployments where adding a reverse proxy is impractical, Espial can terminate TLS directly using your own certificate and key files (PEM format, unencrypted key).

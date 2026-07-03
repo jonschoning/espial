@@ -15,21 +15,21 @@ getFaviconR :: Handler TypedContent
 getFaviconR = do
   cacheSeconds $ 60 * 5
   -- cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
-  return
+  pure
     $ TypedContent "image/x-icon"
     $ toContent $(embedFile "config/favicon.ico")
 
 getRobotsR :: Handler TypedContent
 getRobotsR =
-  return
+  pure
     $ TypedContent typePlain
     $ toContent $(embedFile "config/robots.txt")
 
-lookupPagingParams :: Handler (Maybe Int64, Maybe Int64)
-lookupPagingParams =
+lookupPagingParams :: Maybe Text -> Handler (Maybe Int64, Maybe Int64)
+lookupPagingParams prefix =
   (,)
-    <$> getUrlSessionParam "count"
-    <*> getUrlParam "page"
+    <$> getsetUrlSessionParam "count" (fromMaybe "" prefix)
+    <*> getUrlParam (fromMaybe "" prefix <> "page")
 
 pagingCursorBeforeParam :: Text
 pagingCursorBeforeParam = "before"
@@ -84,15 +84,16 @@ getUrlParam name = do
   where
     parseMaybe x = readMaybe . unpack =<< x
 
-getUrlSessionParam ::
+getsetUrlSessionParam ::
   forall a.
   (Show a, Read a) =>
   Text ->
+  Text ->
   Handler (Maybe a)
-getUrlSessionParam name = do
+getsetUrlSessionParam name sessionPrefix = do
   p <- fmap parseMaybe (lookupGetParam name)
-  s <- fmap parseMaybe (lookupSession name)
-  for_ p (setSession name . (pack . show))
+  s <- fmap parseMaybe (lookupSession (sessionPrefix <> name))
+  for_ p (setSession (sessionPrefix <> name) . (pack . show))
   pure (p <|> s)
   where
     parseMaybe :: Maybe Text -> Maybe a
@@ -111,10 +112,11 @@ getTagCloudMode isowner publicTagCloud tags = do
   let expanded = maybe False isExpanded ms
   if not isowner && not publicTagCloud
     then pure TagCloudModeNone
-    else if not (null tags)
-      then pure $ TagCloudModeRelated False tags
-      else pure $ case ms of
-        Nothing -> TagCloudModeTop expanded
-        Just (TagCloudModeRelated e _) -> TagCloudModeTop e
-        Just (TagCloudModeRelatedLowerBound e _ _) -> TagCloudModeTop e
-        Just m -> m
+    else
+      if not (null tags)
+        then pure $ TagCloudModeRelated False tags
+        else pure $ case ms of
+          Nothing -> TagCloudModeTop expanded
+          Just (TagCloudModeRelated e _) -> TagCloudModeTop e
+          Just (TagCloudModeRelatedLowerBound e _ _) -> TagCloudModeTop e
+          Just m -> m

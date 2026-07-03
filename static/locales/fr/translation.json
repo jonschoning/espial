@@ -1,6 +1,7 @@
 {
   "auth": {
     "invalidUsernamePass": "La combinaison de ce mot de passe et de ce nom d'utilisateur n'existe pas.",
+    "tooManyAttempts": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
     "incorrectOldPassword": "Ancien mot de passe incorrect",
     "passwordTooShort": "Le mot de passe doit comporter au moins 6 caractères",
     "passUpdated": "Mot de passe mis à jour",
@@ -48,10 +49,16 @@
     "bookmarklet": "bookmarklet d'ajout d'URL",
     "changePassword": "Changer le mot de passe",
     "accountTitle": "Paramètres du compte",
+    "groupLanguage": "Langue",
+    "groupArchive": "Archivage",
+    "groupGeneral": "Général",
+    "groupPrivacy": "Confidentialité et partage",
     "archiveDefault": "Archiver les nouveaux favoris non-privés par défaut",
     "privateDefault": "Mettre les nouveaux favoris en privé par défaut",
     "suggestTags": "Activer les suggestions de tags",
-    "privacyLock": "Verrouillage de confidentialité (compte privé)",\n    "publicTagCloud": "Public Tag Cloud (visible to visitors)",
+    "privacyLock": "Verrouillage de confidentialité (compte privé)",
+    "publicTagCloud": "Nuage de tags public (visible par les visiteurs)",
+    "previewNotes": "Afficher l'aperçu des notes dans la liste",
     "archivingDisabled": "Archivage désactivé",
     "language": "Langue"
   },

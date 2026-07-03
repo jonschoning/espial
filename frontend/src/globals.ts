@@ -10,6 +10,8 @@ export type AppData = {
   isowner: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags?: boolean;
+  /** Whether note listings show a text preview, or just the title. */
+  previewNotes?: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled?: boolean;
   /** The current filter applied to the bookmarks. */
@@ -58,18 +60,6 @@ declare global {
 
 export function app(): App {
   return globalThis.app;
-}
-
-export function tagCloudEndpoint(): string {
-  const raw = globalThis.app.tagCloudR;
-  if (!raw) return 'api/tagcloud';
-  try {
-    const u = new URL(raw, window.location.origin);
-    const rel = `${u.pathname}${u.search}${u.hash}`;
-    return rel.startsWith('/') ? rel.slice(1) : rel;
-  } catch {
-    return raw.replace(/^\/+/, '');
-  }
 }
 
 export function fromNow(locale = navigator.language, date: Date | number | string): string {

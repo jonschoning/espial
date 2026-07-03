@@ -1,16 +1,16 @@
 module Model.Custom where
 
-import Crypto.BCrypt as Import hiding (hashPassword)
+import Crypto.BCrypt (HashingPolicy (..), hashPasswordUsingPolicy, validatePassword)
 import Crypto.Hash.SHA256 qualified as SHA256
 import Data.Aeson qualified as A
 import Data.Base64.Types qualified as Base64
+import Data.ByteString (ByteString)
 import Data.ByteString.Base64.URL qualified as Base64Url
 import Data.ByteString.Builder qualified as BB
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Database.Persist.Sql
-import Safe (fromJustNote)
 import System.Entropy (getEntropy)
 import Prelude
 
@@ -39,29 +39,49 @@ newtype NtSlug = NtSlug
 mkNtSlug :: IO NtSlug
 mkNtSlug = NtSlug <$> mkSlug 10
 
--- * Model Crypto
+-- * Password Hashing
 
-policy :: HashingPolicy
-policy =
-  HashingPolicy
-    { preferredHashCost = 12,
-      preferredHashAlgorithm = "$2a$"
-    }
-
-newtype BCrypt = BCrypt
-  { unBCrypt :: T.Text
+newtype PasswordHash = PasswordHash
+  { unPasswordHash :: T.Text
   }
   deriving (Eq, PersistField, PersistFieldSql, Show, Ord, A.FromJSON, A.ToJSON)
 
-hashPassword :: T.Text -> IO BCrypt
-hashPassword rawPassword = do
-  mPassword <- hashPasswordUsingPolicy policy (TE.encodeUtf8 rawPassword)
-  return
-    (BCrypt (TE.decodeUtf8 (fromJustNote "Invalid hashing policy" mPassword)))
+bcryptPolicy :: HashingPolicy
+bcryptPolicy = HashingPolicy {preferredHashCost = 12, preferredHashAlgorithm = "$2a$"}
 
-validatePasswordHash :: BCrypt -> T.Text -> Bool
-validatePasswordHash hash' pass = do
-  validatePassword (TE.encodeUtf8 (unBCrypt hash')) (TE.encodeUtf8 pass)
+data HashAlgoConfig
+  = HashAlgoBCrypt HashingPolicy
+
+-- | Hash a password with BCrypt.
+hashPasswordBCrypt :: T.Text -> IO PasswordHash
+hashPasswordBCrypt = hashPasswordWith (HashAlgoBCrypt bcryptPolicy)
+
+hashPasswordBCryptWithPolicy :: HashingPolicy -> T.Text -> IO PasswordHash
+hashPasswordBCryptWithPolicy policy = hashPasswordWith (HashAlgoBCrypt policy)
+
+-- | True when the stored hash should be rehashed under 'targetAlgo'
+needsRehash :: HashAlgoConfig -> PasswordHash -> Bool
+needsRehash (HashAlgoBCrypt _) (PasswordHash stored) = not ("$2" `T.isPrefixOf` stored)
+
+-- | Hash a password under the given algorithm/parameters
+hashPasswordWith :: HashAlgoConfig -> T.Text -> IO PasswordHash
+hashPasswordWith (HashAlgoBCrypt policy) pwd = do
+  mbs <- hashPasswordUsingPolicy policy (TE.encodeUtf8 pwd)
+  case mbs of
+    Nothing -> ioError (userError "bcrypt: invalid hashing policy")
+    Just bs -> pure (PasswordHash (TE.decodeUtf8 bs))
+
+-- | Validate a plaintext password against a stored hash.
+validatePasswordHash :: PasswordHash -> T.Text -> Bool
+validatePasswordHash ph@(PasswordHash h) pwd
+  | "$2" `T.isPrefixOf` h = validateBCrypt ph pwd
+  | otherwise = False
+
+validateBCrypt :: PasswordHash -> T.Text -> Bool
+validateBCrypt (PasswordHash h) pwd =
+  validatePassword (TE.encodeUtf8 h) (TE.encodeUtf8 pwd)
+
+-- * Model Crypto (API key)
 
 newtype ApiKey = ApiKey {unApiKey :: T.Text}
 
@@ -76,4 +96,14 @@ generateApiKey = do
   pure $ ApiKey $ Base64.extractBase64 $ Base64Url.encodeBase64 bytes
 
 hashApiKey :: ApiKey -> HashedApiKey
-hashApiKey = HashedApiKey . TE.decodeUtf8 . Base64.extractBase64 . Base64Url.encodeBase64' . SHA256.hash . TE.encodeUtf8 . unApiKey
+hashApiKey =
+  HashedApiKey
+    . TE.decodeUtf8
+    . Base64.extractBase64
+    . Base64Url.encodeBase64'
+    . sha256Bytes
+    . TE.encodeUtf8
+    . unApiKey
+  where
+    sha256Bytes :: ByteString -> ByteString
+    sha256Bytes = SHA256.hash

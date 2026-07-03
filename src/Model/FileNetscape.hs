@@ -22,7 +22,7 @@ data NetscapeBookmark = NetscapeBookmark
     nsbTags :: !Text,
     nsbTime :: !UTCTime
   }
-  deriving (Eq, Typeable, Ord, Show)
+  deriving (Eq, Ord, Show)
 
 parseNetscapeBookmarks :: Text -> Either String [NetscapeBookmark]
 parseNetscapeBookmarks content = do
