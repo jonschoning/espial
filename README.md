@@ -197,14 +197,9 @@ Espial can also be served under a path prefix on a shared domain, e.g. `https://
        redir /espial /espial/
 
        handle_path /espial/* {
-           # keepalive off: Caddy pools and reuses idle connections to the backend
+           # Caddy pools and reuses idle connections to the backend
            # by default, but Espial's Warp server closes idle connections after 30s
-           # -- a pooled connection reused right after Warp has closed it causes an
-           # immediate EOF/502 on the next request through it (e.g. a login POST).
-           # Disabling pooling makes Caddy dial fresh every time instead of racing
-           # a timeout it doesn't control (this matters even more when proxying to
-           # host.docker.internal, since that also crosses Docker Desktop's own NAT
-           # layer, which can drop idle connections on its own schedule too).
+           # set keepalive to off or 15s
            reverse_proxy host.docker.internal:3000 {
                transport http {
                    keepalive off

@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.38 (2020-07-02)
+## v0.0.38 (2020-07-03)
 
 - add account setting `Show note previews in the note list` (`previewNotes`, default: on) to toggle text previews in the notes list
 - note `per page` selection uses a separate session key from bookmarks
