@@ -36,16 +36,15 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
 
   return (
     <div className="settings-form">
-      <div className="fw7 mb2">{t('settings.accountTitle')}</div>
+      <div className="fw7 mb3">{t('settings.accountTitle')}</div>
 
-      <div className="flex items-center mb2">
-        <label htmlFor="language" className="lh-copy mr2">
-          {t('settings.language')}
-        </label>
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.groupLanguage')}</div>
+      <div className="flex items-center mb3">
         <select
           id="language"
           name="language"
           className="pointer"
+          aria-label={t('settings.language')}
           value={us.language ?? ''}
           onChange={(e) => {
             const next = { ...us, language: e.target.value === '' ? null : e.target.value };
@@ -72,8 +71,38 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         </select>
       </div>
 
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.groupGeneral')}</div>
+      <div className="flex items-center mb2">
+        <input
+          type="checkbox"
+          className="pointer mr2"
+          id="suggestTags"
+          name="suggestTags"
+          checked={us.suggestTags}
+          onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
+        />
+        <label htmlFor="suggestTags" className="lh-copy">
+          {t('settings.suggestTags')}
+        </label>
+      </div>
+
+      <div className="flex items-center mb3">
+        <input
+          type="checkbox"
+          className="pointer mr2"
+          id="previewNotes"
+          name="previewNotes"
+          checked={us.previewNotes}
+          onChange={(e) => void update({ ...us, previewNotes: e.target.checked })}
+        />
+        <label htmlFor="previewNotes" className="lh-copy">
+          {t('settings.previewNotes')}
+        </label>
+      </div>
+
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.groupArchive')}</div>
       <div
-        className={`flex items-center mb2${archiveDisabled ? ' o-50' : ''}`}
+        className={`flex items-center mb3${archiveDisabled ? ' o-50' : ''}`}
         title={archiveDisabledTitle}
       >
         <input
@@ -95,20 +124,7 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         </label>
       </div>
 
-      <div className="flex items-center mb2">
-        <input
-          type="checkbox"
-          className="pointer mr2"
-          id="suggestTags"
-          name="suggestTags"
-          checked={us.suggestTags}
-          onChange={(e) => void update({ ...us, suggestTags: e.target.checked })}
-        />
-        <label htmlFor="suggestTags" className="lh-copy">
-          {t('settings.suggestTags')}
-        </label>
-      </div>
-
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.groupPrivacy')}</div>
       <div className="flex items-center mb2">
         <input
           type="checkbox"

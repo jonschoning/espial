@@ -24,6 +24,7 @@ function toTextareaPreview(input: string) {
 export function NList({ initial }: { initial: Note[] }) {
   const { t } = useTranslation();
   const a = app();
+  const previewNotes = a.dat.previewNotes !== false;
   const linkToFilterSingle = (slug: string) => `${fromNullableStr(a.userR)}/notes/${slug}`;
 
   return (
@@ -44,9 +45,11 @@ export function NList({ initial }: { initial: Note[] }) {
                 {note.title === '' ? t('noTitle') : note.title}
               </a>
               <br />
-              <div className="description mt1 thm-text-secondary">
-                {toTextareaPreview(note.text.slice(0, 200))}
-              </div>
+              {previewNotes ? (
+                <div className="description mt1 thm-text-secondary">
+                  {toTextareaPreview(note.text.slice(0, 200))}
+                </div>
+              ) : null}
               <a
                 className="link f7 dib thm-text-tertiary w4"
                 data-created={note.created}

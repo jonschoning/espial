@@ -59,6 +59,7 @@ User json
   suggestTags Bool default=True
   privacyLock Bool
   publicTagCloud Bool default=False
+  previewNotes Bool default=True
   language I18nLang Maybe
   UniqueUserName name
   deriving Show Eq Ord

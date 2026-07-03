@@ -10,6 +10,8 @@ export type AppData = {
   isowner: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags?: boolean;
+  /** Whether note listings show a text preview, or just the title. */
+  previewNotes?: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled?: boolean;
   /** The current filter applied to the bookmarks. */

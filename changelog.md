@@ -2,9 +2,12 @@
 
 ## v0.0.38 (2020-07-02)
 
+- add account setting `Show note previews in the note list` (`previewNotes`, default: on) to toggle text previews in the notes list
+- note `per page` selection uses a separate session key from bookmarks
+- add group headings on account settings page
+- add login page rate limiting; add appSettings `login-rate-limit-max-attempts` (default: 10), `login-rate-limit-window-seconds` (default: 60)
 - bug fix: fix translations from v0.0.37 which introduced malforfmed json into non-english translation files; add translation tests
 - bug fix: allow espial to be run on a subpath url via APPROOT setting / env var (fixes #58)
-- added login page rate limiting; added appSettings `login-rate-limit-max-attempts` (default: 10), `login-rate-limit-window-seconds` (default: 60)
 
 ## v0.0.37 (2026-06-30)
 

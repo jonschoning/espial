@@ -35,6 +35,7 @@ data MigrationOpts
         suggestTags :: Maybe Bool,
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
+        previewNotes :: Maybe Bool,
         userLanguage :: Maybe I18nLang
       }
   | CreateApiKey
@@ -128,17 +129,19 @@ main = do
             suggestTagsVal = fromMaybe True suggestTags
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
+            previewNotesVal = fromMaybe True previewNotes
             userLanguageVal = userLanguage
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal userLanguageVal)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
               UserPrivateDefault P.=. privateDefaultVal,
               UserArchiveDefault P.=. archiveDefaultVal,
               UserSuggestTags P.=. suggestTagsVal,
               UserPrivacyLock P.=. privacyLockVal,
               UserPublicTagCloud P.=. publicTagCloudVal,
+              UserPreviewNotes P.=. previewNotesVal,
               UserLanguage P.=. userLanguageVal
             ]
         pure () :: DB ()
@@ -264,6 +267,7 @@ main = do
           "suggestTags: " <> tshow userSuggestTags,
           "privacyLock: " <> tshow userPrivacyLock,
           "publicTagCloud: " <> tshow userPublicTagCloud,
+          "previewNotes: " <> tshow userPreviewNotes,
           "hasApiKey: " <> tshow (isJust userApiToken)
         ]
 

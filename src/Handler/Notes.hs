@@ -15,19 +15,20 @@ getNotesR unamep@(UserNameP uname) = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
+      previewNotes = maybe True userPreviewNotes muser
       frontendBundleName = appFrontendBundleName app
       t = \key -> appTranslate app lang (I18nKey key)
       tc = \key n ->
         let suffix = if n == (1 :: Int) then "_one" else "_other"
          in T.replace "{{count}}" (tshow n) (t (key <> suffix))
   mauthuname <- maybeAuthUsername
-  (limit', page') <- lookupPagingParams
+  (limit', page') <- lookupPagingParams (Just "n")
   let queryp = "query"
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
   mquery <- lookupGetParam queryp
   mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
-  let limit = maybe 20 fromIntegral limit'
+  let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
       isowner = Just uname == mauthuname
@@ -61,6 +62,7 @@ getNotesR unamep@(UserNameP uname) = do
         app.userR = "@{UserR unamep}";
         app.dat.notes = #{ toJSON notes } || [];
         app.dat.isowner = #{ isowner };
+        app.dat.previewNotes = #{ previewNotes };
     |]
     toWidget
       [hamlet|
@@ -228,12 +230,12 @@ noteToRssEntry render usernamep (Entity entryId entry) =
 getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
-  (limit', page') <- lookupPagingParams
+  (limit', page') <- lookupPagingParams (Just "n")
   mquery <- lookupGetParam "query"
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
   let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
-  let limit = maybe 20 fromIntegral limit'
+  let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then SharedAll else SharedPublic

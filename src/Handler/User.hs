@@ -34,8 +34,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
       t = \key -> appTranslate app lang (I18nKey key)
       frontendBundleName = appFrontendBundleName app
-  (limit', page') <- lookupPagingParams
-  let limit = maybe 120 fromIntegral limit'
+  (limit', page') <- lookupPagingParams Nothing
+  let limit = maybe 120 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       isowner = Just uname == fmap userName muser
       sharedp = if isowner then sharedp' else SharedPublic
@@ -213,8 +213,8 @@ getUserFeedTagsR uname = _getUserFeed uname SharedAll FilterAll
 _getUserFeed :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler RepRss
 _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   mauthuname <- maybeAuthUsername
-  (limit', page') <- lookupPagingParams
-  let limit = maybe 120 fromIntegral limit'
+  (limit', page') <- lookupPagingParams Nothing
+  let limit = maybe 120 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic

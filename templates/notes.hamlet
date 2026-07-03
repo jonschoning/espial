@@ -22,7 +22,7 @@
 
       <div .cf>
 
-    <div .user_footer hidden>
+    <div .user_footer.view-delay>
       ^{pager}
 
       $if (fromIntegral bcount >= limit) || (page > 1)
