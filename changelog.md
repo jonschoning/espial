@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.40 (2026-07-XX)
+
+- TBD
+
 ## v0.0.39 (2026-07-03)
 
 - security fix: hardened endpoints against a file-disclosure vulnerability
