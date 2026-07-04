@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.39 (2026-07-03)
+
+- security fix: hardened endpoints against a file-disclosure vulnerability
+  - affects `v0.0.36` through `v0.0.38`; upgrading is recommended
+
 ## v0.0.38 (2020-07-03)
 
 - add account setting `Show note previews in the note list` (`previewNotes`, default: on) to toggle text previews in the notes list
