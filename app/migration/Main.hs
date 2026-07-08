@@ -84,7 +84,21 @@ data MigrationOpts
         userName :: Text,
         noteDirectory :: FilePath
       }
+  | ImportNotesJson
+      { conn :: Maybe Text,
+        userName :: Text,
+        noteFile :: FilePath
+      }
+  | ExportNotesJson
+      { conn :: Maybe Text,
+        userName :: Text,
+        noteFile :: FilePath
+      }
   | PrintMigrateDB {conn :: Maybe Text}
+  | RunMigrateDB
+      { conn :: Maybe Text,
+        silent :: Maybe Bool
+      }
   deriving (Generic, Show)
 
 instance ParseRecord MigrationOpts
@@ -109,6 +123,13 @@ main = do
     PrintMigrateDB {..} -> do
       connText <- getConnText conn
       P.runSqlite connText dumpMigration
+    RunMigrateDB {..} -> do
+      connText <- getConnText conn
+      let connInfo =
+            P.mkSqliteConnectionInfo connText
+              & set P.fkEnabled False
+      P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
+      P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateDB {..} -> do
       connText <- getConnText conn
       let connInfo =
@@ -225,6 +246,26 @@ main = do
             case result of
               Left e -> liftIO (print e)
               Right n -> liftIO (print (show n ++ " notes imported."))
+          Nothing -> liftIO (print (userName ++ "not found"))
+    ImportNotesJson {..} -> do
+      connText <- getConnText conn
+      mfnotes <- readFileNotes noteFile
+      case mfnotes of
+        Left e -> print e
+        Right fnotes ->
+          P.runSqlite connText $ do
+            muser <- P.getBy (UniqueUserName userName)
+            case muser of
+              Just (P.Entity uid _) -> do
+                n <- insertFileNotes uid fnotes
+                liftIO (print (show n ++ " notes imported."))
+              Nothing -> liftIO (print (userName ++ "not found"))
+    ExportNotesJson {..} -> do
+      connText <- getConnText conn
+      P.runSqlite connText $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> exportFileNotes uid noteFile
           Nothing -> liftIO (print (userName ++ "not found"))
     ImportNetscapeBookmarks {..} -> do
       connText <- getConnText conn

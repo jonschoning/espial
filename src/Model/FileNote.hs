@@ -87,6 +87,10 @@ readDirFileNotes fdir = liftIO $ do
   noteBSS <- mapM (readFile . (fdir </>)) files
   pure (mapM (A.eitherDecode' . fromStrict) noteBSS)
 
+readFileNotes :: (MonadIO m) => FilePath -> m (Either String [FileNote])
+readFileNotes fpath =
+  A.eitherDecode' . fromStrict <$> readFile fpath
+
 insertFileNotes :: Key User -> [FileNote] -> DB Int
 insertFileNotes userId fnotes = do
   notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
@@ -113,3 +117,7 @@ noteToFileNote (Entity k Note {..}) =
 
 getFileNotes :: Key User -> DB [FileNote]
 getFileNotes user = fmap noteToFileNote <$> allUserNotes user
+
+exportFileNotes :: Key User -> FilePath -> DB ()
+exportFileNotes user fpath =
+  liftIO . A.encodeFile fpath =<< getFileNotes user
