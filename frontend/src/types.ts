@@ -79,6 +79,8 @@ export type AccountSettings = {
   previewNotes: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
+  /** Whether the user currently has an API key set. */
+  hasApiKey: boolean;
   /** The user's preferred language (null means server default). */
   language: string | null;
 };

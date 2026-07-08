@@ -39,6 +39,20 @@ postEditAccountSettingsR = do
     Nothing -> setLanguage (fromI18nLang (appLanguageDefault (appSettings app)))
     Just lang -> setLanguage (fromI18nLang lang)
 
+-- API key is only returned in plaintext here, since it is stored hashed.
+postApiKeyR :: Handler Value
+postApiKeyR = do
+  userId <- requireAuthId
+  apiKey <- liftIO generateApiKey
+  runDB (update userId [UserApiToken CP.=. Just (hashApiKey apiKey)])
+  pure (A.object ["apiKey" A..= unApiKey apiKey])
+
+deleteApiKeyR :: Handler Value
+deleteApiKeyR = do
+  userId <- requireAuthId
+  runDB (update userId [UserApiToken CP.=. Nothing])
+  pure (A.object ["ok" A..= True])
+
 getExportBookmarksR :: Handler TypedContent
 getExportBookmarksR = do
   userId <- requireAuthId

@@ -183,6 +183,29 @@ export async function editAccountSettings(
   return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
 
+export async function resetApiKey(): Promise<{
+  ok: boolean;
+  status: number;
+  apiKey?: string;
+  bodyText?: string;
+}> {
+  const res = await request('POST', 'Settings/apikey');
+  if (res.ok) {
+    try {
+      const data = await res.json<{ apiKey: string }>();
+      return { ok: true, status: res.status, apiKey: data.apiKey };
+    } catch {
+      return { ok: true, status: res.status };
+    }
+  }
+  return { ok: false, status: res.status, bodyText: await res.text() };
+}
+
+export async function revokeApiKey(): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('DELETE', 'Settings/apikey');
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
+}
+
 // Paths relative to the document's `<base href>` (the approot). Exports are plain
 // authenticated GET downloads; anchors point at these directly.
 export const exportPaths = {

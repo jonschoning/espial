@@ -41,6 +41,9 @@
 /Settings/import/netscape  ImportNetscapeR  POST
 /Settings/import/notes     ImportNotesR     POST
 
+-- settings/apikey
+/Settings/apikey ApiKeyR POST DELETE
+
 -- settings/password
 /Settings/Password ChangePasswordR GET POST
 

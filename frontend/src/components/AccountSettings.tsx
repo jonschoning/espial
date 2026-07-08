@@ -7,7 +7,7 @@ import { editAccountSettings } from '../api';
 import type { AccountSettings } from '../types';
 import { apiErrorMsg } from '../util';
 
-type SettingsTab = 'account' | 'importexport';
+type SettingsTab = 'account' | 'importexport' | 'api';
 
 /** Displays and edits the current user's account settings, with a sub-nav to import/export. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
@@ -35,6 +35,8 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
         {tabLink('account', t('settings.tabAccount'))}
         {' ‧ '}
         {tabLink('importexport', t('settings.tabImportExport'))}
+        {' ‧ '}
+        {tabLink('api', t('settings.tabApi'))}
       </div>
 
       <div className={tab === 'account' ? '' : 'dn'}>
@@ -42,6 +44,9 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
       </div>
       <div className={tab === 'importexport' ? '' : 'dn'}>
         <ImportExportView />
+      </div>
+      <div className={tab === 'api' ? '' : 'dn'}>
+        <ApiKeyView initialHasApiKey={initial.hasApiKey} />
       </div>
     </div>
   );
@@ -76,8 +81,6 @@ function SettingsView({ initial }: { initial: AccountSettings }) {
 
   return (
     <div className="settings-form">
-      <div className="fw7 mb3">{t('settings.accountTitle')}</div>
-
       <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.groupLanguage')}</div>
       <div className="flex items-center mb3">
         <select
@@ -308,6 +311,125 @@ function ImportExportView() {
       {importRow(t('settings.importNotesJson'), '.json', combineNotes, api.importNotes, true)}
 
       {status ? <div className="f7 mt2">{status}</div> : null}
+      {error ? <div className="thm-text-error f7 mt2">{error}</div> : null}
+    </div>
+  );
+}
+
+function ApiKeyView({ initialHasApiKey }: { initialHasApiKey: boolean }) {
+  const { t } = useTranslation();
+  const [hasApiKey, setHasApiKey] = React.useState(initialHasApiKey);
+  const [newKey, setNewKey] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
+
+  async function reset(): Promise<void> {
+    setError(null);
+    setCopied(false);
+    setBusy(true);
+    try {
+      const res = await api.resetApiKey();
+      if (res.ok && res.apiKey) {
+        setNewKey(res.apiKey);
+        setHasApiKey(true);
+      } else {
+        setError(apiErrorMsg(t, res.status, res.bodyText ?? ''));
+      }
+    } catch (err) {
+      setError(err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revoke(): Promise<void> {
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await api.revokeApiKey();
+      if (res.ok) {
+        setHasApiKey(false);
+        setNewKey(null);
+      } else {
+        setError(apiErrorMsg(t, res.status, res.bodyText));
+      }
+    } catch (err) {
+      setError(err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyKey(): Promise<void> {
+    if (!newKey) return;
+    try {
+      await navigator.clipboard.writeText(newKey);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <div className="settings-form">
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.apiKeyTitle')}</div>
+      <div className="mb3 lh-copy">
+        {hasApiKey ? t('settings.apiKeyHasKey') : t('settings.apiKeyNoKey')}
+      </div>
+
+      {newKey ? (
+        <div className="mb3">
+          <div className="mb1 lh-copy">{t('settings.apiKeyShownOnce')}</div>
+          <div className="flex items-center">
+            <input
+              type="text"
+              readOnly
+              className="code f7 pa2 ba thm-border-primary bg-transparent thm-text-strong w-100 mw6"
+              value={newKey}
+              onFocus={(e) => {
+                e.target.select();
+              }}
+            />
+            <a
+              href="#"
+              className="link ml2"
+              onClick={(e) => {
+                e.preventDefault();
+                void copyKey();
+              }}
+            >
+              {copied ? t('settings.apiKeyCopied') : t('settings.apiKeyCopy')}
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex items-center">
+        <button
+          type="button"
+          disabled={busy}
+          className="ph3 pv2 input-reset thm-text-strong ba thm-border-primary bg-transparent pointer f6 dib dim"
+          onClick={() => void reset()}
+        >
+          {hasApiKey ? t('settings.apiKeyReset') : t('settings.apiKeyCreate')}
+        </button>
+        {hasApiKey ? (
+          <button
+            type="button"
+            disabled={busy}
+            className="ml3 input-reset bn bg-transparent thm-text-error pointer f6 dib dim"
+            onClick={() => void revoke()}
+          >
+            {t('settings.apiKeyRevoke')}
+          </button>
+        ) : null}
+      </div>
+
+      {hasApiKey ? (
+        <div className="f7 thm-text-tertiary mt2 lh-copy">{t('settings.apiKeyResetHint')}</div>
+      ) : null}
+
       {error ? <div className="thm-text-error f7 mt2">{error}</div> : null}
     </div>
   );

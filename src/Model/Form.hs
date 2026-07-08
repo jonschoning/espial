@@ -18,6 +18,7 @@ data AccountSettingsForm = AccountSettingsForm
     _publicTagCloud :: Bool,
     _previewNotes :: Bool,
     _archiveBackendEnabled :: Bool,
+    _hasApiKey :: Bool,
     _language :: Maybe I18nLang
   }
   deriving (Show, Eq, Generic)
@@ -36,6 +37,7 @@ toAccountSettingsForm archiveBackendEnabled User {..} =
       _publicTagCloud = userPublicTagCloud,
       _previewNotes = userPreviewNotes,
       _archiveBackendEnabled = archiveBackendEnabled,
+      _hasApiKey = isJust userApiToken,
       _language = userLanguage
     }
 
