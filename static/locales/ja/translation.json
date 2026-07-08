@@ -60,7 +60,22 @@
     "publicTagCloud": "公開タグクラウド（訪問者に表示されます）",
     "previewNotes": "ノート一覧にプレビューを表示",
     "archivingDisabled": "アーカイブ無効",
-    "language": "言語"
+    "language": "言語",
+    "tabAccount": "アカウント",
+    "tabImportExport": "インポート / エクスポート",
+    "export": "エクスポート",
+    "import": "インポート",
+    "exportBookmarksJson": "ブックマーク (JSON)",
+    "exportBookmarksHtml": "ブックマーク (Netscape HTML)",
+    "exportNotesJson": "ノート (JSON)",
+    "importBookmarksJson": "ブックマーク (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "ノート (JSON)",
+    "importing": "インポート中…",
+    "imported_one": "{{count}} 件をインポートしました",
+    "imported_other": "{{count}} 件をインポートしました",
+    "importParseError": "ファイルを読み込めませんでした"
   },
   "rss": "RSS",
   "filter": {

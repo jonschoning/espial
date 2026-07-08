@@ -60,7 +60,22 @@
     "publicTagCloud": "公開標籤雲（訪客可見）",
     "previewNotes": "在筆記列表中顯示預覽",
     "archivingDisabled": "封存功能已停用",
-    "language": "語言"
+    "language": "語言",
+    "tabAccount": "帳戶",
+    "tabImportExport": "匯入 / 匯出",
+    "export": "匯出",
+    "import": "匯入",
+    "exportBookmarksJson": "書籤 (JSON)",
+    "exportBookmarksHtml": "書籤 (Netscape HTML)",
+    "exportNotesJson": "筆記 (JSON)",
+    "importBookmarksJson": "書籤 (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "筆記 (JSON)",
+    "importing": "正在匯入…",
+    "imported_one": "已匯入 {{count}} 項",
+    "imported_other": "已匯入 {{count}} 項",
+    "importParseError": "無法讀取檔案"
   },
   "rss": "RSS",
   "filter": {

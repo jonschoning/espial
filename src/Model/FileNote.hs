@@ -4,6 +4,7 @@ import ClassyPrelude.Yesod hiding (Value, exists, groupBy, on, (<=.), (==.), (>=
 import Control.Monad.Fail (MonadFail)
 import Data.Aeson qualified as A
 import Data.Aeson.Types qualified as A (parseFail)
+import Database.Persist.Sql (fromSqlKey)
 import Model
 import Model.Custom
 import System.Directory (listDirectory)
@@ -98,3 +99,17 @@ insertDirFileNotes userId noteDirectory = do
   case mfnotes of
     Left e -> pure $ Left e
     Right fnotes -> Right <$> insertFileNotes userId fnotes
+
+noteToFileNote :: Entity Note -> FileNote
+noteToFileNote (Entity k Note {..}) =
+  FileNote
+    { fileNoteId = tshow (fromSqlKey k),
+      fileNoteTitle = noteTitle,
+      fileNoteText = noteText,
+      fileNoteLength = noteLength,
+      fileNoteCreatedAt = noteCreated,
+      fileNoteUpdatedAt = noteUpdated
+    }
+
+getFileNotes :: Key User -> DB [FileNote]
+getFileNotes user = fmap noteToFileNote <$> allUserNotes user

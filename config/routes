@@ -32,6 +32,15 @@
 /Settings AccountSettingsR GET
 /api/accountSettings EditAccountSettingsR POST
 
+-- settings/import-export
+/Settings/export/bookmarks ExportBookmarksR GET
+/Settings/export/netscape  ExportNetscapeR  GET
+/Settings/export/notes     ExportNotesR     GET
+/Settings/import/bookmarks ImportBookmarksR POST
+/Settings/import/firefox   ImportFirefoxR   POST
+/Settings/import/netscape  ImportNetscapeR  POST
+/Settings/import/notes     ImportNotesR     POST
+
 -- settings/password
 /Settings/Password ChangePasswordR GET POST
 

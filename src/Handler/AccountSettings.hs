@@ -1,7 +1,9 @@
 module Handler.AccountSettings where
 
 import ClassyPrelude.Yesod qualified as CP
+import Data.Aeson qualified as A
 import Import
+import Model.File
 
 getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
@@ -36,6 +38,67 @@ postEditAccountSettingsR = do
   case _language accountSettingsForm of
     Nothing -> setLanguage (fromI18nLang (appLanguageDefault (appSettings app)))
     Just lang -> setLanguage (fromI18nLang lang)
+
+getExportBookmarksR :: Handler TypedContent
+getExportBookmarksR = do
+  userId <- requireAuthId
+  fmarks <- runDB (getFileBookmarks userId)
+  downloadAttachment typeJson "espial-bookmarks.json" (A.encode fmarks)
+
+getExportNetscapeR :: Handler TypedContent
+getExportNetscapeR = do
+  userId <- requireAuthId
+  nbmarks <- runDB (getNetscapeBookmarks userId)
+  downloadAttachment typeHtml "espial-bookmarks.html" (renderNetscapeBookmarks nbmarks)
+
+getExportNotesR :: Handler TypedContent
+getExportNotesR = do
+  userId <- requireAuthId
+  fnotes <- runDB (getFileNotes userId)
+  downloadAttachment typeJson "espial-notes.json" (A.encode fnotes)
+
+postImportBookmarksR :: Handler ()
+postImportBookmarksR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (fmarks :: [FileBookmark]) -> respondImported =<< runDB (insertFileBookmarks userId fmarks)
+
+postImportFirefoxR :: Handler ()
+postImportFirefoxR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (node :: FirefoxBookmarkNode) -> respondImported =<< runDB (insertFirefoxBookmarks userId node)
+
+postImportNetscapeR :: Handler ()
+postImportNetscapeR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case parseNetscapeBookmarks (decodeUtf8 (toStrict body)) of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right nbmarks -> respondImported =<< runDB (insertNetscapeBookmarks userId nbmarks)
+
+postImportNotesR :: Handler ()
+postImportNotesR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (fnotes :: [FileNote]) -> respondImported =<< runDB (insertFileNotes userId fnotes)
+
+downloadAttachment :: (ToContent a) => ContentType -> Text -> a -> Handler TypedContent
+downloadAttachment ct filename body = do
+  addHeader "Content-Disposition" ("attachment; filename=\"" <> filename <> "\"")
+  pure (TypedContent ct (toContent body))
+
+importBodyLbs :: Handler LByteString
+importBodyLbs = runConduit (rawRequestBody .| sinkLazy)
+
+respondImported :: Int -> Handler a
+respondImported n = sendStatusJSON ok200 (A.object ["imported" A..= n])
 
 getChangePasswordR :: Handler Html
 getChangePasswordR = do

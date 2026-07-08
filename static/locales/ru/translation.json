@@ -60,7 +60,22 @@
     "publicTagCloud": "Публичное облако тегов (видно посетителям)",
     "previewNotes": "Показывать превью заметок в списке",
     "archivingDisabled": "Архивирование отключено",
-    "language": "Язык"
+    "language": "Язык",
+    "tabAccount": "Аккаунт",
+    "tabImportExport": "Импорт / Экспорт",
+    "export": "Экспорт",
+    "import": "Импорт",
+    "exportBookmarksJson": "Закладки (JSON)",
+    "exportBookmarksHtml": "Закладки (Netscape HTML)",
+    "exportNotesJson": "Заметки (JSON)",
+    "importBookmarksJson": "Закладки (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "Заметки (JSON)",
+    "importing": "импорт…",
+    "imported_one": "Импортирован {{count}} элемент",
+    "imported_other": "Импортировано {{count}} элементов",
+    "importParseError": "не удалось прочитать файл"
   },
   "rss": "RSS",
   "filter": {

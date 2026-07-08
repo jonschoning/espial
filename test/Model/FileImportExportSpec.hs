@@ -633,3 +633,28 @@ spec = do
         n2 <- runDB $ insertFileNotes uid [fn]
         liftIO $ n1 `shouldBe` 1
         liftIO $ n2 `shouldBe` 1
+
+    -- -----------------------------------------------------------------
+    describe "getFileNotes (notes export)" $ do
+      it "exports inserted notes ordered by created, preserving title/text/length" $ do
+        uid <- runDB createTestUser
+        fn1 <- liftIO $ decodeOrFail noteJson
+        fn2 <- liftIO $ decodeOrFail note2Json
+        _ <- runDB $ insertFileNotes uid [fn1, fn2]
+        result <- runDB $ getFileNotes uid
+        liftIO $ map fileNoteTitle result `shouldBe` ["My Title", "Second Note"]
+        liftIO $ fmap fileNoteText (headMay result) `shouldBe` Just "Body text"
+        liftIO $ fmap fileNoteLength (headMay result) `shouldBe` Just 9
+
+      it "round-trips notes through insert then export" $ do
+        uid <- runDB createTestUser
+        fn <- liftIO $ decodeOrFail noteJson
+        _ <- runDB $ insertFileNotes uid [fn]
+        result <- runDB $ getFileNotes uid
+        case headMay result of
+          Nothing -> liftIO $ expectationFailure "expected non-empty export"
+          Just got -> liftIO $ do
+            fileNoteTitle got `shouldBe` fileNoteTitle fn
+            fileNoteText got `shouldBe` fileNoteText fn
+            fileNoteCreatedAt got `shouldBe` fileNoteCreatedAt fn
+            fileNoteUpdatedAt got `shouldBe` fileNoteUpdatedAt fn

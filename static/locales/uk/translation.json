@@ -60,7 +60,22 @@
     "publicTagCloud": "Публічна хмара тегів (видно відвідувачам)",
     "previewNotes": "Показувати попередній перегляд нотаток у списку",
     "archivingDisabled": "Архівування вимкнено",
-    "language": "Мова"
+    "language": "Мова",
+    "tabAccount": "Обліковий запис",
+    "tabImportExport": "Імпорт / Експорт",
+    "export": "Експорт",
+    "import": "Імпорт",
+    "exportBookmarksJson": "Закладки (JSON)",
+    "exportBookmarksHtml": "Закладки (Netscape HTML)",
+    "exportNotesJson": "Нотатки (JSON)",
+    "importBookmarksJson": "Закладки (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "Нотатки (JSON)",
+    "importing": "імпортування…",
+    "imported_one": "Імпортовано {{count}} елемент",
+    "imported_other": "Імпортовано {{count}} елементів",
+    "importParseError": "не вдалося прочитати файл"
   },
   "rss": "RSS",
   "filter": {

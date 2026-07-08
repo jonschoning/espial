@@ -656,6 +656,14 @@ allUserBookmarks user =
             pure $ sqliteGroupConcat (t ^. BookmarkTagTag) (val " ")
         )
 
+allUserNotes :: Key User -> DB [Entity Note]
+allUserNotes user =
+  select $ do
+    n <- from (table @Note)
+    where_ (n ^. NoteUserId ==. val user)
+    orderBy [asc (n ^. NoteCreated)]
+    pure n
+
 parseSearchQuery ::
   (Text -> SqlExpr (Value Bool)) ->
   Text ->

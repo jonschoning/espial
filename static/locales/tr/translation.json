@@ -60,7 +60,22 @@
     "publicTagCloud": "Genel etiket bulutu (ziyaretcilere gorunur)",
     "previewNotes": "Not listesinde onizlemeyi goster",
     "archivingDisabled": "Arsivleme devre disi",
-    "language": "Dil"
+    "language": "Dil",
+    "tabAccount": "Hesap",
+    "tabImportExport": "İçe / Dışa Aktar",
+    "export": "Dışa Aktar",
+    "import": "İçe Aktar",
+    "exportBookmarksJson": "Yer İmleri (JSON)",
+    "exportBookmarksHtml": "Yer İmleri (Netscape HTML)",
+    "exportNotesJson": "Notlar (JSON)",
+    "importBookmarksJson": "Yer İmleri (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "Notlar (JSON)",
+    "importing": "içe aktarılıyor…",
+    "imported_one": "{{count}} öğe içe aktarıldı",
+    "imported_other": "{{count}} öğe içe aktarıldı",
+    "importParseError": "dosya okunamadı"
   },
   "rss": "RSS",
   "filter": {

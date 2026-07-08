@@ -60,7 +60,22 @@
     "publicTagCloud": "Nube de etiquetas publica (visible para visitantes)",
     "previewNotes": "Mostrar vista previa de notas en la lista",
     "archivingDisabled": "Archivado desactivado",
-    "language": "Idioma"
+    "language": "Idioma",
+    "tabAccount": "Cuenta",
+    "tabImportExport": "Importar / Exportar",
+    "export": "Exportar",
+    "import": "Importar",
+    "exportBookmarksJson": "Marcadores (JSON)",
+    "exportBookmarksHtml": "Marcadores (Netscape HTML)",
+    "exportNotesJson": "Notas (JSON)",
+    "importBookmarksJson": "Marcadores (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "Notas (JSON)",
+    "importing": "importando…",
+    "imported_one": "{{count}} elemento importado",
+    "imported_other": "{{count}} elementos importados",
+    "importParseError": "no se pudo leer el archivo"
   },
   "rss": "RSS",
   "filter": {

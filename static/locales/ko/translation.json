@@ -60,7 +60,22 @@
     "publicTagCloud": "공개 태그 클라우드(방문자에게 표시됨)",
     "previewNotes": "노트 목록에 미리보기 표시",
     "archivingDisabled": "아카이브 비활성화됨",
-    "language": "언어"
+    "language": "언어",
+    "tabAccount": "계정",
+    "tabImportExport": "가져오기 / 내보내기",
+    "export": "내보내기",
+    "import": "가져오기",
+    "exportBookmarksJson": "북마크 (JSON)",
+    "exportBookmarksHtml": "북마크 (Netscape HTML)",
+    "exportNotesJson": "노트 (JSON)",
+    "importBookmarksJson": "북마크 (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "노트 (JSON)",
+    "importing": "가져오는 중…",
+    "imported_one": "{{count}}개 항목을 가져왔습니다",
+    "imported_other": "{{count}}개 항목을 가져왔습니다",
+    "importParseError": "파일을 읽을 수 없습니다"
   },
   "rss": "RSS",
   "filter": {

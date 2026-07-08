@@ -2,12 +2,52 @@ import { TimeoutError } from 'ky';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import * as api from '../api';
 import { editAccountSettings } from '../api';
 import type { AccountSettings } from '../types';
 import { apiErrorMsg } from '../util';
 
-/** Displays and edits the current user's account settings. */
+type SettingsTab = 'account' | 'importexport';
+
+/** Displays and edits the current user's account settings, with a sub-nav to import/export. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
+  const { t } = useTranslation();
+  const [tab, setTab] = React.useState<SettingsTab>('account');
+
+  function tabLink(value: SettingsTab, label: string) {
+    return (
+      <a
+        href="#"
+        className={`dib link${tab === value ? ' nav-active' : ' silver hover-alt'}`}
+        onClick={(e) => {
+          e.preventDefault();
+          setTab(value);
+        }}
+      >
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb3">
+        {tabLink('account', t('settings.tabAccount'))}
+        {' ‧ '}
+        {tabLink('importexport', t('settings.tabImportExport'))}
+      </div>
+
+      <div className={tab === 'account' ? '' : 'dn'}>
+        <SettingsView initial={initial} />
+      </div>
+      <div className={tab === 'importexport' ? '' : 'dn'}>
+        <ImportExportView />
+      </div>
+    </div>
+  );
+}
+
+function SettingsView({ initial }: { initial: AccountSettings }) {
   const { t } = useTranslation();
   const [us, setUs] = React.useState<AccountSettings>(initial);
   const [apiError, setApiError] = React.useState<string | null>(null);
@@ -168,6 +208,107 @@ export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
       </div>
 
       {apiError ? <div className="thm-text-error f7 mt2">{apiError}</div> : null}
+    </div>
+  );
+}
+
+function ImportExportView() {
+  const { t } = useTranslation();
+  const [status, setStatus] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
+
+  async function runImport(
+    files: FileList | null,
+    prepare: (texts: string[]) => string,
+    importFn: (body: string) => Promise<api.ImportResult>,
+  ): Promise<void> {
+    if (!files || files.length === 0) return;
+    setError(null);
+    setStatus(t('settings.importing'));
+    setBusy(true);
+    try {
+      const texts = await Promise.all(Array.from(files).map((f) => f.text()));
+      const res = await importFn(prepare(texts));
+      if (res.ok) {
+        setStatus(t('settings.imported', { count: res.imported ?? 0 }));
+      } else {
+        setStatus(null);
+        setError(apiErrorMsg(t, res.status, res.bodyText ?? ''));
+      }
+    } catch (err) {
+      setStatus(null);
+      setError(
+        err instanceof TimeoutError ? t('error.requestTimedOut') : t('settings.importParseError'),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const first = (texts: string[]) => texts[0] ?? '';
+  const combineNotes = (texts: string[]) => {
+    const notes: unknown[] = [];
+    for (const txt of texts) {
+      const parsed: unknown = JSON.parse(txt);
+      if (Array.isArray(parsed)) notes.push(...(parsed as unknown[]));
+      else notes.push(parsed);
+    }
+    return JSON.stringify(notes);
+  };
+
+  function importRow(
+    label: string,
+    accept: string,
+    prepare: (texts: string[]) => string,
+    importFn: (body: string) => Promise<api.ImportResult>,
+    multiple = false,
+  ) {
+    return (
+      <div className="mb2">
+        <div className="mb1">{label}</div>
+        <input
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          disabled={busy}
+          className="f7 pointer"
+          onChange={(e) => {
+            void runImport(e.target.files, prepare, importFn);
+            e.target.value = '';
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-form">
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.export')}</div>
+      <div className="mb1">
+        <a className="link" href={api.exportPaths.bookmarksJson} download>
+          {t('settings.exportBookmarksJson')}
+        </a>
+      </div>
+      <div className="mb1">
+        <a className="link" href={api.exportPaths.bookmarksHtml} download>
+          {t('settings.exportBookmarksHtml')}
+        </a>
+      </div>
+      <div className="mb3">
+        <a className="link" href={api.exportPaths.notesJson} download>
+          {t('settings.exportNotesJson')}
+        </a>
+      </div>
+
+      <div className="f7 fw7 ttu tracked thm-text-tertiary mb2">{t('settings.import')}</div>
+      {importRow(t('settings.importBookmarksJson'), '.json', first, api.importBookmarks)}
+      {importRow(t('settings.importFirefoxJson'), '.json', first, api.importFirefox)}
+      {importRow(t('settings.importNetscapeHtml'), '.html,.htm', first, api.importNetscape)}
+      {importRow(t('settings.importNotesJson'), '.json', combineNotes, api.importNotes, true)}
+
+      {status ? <div className="f7 mt2">{status}</div> : null}
+      {error ? <div className="thm-text-error f7 mt2">{error}</div> : null}
     </div>
   );
 }

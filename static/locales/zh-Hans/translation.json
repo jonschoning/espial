@@ -60,7 +60,22 @@
     "publicTagCloud": "公开标签云（访客可见）",
     "previewNotes": "在笔记列表中显示预览",
     "archivingDisabled": "归档已禁用",
-    "language": "语言"
+    "language": "语言",
+    "tabAccount": "账户",
+    "tabImportExport": "导入 / 导出",
+    "export": "导出",
+    "import": "导入",
+    "exportBookmarksJson": "书签 (JSON)",
+    "exportBookmarksHtml": "书签 (Netscape HTML)",
+    "exportNotesJson": "笔记 (JSON)",
+    "importBookmarksJson": "书签 (Espial/Pinboard JSON)",
+    "importFirefoxJson": "Firefox (JSON)",
+    "importNetscapeHtml": "Netscape HTML",
+    "importNotesJson": "笔记 (JSON)",
+    "importing": "正在导入…",
+    "imported_one": "已导入 {{count}} 项",
+    "imported_other": "已导入 {{count}} 项",
+    "importParseError": "无法读取文件"
   },
   "rss": "RSS",
   "filter": {
