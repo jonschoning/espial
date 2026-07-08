@@ -2,7 +2,14 @@
 
 ## v0.0.40 (2026-07-XX)
 
-- TBD
+- add Import/Export page in Account Settings
+  - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
+  - import bookmarks (Pinboard JSON, Firefox JSON, Netscape HTML) and notes (JSON)
+  - extend `migration` command with `importnotesjson`, `exportnotesjson`
+  - add `migration` command `runmigratedb` to run pending persistent/app migrations without starting the server
+- add API key management to Account Settings (`API` tab)
+  - create/reset an API key (shown once in plaintext) or revoke it
+  - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
 
 ## v0.0.39 (2026-07-03)
 
