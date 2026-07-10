@@ -13,6 +13,7 @@
 - add Account Setting: `Use return key to apply tag suggestions` (default true).
 - add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/import), default: 2097152 bytes (2MB).
 - Extend `migration` cli to add commands: `importnotesjson`, `exportnotesjson`, `runmigratedb`
+- provide a second `edit` link at the top of the note view for initiating editing of longer notes more easily.
 
 ## v0.0.39 (2026-07-03)
 
