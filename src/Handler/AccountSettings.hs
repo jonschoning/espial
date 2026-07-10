@@ -53,50 +53,53 @@ deleteApiKeyR = do
   runDB (update userId [UserApiToken CP.=. Nothing])
   pure (A.object ["ok" A..= True])
 
-getExportBookmarksR :: Handler TypedContent
-getExportBookmarksR = do
+getExportBookmarksJsonR :: Handler TypedContent
+getExportBookmarksJsonR = do
   userId <- requireAuthId
   fmarks <- runDB (getFileBookmarks userId)
-  downloadAttachment typeJson "espial-bookmarks.json" (A.encode fmarks)
+  filename <- exportFilename "espial-bookmarks" "json"
+  downloadAttachment typeJson filename (A.encode fmarks)
 
-getExportNetscapeR :: Handler TypedContent
-getExportNetscapeR = do
+getExportBookmarksNetscapeR :: Handler TypedContent
+getExportBookmarksNetscapeR = do
   userId <- requireAuthId
   nbmarks <- runDB (getNetscapeBookmarks userId)
-  downloadAttachment typeHtml "espial-bookmarks.html" (renderNetscapeBookmarks nbmarks)
+  filename <- exportFilename "espial-bookmarks" "html"
+  downloadAttachment typeHtml filename (renderNetscapeBookmarks nbmarks)
 
-getExportNotesR :: Handler TypedContent
-getExportNotesR = do
+getExportNotesJsonR :: Handler TypedContent
+getExportNotesJsonR = do
   userId <- requireAuthId
   fnotes <- runDB (getFileNotes userId)
-  downloadAttachment typeJson "espial-notes.json" (A.encode fnotes)
+  filename <- exportFilename "espial-notes" "json"
+  downloadAttachment typeJson filename (A.encode fnotes)
 
-postImportBookmarksR :: Handler ()
-postImportBookmarksR = do
+postImportBookmarksJsonR :: Handler ()
+postImportBookmarksJsonR = do
   userId <- requireAuthId
   body <- importBodyLbs
   case A.eitherDecode' body of
     Left e -> sendResponseStatus status400 (pack e :: Text)
     Right (fmarks :: [FileBookmark]) -> respondImported =<< runDB (insertFileBookmarks userId fmarks)
 
-postImportFirefoxR :: Handler ()
-postImportFirefoxR = do
+postImportBookmarksFirefoxR :: Handler ()
+postImportBookmarksFirefoxR = do
   userId <- requireAuthId
   body <- importBodyLbs
   case A.eitherDecode' body of
     Left e -> sendResponseStatus status400 (pack e :: Text)
     Right (node :: FirefoxBookmarkNode) -> respondImported =<< runDB (insertFirefoxBookmarks userId node)
 
-postImportNetscapeR :: Handler ()
-postImportNetscapeR = do
+postImportBookmarksNetscapeR :: Handler ()
+postImportBookmarksNetscapeR = do
   userId <- requireAuthId
   body <- importBodyLbs
   case parseNetscapeBookmarks (decodeUtf8 (toStrict body)) of
     Left e -> sendResponseStatus status400 (pack e :: Text)
     Right nbmarks -> respondImported =<< runDB (insertNetscapeBookmarks userId nbmarks)
 
-postImportNotesR :: Handler ()
-postImportNotesR = do
+postImportNotesJsonR :: Handler ()
+postImportNotesJsonR = do
   userId <- requireAuthId
   body <- importBodyLbs
   case A.eitherDecode' body of
@@ -107,6 +110,11 @@ downloadAttachment :: (ToContent a) => ContentType -> Text -> a -> Handler Typed
 downloadAttachment ct filename body = do
   addHeader "Content-Disposition" ("attachment; filename=\"" <> filename <> "\"")
   pure (TypedContent ct (toContent body))
+
+exportFilename :: Text -> Text -> Handler Text
+exportFilename base ext = do
+  now <- liftIO getCurrentTime
+  pure (base <> "_" <> pack (formatTime defaultTimeLocale "%Y-%m-%d_%H_%MZ" now) <> "." <> ext)
 
 importBodyLbs :: Handler LByteString
 importBodyLbs = runConduit (rawRequestBody .| sinkLazy)

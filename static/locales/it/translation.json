@@ -55,6 +55,7 @@
     "archiveDefault": "Archivia per impostazione predefinita i nuovi segnalibri non privati",
     "privateDefault": "Imposta come privati per default i nuovi segnalibri",
     "suggestTags": "Abilita i suggerimenti per i tag",
+    "suggestTagsUseReturnKey": "Usa il tasto Invio per applicare i suggerimenti per i tag",
     "privacyLock": "Blocco privacy (account privato)",
     "publicTagCloud": "Nuvola di tag pubblica (visibile ai visitatori)",
     "previewNotes": "Mostra l'anteprima delle note nell'elenco",

@@ -10,6 +10,8 @@ export type AppData = {
   isowner: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags?: boolean;
+  /** Whether the Return key applies a tag suggestion (Tab always does). */
+  suggestTagsUseReturnKey?: boolean;
   /** Whether note listings show a text preview, or just the title. */
   previewNotes?: boolean;
   /** Whether the archive backend is enabled. */

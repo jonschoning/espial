@@ -55,6 +55,7 @@
     "archiveDefault": "Arquivar novos favoritos nao privados por padrao",
     "privateDefault": "Definir novos favoritos como privados por padrao",
     "suggestTags": "Ativar sugestoes de tags",
+    "suggestTagsUseReturnKey": "Usar a tecla Enter para aplicar sugestoes de tags",
     "privacyLock": "Bloqueio de privacidade (conta privada)",
     "publicTagCloud": "Nuvem de tags publica (visivel para visitantes)",
     "previewNotes": "Mostrar previa das notas na lista",

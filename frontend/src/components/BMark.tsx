@@ -78,6 +78,7 @@ export function BMark({
   const linkToViewInContext = `${fromNullableStr(a.userR)}?before=${encodeURIComponent(viewInContextTime(new Date(bm.time)))}`;
 
   const suggestEnabled = a.dat.suggestTags === true;
+  const suggestUseReturnKey = a.dat.suggestTagsUseReturnKey !== false;
 
   const {
     tagInputRef,
@@ -90,6 +91,7 @@ export function BMark({
     onSuggestionPick,
   } = useTagSuggestions({
     enabled: suggestEnabled,
+    useReturnKey: suggestUseReturnKey,
     tags: editBm.tags,
     onTagsUpdate: (tags) => {
       setEditBm((x) => ({ ...x, tags }));

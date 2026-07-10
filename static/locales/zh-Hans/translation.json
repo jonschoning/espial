@@ -55,6 +55,7 @@
     "archiveDefault": "默认归档新的非私密书签",
     "privateDefault": "默认将新书签设为私密",
     "suggestTags": "启用标签建议",
+    "suggestTagsUseReturnKey": "使用回车键应用标签建议",
     "privacyLock": "隐私锁定（私密账户）",
     "publicTagCloud": "公开标签云（访客可见）",
     "previewNotes": "在笔记列表中显示预览",

@@ -129,6 +129,20 @@ function SettingsView({ initial }: { initial: AccountSettings }) {
         </label>
       </div>
 
+      <div className="flex items-center mb2">
+        <input
+          type="checkbox"
+          className="pointer mr2"
+          id="suggestTagsUseReturnKey"
+          name="suggestTagsUseReturnKey"
+          checked={us.suggestTagsUseReturnKey}
+          onChange={(e) => void update({ ...us, suggestTagsUseReturnKey: e.target.checked })}
+        />
+        <label htmlFor="suggestTagsUseReturnKey" className="lh-copy">
+          {t('settings.suggestTagsUseReturnKey')}
+        </label>
+      </div>
+
       <div className="flex items-center mb3">
         <input
           type="checkbox"

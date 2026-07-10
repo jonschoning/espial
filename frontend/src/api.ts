@@ -209,9 +209,9 @@ export async function revokeApiKey(): Promise<{ ok: boolean; status: number; bod
 // Paths relative to the document's `<base href>` (the approot). Exports are plain
 // authenticated GET downloads; anchors point at these directly.
 export const exportPaths = {
-  bookmarksJson: 'Settings/export/bookmarks',
-  bookmarksHtml: 'Settings/export/netscape',
-  notesJson: 'Settings/export/notes',
+  bookmarksJson: 'Settings/export/bookmarks/json',
+  bookmarksHtml: 'Settings/export/bookmarks/netscape',
+  notesJson: 'Settings/export/notes/json',
 } as const;
 
 export type ImportResult = {
@@ -239,16 +239,16 @@ async function importFile(path: string, contentType: string, body: string): Prom
 }
 
 export const importBookmarks = (text: string): Promise<ImportResult> =>
-  importFile('Settings/import/bookmarks', 'application/json', text);
+  importFile('Settings/import/bookmarks/json', 'application/json', text);
 
 export const importFirefox = (text: string): Promise<ImportResult> =>
-  importFile('Settings/import/firefox', 'application/json', text);
+  importFile('Settings/import/bookmarks/firefox', 'application/json', text);
 
 export const importNetscape = (text: string): Promise<ImportResult> =>
-  importFile('Settings/import/netscape', 'text/plain', text);
+  importFile('Settings/import/bookmarks/netscape', 'text/plain', text);
 
 export const importNotes = (jsonArray: string): Promise<ImportResult> =>
-  importFile('Settings/import/notes', 'application/json', jsonArray);
+  importFile('Settings/import/notes/json', 'application/json', jsonArray);
 
 export async function logout(): Promise<void> {
   const a = app();

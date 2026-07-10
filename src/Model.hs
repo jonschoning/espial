@@ -57,6 +57,7 @@ User json
   privateDefault Bool
   archiveDefault Bool
   suggestTags Bool default=True
+  suggestTagsUseReturnKey Bool default=True
   privacyLock Bool
   publicTagCloud Bool default=False
   previewNotes Bool default=True

@@ -33,6 +33,7 @@ data MigrationOpts
         privateDefault :: Maybe Bool,
         archiveDefault :: Maybe Bool,
         suggestTags :: Maybe Bool,
+        suggestTagsUseReturnKey :: Maybe Bool,
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
         previewNotes :: Maybe Bool,
@@ -148,6 +149,7 @@ main = do
         let privateDefaultVal = fromMaybe False privateDefault
             archiveDefaultVal = fromMaybe False archiveDefault
             suggestTagsVal = fromMaybe True suggestTags
+            suggestTagsUseReturnKeyVal = fromMaybe True suggestTagsUseReturnKey
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
             previewNotesVal = fromMaybe True previewNotes
@@ -155,11 +157,12 @@ main = do
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal suggestTagsUseReturnKeyVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
               UserPrivateDefault P.=. privateDefaultVal,
               UserArchiveDefault P.=. archiveDefaultVal,
               UserSuggestTags P.=. suggestTagsVal,
+              UserSuggestTagsUseReturnKey P.=. suggestTagsUseReturnKeyVal,
               UserPrivacyLock P.=. privacyLockVal,
               UserPublicTagCloud P.=. publicTagCloudVal,
               UserPreviewNotes P.=. previewNotesVal,
@@ -306,6 +309,7 @@ main = do
           "privateDefault: " <> tshow userPrivateDefault,
           "archiveDefault: " <> tshow userArchiveDefault,
           "suggestTags: " <> tshow userSuggestTags,
+          "suggestTagsUseReturnKey: " <> tshow userSuggestTagsUseReturnKey,
           "privacyLock: " <> tshow userPrivacyLock,
           "publicTagCloud: " <> tshow userPublicTagCloud,
           "previewNotes: " <> tshow userPreviewNotes,

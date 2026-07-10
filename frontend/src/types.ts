@@ -71,6 +71,8 @@ export type AccountSettings = {
   privateDefault: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags: boolean;
+  /** Whether the Return key applies a tag suggestion (Tab always does). */
+  suggestTagsUseReturnKey: boolean;
   /** Whether the account is locked to private-only mode. */
   privacyLock: boolean;
   /** Whether the tag cloud is visible to non-authenticated visitors. */

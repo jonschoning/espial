@@ -55,6 +55,7 @@
     "archiveDefault": "新しい非プライベートブックマークをデフォルトでアーカイブする",
     "privateDefault": "新しいブックマークをデフォルトでプライベートにする",
     "suggestTags": "タグの候補を有効にする",
+    "suggestTagsUseReturnKey": "Enterキーでタグの候補を適用する",
     "privacyLock": "プライバシーロック（非公開アカウント）",
     "publicTagCloud": "公開タグクラウド（訪問者に表示されます）",
     "previewNotes": "ノート一覧にプレビューを表示",

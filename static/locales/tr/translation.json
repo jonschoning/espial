@@ -55,6 +55,7 @@
     "archiveDefault": "Yeni ozel olmayan yer imlerini varsayilan olarak arsivle",
     "privateDefault": "Yeni yer imlerini varsayilan olarak ozel yap",
     "suggestTags": "Etiket onerilerini etkinlestir",
+    "suggestTagsUseReturnKey": "Etiket onerilerini uygulamak icin Enter tusunu kullan",
     "privacyLock": "Gizlilik kilidi (ozel hesap)",
     "publicTagCloud": "Genel etiket bulutu (ziyaretcilere gorunur)",
     "previewNotes": "Not listesinde onizlemeyi goster",

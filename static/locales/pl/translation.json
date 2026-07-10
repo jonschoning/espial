@@ -55,6 +55,7 @@
     "archiveDefault": "Domyślnie archiwizuj nowe niepubliczne zakładki",
     "privateDefault": "Domyślnie ustawiaj nowe zakładki jako prywatne",
     "suggestTags": "Włącz sugestie tagów",
+    "suggestTagsUseReturnKey": "Użyj klawisza Enter, aby zastosować sugestie tagów",
     "privacyLock": "Blokada prywatności (konto prywatne)",
     "publicTagCloud": "Publiczna chmura tagów (widoczna dla odwiedzających)",
     "previewNotes": "Pokaż podgląd notatek na liście",

@@ -55,6 +55,7 @@
     "archiveDefault": "Archive new non-Private bookmarks by default",
     "privateDefault": "Default new bookmarks to Private",
     "suggestTags": "Enable tag suggestions",
+    "suggestTagsUseReturnKey": "Use return key to apply tag suggestions",
     "privacyLock": "Privacy Lock (Private Account)",
     "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "previewNotes": "Show note previews in the note list",

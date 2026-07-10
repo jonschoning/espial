@@ -33,13 +33,13 @@
 /api/accountSettings EditAccountSettingsR POST
 
 -- settings/import-export
-/Settings/export/bookmarks ExportBookmarksR GET
-/Settings/export/netscape  ExportNetscapeR  GET
-/Settings/export/notes     ExportNotesR     GET
-/Settings/import/bookmarks ImportBookmarksR POST
-/Settings/import/firefox   ImportFirefoxR   POST
-/Settings/import/netscape  ImportNetscapeR  POST
-/Settings/import/notes     ImportNotesR     POST
+/Settings/export/bookmarks/json     ExportBookmarksJsonR     GET
+/Settings/export/bookmarks/netscape ExportBookmarksNetscapeR GET
+/Settings/export/notes/json         ExportNotesJsonR         GET
+/Settings/import/bookmarks/json     ImportBookmarksJsonR     POST
+/Settings/import/bookmarks/firefox  ImportBookmarksFirefoxR  POST
+/Settings/import/bookmarks/netscape ImportBookmarksNetscapeR POST
+/Settings/import/notes/json         ImportNotesJsonR         POST
 
 -- settings/apikey
 /Settings/apikey ApiKeyR POST DELETE

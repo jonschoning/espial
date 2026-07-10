@@ -10,7 +10,9 @@
 - add API key management to Account Settings (`API` tab)
   - create/reset an API key (shown once in plaintext) or revoke it
   - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
-- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/import).
+- add Account Setting: `Use return key to apply tag suggestions` (default true).
+- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/import), default: 2097152 bytes (2MB).
+- Extend `migration` cli to add commands: `importnotesjson`, `exportnotesjson`, `runmigratedb`
 
 ## v0.0.39 (2026-07-03)
 

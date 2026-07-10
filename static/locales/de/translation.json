@@ -55,6 +55,7 @@
     "archiveDefault": "Neue nicht-private Lesezeichen standardmäßig archivieren",
     "privateDefault": "Neue Lesezeichen standardmäßig auf privat setzen",
     "suggestTags": "Tag-Vorschläge aktivieren",
+    "suggestTagsUseReturnKey": "Eingabetaste zum Übernehmen von Tag-Vorschlägen verwenden",
     "privacyLock": "Datenschutzsperre (privates Konto)",
     "publicTagCloud": "Öffentliche Tag-Cloud (für Besucher sichtbar)",
     "previewNotes": "Notizvorschauen in der Liste anzeigen",

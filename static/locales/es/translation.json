@@ -55,6 +55,7 @@
     "archiveDefault": "Archivar por defecto los nuevos marcadores no privados",
     "privateDefault": "Marcar como privados por defecto los nuevos marcadores",
     "suggestTags": "Activar sugerencias de etiquetas",
+    "suggestTagsUseReturnKey": "Usar la tecla Intro para aplicar sugerencias de etiquetas",
     "privacyLock": "Bloqueo de privacidad (cuenta privada)",
     "publicTagCloud": "Nube de etiquetas publica (visible para visitantes)",
     "previewNotes": "Mostrar vista previa de notas en la lista",

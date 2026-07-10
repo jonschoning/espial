@@ -68,6 +68,7 @@ export function BulkEdit({ bcount }: Props) {
 
   const a = app();
   const suggestEnabled = a.dat.suggestTags === true;
+  const suggestUseReturnKey = a.dat.suggestTagsUseReturnKey !== false;
   const bulkFilter = a.dat.filter ?? { tag: 'FilterAll' as const };
   const bulkSharedp = a.dat.sharedp ?? 'all';
   const bulkTags = a.dat.tags ?? [];
@@ -92,6 +93,7 @@ export function BulkEdit({ bcount }: Props) {
     onSuggestionPick: onRemoveSuggestionPick,
   } = useTagSuggestions({
     enabled: suggestEnabled && action !== 'delete',
+    useReturnKey: suggestUseReturnKey,
     tags: removeTags,
     onTagsUpdate: setRemoveTags,
   });
@@ -107,6 +109,7 @@ export function BulkEdit({ bcount }: Props) {
     onSuggestionPick: onAddSuggestionPick,
   } = useTagSuggestions({
     enabled: suggestEnabled && action !== 'delete',
+    useReturnKey: suggestUseReturnKey,
     tags: addTags,
     onTagsUpdate: setAddTags,
   });
