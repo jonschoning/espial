@@ -41,3 +41,4 @@ CLAUDE.md
 .claude
 config/tls
 loadtest/results/
+.test-run

@@ -2,7 +2,7 @@
 
 ## v0.0.40 (2026-07-XX)
 
-- add Import/Export page in Account Settings
+- add Import/Export page in Account Settings (`Import / Export` tab)
   - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
   - import bookmarks (Pinboard JSON, Firefox JSON, Netscape HTML) and notes (JSON)
   - extend `migration` command with `importnotesjson`, `exportnotesjson`
@@ -10,6 +10,7 @@
 - add API key management to Account Settings (`API` tab)
   - create/reset an API key (shown once in plaintext) or revoke it
   - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
+- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/import).
 
 ## v0.0.39 (2026-07-03)
 

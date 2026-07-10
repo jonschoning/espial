@@ -232,18 +232,24 @@ function ImportExportView() {
     setBusy(true);
     try {
       const texts = await Promise.all(Array.from(files).map((f) => f.text()));
-      const res = await importFn(prepare(texts));
+      let body: string;
+      try {
+        body = prepare(texts);
+      } catch {
+        setStatus(null);
+        setError(t('settings.importParseError'));
+        return;
+      }
+      const res = await importFn(body);
       if (res.ok) {
         setStatus(t('settings.imported', { count: res.imported ?? 0 }));
       } else {
         setStatus(null);
-        setError(apiErrorMsg(t, res.status, res.bodyText ?? ''));
+        setError(t('error.error', { status: res.status }));
       }
     } catch (err) {
       setStatus(null);
-      setError(
-        err instanceof TimeoutError ? t('error.requestTimedOut') : t('settings.importParseError'),
-      );
+      setError(err instanceof TimeoutError ? t('error.requestTimedOut') : t('error.networkError'));
     } finally {
       setBusy(false);
     }
