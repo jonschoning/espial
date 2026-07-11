@@ -112,7 +112,10 @@ data AppSettings = AppSettings
     -- checked before the password hash is computed.
     appLoginRateLimitMaxAttempts :: Int,
     -- | Login rate-limit window, in seconds.
-    appLoginRateLimitWindowSeconds :: Int
+    appLoginRateLimitWindowSeconds :: Int,
+    -- | Maximum allowed request body size, in bytes (e.g. for Settings/import).
+    -- @0@ disables the limit.
+    appMaximumContentLength :: Int
   }
 
 instance FromJSON AppSettings where
@@ -177,6 +180,8 @@ instance FromJSON AppSettings where
 
     appLoginRateLimitMaxAttempts <- o .:? "login-rate-limit-max-attempts" .!= 10
     appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
+
+    appMaximumContentLength <- o .:? "maximum-content-length" .!= (2 * 1024 * 1024)
 
     pure AppSettings {..}
     where

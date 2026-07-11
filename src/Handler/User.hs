@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Handler.User where
 
@@ -53,14 +53,14 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       (fmap PagingCursorAfter . parsePagingCursorTime)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
-  (suggestTags, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
+  (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     (bcount, btmarks, hasEarlier, hasLater) <-
       bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
-    pure (userSuggestTags user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
+    pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner publicTagCloud pathtags
@@ -97,6 +97,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
+        app.dat.suggestTagsUseReturnKey = #{ suggestTagsUseReturnKey };
         app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
         app.dat.filter = #{ toJSON filterp } || {};
         app.dat.sharedp = #{ toJSON sharedp };
@@ -171,7 +172,7 @@ postUserPublicTagCloudR (UserNameP uname) = do
 
 postUserTagCloudModeR :: Handler ()
 postUserTagCloudModeR = do
-  userId <- requireAuthId
+  void requireAuthId
   mode <- requireCheckJsonBody
   _updateTagCloudMode mode
 
@@ -185,7 +186,7 @@ _updateTagCloudMode mode =
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
-bookmarkToRssEntry (Entity entryId entry, tags) =
+bookmarkToRssEntry (Entity _entryId entry, tags) =
   FeedEntry
     { feedEntryLink = bookmarkHref entry,
       feedEntryUpdated = bookmarkTime entry,

@@ -56,6 +56,15 @@ instance PathPiece FilterP where
       ("b", slug) -> Just $ FilterSingle (BmSlug (drop 1 slug))
       _ -> Nothing
 
+instance PathPiece SettingsTabP where
+  toPathPiece = \case
+    SettingsTabImportExport -> "importexport"
+    SettingsTabApi -> "api"
+  fromPathPiece = \case
+    "importexport" -> Just SettingsTabImportExport
+    "api" -> Just SettingsTabApi
+    _ -> Nothing
+
 deriving instance PathPiece NtSlug
 
 deriving instance PathPiece BmSlug

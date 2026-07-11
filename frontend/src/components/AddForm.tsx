@@ -19,6 +19,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
   const [destroyed, setDestroyed] = React.useState(false);
   const [apiError, setApiError] = React.useState<string | null>(null);
   const suggestEnabled = a.dat.suggestTags === true;
+  const suggestUseReturnKey = a.dat.suggestTagsUseReturnKey !== false;
   const fromNowVal = React.useMemo(() => fromNow(a.lang, bm.time), [a.lang, bm.time]);
 
   const {
@@ -32,6 +33,7 @@ export function AddForm({ initial }: { initial: Bookmark }) {
     onSuggestionPick,
   } = useTagSuggestions({
     enabled: suggestEnabled,
+    useReturnKey: suggestUseReturnKey,
     tags: editBm.tags,
     maxSuggestions: 4,
     onTagsUpdate: (tags) => {

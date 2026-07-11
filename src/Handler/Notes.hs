@@ -11,7 +11,13 @@ import Text.Blaze.Html5 qualified as H
 import Yesod.RssFeed
 
 getNotesR :: UserNameP -> Handler Html
-getNotesR unamep@(UserNameP uname) = do
+getNotesR unamep = _getNotes unamep SharedAll
+
+getNotesSharedR :: UserNameP -> SharedP -> Handler Html
+getNotesSharedR = _getNotes
+
+_getNotes :: UserNameP -> SharedP -> Handler Html
+_getNotes unamep@(UserNameP uname) sharedp' = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
@@ -32,9 +38,9 @@ getNotesR unamep@(UserNameP uname) = do
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
       isowner = Just uname == mauthuname
+      sharedp = if isowner then sharedp' else SharedPublic
   (bcount, notes, hasEarlier, hasLater) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
-    let sharedp = if isowner then SharedAll else SharedPublic
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
@@ -61,14 +67,19 @@ getNotesR unamep@(UserNameP uname) = do
       [julius|
         app.userR = "@{UserR unamep}";
         app.dat.notes = #{ toJSON notes } || [];
+        app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.previewNotes = #{ previewNotes };
+        app.dat.sharedp = #{ toJSON sharedp };
+        app.dat.query = #{ toJSON mquery };
     |]
     toWidget
       [hamlet|
       <script type="module">
-        import { renderNotes } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
+        import { renderNotes, renderNoteBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderNotes('##{renderEl}')(app.dat.notes)();
+        $if isowner
+          renderNoteBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
     |]
 
 getNoteR :: UserNameP -> NtSlug -> Handler Html
@@ -128,6 +139,36 @@ getAddNoteViewR unamep@(UserNameP uname) = do
         import { renderNote } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         renderNote('##{renderEl}')(app.dat.note)();
     |]
+
+postNoteBulkR :: Handler ()
+postNoteBulkR = do
+  app <- getYesod
+  (userId, user) <- requireAuthPair
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
+      t key = appTranslate app lang (I18nKey key)
+  noteBulkForm <- requireCheckJsonBody
+  result <- runDB $ notesBulkEdit userId noteBulkForm
+  case result of
+    Left err -> sendResponseStatus status409 (translateBulkEditError t err)
+    Right editedCount -> do
+      let tsuffix = if editedCount == 1 then "_one" else "_other"
+      if (editedCount == _nbeSelectionCount noteBulkForm)
+        then
+          setMessage
+            $ toHtml
+            $ T.replace "{{editedCount}}" (tshow editedCount)
+            $ t ("bulkEditNotes.editedCount" <> tsuffix)
+        else
+          setMessage
+            $ toHtml
+            $ T.replace "{{selectionCount}}" (tshow (_nbeSelectionCount noteBulkForm))
+            $ T.replace "{{editedCount}}" (tshow editedCount)
+            $ t ("bulkEditNotes.editedCountMismatch" <> tsuffix)
+      sendResponseStatus ok200 (object ["editedCount" .= editedCount])
+  where
+    translateBulkEditError t = \case
+      BulkEditErrorPageMismatch ->
+        t "bulkEditNotes.pageMismatch"
 
 deleteDeleteNoteR :: Int64 -> Handler Html
 deleteDeleteNoteR nid = do
@@ -207,7 +248,7 @@ _toNote userId NoteForm {..} = do
     $ Note
       { noteUserId = userId,
         noteSlug = slug,
-        noteLength = length _text,
+        noteLength = maybe 0 (length . unTextarea) _text,
         noteTitle = fromMaybe "" _title,
         noteText = maybe "" unTextarea _text,
         noteIsMarkdown = Just True == _isMarkdown,

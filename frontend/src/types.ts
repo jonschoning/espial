@@ -71,6 +71,8 @@ export type AccountSettings = {
   privateDefault: boolean;
   /** Whether tag suggestions are enabled. */
   suggestTags: boolean;
+  /** Whether the Return key applies a tag suggestion (Tab always does). */
+  suggestTagsUseReturnKey: boolean;
   /** Whether the account is locked to private-only mode. */
   privacyLock: boolean;
   /** Whether the tag cloud is visible to non-authenticated visitors. */
@@ -79,6 +81,8 @@ export type AccountSettings = {
   previewNotes: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
+  /** Whether the user currently has an API key set. */
+  hasApiKey: boolean;
   /** The user's preferred language (null means server default). */
   language: string | null;
 };
@@ -126,6 +130,17 @@ export type BulkEditResponse = {
   bodyText?: string;
   data?: { editedCount: number };
 };
+
+export type NoteBulkAction = 'private' | 'public' | 'markdown' | 'plaintext' | 'delete';
+
+type NoteBulkEditRequestBase = {
+  action: NoteBulkAction;
+  selectionCount: number;
+};
+
+export type NoteBulkEditRequest =
+  | (NoteBulkEditRequestBase & { selection: 'page'; nids: number[] })
+  | (NoteBulkEditRequestBase & { selection: 'all'; sharedp: SharedP; query: string | null });
 
 /** Raw tag cloud mode as stored/sent by the server. */
 export type TagCloudMode = {

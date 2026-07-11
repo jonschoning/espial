@@ -281,6 +281,21 @@ note2Json =
       "}"
     ]
 
+note3Json :: ByteString
+note3Json =
+  mconcat
+    [ "{\"id\":\"note-3\"",
+      ",\"slug\":\"cafe0123456789abcdef\"",
+      ",\"title\":\"Third Note\"",
+      ",\"text\":\"Even more text\"",
+      ",\"length\":16",
+      ",\"is_markdown\":true",
+      ",\"shared\":true",
+      ",\"created_at\":\"2024-06-15 12:00:00\"",
+      ",\"updated_at\":\"2024-06-15 12:00:00\"",
+      "}"
+    ]
+
 -- ---------------------------------------------------------------------------
 -- Helpers
 -- ---------------------------------------------------------------------------
@@ -288,7 +303,7 @@ note2Json =
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User "testuser" pwHash Nothing False False True False False True Nothing
+  insert $ User "testuser" pwHash Nothing False False True True False False True Nothing
 
 -- Decode ByteString or abort the test with an informative message.
 decodeOrFail :: (A.FromJSON a) => ByteString -> IO a
@@ -424,6 +439,11 @@ spec = do
       fileNoteTitle fn `shouldBe` "My Title"
       fileNoteText fn `shouldBe` "Body text"
       fileNoteLength fn `shouldBe` 9
+      fileNoteSlug fn `shouldBe` Nothing
+
+    it "parses slug when present" $ do
+      fn <- decodeOrFail note3Json :: IO FileNote
+      fileNoteSlug fn `shouldBe` Just "cafe0123456789abcdef"
 
     it "round-trips through encode then decode" $ do
       fn <- decodeOrFail noteJson :: IO FileNote
@@ -623,13 +643,48 @@ spec = do
         uid <- runDB createTestUser
         fn1 <- liftIO $ decodeOrFail noteJson
         fn2 <- liftIO $ decodeOrFail note2Json
-        n <- runDB $ insertFileNotes uid [fn1, fn2]
-        liftIO $ n `shouldBe` 2
+        fn3 <- liftIO $ decodeOrFail note3Json
+        n <- runDB $ insertFileNotes uid [fn1, fn2, fn3]
+        liftIO $ n `shouldBe` 3
 
-      it "skips duplicate notes on re-insert" $ do
+      it "skips notes whose slug already exists on re-import of an export" $ do
         uid <- runDB createTestUser
         fn <- liftIO $ decodeOrFail noteJson
-        n1 <- runDB $ insertFileNotes uid [fn]
-        n2 <- runDB $ insertFileNotes uid [fn]
-        liftIO $ n1 `shouldBe` 1
-        liftIO $ n2 `shouldBe` 1
+        _ <- runDB $ insertFileNotes uid [fn]
+        exported <- runDB $ getFileNotes uid
+        inserted <- runDB $ insertFileNotes uid exported
+        liftIO $ inserted `shouldBe` 0
+        result <- runDB $ getFileNotes uid
+        liftIO $ length result `shouldBe` 1
+
+      it "inserts notes with an unknown slug under a fresh slug" $ do
+        uid <- runDB createTestUser
+        fn <- liftIO $ decodeOrFail note3Json
+        _ <- runDB $ insertFileNotes uid [fn]
+        exported <- runDB $ getFileNotes uid
+        liftIO $ fmap fileNoteSlug (headMay exported) `shouldNotBe` Just (Just "cafe0123456789abcdef")
+
+    -- -----------------------------------------------------------------
+    describe "getFileNotes (notes export)" $ do
+      it "exports inserted notes ordered by created, preserving title/text/length" $ do
+        uid <- runDB createTestUser
+        fn1 <- liftIO $ decodeOrFail noteJson
+        fn2 <- liftIO $ decodeOrFail note2Json
+        _ <- runDB $ insertFileNotes uid [fn1, fn2]
+        result <- runDB $ getFileNotes uid
+        liftIO $ map fileNoteTitle result `shouldBe` ["My Title", "Second Note"]
+        liftIO $ fmap fileNoteText (headMay result) `shouldBe` Just "Body text"
+        liftIO $ fmap fileNoteLength (headMay result) `shouldBe` Just 9
+
+      it "round-trips notes through insert then export" $ do
+        uid <- runDB createTestUser
+        fn <- liftIO $ decodeOrFail noteJson
+        _ <- runDB $ insertFileNotes uid [fn]
+        result <- runDB $ getFileNotes uid
+        case headMay result of
+          Nothing -> liftIO $ expectationFailure "expected non-empty export"
+          Just got -> liftIO $ do
+            fileNoteTitle got `shouldBe` fileNoteTitle fn
+            fileNoteText got `shouldBe` fileNoteText fn
+            fileNoteCreatedAt got `shouldBe` fileNoteCreatedAt fn
+            fileNoteUpdatedAt got `shouldBe` fileNoteUpdatedAt fn

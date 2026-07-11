@@ -12,9 +12,11 @@
 !/#UserNameP/notes/add AddNoteViewR GET
 !/notes/add AddNoteSlimViewR GET
 !/#UserNameP/notes/feed.xml NotesFeedR GET
+!/#UserNameP/notes/#SharedP NotesSharedR GET
 !/#UserNameP/notes/#NtSlug NoteR GET
 !/api/note/add AddNoteR POST
 !/api/note/#Int64 DeleteNoteR DELETE
+/!api/note/bulk NoteBulkR POST
 
 -- user
 / HomeR GET
@@ -30,7 +32,20 @@
 
 -- settings
 /Settings AccountSettingsR GET
+!/Settings/#SettingsTabP AccountSettingsTabR GET
 /api/accountSettings EditAccountSettingsR POST
+
+-- settings/import-export
+/Settings/export/bookmarks/json     ExportBookmarksJsonR     GET
+/Settings/export/bookmarks/netscape ExportBookmarksNetscapeR GET
+/Settings/export/notes/json         ExportNotesJsonR         GET
+/Settings/import/bookmarks/json     ImportBookmarksJsonR     POST
+/Settings/import/bookmarks/firefox  ImportBookmarksFirefoxR  POST
+/Settings/import/bookmarks/netscape ImportBookmarksNetscapeR POST
+/Settings/import/notes/json         ImportNotesJsonR         POST
+
+-- settings/apikey
+/Settings/apikey ApiKeyR POST DELETE
 
 -- settings/password
 /Settings/Password ChangePasswordR GET POST

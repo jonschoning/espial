@@ -2,37 +2,26 @@ import { TimeoutError } from 'ky';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { apiErrorMsg, normalizeTags } from '@/util';
+import { apiErrorMsg } from '@/util';
 
 import * as api from '../api';
 import { app } from '../globals';
-import { useTagSuggestions } from '../hooks/useTagSuggestions';
-import { useBookmarksStore } from '../stores/bookmarksStore';
-import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
+import type { NoteBulkAction } from '../types';
 
-type BulkAction = 'read' | 'unread' | 'star' | 'unstar' | 'delete' | 'private' | 'public';
 type BulkSelection = 'page' | 'all';
 
 interface Props {
-  bcount: number;
+  ncount: number;
 }
 
-type BulkValidationKey =
-  | 'bulkEdit.pleaseAddSelection'
-  | 'bulkEdit.pleaseChooseAction'
-  | 'bulkEdit.tooManyTags';
+type BulkValidationKey = 'bulkEditNotes.pleaseAddSelection' | 'bulkEditNotes.pleaseChooseAction';
 
 function disabledReason(
   selection: BulkSelection | null,
-  action: BulkAction | null,
-  addTags: string,
-  removeTags: string,
-  bcount: number,
+  action: NoteBulkAction | null,
 ): BulkValidationKey | null {
-  if (selection === null) return 'bulkEdit.pleaseAddSelection';
-  if (!action && !addTags.trim() && !removeTags.trim()) return 'bulkEdit.pleaseChooseAction';
-  if (bcount > 20000 && addTags.trim().split(/\s+/).filter(Boolean).length > 10)
-    return 'bulkEdit.tooManyTags';
+  if (selection === null) return 'bulkEditNotes.pleaseAddSelection';
+  if (!action) return 'bulkEditNotes.pleaseChooseAction';
   return null;
 }
 
@@ -51,13 +40,11 @@ function navLink<T>(current: T | null, value: T, label: string, onClick: (v: T) 
   );
 }
 
-export function BulkEdit({ bcount }: Props) {
+export function NoteBulkEdit({ ncount }: Props) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [selection, setSelection] = useState<BulkSelection | null>(null);
-  const [action, setAction] = useState<BulkAction | null>(null);
-  const [addTags, setAddTags] = useState('');
-  const [removeTags, setRemoveTags] = useState('');
+  const [action, setAction] = useState<NoteBulkAction | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmPublic, setConfirmPublic] = useState(false);
@@ -67,52 +54,15 @@ export function BulkEdit({ bcount }: Props) {
   const fadeTimer = useRef<number | null>(null);
 
   const a = app();
-  const suggestEnabled = a.dat.suggestTags === true;
-  const suggestUseReturnKey = a.dat.suggestTagsUseReturnKey !== false;
-  const bulkFilter = a.dat.filter ?? { tag: 'FilterAll' as const };
-  const bulkSharedp = a.dat.sharedp ?? 'all';
-  const bulkTags = a.dat.tags ?? [];
   const bulkQuery = a.dat.query ?? null;
+  const bulkSharedp = a.dat.sharedp ?? 'all';
 
-  const bmarks = useBookmarksStore((s) => s.bmarks);
-  const bids = bmarks.map((b) => b.bid);
-  const pageCount = bids.length;
-  const selectionCount = selection === null ? 0 : selection === 'page' ? pageCount : bcount;
+  const nids = (a.dat.notes ?? []).map((n) => n.id);
+  const pageCount = nids.length;
+  const selectionCount = selection === null ? 0 : selection === 'page' ? pageCount : ncount;
 
-  const reason = disabledReason(selection, action, addTags, removeTags, bcount);
+  const reason = disabledReason(selection, action);
   const isVisuallyDisabled = submitting || reason !== null || confirmDelete || confirmPublic;
-
-  const {
-    tagInputRef: removeTagsRef,
-    suggestionState: removeSuggestionState,
-    closeSuggestions: closeRemoveSuggestions,
-    onTagsChange: onRemoveTagsChange,
-    onTagsKeyDown: onRemoveTagsKeyDown,
-    onTagsSelect: onRemoveTagsSelect,
-    onSuggestionHover: onRemoveSuggestionHover,
-    onSuggestionPick: onRemoveSuggestionPick,
-  } = useTagSuggestions({
-    enabled: suggestEnabled && action !== 'delete',
-    useReturnKey: suggestUseReturnKey,
-    tags: removeTags,
-    onTagsUpdate: setRemoveTags,
-  });
-
-  const {
-    tagInputRef: addTagsRef,
-    suggestionState: addSuggestionState,
-    closeSuggestions: closeAddSuggestions,
-    onTagsChange: onAddTagsChange,
-    onTagsKeyDown: onAddTagsKeyDown,
-    onTagsSelect: onAddTagsSelect,
-    onSuggestionHover: onAddSuggestionHover,
-    onSuggestionPick: onAddSuggestionPick,
-  } = useTagSuggestions({
-    enabled: suggestEnabled && action !== 'delete',
-    useReturnKey: suggestUseReturnKey,
-    tags: addTags,
-    onTagsUpdate: setAddTags,
-  });
 
   const clearValidationTimers = () => {
     if (validationTimer.current !== null) {
@@ -128,8 +78,6 @@ export function BulkEdit({ bcount }: Props) {
   const resetForm = () => {
     setSelection(null);
     setAction(null);
-    setAddTags('');
-    setRemoveTags('');
     setConfirmDelete(false);
     setConfirmPublic(false);
     setValidationMsg(null);
@@ -193,9 +141,7 @@ export function BulkEdit({ bcount }: Props) {
     setValidationMsg(null);
     setErrorFadingOut(false);
 
-    const addTagsTrimmed = normalizeTags(addTags);
-    const removeTagsTrimmed = normalizeTags(removeTags);
-    const r = disabledReason(selection, action, addTagsTrimmed, removeTagsTrimmed, bcount);
+    const r = disabledReason(selection, action);
     if (r !== null) {
       showValidationMsg(t(r));
       return;
@@ -212,26 +158,20 @@ export function BulkEdit({ bcount }: Props) {
     setConfirmPublic(false);
     setSubmitting(true);
     try {
-      if (selection === null) return;
-      const res = await api.bulkEdit(
+      if (selection === null || action === null) return;
+      const res = await api.noteBulkEdit(
         selection === 'page'
           ? {
               selection: 'page',
-              bids,
+              nids,
               action,
-              addTags: addTagsTrimmed,
-              removeTags: removeTagsTrimmed,
               selectionCount,
             }
           : {
               selection: 'all',
-              filter: bulkFilter,
               sharedp: bulkSharedp,
-              tags: bulkTags,
               query: bulkQuery,
               action,
-              addTags: addTagsTrimmed,
-              removeTags: removeTagsTrimmed,
               selectionCount,
             },
       );
@@ -253,12 +193,8 @@ export function BulkEdit({ bcount }: Props) {
 
   if (!visible) return null;
 
-  const toggleAction = (v: BulkAction) => {
+  const toggleAction = (v: NoteBulkAction) => {
     setAction((cur) => (cur === v ? null : v));
-    if (v === 'delete') {
-      setAddTags('');
-      setRemoveTags('');
-    }
   };
 
   return (
@@ -274,8 +210,8 @@ export function BulkEdit({ bcount }: Props) {
           {selection !== null && (
             <span className="ml2">
               {selectionCount === 1
-                ? t('bulkEdit.oneBookmarkSelected')
-                : t('bulkEdit.bookmarksSelected', { count: selectionCount })}
+                ? t('bulkEditNotes.oneNoteSelected')
+                : t('bulkEditNotes.notesSelected', { count: selectionCount })}
             </span>
           )}
         </div>
@@ -295,85 +231,11 @@ export function BulkEdit({ bcount }: Props) {
           {' ‧ '}
           {navLink(action, 'public', t('bulkEdit.makePublic'), toggleAction)}
           {' ‧ '}
-          {navLink(action, 'read', t('bulkEdit.markAsRead'), toggleAction)}
+          {navLink(action, 'markdown', t('bulkEditNotes.useMarkdown'), toggleAction)}
           {' ‧ '}
-          {navLink(action, 'unread', t('bulkEdit.unread'), toggleAction)}
-          {' ‧ '}
-          {navLink(action, 'star', t('bulkEdit.addStars'), toggleAction)}
-          {' ‧ '}
-          {navLink(action, 'unstar', t('bulkEdit.removeStars'), toggleAction)}
+          {navLink(action, 'plaintext', t('bulkEditNotes.usePlaintext'), toggleAction)}
           {' ‧ '}
           {navLink(action, 'delete', t('delete'), toggleAction)}
-        </div>
-      </div>
-
-      <div className="mb2">
-        <div>
-          <span className={`fw7${normalizeTags(removeTags) ? ' nav-active' : ''}`}>
-            {t('bulkEdit.removeTags')}
-          </span>
-        </div>
-        <div className="relative">
-          <input
-            ref={removeTagsRef}
-            type="text"
-            className={`tags w-100 mb1 pt1 edit_form_input${action === 'delete' ? ' o-50 not-allowed' : ''}`}
-            disabled={action === 'delete'}
-            autoComplete="off"
-            autoCapitalize="off"
-            value={removeTags}
-            onChange={onRemoveTagsChange}
-            onKeyDown={onRemoveTagsKeyDown}
-            onClick={onRemoveTagsSelect}
-            onSelect={onRemoveTagsSelect}
-            onBlur={() => {
-              window.setTimeout(() => {
-                closeRemoveSuggestions();
-              }, 0);
-            }}
-          />
-          {removeSuggestionState != null ? (
-            <TagSuggestionsDropdown
-              suggestionState={removeSuggestionState}
-              onHover={onRemoveSuggestionHover}
-              onPick={onRemoveSuggestionPick}
-            />
-          ) : null}
-        </div>
-      </div>
-
-      <div className="mb2">
-        <div>
-          <span className={`fw7${normalizeTags(addTags) ? ' nav-active' : ''}`}>
-            {t('bulkEdit.addTags')}
-          </span>
-        </div>
-        <div className="relative">
-          <input
-            ref={addTagsRef}
-            type="text"
-            className={`tags w-100 mb1 pt1 edit_form_input${action === 'delete' ? ' o-50 not-allowed' : ''}`}
-            disabled={action === 'delete'}
-            autoComplete="off"
-            autoCapitalize="off"
-            value={addTags}
-            onChange={onAddTagsChange}
-            onKeyDown={onAddTagsKeyDown}
-            onClick={onAddTagsSelect}
-            onSelect={onAddTagsSelect}
-            onBlur={() => {
-              window.setTimeout(() => {
-                closeAddSuggestions();
-              }, 0);
-            }}
-          />
-          {addSuggestionState != null ? (
-            <TagSuggestionsDropdown
-              suggestionState={addSuggestionState}
-              onHover={onAddSuggestionHover}
-              onPick={onAddSuggestionPick}
-            />
-          ) : null}
         </div>
       </div>
 
@@ -413,8 +275,8 @@ export function BulkEdit({ bcount }: Props) {
           <span className="f6 ml2">
             <span className="mr2">
               {selectionCount === 1
-                ? t('bulkEdit.destroyOne')
-                : t('bulkEdit.destroyMany', { count: selectionCount })}
+                ? t('bulkEditNotes.destroyOne')
+                : t('bulkEditNotes.destroyMany', { count: selectionCount })}
             </span>
             <span className="nowrap">
               <button
@@ -436,8 +298,8 @@ export function BulkEdit({ bcount }: Props) {
           <span className="f6 ml2">
             <span className="mr2">
               {selectionCount === 1
-                ? t('bulkEdit.publicOne')
-                : t('bulkEdit.publicMany', { count: selectionCount })}
+                ? t('bulkEditNotes.publicOne')
+                : t('bulkEditNotes.publicMany', { count: selectionCount })}
             </span>
             <span className="nowrap">
               <button

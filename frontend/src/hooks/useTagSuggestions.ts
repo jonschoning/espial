@@ -21,11 +21,13 @@ const TAG_SUGGESTION_DEBOUNCE_MS = 180;
 
 export function useTagSuggestions({
   enabled,
+  useReturnKey = true,
   tags,
   onTagsUpdate,
   maxSuggestions = 10,
 }: {
   enabled: boolean;
+  useReturnKey?: boolean;
   tags: string;
   onTagsUpdate: (next: string) => void;
   maxSuggestions?: number;
@@ -198,13 +200,13 @@ export function useTagSuggestions({
         return;
       }
 
-      if (e.key === 'Enter' || e.key === 'Tab') {
+      if (e.key === 'Tab' || (e.key === 'Enter' && useReturnKey)) {
         e.preventDefault();
         const selected = suggestionState.items[suggestionState.selectedIndex];
         applySuggestion(selected.term);
       }
     },
-    [applySuggestion, closeSuggestions, suggestionState],
+    [applySuggestion, closeSuggestions, suggestionState, useReturnKey],
   );
 
   const onTagsSelect = React.useCallback(

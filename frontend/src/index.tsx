@@ -10,6 +10,7 @@ import { BList } from './components/BList';
 import { BulkEdit } from './components/BulkEdit';
 import { NList } from './components/NList';
 import { NNote } from './components/NNote';
+import { NoteBulkEdit } from './components/NoteBulkEdit';
 import { TagCloud } from './components/TagCloud';
 import type { AccountSettings, Bookmark, ColorSchemePreference, Note, TagCloudMode } from './types';
 import { tagCloudModeToF } from './types';
@@ -62,6 +63,10 @@ export const renderAddForm = (renderElSelector: string) => (bmark: Bookmark) => 
 
 export const renderNotes = (renderElSelector: string) => (notes: Note[]) => () => {
   renderView(renderElSelector, <NList initial={notes} />);
+};
+
+export const renderNoteBulkEdit = (renderElSelector: string) => (ncount: number) => () => {
+  renderView(renderElSelector, <NoteBulkEdit ncount={ncount} />);
 };
 
 export const renderNote = (renderElSelector: string) => (note: Note) => () => {

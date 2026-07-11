@@ -7,6 +7,7 @@ import Data.FileEmbed (embedFile)
 import Import
 import Network.Wai (requestHeaderHost)
 import Text.Read
+import Util (format8601z, parseTimeText)
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
@@ -37,14 +38,11 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
-format8601 :: UTCTime -> Text
-format8601 = pack . formatTime defaultTimeLocale "%FT%T%QZ"
-
 formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
-formatEntityPagingCursorTimeBm = format8601 . bookmarkTime . entityVal
+formatEntityPagingCursorTimeBm = format8601z . bookmarkTime . entityVal
 
 formatEntityPagingCursorTimeNt :: Entity Note -> Text
-formatEntityPagingCursorTimeNt = format8601 . noteCreated . entityVal
+formatEntityPagingCursorTimeNt = format8601z . noteCreated . entityVal
 
 parsePagingCursorTime :: Text -> Maybe UTCTime
 parsePagingCursorTime = parseTimeText

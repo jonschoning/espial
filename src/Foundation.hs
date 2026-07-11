@@ -116,6 +116,13 @@ instance Yesod App where
 
   jsAttributes _ = [("type", "module")]
 
+  maximumContentLength :: App -> Maybe (Route App) -> Maybe Word64
+  maximumContentLength app _
+    | n <= 0 = Nothing
+    | otherwise = Just (fromIntegral n)
+    where
+      n = appMaximumContentLength (appSettings app)
+
   shouldLogIO app "yesod-core" LevelWarn = pure False -- remove verbose CSRF token warnings
   shouldLogIO app "startup" level =
     pure

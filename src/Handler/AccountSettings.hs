@@ -1,7 +1,9 @@
 module Handler.AccountSettings where
 
 import ClassyPrelude.Yesod qualified as CP
+import Data.Aeson qualified as A
 import Import
+import Model.File
 
 getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
@@ -27,6 +29,9 @@ getAccountSettingsR = do
         renderAccountSettings('##{accountSettingsEl}')(app.dat.accountSettings)();
     |]
 
+getAccountSettingsTabR :: SettingsTabP -> Handler Html
+getAccountSettingsTabR _ = getAccountSettingsR
+
 postEditAccountSettingsR :: Handler ()
 postEditAccountSettingsR = do
   app <- getYesod
@@ -36,6 +41,89 @@ postEditAccountSettingsR = do
   case _language accountSettingsForm of
     Nothing -> setLanguage (fromI18nLang (appLanguageDefault (appSettings app)))
     Just lang -> setLanguage (fromI18nLang lang)
+
+-- API key is only returned in plaintext here, since it is stored hashed.
+postApiKeyR :: Handler Value
+postApiKeyR = do
+  userId <- requireAuthId
+  apiKey <- liftIO generateApiKey
+  runDB (update userId [UserApiToken CP.=. Just (hashApiKey apiKey)])
+  pure (A.object ["apiKey" A..= unApiKey apiKey])
+
+deleteApiKeyR :: Handler Value
+deleteApiKeyR = do
+  userId <- requireAuthId
+  runDB (update userId [UserApiToken CP.=. Nothing])
+  pure (A.object ["ok" A..= True])
+
+getExportBookmarksJsonR :: Handler TypedContent
+getExportBookmarksJsonR = do
+  userId <- requireAuthId
+  fmarks <- runDB (getFileBookmarks userId)
+  filename <- exportFilename "espial-bookmarks" "json"
+  downloadAttachment typeJson filename (A.encode fmarks)
+
+getExportBookmarksNetscapeR :: Handler TypedContent
+getExportBookmarksNetscapeR = do
+  userId <- requireAuthId
+  nbmarks <- runDB (getNetscapeBookmarks userId)
+  filename <- exportFilename "espial-bookmarks" "html"
+  downloadAttachment typeHtml filename (renderNetscapeBookmarks nbmarks)
+
+getExportNotesJsonR :: Handler TypedContent
+getExportNotesJsonR = do
+  userId <- requireAuthId
+  fnotes <- runDB (getFileNotes userId)
+  filename <- exportFilename "espial-notes" "json"
+  downloadAttachment typeJson filename (A.encode fnotes)
+
+postImportBookmarksJsonR :: Handler ()
+postImportBookmarksJsonR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (fmarks :: [FileBookmark]) -> respondImported =<< runDB (insertFileBookmarks userId fmarks)
+
+postImportBookmarksFirefoxR :: Handler ()
+postImportBookmarksFirefoxR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (node :: FirefoxBookmarkNode) -> respondImported =<< runDB (insertFirefoxBookmarks userId node)
+
+postImportBookmarksNetscapeR :: Handler ()
+postImportBookmarksNetscapeR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case parseNetscapeBookmarks (decodeUtf8 (toStrict body)) of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right nbmarks -> respondImported =<< runDB (insertNetscapeBookmarks userId nbmarks)
+
+postImportNotesJsonR :: Handler ()
+postImportNotesJsonR = do
+  userId <- requireAuthId
+  body <- importBodyLbs
+  case A.eitherDecode' body of
+    Left e -> sendResponseStatus status400 (pack e :: Text)
+    Right (fnotes :: [FileNote]) -> respondImported =<< runDB (insertFileNotes userId fnotes)
+
+downloadAttachment :: (ToContent a) => ContentType -> Text -> a -> Handler TypedContent
+downloadAttachment ct filename body = do
+  addHeader "Content-Disposition" ("attachment; filename=\"" <> filename <> "\"")
+  pure (TypedContent ct (toContent body))
+
+exportFilename :: Text -> Text -> Handler Text
+exportFilename base ext = do
+  now <- liftIO getCurrentTime
+  pure (base <> "_" <> pack (formatTime defaultTimeLocale "%Y-%m-%d_%H_%MZ" now) <> "." <> ext)
+
+importBodyLbs :: Handler LByteString
+importBodyLbs = runConduit (rawRequestBody .| sinkLazy)
+
+respondImported :: Int -> Handler a
+respondImported n = sendStatusJSON ok200 (A.object ["imported" A..= n])
 
 getChangePasswordR :: Handler Html
 getChangePasswordR = do

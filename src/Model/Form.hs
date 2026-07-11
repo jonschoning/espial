@@ -14,10 +14,12 @@ data AccountSettingsForm = AccountSettingsForm
   { _privateDefault :: Bool,
     _archiveDefault :: Bool,
     _suggestTags :: Bool,
+    _suggestTagsUseReturnKey :: Bool,
     _privacyLock :: Bool,
     _publicTagCloud :: Bool,
     _previewNotes :: Bool,
     _archiveBackendEnabled :: Bool,
+    _hasApiKey :: Bool,
     _language :: Maybe I18nLang
   }
   deriving (Show, Eq, Generic)
@@ -32,10 +34,12 @@ toAccountSettingsForm archiveBackendEnabled User {..} =
     { _privateDefault = userPrivateDefault,
       _archiveDefault = userArchiveDefault,
       _suggestTags = userSuggestTags,
+      _suggestTagsUseReturnKey = userSuggestTagsUseReturnKey,
       _privacyLock = userPrivacyLock,
       _publicTagCloud = userPublicTagCloud,
       _previewNotes = userPreviewNotes,
       _archiveBackendEnabled = archiveBackendEnabled,
+      _hasApiKey = isJust userApiToken,
       _language = userLanguage
     }
 
@@ -46,6 +50,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
     [ UserPrivateDefault CP.=. _privateDefault,
       UserArchiveDefault CP.=. _archiveDefault,
       UserSuggestTags CP.=. _suggestTags,
+      UserSuggestTagsUseReturnKey CP.=. _suggestTagsUseReturnKey,
       UserPrivacyLock CP.=. _privacyLock,
       UserPublicTagCloud CP.=. _publicTagCloud,
       UserPreviewNotes CP.=. _previewNotes,

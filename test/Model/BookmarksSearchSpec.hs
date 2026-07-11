@@ -24,7 +24,7 @@ t2019 = UTCTime (fromGregorian 2019 1 1) 0
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User "testuser" pwHash Nothing False False True False False True Nothing
+  insert $ User "testuser" pwHash Nothing False False True True False False True Nothing
 
 -- href=url, description=title, extended=notes
 createBm :: Key User -> Text -> Text -> Text -> UTCTime -> DB (Key Bookmark)

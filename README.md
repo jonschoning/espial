@@ -352,9 +352,12 @@ All commands take an optional `--conn` parameter for the database location; if o
 | `importfirefoxbookmarks`     | `stack exec migration -- importfirefoxbookmarks --userName myusername --bookmarkFile firefox-bookmarks.json`   |
 | `importnetscapebookmarks`    | `stack exec migration -- importnetscapebookmarks --userName myusername --bookmarkFile bookmarks.html`          |
 | `importnotes`                | `stack exec migration -- importnotes --userName myusername --noteDirectory ./notes`                            |
+| `importnotesjson`            | `stack exec migration -- importnotesjson --userName myusername --noteFile exported-notes.json`                 |
 | `exportbookmarks`            | `stack exec migration -- exportbookmarks --userName myusername --bookmarkFile exported-bookmarks.json`         |
 | `exportnetscapebookmarks`    | `stack exec migration -- exportnetscapebookmarks --userName myusername --bookmarkFile exported-bookmarks.html` |
+| `exportnotesjson`            | `stack exec migration -- exportnotesjson --userName myusername --noteFile exported-notes.json`                 |
 | `printmigratedb`             | `stack exec migration -- printmigratedb`                                                                       |
+| `runmigratedb`               | `stack exec migration -- runmigratedb`                                                                         |
 | `showuser`                   | `stack exec migration -- showuser --userName myusername`                                                       |
 
 ### `importbookmarks` Command Notes:

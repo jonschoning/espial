@@ -1,4 +1,4 @@
-.PHONY: clean typecheck install bundle
+.PHONY: clean typecheck install bundle lint
 
 all: bundle
 
@@ -8,10 +8,13 @@ install:
 typecheck: 
 	@npm run typecheck
 
-build: typecheck
+lint: 
+	@npm run lint
+
+build: typecheck lint
 	@npm run bundle:build
 
-bundle: typecheck
+bundle: typecheck lint
 	@npm run bundle
 
 clean:

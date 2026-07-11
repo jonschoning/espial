@@ -7,6 +7,7 @@ import type {
   BulkEditRequest,
   BulkEditResponse,
   Note,
+  NoteBulkEditRequest,
   TagCloud,
   TagCloudMode,
   TagSuggestionRequest,
@@ -69,7 +70,18 @@ export async function destroy(
 }
 
 export async function bulkEdit(req: BulkEditRequest): Promise<BulkEditResponse> {
-  const res = await request('POST', 'api/bm/bulk', {
+  return bulkEditPost('api/bm/bulk', req);
+}
+
+export async function noteBulkEdit(req: NoteBulkEditRequest): Promise<BulkEditResponse> {
+  return bulkEditPost('api/note/bulk', req);
+}
+
+async function bulkEditPost(
+  path: string,
+  req: BulkEditRequest | NoteBulkEditRequest,
+): Promise<BulkEditResponse> {
+  const res = await request('POST', path, {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(req),
     timeout: 300_000,
@@ -182,6 +194,73 @@ export async function editAccountSettings(
   });
   return { ok: res.ok, status: res.status, bodyText: await res.text() };
 }
+
+export async function resetApiKey(): Promise<{
+  ok: boolean;
+  status: number;
+  apiKey?: string;
+  bodyText?: string;
+}> {
+  const res = await request('POST', 'Settings/apikey');
+  if (res.ok) {
+    try {
+      const data = await res.json<{ apiKey: string }>();
+      return { ok: true, status: res.status, apiKey: data.apiKey };
+    } catch {
+      return { ok: true, status: res.status };
+    }
+  }
+  return { ok: false, status: res.status, bodyText: await res.text() };
+}
+
+export async function revokeApiKey(): Promise<{ ok: boolean; status: number; bodyText: string }> {
+  const res = await request('DELETE', 'Settings/apikey');
+  return { ok: res.ok, status: res.status, bodyText: await res.text() };
+}
+
+// Paths relative to the document's `<base href>` (the approot). Exports are plain
+// authenticated GET downloads; anchors point at these directly.
+export const exportPaths = {
+  bookmarksJson: 'Settings/export/bookmarks/json',
+  bookmarksHtml: 'Settings/export/bookmarks/netscape',
+  notesJson: 'Settings/export/notes/json',
+} as const;
+
+export type ImportResult = {
+  ok: boolean;
+  status: number;
+  imported?: number;
+  bodyText?: string;
+};
+
+async function importFile(path: string, contentType: string, body: string): Promise<ImportResult> {
+  const res = await request('POST', path, {
+    headers: { 'content-type': contentType },
+    body,
+    timeout: 300_000,
+  });
+  if (res.ok) {
+    try {
+      const data = await res.json<{ imported: number }>();
+      return { ok: true, status: res.status, imported: data.imported };
+    } catch {
+      return { ok: true, status: res.status };
+    }
+  }
+  return { ok: false, status: res.status, bodyText: await res.text() };
+}
+
+export const importBookmarks = (text: string): Promise<ImportResult> =>
+  importFile('Settings/import/bookmarks/json', 'application/json', text);
+
+export const importFirefox = (text: string): Promise<ImportResult> =>
+  importFile('Settings/import/bookmarks/firefox', 'application/json', text);
+
+export const importNetscape = (text: string): Promise<ImportResult> =>
+  importFile('Settings/import/bookmarks/netscape', 'text/plain', text);
+
+export const importNotes = (jsonArray: string): Promise<ImportResult> =>
+  importFile('Settings/import/notes/json', 'application/json', jsonArray);
 
 export async function logout(): Promise<void> {
   const a = app();

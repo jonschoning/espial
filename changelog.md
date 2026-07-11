@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.0.40 (2026-07-11)
+
+- add Bulk Edit for notes
+  - toggle the **bulk edit** panel via the top-level `edit` link in the note listing
+  - Selection scope respects the current page's search context, allowing targeted bulk edits
+- add user-facing Import/Export page in Account Settings (`Import / Export` tab)
+  - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
+  - import bookmarks (Pinboard JSON, Firefox JSON, Netscape HTML) and notes (JSON)
+  - extend `migration` command with `importnotesjson`, `exportnotesjson`
+- add user-facing API key management to Account Settings (`API` tab)
+  - create/reset an API key (shown once in plaintext) or revoke it
+  - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
+  - nb: `/api/add` (add/update bookmark) is the only route that accepts an API key/authentication token
+- `notes` changes:
+  - Import/Export: add optional `slug`, `is_markdown` and `shared` properties. Importing a duplicate (userid, slug) is skipped.
+  - standarize note page filter ui; add `public`/`private` filters
+  - add `markdown:`\\`m:` search field
+  - db: add unique constraint on db table `note`: (userid, slug)
+    - Notes for a user with duplicate slugs will get fresh slugs via a migration script.
+- Extend `migration` cli to add commands: `importnotesjson`, `exportnotesjson`, `runmigratedb`
+  - migrations run automatically when starting the server, but `runmigratedb` will run db migrations without having to start the server.
+- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/Import), default: 10485760 bytes (10MB).
+- add Account Setting: `Use return key to apply tag suggestions` (default true).
+- provide a second `edit` link at the top of the note view for initiating editing of longer notes more easily.
+
 ## v0.0.39 (2026-07-03)
 
 - security fix: hardened endpoints against a file-disclosure vulnerability

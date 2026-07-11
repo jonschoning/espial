@@ -100,6 +100,20 @@ export function NNote({ initial }: { initial: Note }) {
       {apiError ? <div className="alert alert-err mb2">{apiError}</div> : null}
       {!edit ? (
         <>
+          {a.dat.isowner ? (
+            <div className="edit_links db mb3">
+              <button
+                type="button"
+                onClick={() => {
+                  startEdit(true);
+                }}
+                className="edit thm-text-muted thm-hover-link-color"
+              >
+                {t('edit')}&nbsp;&nbsp;
+              </button>
+            </div>
+          ) : null}
+
           <div className="display">
             <div className="link f5 lh-title">{note.title === '' ? t('noTitle') : note.title}</div>
             <br />

@@ -19,7 +19,7 @@ import Types (DB)
 -- * Helpers
 
 insertUser :: PasswordHash -> DB (Key User)
-insertUser pwHash = insert $ User "alice" pwHash Nothing False False True False False True Nothing
+insertUser pwHash = insert $ User "alice" pwHash Nothing False False True True False False True Nothing
 
 fetchStoredHash :: DB (Maybe PasswordHash)
 fetchStoredHash = fmap (userPasswordHash . entityVal) <$> getBy (UniqueUserName "alice")

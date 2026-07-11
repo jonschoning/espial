@@ -13,7 +13,7 @@ import Model
 import Model.Custom
 import Model.File
 import Model.FileNetscape (exportNetscapeBookmarks)
-import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations)
+import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations, runPreMigrations)
 import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
@@ -33,6 +33,7 @@ data MigrationOpts
         privateDefault :: Maybe Bool,
         archiveDefault :: Maybe Bool,
         suggestTags :: Maybe Bool,
+        suggestTagsUseReturnKey :: Maybe Bool,
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
         previewNotes :: Maybe Bool,
@@ -84,7 +85,21 @@ data MigrationOpts
         userName :: Text,
         noteDirectory :: FilePath
       }
+  | ImportNotesJson
+      { conn :: Maybe Text,
+        userName :: Text,
+        noteFile :: FilePath
+      }
+  | ExportNotesJson
+      { conn :: Maybe Text,
+        userName :: Text,
+        noteFile :: FilePath
+      }
   | PrintMigrateDB {conn :: Maybe Text}
+  | RunMigrateDB
+      { conn :: Maybe Text,
+        silent :: Maybe Bool
+      }
   deriving (Generic, Show)
 
 instance ParseRecord MigrationOpts
@@ -109,11 +124,20 @@ main = do
     PrintMigrateDB {..} -> do
       connText <- getConnText conn
       P.runSqlite connText dumpMigration
+    RunMigrateDB {..} -> do
+      connText <- getConnText conn
+      let connInfo =
+            P.mkSqliteConnectionInfo connText
+              & set P.fkEnabled False
+      P.runSqliteInfo connInfo (runPreMigrations $ maybe True not silent)
+      P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
+      P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateDB {..} -> do
       connText <- getConnText conn
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
+      P.runSqliteInfo connInfo (runPreMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateUser {..} -> do
@@ -127,6 +151,7 @@ main = do
         let privateDefaultVal = fromMaybe False privateDefault
             archiveDefaultVal = fromMaybe False archiveDefault
             suggestTagsVal = fromMaybe True suggestTags
+            suggestTagsUseReturnKeyVal = fromMaybe True suggestTagsUseReturnKey
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
             previewNotesVal = fromMaybe True previewNotes
@@ -134,11 +159,12 @@ main = do
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal suggestTagsUseReturnKeyVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
               UserPrivateDefault P.=. privateDefaultVal,
               UserArchiveDefault P.=. archiveDefaultVal,
               UserSuggestTags P.=. suggestTagsVal,
+              UserSuggestTagsUseReturnKey P.=. suggestTagsUseReturnKeyVal,
               UserPrivacyLock P.=. privacyLockVal,
               UserPublicTagCloud P.=. publicTagCloudVal,
               UserPreviewNotes P.=. previewNotesVal,
@@ -226,6 +252,26 @@ main = do
               Left e -> liftIO (print e)
               Right n -> liftIO (print (show n ++ " notes imported."))
           Nothing -> liftIO (print (userName ++ "not found"))
+    ImportNotesJson {..} -> do
+      connText <- getConnText conn
+      mfnotes <- readFileNotes noteFile
+      case mfnotes of
+        Left e -> print e
+        Right fnotes ->
+          P.runSqlite connText $ do
+            muser <- P.getBy (UniqueUserName userName)
+            case muser of
+              Just (P.Entity uid _) -> do
+                n <- insertFileNotes uid fnotes
+                liftIO (print (show n ++ " notes imported."))
+              Nothing -> liftIO (print (userName ++ "not found"))
+    ExportNotesJson {..} -> do
+      connText <- getConnText conn
+      P.runSqlite connText $ do
+        muser <- P.getBy (UniqueUserName userName)
+        case muser of
+          Just (P.Entity uid _) -> exportFileNotes uid noteFile
+          Nothing -> liftIO (print (userName ++ "not found"))
     ImportNetscapeBookmarks {..} -> do
       connText <- getConnText conn
       mcontent <- tryAny (readFile bookmarkFile)
@@ -265,6 +311,7 @@ main = do
           "privateDefault: " <> tshow userPrivateDefault,
           "archiveDefault: " <> tshow userArchiveDefault,
           "suggestTags: " <> tshow userSuggestTags,
+          "suggestTagsUseReturnKey: " <> tshow userSuggestTagsUseReturnKey,
           "privacyLock: " <> tshow userPrivacyLock,
           "publicTagCloud: " <> tshow userPublicTagCloud,
           "previewNotes: " <> tshow userPreviewNotes,

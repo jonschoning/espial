@@ -39,6 +39,7 @@ getAddViewR = do
       app.dat.bmark = #{ toRawJs bookmarkForm }; 
       app.dat.archiveBackendEnabled = #{ archiveBackendEnabled };
       app.dat.suggestTags = #{ userSuggestTags user };
+      app.dat.suggestTagsUseReturnKey = #{ userSuggestTagsUseReturnKey user };
     |]
     toWidget
       [hamlet|

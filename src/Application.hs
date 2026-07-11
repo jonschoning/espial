@@ -42,7 +42,7 @@ import I18n qualified
 import Import
 import Language.Haskell.TH.Syntax (qLocation)
 import Lens.Micro
-import Model.Migrations (runPersistentMigrations, runAppMigrations)
+import Model.Migrations (runPreMigrations, runPersistentMigrations, runAppMigrations)
 import Network.Connection qualified as NC
 import Network.HTTP.Client.TLS
 import Network.HTTP.Client.TLS qualified as NHT
@@ -84,6 +84,7 @@ makeFoundation appSettings@AppSettings {..} = do
   flip runLoggingT startupLogFunc $ do 
     (logInfoNS "startup" Version.versionSpec)
   do migrationsPool <- mkPool startupLogFunc False
+     runSqlPool (runPreMigrations appEnableStartupLogging) migrationsPool
      runSqlPool (runPersistentMigrations appEnableStartupLogging) migrationsPool
      runSqlPool (runAppMigrations appEnableStartupLogging) migrationsPool
   appPool <- mkPool appLogFunc True
