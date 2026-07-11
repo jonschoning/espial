@@ -105,10 +105,8 @@
     "later": "późniejsze »"
   },
   "notes": {
-    "youHave_one": "Masz 1 notatkę:",
-    "youHave_other": "Masz {{count}} notatki:",
-    "found_one": "Znaleziono 1 notatkę:",
-    "found_other": "Znaleziono {{count}} notatek:"
+    "count_one": "{{count}} notatka",
+    "count_other": "{{count}} notatki"
   },
   "search": {
     "placeholder": "szukaj",

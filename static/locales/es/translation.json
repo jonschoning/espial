@@ -105,10 +105,8 @@
     "later": "siguientes »"
   },
   "notes": {
-    "youHave_one": "Tienes 1 nota:",
-    "youHave_other": "Tienes {{count}} notas:",
-    "found_one": "Encontrada 1 nota:",
-    "found_other": "Encontradas {{count}} notas:"
+    "count_one": "{{count}} nota",
+    "count_other": "{{count}} notas"
   },
   "search": {
     "placeholder": "buscar",

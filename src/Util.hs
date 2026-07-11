@@ -1,6 +1,6 @@
 module Util where
 
-import ClassyPrelude (Alternative, Text, UTCTime, asum, defaultTimeLocale, formatTime, parseTimeM)
+import ClassyPrelude (Alternative, Text, UTCTime, asum, defaultTimeLocale, formatTime, parseTimeM, toLower)
 import Data.CaseInsensitive qualified as CI
 import Data.List (nubBy)
 import Data.Map.Strict qualified as M
@@ -45,6 +45,12 @@ parseTimeText t =
             "%s", -- 1535932800
             "%s%Q" -- 1535932800.123
           ]
+
+parseBoolText :: (MonadFail m) => Text -> m Bool
+parseBoolText t = case toLower t of
+  "true" -> pure True
+  "false" -> pure False
+  _ -> fail "expected true or false"
 
 format8601z :: UTCTime -> Text
 format8601z = pack . formatTime defaultTimeLocale "%FT%T%QZ"

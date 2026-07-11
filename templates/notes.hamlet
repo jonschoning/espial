@@ -8,11 +8,23 @@
         <div .dib.v-mid>
           ^{search}
       <div .di>
+        <div .fl.pr3.dib.mb2>
+          <b>
+            <a .link href="@{NotesR unamep}">#{uname}
+        <div .fl.pr3.dib.mb2>
+          <span .f7.silver>#{tc "notes.count" bcount}
+        $if isowner
+          <div .fl.pr2.dib.mb2>
+            <a .dib.mb1.link.silver.hover-alt :sharedp == SharedAll:.nav-active
+               href="@{NotesR unamep}">#{t "filter.all"}
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
+               href="@{NotesSharedR unamep SharedPrivate}">#{t "filter.private"}
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
+               href="@{NotesSharedR unamep SharedPublic}">#{t "filter.public"}
 
-      $maybe _ <- mquery
-        <span .db .mb3>#{tc "notes.found" bcount}
-      $nothing
-        <span .db .mb3>#{tc "notes.youHave" bcount}
+      <div .cf>
 
       <div .flex.items-center>
         ^{pager}
@@ -36,8 +48,8 @@
         $maybe route <- mroute
           <div .dib.ml5>
             <span .silver.mr1>#{t "pagination.perPage"}
-            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, [("count", "20")])}"‧>20</a> ‧ 
-            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, [("count", "40")])}"‧>40</a> ‧ 
-            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, [("count", "80")])}"‧>80</a> ‧ 
-            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, [("count", "120")])}"‧>120</a> ‧ 
-            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, [("count", "160")])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>

@@ -68,6 +68,9 @@
           <td .pv2.ph3><span class="code fw9">description</span>, <span class="code fw9">d
           <td .pv2.ph3><span class="code fw9">description:surveys</span><br><span class="code fw9">d:surveys
         <tr .docs-striped-item>
+          <td .pv2.ph3><span class="code fw9">markdown</span>, <span class="code fw9">m
+          <td .pv2.ph3><span class="code fw9">markdown:true</span><br><span class="code fw9">markdown:false</span><br><span class="code fw9">m:true</span><br><span class="code fw9">m:false
+        <tr .docs-striped-item>
           <td .pv2.ph3><span class="code fw9">after</span>, <span class="code fw9">a
           <td .pv2.ph3><span class="code fw9">after:12/31/2018</span><br><span class="code fw9">after:2018-12-31</span><br><span class="code fw9">a:12/31/2018</span><br><span class="code fw9">a:2018-12-31
         <tr .docs-striped-item>

@@ -14,10 +14,12 @@
   - create/reset an API key (shown once in plaintext) or revoke it
   - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
   - nb: `/api/add` (add/update bookmark) is the only route that accepts an API key/authentication token
-- model & import/export updates for notes
-  - add unique constraint on db table `note`: (userid, slug)
+- `notes` changes:
+  - Import/Export: add optional `slug`, `is_markdown` and `shared` properties. Importing a duplicate (userid, slug) is skipped.
+  - standarize note page filter ui; add `public`/`private` filters
+  - add `markdown:`\\`m:` search field
+  - db: add unique constraint on db table `note`: (userid, slug)
     - Notes for a user with duplicate slugs will get fresh slugs via a migration script.
-  - note Import/Export json: add optional `slug`, `is_markdown` and `shared` properties. Importing a duplicate (userid, slug) is skipped.
 - Extend `migration` cli to add commands: `importnotesjson`, `exportnotesjson`, `runmigratedb`
 - add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/Import), default: 10485760 bytes (10MB).
 - add Account Setting: `Use return key to apply tag suggestions` (default true).

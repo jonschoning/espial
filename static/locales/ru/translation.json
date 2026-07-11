@@ -105,10 +105,8 @@
     "later": "позже »"
   },
   "notes": {
-    "youHave_one": "У вас 1 заметка:",
-    "youHave_other": "У вас {{count}} заметок:",
-    "found_one": "Найдена 1 заметка:",
-    "found_other": "Найдено {{count}} заметок:"
+    "count_one": "{{count}} заметка",
+    "count_other": "{{count}} заметок"
   },
   "search": {
     "placeholder": "поиск",

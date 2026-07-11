@@ -105,10 +105,8 @@
     "later": "更晚 »"
   },
   "notes": {
-    "youHave_one": "你有 1 条笔记:",
-    "youHave_other": "你有 {{count}} 条笔记:",
-    "found_one": "找到 1 条笔记:",
-    "found_other": "找到 {{count}} 条笔记:"
+    "count_one": "{{count}} 条笔记",
+    "count_other": "{{count}} 条笔记"
   },
   "search": {
     "placeholder": "搜索",

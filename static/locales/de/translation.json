@@ -105,10 +105,8 @@
     "later": "später »"
   },
   "notes": {
-    "youHave_one": "Sie haben 1 Notiz:",
-    "youHave_other": "Sie haben {{count}} Notizen:",
-    "found_one": "1 Notiz gefunden:",
-    "found_other": "{{count}} Notizen gefunden:"
+    "count_one": "{{count}} Notiz",
+    "count_other": "{{count}} Notizen"
   },
   "search": {
     "placeholder": "suchen",

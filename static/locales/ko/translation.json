@@ -105,10 +105,8 @@
     "later": "다음 »"
   },
   "notes": {
-    "youHave_one": "노트 1개 보유 중:",
-    "youHave_other": "노트 {{count}}개 보유 중:",
-    "found_one": "노트 1개 찾음:",
-    "found_other": "노트 {{count}}개 찾음:"
+    "count_one": "노트 {{count}}개",
+    "count_other": "노트 {{count}}개"
   },
   "search": {
     "placeholder": "검색",

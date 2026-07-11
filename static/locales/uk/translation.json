@@ -105,10 +105,8 @@
     "later": "пізніше »"
   },
   "notes": {
-    "youHave_one": "У вас є 1 нотатка:",
-    "youHave_other": "У вас є {{count}} нотаток:",
-    "found_one": "Знайдено 1 нотатку:",
-    "found_other": "Знайдено {{count}} нотаток:"
+    "count_one": "{{count}} нотатка",
+    "count_other": "{{count}} нотаток"
   },
   "search": {
     "placeholder": "пошук",

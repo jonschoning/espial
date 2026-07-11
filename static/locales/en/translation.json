@@ -105,10 +105,8 @@
     "later": "later »"
   },
   "notes": {
-    "youHave_one": "You have 1 note:",
-    "youHave_other": "You have {{count}} notes:",
-    "found_one": "Found 1 note:",
-    "found_other": "Found {{count}} notes:"
+    "count_one": "{{count}} note",
+    "count_other": "{{count}} notes"
   },
   "search": {
     "placeholder": "search",

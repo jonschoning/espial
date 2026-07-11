@@ -105,10 +105,8 @@
     "later": "次へ »"
   },
   "notes": {
-    "youHave_one": "メモが1件あります:",
-    "youHave_other": "メモが{{count}}件あります:",
-    "found_one": "1件のメモが見つかりました:",
-    "found_other": "{{count}}件のメモが見つかりました:"
+    "count_one": "{{count}}件のメモ",
+    "count_other": "{{count}}件のメモ"
   },
   "search": {
     "placeholder": "検索",

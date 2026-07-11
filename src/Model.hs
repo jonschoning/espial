@@ -757,10 +757,11 @@ noteWhereClause key sharedp mquery b = do
       where
         toLikeN field s = sqliteLikeContains (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
-        p_onefield = p_title <|> p_text <|> p_after <|> p_before
+        p_onefield = p_title <|> p_text <|> p_markdown <|> p_after <|> p_before
           where
             p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
             p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_markdown = ("markdown:" <|> "m:") *> fmap ((b ^. NoteIsMarkdown ==.) . val) (parseBoolText =<< P.takeText)
             p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
 
@@ -771,6 +772,8 @@ data NoteBulkSelection
       -- | selected note IDs on the current page
       [Int64]
   | NoteBulkSelectionAll
+      -- | shared
+      SharedP
       -- | query
       (Maybe Text)
   deriving (Show, Eq)
@@ -804,7 +807,7 @@ instance FromJSON NoteBulkEditForm where
     selTag <- o .: "selection"
     selection <- case (selTag :: Text) of
       "page" -> NoteBulkSelectionPage <$> o .: "nids"
-      "all" -> NoteBulkSelectionAll <$> o A..:? "query"
+      "all" -> NoteBulkSelectionAll <$> o .: "sharedp" <*> o A..:? "query"
       _ -> fail $ "Unknown selection: " <> unpack selTag
     NoteBulkEditForm selection
       <$> o
@@ -828,10 +831,10 @@ notesBulkEdit userId NoteBulkEditForm {..} = do
         if length nids /= _nbeSelectionCount
           then pure $ Left BulkEditErrorPageMismatch
           else pure (Right (length nids))
-      NoteBulkSelectionAll q -> do
+      NoteBulkSelectionAll sp q -> do
         result <-
           select $ from (table @Note) >>= \n -> do
-            noteWhereClause userId SharedAll q n
+            noteWhereClause userId sp q n
             pure countRows
         pure $ Right $ maybe 0 unValue (listToMaybe result)
 
@@ -843,16 +846,16 @@ notesBulkEdit userId NoteBulkEditForm {..} = do
       NoteBulkActionDelete -> case _nbeSelection of
         NoteBulkSelectionPage nids ->
           CP.deleteWhere [NoteId CP.<-. toKnids nids, NoteUserId CP.==. userId]
-        NoteBulkSelectionAll q ->
-          delete $ from (table @Note) >>= noteWhereClause userId SharedAll q
+        NoteBulkSelectionAll sp q ->
+          delete $ from (table @Note) >>= noteWhereClause userId sp q
 
     bulkUpdate field v = case _nbeSelection of
       NoteBulkSelectionPage nids ->
         CP.updateWhere [NoteId CP.<-. toKnids nids, NoteUserId CP.==. userId] [field CP.=. v]
-      NoteBulkSelectionAll q ->
+      NoteBulkSelectionAll sp q ->
         update $ \n -> do
           set n [field =. val v]
-          noteWhereClause userId SharedAll q n
+          noteWhereClause userId sp q n
 
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =

@@ -140,7 +140,7 @@ type NoteBulkEditRequestBase = {
 
 export type NoteBulkEditRequest =
   | (NoteBulkEditRequestBase & { selection: 'page'; nids: number[] })
-  | (NoteBulkEditRequestBase & { selection: 'all'; query: string | null });
+  | (NoteBulkEditRequestBase & { selection: 'all'; sharedp: SharedP; query: string | null });
 
 /** Raw tag cloud mode as stored/sent by the server. */
 export type TagCloudMode = {

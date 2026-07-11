@@ -86,10 +86,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-VSFN3I2B.min.js
-    static/js/app-VSFN3I2B.min.js.gz
-    static/js/app-VSFN3I2B.min.js.map
-    static/js/app-VSFN3I2B.min.js.map.gz
+    static/js/app-REOQEZQK.min.js
+    static/js/app-REOQEZQK.min.js.gz
+    static/js/app-REOQEZQK.min.js.map
+    static/js/app-REOQEZQK.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -486,6 +486,7 @@ test-suite test
       Model.BookmarksSearchSpec
       Model.FileImportExportSpec
       Model.NotesBulkEditSpec
+      Model.NotesSearchSpec
       Model.PasswordHashSpec
       TestImport
       Paths_espial

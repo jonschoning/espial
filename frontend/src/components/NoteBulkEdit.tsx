@@ -55,6 +55,7 @@ export function NoteBulkEdit({ ncount }: Props) {
 
   const a = app();
   const bulkQuery = a.dat.query ?? null;
+  const bulkSharedp = a.dat.sharedp ?? 'all';
 
   const nids = (a.dat.notes ?? []).map((n) => n.id);
   const pageCount = nids.length;
@@ -168,6 +169,7 @@ export function NoteBulkEdit({ ncount }: Props) {
             }
           : {
               selection: 'all',
+              sharedp: bulkSharedp,
               query: bulkQuery,
               action,
               selectionCount,

@@ -38,7 +38,7 @@ mkNoteBulkEditForm cnt mquery action nids =
   NoteBulkEditForm
     { _nbeSelection =
         if null nids
-          then NoteBulkSelectionAll mquery
+          then NoteBulkSelectionAll SharedAll mquery
           else NoteBulkSelectionPage (map fromSqlKey nids),
       _nbeAction = action,
       _nbeSelectionCount = cnt
@@ -148,6 +148,20 @@ spec = withApp $ do
         shared2 <- runDB $ getNoteShared nid2
         liftIO $ shared1 `shouldBe` Just False
         liftIO $ shared2 `shouldBe` Just True
+
+      it "applies the action only to notes matching the shared filter" $ do
+        (uid, nid1, nid2) <- runDB $ do
+          uid <- createTestUser
+          nid1 <- createNote uid "a" True
+          nid2 <- createNote uid "b" False
+          return (uid, nid1, nid2)
+        let form = NoteBulkEditForm (NoteBulkSelectionAll SharedPublic Nothing) NoteBulkActionMarkdown 1
+        result <- runDB $ notesBulkEdit uid form
+        liftIO $ result `shouldBe` Right 1
+        md1 <- runDB $ getNoteIsMarkdown nid1
+        md2 <- runDB $ getNoteIsMarkdown nid2
+        liftIO $ md1 `shouldBe` Just True
+        liftIO $ md2 `shouldBe` Just False
 
       it "deletes all notes when no query is given" $ do
         (uid, nid1, nid2) <- runDB $ do

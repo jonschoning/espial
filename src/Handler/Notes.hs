@@ -11,7 +11,13 @@ import Text.Blaze.Html5 qualified as H
 import Yesod.RssFeed
 
 getNotesR :: UserNameP -> Handler Html
-getNotesR unamep@(UserNameP uname) = do
+getNotesR unamep = _getNotes unamep SharedAll
+
+getNotesSharedR :: UserNameP -> SharedP -> Handler Html
+getNotesSharedR = _getNotes
+
+_getNotes :: UserNameP -> SharedP -> Handler Html
+_getNotes unamep@(UserNameP uname) sharedp' = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
@@ -32,9 +38,9 @@ getNotesR unamep@(UserNameP uname) = do
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
       isowner = Just uname == mauthuname
+      sharedp = if isowner then sharedp' else SharedPublic
   (bcount, notes, hasEarlier, hasLater) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
-    let sharedp = if isowner then SharedAll else SharedPublic
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
@@ -64,6 +70,7 @@ getNotesR unamep@(UserNameP uname) = do
         app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.previewNotes = #{ previewNotes };
+        app.dat.sharedp = #{ toJSON sharedp };
         app.dat.query = #{ toJSON mquery };
     |]
     toWidget

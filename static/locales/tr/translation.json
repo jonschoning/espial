@@ -105,10 +105,8 @@
     "later": "sonraki »"
   },
   "notes": {
-    "youHave_one": "1 notunuz var:",
-    "youHave_other": "{{count}} notunuz var:",
-    "found_one": "1 not bulundu:",
-    "found_other": "{{count}} not bulundu:"
+    "count_one": "{{count}} not",
+    "count_other": "{{count}} not"
   },
   "search": {
     "placeholder": "ara",
