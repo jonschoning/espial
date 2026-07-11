@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.40 (2026-07-XX)
+## v0.0.40 (2026-07-10)
 
 - add Import/Export page in Account Settings (`Import / Export` tab)
   - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
