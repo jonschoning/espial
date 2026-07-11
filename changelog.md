@@ -1,21 +1,24 @@
 # Changelog
 
-## v0.0.40 (2026-07-10)
+## v0.0.40 (2026-07-11)
 
-- add Import/Export page in Account Settings (`Import / Export` tab)
+- add user-facing Import/Export page in Account Settings (`Import / Export` tab)
   - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
   - import bookmarks (Pinboard JSON, Firefox JSON, Netscape HTML) and notes (JSON)
   - extend `migration` command with `importnotesjson`, `exportnotesjson`
   - add `migration` command `runmigratedb` to run pending persistent/app migrations without starting the server
-- add API key management to Account Settings (`API` tab)
+- add user-facing API key management to Account Settings (`API` tab)
   - create/reset an API key (shown once in plaintext) or revoke it
   - `Settings/apikey` route: `POST` to (re)generate, `DELETE` to revoke
-- add Account Setting: `Use return key to apply tag suggestions` (default true).
-- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/Import), default: 10485760 bytes (10MB).
+  - nb: `/api/add` (add/update bookmark) is the only route that accepts an API key/authentication token
+- model & import/export updates for notes
+  - add unique constraint on db table `note`: (userid, slug)
+    - Notes for a user with duplicate slugs will get fresh slugs via a migration script.
+  - note Import/Export json: add optional `slug`, `is_markdown` and `shared` properties. Importing a duplicate (userid, slug) is skipped.
 - Extend `migration` cli to add commands: `importnotesjson`, `exportnotesjson`, `runmigratedb`
+- add appSetting `maximum-content-length` to adjust max allowed request body size (e.g. for Settings/Import), default: 10485760 bytes (10MB).
+- add Account Setting: `Use return key to apply tag suggestions` (default true).
 - provide a second `edit` link at the top of the note view for initiating editing of longer notes more easily.
-- add unique constraint on note (userid, slug). Notes for a user with duplicate slugs will get fresh slugs on migration.
-- note Import/Export json: add optional `slug`, `is_markdown` and `shared` properties. Importing a duplicate (userid, slug) is skipped.
 
 ## v0.0.39 (2026-07-03)
 

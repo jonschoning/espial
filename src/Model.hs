@@ -161,6 +161,11 @@ instance FromJSON FilterP where parseJSON = A.genericParseJSON A.defaultOptions
 
 instance ToJSON FilterP where toJSON = A.genericToJSON A.defaultOptions
 
+data SettingsTabP
+  = SettingsTabImportExport
+  | SettingsTabApi
+  deriving (Eq, Show, Read)
+
 -- * Paging
 
 data PagingCursor a

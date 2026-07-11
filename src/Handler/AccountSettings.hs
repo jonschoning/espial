@@ -29,6 +29,9 @@ getAccountSettingsR = do
         renderAccountSettings('##{accountSettingsEl}')(app.dat.accountSettings)();
     |]
 
+getAccountSettingsTabR :: SettingsTabP -> Handler Html
+getAccountSettingsTabR _ = getAccountSettingsR
+
 postEditAccountSettingsR :: Handler ()
 postEditAccountSettingsR = do
   app <- getYesod

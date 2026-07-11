@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+-- {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
 module Handler.User where
 
@@ -172,7 +172,7 @@ postUserPublicTagCloudR (UserNameP uname) = do
 
 postUserTagCloudModeR :: Handler ()
 postUserTagCloudModeR = do
-  userId <- requireAuthId
+  void requireAuthId
   mode <- requireCheckJsonBody
   _updateTagCloudMode mode
 
@@ -186,7 +186,7 @@ _updateTagCloudMode mode =
     TagCloudModeNone -> notFound
 
 bookmarkToRssEntry :: (Entity Bookmark, Maybe Text) -> FeedEntry Text
-bookmarkToRssEntry (Entity entryId entry, tags) =
+bookmarkToRssEntry (Entity _entryId entry, tags) =
   FeedEntry
     { feedEntryLink = bookmarkHref entry,
       feedEntryUpdated = bookmarkTime entry,

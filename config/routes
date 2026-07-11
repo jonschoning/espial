@@ -30,6 +30,7 @@
 
 -- settings
 /Settings AccountSettingsR GET
+!/Settings/#SettingsTabP AccountSettingsTabR GET
 /api/accountSettings EditAccountSettingsR POST
 
 -- settings/import-export

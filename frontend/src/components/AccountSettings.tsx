@@ -9,18 +9,50 @@ import { apiErrorMsg } from '../util';
 
 type SettingsTab = 'account' | 'importexport' | 'api';
 
+// Resolved against the document's `<base href>` (the approot), so the tab URLs keep
+// the subpath when the app is served from a non-root APPROOT.
+const tabPaths: Record<SettingsTab, string> = {
+  account: 'Settings',
+  importexport: 'Settings/importexport',
+  api: 'Settings/api',
+};
+
+function tabHref(value: SettingsTab): string {
+  return new URL(tabPaths[value], document.baseURI).pathname;
+}
+
+function tabFromLocation(): SettingsTab {
+  const pathname = window.location.pathname;
+  if (pathname === tabHref('importexport')) return 'importexport';
+  if (pathname === tabHref('api')) return 'api';
+  return 'account';
+}
+
 /** Displays and edits the current user's account settings, with a sub-nav to import/export. */
 export function AccountSettingsView({ initial }: { initial: AccountSettings }) {
   const { t } = useTranslation();
-  const [tab, setTab] = React.useState<SettingsTab>('account');
+  const [tab, setTab] = React.useState<SettingsTab>(tabFromLocation);
+
+  React.useEffect(() => {
+    const onPopState = () => {
+      setTab(tabFromLocation());
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, []);
 
   function tabLink(value: SettingsTab, label: string) {
     return (
       <a
-        href="#"
+        href={tabHref(value)}
         className={`dib link${tab === value ? ' nav-active' : ' silver hover-alt'}`}
         onClick={(e) => {
           e.preventDefault();
+          if (window.location.pathname !== tabHref(value)) {
+            window.history.pushState(null, '', tabHref(value));
+          }
           setTab(value);
         }}
       >
