@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "el recuento de selección era {{selectionCount}}, pero se editó {{editedCount}} marcador, porque los datos del marcador coincidente han cambiado",
     "editedCountMismatch_other": "el recuento de selección era {{selectionCount}}, pero se editaron {{editedCount}} marcadores, porque los datos de los marcadores coincidentes han cambiado"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 nota seleccionada",
+    "notesSelected": "{{count}} notas seleccionadas",
+    "destroyOne": "¿eliminar 1 nota?",
+    "destroyMany": "¿eliminar {{count}} notas?",
+    "publicOne": "¿hacer pública 1 nota?",
+    "publicMany": "¿hacer públicas {{count}} notas?",
+    "useMarkdown": "usar markdown",
+    "usePlaintext": "usar texto sin formato",
+    "pleaseAddSelection": "por favor seleccione una nota",
+    "pleaseChooseAction": "por favor elija una acción",
+    "pageMismatch": "el número de notas de la página no coincide",
+    "editedCount_one": "se editó {{editedCount}} nota",
+    "editedCount_other": "se editaron {{editedCount}} notas",
+    "editedCountMismatch_one": "el recuento de selección era {{selectionCount}}, pero se editó {{editedCount}} nota, porque los datos de la nota coincidente han cambiado",
+    "editedCountMismatch_other": "el recuento de selección era {{selectionCount}}, pero se editaron {{editedCount}} notas, porque los datos de las notas coincidentes han cambiado"
+  },
   "docs": {
     "title": "Entender la sintaxis de busqueda",
     "pageFilters": "Filtros de pagina",

@@ -9,6 +9,7 @@ import Model
 import Model.Custom
 import System.Directory (listDirectory)
 import Types
+import Util (format8601z, parseTimeText)
 
 -- * FileNotes
 
@@ -82,12 +83,12 @@ instance ToJSON FileNote where
       )
 
 readFileNoteTime ::
-  (MonadFail m) =>
+  (MonadFail m, Alternative m) =>
   String -> m UTCTime
-readFileNoteTime = parseTimeM True defaultTimeLocale "%F %T"
+readFileNoteTime = parseTimeText . pack
 
 showFileNoteTime :: UTCTime -> String
-showFileNoteTime = formatTime defaultTimeLocale "%F %T"
+showFileNoteTime = unpack . format8601z
 
 fileNoteToNote :: UserId -> FileNote -> IO Note
 fileNoteToNote user FileNote {..} = do

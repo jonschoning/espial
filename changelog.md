@@ -2,6 +2,9 @@
 
 ## v0.0.40 (2026-07-11)
 
+- add Bulk Edit for notes
+  - toggle the **bulk edit** panel via the top-level `edit` link in the note listing
+  - Selection scope respects the current page's search context, allowing targeted bulk edits
 - add user-facing Import/Export page in Account Settings (`Import / Export` tab)
   - export bookmarks (Pinboard JSON, Netscape HTML) and notes (JSON) as downloads
   - import bookmarks (Pinboard JSON, Firefox JSON, Netscape HTML) and notes (JSON)

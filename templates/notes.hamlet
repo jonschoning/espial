@@ -14,7 +14,14 @@
       $nothing
         <span .db .mb3>#{tc "notes.youHave" bcount}
 
-      ^{pager}
+      <div .flex.items-center>
+        ^{pager}
+        $if isowner
+          <span .f6.pl2>
+            <a .link.silver.hover-alt #bulk-edit-toggle href="#">#{t "bulkEdit.edit"}
+
+      $if isowner
+        <div #bulkEditRenderEl>
 
       <div .cf>
 

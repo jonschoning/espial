@@ -60,6 +60,7 @@ extra-source-files:
     frontend/src/components/Markdown.tsx
     frontend/src/components/NList.tsx
     frontend/src/components/NNote.tsx
+    frontend/src/components/NoteBulkEdit.tsx
     frontend/src/components/TagCloud.tsx
     frontend/src/components/TagSuggestionsDropdown.tsx
     frontend/src/globals.ts
@@ -85,10 +86,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-EAUK2EQA.min.js
-    static/js/app-EAUK2EQA.min.js.gz
-    static/js/app-EAUK2EQA.min.js.map
-    static/js/app-EAUK2EQA.min.js.map.gz
+    static/js/app-VSFN3I2B.min.js
+    static/js/app-VSFN3I2B.min.js.gz
+    static/js/app-VSFN3I2B.min.js.map
+    static/js/app-VSFN3I2B.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -484,6 +485,7 @@ test-suite test
       Model.BookmarksQuerySpec
       Model.BookmarksSearchSpec
       Model.FileImportExportSpec
+      Model.NotesBulkEditSpec
       Model.PasswordHashSpec
       TestImport
       Paths_espial

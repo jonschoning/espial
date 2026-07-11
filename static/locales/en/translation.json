@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "selection count was {{selectionCount}}, but edited {{editedCount}} bookmark, due to matching bookmark data having changed",
     "editedCountMismatch_other": "selection count was {{selectionCount}}, but edited {{editedCount}} bookmarks, due to matching bookmark data having changed"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 note selected",
+    "notesSelected": "{{count}} notes selected",
+    "destroyOne": "destroy 1 note?",
+    "destroyMany": "destroy {{count}} notes?",
+    "publicOne": "make 1 note public?",
+    "publicMany": "make {{count}} notes public?",
+    "useMarkdown": "use markdown",
+    "usePlaintext": "use plaintext",
+    "pleaseAddSelection": "please add a note selection",
+    "pleaseChooseAction": "please choose an action",
+    "pageMismatch": "page note count mismatch",
+    "editedCount_one": "edited {{editedCount}} note",
+    "editedCount_other": "edited {{editedCount}} notes",
+    "editedCountMismatch_one": "selection count was {{selectionCount}}, but edited {{editedCount}} note, due to matching note data having changed",
+    "editedCountMismatch_other": "selection count was {{selectionCount}}, but edited {{editedCount}} notes, due to matching note data having changed"
+  },
   "docs": {
     "title": "Understanding the Search Syntax",
     "pageFilters": "Page filters",

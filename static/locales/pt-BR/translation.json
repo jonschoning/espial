@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} favorito foi editado, pois os dados do favorito correspondente foram alterados",
     "editedCountMismatch_other": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} favoritos foram editados, pois os dados dos favoritos correspondentes foram alterados"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 nota selecionada",
+    "notesSelected": "{{count}} notas selecionadas",
+    "destroyOne": "excluir 1 nota?",
+    "destroyMany": "excluir {{count}} notas?",
+    "publicOne": "tornar 1 nota pública?",
+    "publicMany": "tornar {{count}} notas públicas?",
+    "useMarkdown": "usar markdown",
+    "usePlaintext": "usar texto simples",
+    "pleaseAddSelection": "por favor selecione notas",
+    "pleaseChooseAction": "por favor escolha uma ação",
+    "pageMismatch": "o número de notas na página não corresponde",
+    "editedCount_one": "{{editedCount}} nota editada",
+    "editedCount_other": "{{editedCount}} notas editadas",
+    "editedCountMismatch_one": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} nota foi editada, pois os dados da nota correspondente foram alterados",
+    "editedCountMismatch_other": "a contagem de seleção era {{selectionCount}}, mas {{editedCount}} notas foram editadas, pois os dados das notas correspondentes foram alterados"
+  },
   "docs": {
     "title": "Entendendo a sintaxe de busca",
     "pageFilters": "Filtros de pagina",

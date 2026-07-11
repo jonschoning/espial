@@ -7,7 +7,6 @@ import ClassyPrelude.Yesod hiding (Value, delete, exists, groupBy, on, update, (
 import ClassyPrelude.Yesod qualified as CP
 import Control.Monad (fail)
 import Control.Monad.Combinators qualified as PC (between)
-import Control.Monad.Fail (MonadFail)
 import Control.Monad.Trans.Maybe (MaybeT (..), runMaybeT)
 import Data.Aeson qualified as A
 import Data.Aeson.KeyMap qualified as KM
@@ -21,7 +20,6 @@ import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Data.Time qualified as TI (ParseTime)
 import Database.Esqueleto.Experimental hiding ((<&>))
 import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
 import Model.Custom
@@ -688,20 +686,6 @@ parseSearchQuery toExpr =
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
         simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|')
 
-parseTimeText :: (TI.ParseTime t, MonadFail m, Alternative m) => Text -> m t
-parseTimeText t =
-  asum
-    $ flip (parseTimeM True defaultTimeLocale) (unpack t)
-    <$> [ "%FT%T%Q%Z", -- 2018-12-31T23:59:59.123Z  (iso8601 with timezone)
-          "%FT%T%Q", -- 2018-12-31T23:59:59.123   (iso8601 without timezone)
-          "%F %T%Q", -- 2018-12-31 23:59:59.123
-          "%F %T%Q %Z", -- 2018-12-31 23:59:59.123 UTC
-          "%F", -- 2018-12-31
-          "%-m/%-d/%Y", -- 12/31/2018
-          "%s", -- 1535932800
-          "%s%Q" -- 1535932800.123
-        ]
-
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
 withTags key = selectList [BookmarkTagBookmarkId CP.==. key] [Asc BookmarkTagSeq]
 
@@ -745,24 +729,7 @@ getNoteList key mquery mcursor sharedp limit' page = do
           Nothing -> False
   pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
-    _whereClause b = do
-      where_ (b ^. NoteUserId ==. val key)
-      -- search
-      sequenceA_ (parseSearchQuery (toLikeExpr b) =<< mquery)
-      case sharedp of
-        SharedAll -> pure ()
-        SharedPublic -> where_ (b ^. NoteShared ==. val True)
-        SharedPrivate -> where_ (b ^. NoteShared ==. val False)
-    toLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
-      where
-        toLikeN field s = sqliteLikeContains (b ^. field) s
-        p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
-        p_onefield = p_title <|> p_text <|> p_after <|> p_before
-          where
-            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
-            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
-            p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
-            p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+    _whereClause = noteWhereClause key sharedp mquery
     noteOrder b =
       case mcursor of
         Just (PagingCursorAfter _) -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
@@ -775,6 +742,117 @@ getNoteList key mquery mcursor sharedp limit' page = do
       (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val before
     isAfterCursor b after =
       (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val after
+
+noteWhereClause :: Key User -> SharedP -> Maybe Text -> SqlExpr (Entity Note) -> SqlQuery ()
+noteWhereClause key sharedp mquery b = do
+  where_ (b ^. NoteUserId ==. val key)
+  -- search
+  sequenceA_ (parseSearchQuery toLikeExpr =<< mquery)
+  case sharedp of
+    SharedAll -> pure ()
+    SharedPublic -> where_ (b ^. NoteShared ==. val True)
+    SharedPrivate -> where_ (b ^. NoteShared ==. val False)
+  where
+    toLikeExpr term = fromRight p_allFields (P.parseOnly p_onefield term)
+      where
+        toLikeN field s = sqliteLikeContains (b ^. field) s
+        p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
+        p_onefield = p_title <|> p_text <|> p_after <|> p_before
+          where
+            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
+            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
+            p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+
+-- * Note BulkEdit
+
+data NoteBulkSelection
+  = NoteBulkSelectionPage
+      -- | selected note IDs on the current page
+      [Int64]
+  | NoteBulkSelectionAll
+      -- | query
+      (Maybe Text)
+  deriving (Show, Eq)
+
+data NoteBulkAction
+  = NoteBulkActionPrivate
+  | NoteBulkActionPublic
+  | NoteBulkActionDelete
+  | NoteBulkActionMarkdown
+  | NoteBulkActionPlaintext
+  deriving (Show, Eq, Generic)
+
+data NoteBulkEditForm = NoteBulkEditForm
+  { _nbeSelection :: NoteBulkSelection,
+    _nbeAction :: NoteBulkAction,
+    _nbeSelectionCount :: Int
+  }
+  deriving (Show, Eq)
+
+instance FromJSON NoteBulkAction where
+  parseJSON = A.withText "NoteBulkAction" \case
+    "private" -> pure NoteBulkActionPrivate
+    "public" -> pure NoteBulkActionPublic
+    "delete" -> pure NoteBulkActionDelete
+    "markdown" -> pure NoteBulkActionMarkdown
+    "plaintext" -> pure NoteBulkActionPlaintext
+    _ -> empty
+
+instance FromJSON NoteBulkEditForm where
+  parseJSON = A.withObject "NoteBulkEditForm" \o -> do
+    selTag <- o .: "selection"
+    selection <- case (selTag :: Text) of
+      "page" -> NoteBulkSelectionPage <$> o .: "nids"
+      "all" -> NoteBulkSelectionAll <$> o A..:? "query"
+      _ -> fail $ "Unknown selection: " <> unpack selTag
+    NoteBulkEditForm selection
+      <$> o
+      .: "action"
+      <*> o
+      .: "selectionCount"
+
+notesBulkEdit :: Key User -> NoteBulkEditForm -> DB (Either BulkEditError Int)
+notesBulkEdit userId NoteBulkEditForm {..} = do
+  eValid <- validateCount
+  case eValid of
+    Left err -> pure (Left err)
+    Right n -> do
+      applyAction _nbeAction
+      pure (Right n)
+  where
+    toKnids = map (toSqlKey @Note)
+
+    validateCount = case _nbeSelection of
+      NoteBulkSelectionPage nids ->
+        if length nids /= _nbeSelectionCount
+          then pure $ Left BulkEditErrorPageMismatch
+          else pure (Right (length nids))
+      NoteBulkSelectionAll q -> do
+        result <-
+          select $ from (table @Note) >>= \n -> do
+            noteWhereClause userId SharedAll q n
+            pure countRows
+        pure $ Right $ maybe 0 unValue (listToMaybe result)
+
+    applyAction = \case
+      NoteBulkActionPrivate -> bulkUpdate NoteShared False
+      NoteBulkActionPublic -> bulkUpdate NoteShared True
+      NoteBulkActionMarkdown -> bulkUpdate NoteIsMarkdown True
+      NoteBulkActionPlaintext -> bulkUpdate NoteIsMarkdown False
+      NoteBulkActionDelete -> case _nbeSelection of
+        NoteBulkSelectionPage nids ->
+          CP.deleteWhere [NoteId CP.<-. toKnids nids, NoteUserId CP.==. userId]
+        NoteBulkSelectionAll q ->
+          delete $ from (table @Note) >>= noteWhereClause userId SharedAll q
+
+    bulkUpdate field v = case _nbeSelection of
+      NoteBulkSelectionPage nids ->
+        CP.updateWhere [NoteId CP.<-. toKnids nids, NoteUserId CP.==. userId] [field CP.=. v]
+      NoteBulkSelectionAll q ->
+        update $ \n -> do
+          set n [field =. val v]
+          noteWhereClause userId SharedAll q n
 
 mkBookmarkTags :: Key User -> Key Bookmark -> [Tag] -> [BookmarkTag]
 mkBookmarkTags userId bookmarkId tags =

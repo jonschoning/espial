@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} segnalibro modificato, poiché i dati del segnalibro corrispondente sono cambiati",
     "editedCountMismatch_other": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} segnalibri modificati, poiché i dati dei segnalibri corrispondenti sono cambiati"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 nota selezionata",
+    "notesSelected": "{{count}} note selezionate",
+    "destroyOne": "eliminare 1 nota?",
+    "destroyMany": "eliminare {{count}} note?",
+    "publicOne": "rendere pubblica 1 nota?",
+    "publicMany": "rendere pubbliche {{count}} note?",
+    "useMarkdown": "usa markdown",
+    "usePlaintext": "usa testo semplice",
+    "pleaseAddSelection": "seleziona delle note",
+    "pleaseChooseAction": "scegli un'azione",
+    "pageMismatch": "il numero di note nella pagina non corrisponde",
+    "editedCount_one": "{{editedCount}} nota modificata",
+    "editedCount_other": "{{editedCount}} note modificate",
+    "editedCountMismatch_one": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} nota modificata, poiché i dati della nota corrispondente sono cambiati",
+    "editedCountMismatch_other": "il conteggio della selezione era {{selectionCount}}, ma {{editedCount}} note modificate, poiché i dati delle note corrispondenti sono cambiati"
+  },
   "docs": {
     "title": "Comprendere la sintassi di ricerca",
     "pageFilters": "Filtri di pagina",

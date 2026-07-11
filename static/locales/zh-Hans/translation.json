@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "选择数量为 {{selectionCount}}，但由于匹配的书签数据已更改，实际编辑了 {{editedCount}} 个书签",
     "editedCountMismatch_other": "选择数量为 {{selectionCount}}，但由于匹配的书签数据已更改，实际编辑了 {{editedCount}} 个书签"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "已选择 1 条笔记",
+    "notesSelected": "已选择 {{count}} 条笔记",
+    "destroyOne": "删除 1 条笔记？",
+    "destroyMany": "删除 {{count}} 条笔记？",
+    "publicOne": "将 1 条笔记设为公开？",
+    "publicMany": "将 {{count}} 条笔记设为公开？",
+    "useMarkdown": "使用 Markdown",
+    "usePlaintext": "使用纯文本",
+    "pleaseAddSelection": "请选择笔记",
+    "pleaseChooseAction": "请选择操作",
+    "pageMismatch": "页面笔记数量不匹配",
+    "editedCount_one": "已编辑 {{editedCount}} 条笔记",
+    "editedCount_other": "已编辑 {{editedCount}} 条笔记",
+    "editedCountMismatch_one": "选择数量为 {{selectionCount}}，但由于匹配的笔记数据已更改，实际编辑了 {{editedCount}} 条笔记",
+    "editedCountMismatch_other": "选择数量为 {{selectionCount}}，但由于匹配的笔记数据已更改，实际编辑了 {{editedCount}} 条笔记"
+  },
   "docs": {
     "title": "理解搜索语法",
     "pageFilters": "页面过滤器",

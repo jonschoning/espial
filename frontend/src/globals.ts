@@ -1,4 +1,4 @@
-import type { Bookmark, Filter, SharedP } from './types';
+import type { Bookmark, Filter, Note, SharedP } from './types';
 
 /** Server-rendered page data. */
 export type AppData = {
@@ -6,6 +6,8 @@ export type AppData = {
   bmarks: Bookmark[];
   /** A single bookmark, used when viewing or editing one entry. */
   bmark: Bookmark;
+  /** The list of notes for the current page. */
+  notes?: Note[];
   /** Whether the current user owns the displayed profile. */
   isowner: boolean;
   /** Whether tag suggestions are enabled. */

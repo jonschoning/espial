@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "選擇數量為 {{selectionCount}}，但由於符合的書籤資料已變更，實際編輯了 {{editedCount}} 個書籤",
     "editedCountMismatch_other": "選擇數量為 {{selectionCount}}，但由於符合的書籤資料已變更，實際編輯了 {{editedCount}} 個書籤"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "已選擇 1 條筆記",
+    "notesSelected": "已選擇 {{count}} 條筆記",
+    "destroyOne": "刪除 1 條筆記？",
+    "destroyMany": "刪除 {{count}} 條筆記？",
+    "publicOne": "將 1 條筆記設為公開？",
+    "publicMany": "將 {{count}} 條筆記設為公開？",
+    "useMarkdown": "使用 Markdown",
+    "usePlaintext": "使用純文字",
+    "pleaseAddSelection": "請選擇筆記",
+    "pleaseChooseAction": "請選擇操作",
+    "pageMismatch": "頁面筆記數量不符合",
+    "editedCount_one": "已編輯 {{editedCount}} 條筆記",
+    "editedCount_other": "已編輯 {{editedCount}} 條筆記",
+    "editedCountMismatch_one": "選擇數量為 {{selectionCount}}，但由於符合的筆記資料已變更，實際編輯了 {{editedCount}} 條筆記",
+    "editedCountMismatch_other": "選擇數量為 {{selectionCount}}，但由於符合的筆記資料已變更，實際編輯了 {{editedCount}} 條筆記"
+  },
   "docs": {
     "title": "了解搜尋語法",
     "pageFilters": "頁面篩選",

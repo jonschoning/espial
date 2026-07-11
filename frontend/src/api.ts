@@ -7,6 +7,7 @@ import type {
   BulkEditRequest,
   BulkEditResponse,
   Note,
+  NoteBulkEditRequest,
   TagCloud,
   TagCloudMode,
   TagSuggestionRequest,
@@ -69,7 +70,18 @@ export async function destroy(
 }
 
 export async function bulkEdit(req: BulkEditRequest): Promise<BulkEditResponse> {
-  const res = await request('POST', 'api/bm/bulk', {
+  return bulkEditPost('api/bm/bulk', req);
+}
+
+export async function noteBulkEdit(req: NoteBulkEditRequest): Promise<BulkEditResponse> {
+  return bulkEditPost('api/note/bulk', req);
+}
+
+async function bulkEditPost(
+  path: string,
+  req: BulkEditRequest | NoteBulkEditRequest,
+): Promise<BulkEditResponse> {
+  const res = await request('POST', path, {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(req),
     timeout: 300_000,

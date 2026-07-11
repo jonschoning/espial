@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} zakładkę, ponieważ pasujące dane zakładek uległy zmianie",
     "editedCountMismatch_other": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} zakładek, ponieważ pasujące dane zakładek uległy zmianie"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 notatka zaznaczona",
+    "notesSelected": "{{count}} notatek zaznaczonych",
+    "destroyOne": "usunąć 1 notatkę?",
+    "destroyMany": "usunąć {{count}} notatek?",
+    "publicOne": "ustawić 1 notatkę jako publiczną?",
+    "publicMany": "ustawić {{count}} notatek jako publiczne?",
+    "useMarkdown": "użyj markdown",
+    "usePlaintext": "użyj zwykłego tekstu",
+    "pleaseAddSelection": "proszę wybrać notatki",
+    "pleaseChooseAction": "proszę wybrać akcję",
+    "pageMismatch": "liczba notatek na stronie nie zgadza się",
+    "editedCount_one": "edytowano {{editedCount}} notatkę",
+    "editedCount_other": "edytowano {{editedCount}} notatek",
+    "editedCountMismatch_one": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} notatkę, ponieważ pasujące dane notatek uległy zmianie",
+    "editedCountMismatch_other": "liczba zaznaczonych wynosiła {{selectionCount}}, ale edytowano {{editedCount}} notatek, ponieważ pasujące dane notatek uległy zmianie"
+  },
   "docs": {
     "title": "Zrozumienie składni wyszukiwania",
     "pageFilters": "Filtry strony",

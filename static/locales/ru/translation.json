@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "количество выбранных было {{selectionCount}}, но изменена {{editedCount}} закладка, так как данные совпадающих закладок изменились",
     "editedCountMismatch_other": "количество выбранных было {{selectionCount}}, но изменено {{editedCount}} закладок, так как данные совпадающих закладок изменились"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 заметка выбрана",
+    "notesSelected": "{{count}} заметок выбрано",
+    "destroyOne": "удалить 1 заметку?",
+    "destroyMany": "удалить {{count}} заметок?",
+    "publicOne": "сделать 1 заметку публичной?",
+    "publicMany": "сделать {{count}} заметок публичными?",
+    "useMarkdown": "использовать markdown",
+    "usePlaintext": "использовать обычный текст",
+    "pleaseAddSelection": "пожалуйста, выберите заметки",
+    "pleaseChooseAction": "пожалуйста, выберите действие",
+    "pageMismatch": "количество заметок на странице не совпадает",
+    "editedCount_one": "изменена {{editedCount}} заметка",
+    "editedCount_other": "изменено {{editedCount}} заметок",
+    "editedCountMismatch_one": "количество выбранных было {{selectionCount}}, но изменена {{editedCount}} заметка, так как данные совпадающих заметок изменились",
+    "editedCountMismatch_other": "количество выбранных было {{selectionCount}}, но изменено {{editedCount}} заметок, так как данные совпадающих заметок изменились"
+  },
   "docs": {
     "title": "Понимание синтаксиса поиска",
     "pageFilters": "Фильтры страницы",

@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} закладку, оскільки дані відповідних закладок змінилися",
     "editedCountMismatch_other": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} закладок, оскільки дані відповідних закладок змінилися"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 нотатку вибрано",
+    "notesSelected": "{{count}} нотаток вибрано",
+    "destroyOne": "видалити 1 нотатку?",
+    "destroyMany": "видалити {{count}} нотаток?",
+    "publicOne": "зробити 1 нотатку публічною?",
+    "publicMany": "зробити {{count}} нотаток публічними?",
+    "useMarkdown": "використовувати markdown",
+    "usePlaintext": "використовувати звичайний текст",
+    "pleaseAddSelection": "будь ласка, виберіть нотатки",
+    "pleaseChooseAction": "будь ласка, виберіть дію",
+    "pageMismatch": "кількість нотаток на сторінці не збігається",
+    "editedCount_one": "відредаговано {{editedCount}} нотатку",
+    "editedCount_other": "відредаговано {{editedCount}} нотаток",
+    "editedCountMismatch_one": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} нотатку, оскільки дані відповідних нотаток змінилися",
+    "editedCountMismatch_other": "кількість вибраних була {{selectionCount}}, але відредаговано {{editedCount}} нотаток, оскільки дані відповідних нотаток змінилися"
+  },
   "docs": {
     "title": "Розуміння синтаксису пошуку",
     "pageFilters": "Фільтри сторінки",

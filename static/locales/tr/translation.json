@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "seçim sayısı {{selectionCount}} iken, eşleşen yer imi verileri değiştiği için {{editedCount}} yer imi düzenlendi",
     "editedCountMismatch_other": "seçim sayısı {{selectionCount}} iken, eşleşen yer imi verileri değiştiği için {{editedCount}} yer imi düzenlendi"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 not seçildi",
+    "notesSelected": "{{count}} not seçildi",
+    "destroyOne": "1 notu sil?",
+    "destroyMany": "{{count}} notu sil?",
+    "publicOne": "1 notu herkese açık yap?",
+    "publicMany": "{{count}} notu herkese açık yap?",
+    "useMarkdown": "markdown kullan",
+    "usePlaintext": "düz metin kullan",
+    "pleaseAddSelection": "lütfen not seçin",
+    "pleaseChooseAction": "lütfen bir eylem seçin",
+    "pageMismatch": "sayfa not sayısı uyuşmuyor",
+    "editedCount_one": "{{editedCount}} not düzenlendi",
+    "editedCount_other": "{{editedCount}} not düzenlendi",
+    "editedCountMismatch_one": "seçim sayısı {{selectionCount}} iken, eşleşen not verileri değiştiği için {{editedCount}} not düzenlendi",
+    "editedCountMismatch_other": "seçim sayısı {{selectionCount}} iken, eşleşen not verileri değiştiği için {{editedCount}} not düzenlendi"
+  },
   "docs": {
     "title": "Arama sozdizimini anlama",
     "pageFilters": "Sayfa filtreleri",

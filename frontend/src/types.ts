@@ -131,6 +131,17 @@ export type BulkEditResponse = {
   data?: { editedCount: number };
 };
 
+export type NoteBulkAction = 'private' | 'public' | 'markdown' | 'plaintext' | 'delete';
+
+type NoteBulkEditRequestBase = {
+  action: NoteBulkAction;
+  selectionCount: number;
+};
+
+export type NoteBulkEditRequest =
+  | (NoteBulkEditRequestBase & { selection: 'page'; nids: number[] })
+  | (NoteBulkEditRequestBase & { selection: 'all'; query: string | null });
+
 /** Raw tag cloud mode as stored/sent by the server. */
 export type TagCloudMode = {
   /** The mode name (e.g. 'top', 'lowerBound', 'related', 'none'). */

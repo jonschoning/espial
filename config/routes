@@ -15,6 +15,7 @@
 !/#UserNameP/notes/#NtSlug NoteR GET
 !/api/note/add AddNoteR POST
 !/api/note/#Int64 DeleteNoteR DELETE
+/!api/note/bulk NoteBulkR POST
 
 -- user
 / HomeR GET

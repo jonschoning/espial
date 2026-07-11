@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} marque-page modifié, car les données du marque-page correspondant ont changé",
     "editedCountMismatch_other": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} marque-pages modifiés, car les données des marque-pages correspondants ont changé"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 note sélectionnée",
+    "notesSelected": "{{count}} notes sélectionnées",
+    "destroyOne": "supprimer 1 note ?",
+    "destroyMany": "supprimer {{count}} notes ?",
+    "publicOne": "rendre 1 note publique ?",
+    "publicMany": "rendre {{count}} notes publiques ?",
+    "useMarkdown": "utiliser markdown",
+    "usePlaintext": "utiliser le texte brut",
+    "pleaseAddSelection": "veuillez sélectionner des notes",
+    "pleaseChooseAction": "veuillez choisir une action",
+    "pageMismatch": "le nombre de notes de la page ne correspond pas",
+    "editedCount_one": "{{editedCount}} note modifiée",
+    "editedCount_other": "{{editedCount}} notes modifiées",
+    "editedCountMismatch_one": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} note modifiée, car les données de la note correspondante ont changé",
+    "editedCountMismatch_other": "le nombre de sélection était {{selectionCount}}, mais {{editedCount}} notes modifiées, car les données des notes correspondantes ont changé"
+  },
   "docs": {
     "title": "Comprendre la syntaxe de recherche",
     "pageFilters": "Filtres de page",

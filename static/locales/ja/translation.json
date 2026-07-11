@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "選択数は{{selectionCount}}でしたが、一致するブックマークデータが変更されたため、{{editedCount}}件のブックマークを編集しました",
     "editedCountMismatch_other": "選択数は{{selectionCount}}でしたが、一致するブックマークデータが変更されたため、{{editedCount}}件のブックマークを編集しました"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1件のメモを選択",
+    "notesSelected": "{{count}}件のメモを選択",
+    "destroyOne": "1件のメモを削除しますか？",
+    "destroyMany": "{{count}}件のメモを削除しますか？",
+    "publicOne": "1件のメモを公開にしますか？",
+    "publicMany": "{{count}}件のメモを公開にしますか？",
+    "useMarkdown": "Markdownを使用",
+    "usePlaintext": "プレーンテキストを使用",
+    "pleaseAddSelection": "メモを選択してください",
+    "pleaseChooseAction": "操作を選択してください",
+    "pageMismatch": "ページのメモ数が一致しません",
+    "editedCount_one": "{{editedCount}}件のメモを編集しました",
+    "editedCount_other": "{{editedCount}}件のメモを編集しました",
+    "editedCountMismatch_one": "選択数は{{selectionCount}}でしたが、一致するメモデータが変更されたため、{{editedCount}}件のメモを編集しました",
+    "editedCountMismatch_other": "選択数は{{selectionCount}}でしたが、一致するメモデータが変更されたため、{{editedCount}}件のメモを編集しました"
+  },
   "docs": {
     "title": "検索構文の説明",
     "pageFilters": "ページフィルター",

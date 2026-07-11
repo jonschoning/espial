@@ -196,6 +196,23 @@
     "editedCountMismatch_one": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Lesezeichen bearbeitet, da sich die übereinstimmenden Lesezeichendaten geändert haben",
     "editedCountMismatch_other": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Lesezeichen bearbeitet, da sich die übereinstimmenden Lesezeichendaten geändert haben"
   },
+  "bulkEditNotes": {
+    "oneNoteSelected": "1 Notiz ausgewählt",
+    "notesSelected": "{{count}} Notizen ausgewählt",
+    "destroyOne": "1 Notiz löschen?",
+    "destroyMany": "{{count}} Notizen löschen?",
+    "publicOne": "1 Notiz öffentlich machen?",
+    "publicMany": "{{count}} Notizen öffentlich machen?",
+    "useMarkdown": "Markdown verwenden",
+    "usePlaintext": "Klartext verwenden",
+    "pleaseAddSelection": "Bitte eine Notiz-Auswahl treffen",
+    "pleaseChooseAction": "Bitte eine Aktion wählen",
+    "pageMismatch": "Anzahl der Seiten-Notizen stimmt nicht überein",
+    "editedCount_one": "{{editedCount}} Notiz bearbeitet",
+    "editedCount_other": "{{editedCount}} Notizen bearbeitet",
+    "editedCountMismatch_one": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Notiz bearbeitet, da sich die übereinstimmenden Notizdaten geändert haben",
+    "editedCountMismatch_other": "Auswahlanzahl war {{selectionCount}}, aber {{editedCount}} Notizen bearbeitet, da sich die übereinstimmenden Notizdaten geändert haben"
+  },
   "docs": {
     "title": "Die Suchsyntax verstehen",
     "pageFilters": "Seitenfilter",
