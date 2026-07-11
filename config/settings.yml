@@ -77,4 +77,4 @@ login-rate-limit-window-seconds: "_env:LOGIN_RATE_LIMIT_WINDOW_SECONDS:60"
 
 # Maximum allowed request body size, in bytes. Requests exceeding this (e.g. large
 # Settings/import uploads) are rejected with 413. Set to 0 to disable the limit.
-maximum-content-length: "_env:MAXIMUM_CONTENT_LENGTH:2097152"
+maximum-content-length: "_env:MAXIMUM_CONTENT_LENGTH:10485760"

@@ -281,6 +281,21 @@ note2Json =
       "}"
     ]
 
+note3Json :: ByteString
+note3Json =
+  mconcat
+    [ "{\"id\":\"note-3\"",
+      ",\"slug\":\"cafe0123456789abcdef\"",
+      ",\"title\":\"Third Note\"",
+      ",\"text\":\"Even more text\"",
+      ",\"length\":16",
+      ",\"is_markdown\":true",
+      ",\"shared\":true",
+      ",\"created_at\":\"2024-06-15 12:00:00\"",
+      ",\"updated_at\":\"2024-06-15 12:00:00\"",
+      "}"
+    ]
+
 -- ---------------------------------------------------------------------------
 -- Helpers
 -- ---------------------------------------------------------------------------
@@ -424,6 +439,11 @@ spec = do
       fileNoteTitle fn `shouldBe` "My Title"
       fileNoteText fn `shouldBe` "Body text"
       fileNoteLength fn `shouldBe` 9
+      fileNoteSlug fn `shouldBe` Nothing
+
+    it "parses slug when present" $ do
+      fn <- decodeOrFail note3Json :: IO FileNote
+      fileNoteSlug fn `shouldBe` Just "cafe0123456789abcdef"
 
     it "round-trips through encode then decode" $ do
       fn <- decodeOrFail noteJson :: IO FileNote
@@ -623,16 +643,26 @@ spec = do
         uid <- runDB createTestUser
         fn1 <- liftIO $ decodeOrFail noteJson
         fn2 <- liftIO $ decodeOrFail note2Json
-        n <- runDB $ insertFileNotes uid [fn1, fn2]
-        liftIO $ n `shouldBe` 2
+        fn3 <- liftIO $ decodeOrFail note3Json
+        n <- runDB $ insertFileNotes uid [fn1, fn2, fn3]
+        liftIO $ n `shouldBe` 3
 
-      it "skips duplicate notes on re-insert" $ do
+      it "skips notes whose slug already exists on re-import of an export" $ do
         uid <- runDB createTestUser
         fn <- liftIO $ decodeOrFail noteJson
-        n1 <- runDB $ insertFileNotes uid [fn]
-        n2 <- runDB $ insertFileNotes uid [fn]
-        liftIO $ n1 `shouldBe` 1
-        liftIO $ n2 `shouldBe` 1
+        _ <- runDB $ insertFileNotes uid [fn]
+        exported <- runDB $ getFileNotes uid
+        inserted <- runDB $ insertFileNotes uid exported
+        liftIO $ inserted `shouldBe` 0
+        result <- runDB $ getFileNotes uid
+        liftIO $ length result `shouldBe` 1
+
+      it "inserts notes with an unknown slug under a fresh slug" $ do
+        uid <- runDB createTestUser
+        fn <- liftIO $ decodeOrFail note3Json
+        _ <- runDB $ insertFileNotes uid [fn]
+        exported <- runDB $ getFileNotes uid
+        liftIO $ fmap fileNoteSlug (headMay exported) `shouldNotBe` Just (Just "cafe0123456789abcdef")
 
     -- -----------------------------------------------------------------
     describe "getFileNotes (notes export)" $ do

@@ -99,6 +99,7 @@ Note json
   shared Bool default=False
   created UTCTime
   updated UTCTime
+  UniqueUserNoteSlug userId slug
   deriving Show Eq Ord
 |]
 

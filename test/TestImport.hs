@@ -15,7 +15,7 @@ import Database.Persist as X hiding (get)
 import Database.Persist.Sql (SqlPersistM, rawExecute, rawSql, runSqlPersistMPool, unSingle)
 import Foundation as X
 import Model as X
-import Model.Migrations (runAppMigrations, runPersistentMigrations)
+import Model.Migrations (runAppMigrations, runPersistentMigrations, runPreMigrations)
 import Test.Hspec as X
 import Types
 import Yesod.Auth as X
@@ -54,7 +54,7 @@ withApp spec =
           useEnv
       foundation <- makeFoundation settings
       runSqlPersistMPool
-        (runPersistentMigrations False >> runAppMigrations False)
+        (runPreMigrations False >> runPersistentMigrations False >> runAppMigrations False)
         (appConnPool foundation)
       return foundation
 

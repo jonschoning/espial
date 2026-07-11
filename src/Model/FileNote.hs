@@ -14,9 +14,12 @@ import Types
 
 data FileNote = FileNote
   { fileNoteId :: !Text,
+    fileNoteSlug :: !(Maybe Text),
     fileNoteTitle :: !Text,
     fileNoteText :: !Text,
     fileNoteLength :: !Int,
+    fileNoteIsMarkdown :: !(Maybe Bool),
+    fileNoteShared :: !(Maybe Bool),
     fileNoteCreatedAt :: !UTCTime,
     fileNoteUpdatedAt :: !UTCTime
   }
@@ -28,11 +31,17 @@ instance FromJSON FileNote where
       <$> o
       .: "id"
       <*> o
+      A..:? "slug"
+      <*> o
       .: "title"
       <*> o
       .: "text"
       <*> o
       .: "length"
+      <*> o
+      A..:? "is_markdown"
+      <*> o
+      A..:? "shared"
       <*> (readFileNoteTime =<< o .: "created_at")
       <*> (readFileNoteTime =<< o .: "updated_at")
   parseJSON _ = A.parseFail "bad parse"
@@ -41,20 +50,35 @@ instance ToJSON FileNote where
   toJSON FileNote {..} =
     object
       [ "id" .= fileNoteId,
+        "slug" .= fileNoteSlug,
         "title" .= fileNoteTitle,
         "text" .= fileNoteText,
         "length" .= fileNoteLength,
+        "is_markdown" .= fileNoteIsMarkdown,
+        "shared" .= fileNoteShared,
         "created_at" .= showFileNoteTime fileNoteCreatedAt,
         "updated_at" .= showFileNoteTime fileNoteUpdatedAt
       ]
   toEncoding FileNote {..} =
     A.pairs
-      ( "id" .= fileNoteId
-      <> "title" .= fileNoteTitle
-      <> "text" .= fileNoteText
-      <> "length" .= fileNoteLength
-      <> "created_at" .= showFileNoteTime fileNoteCreatedAt
-      <> "updated_at" .= showFileNoteTime fileNoteUpdatedAt
+      ( "id"
+          .= fileNoteId
+          <> "slug"
+          .= fileNoteSlug
+          <> "title"
+          .= fileNoteTitle
+          <> "text"
+          .= fileNoteText
+          <> "length"
+          .= fileNoteLength
+          <> "is_markdown"
+          .= fileNoteIsMarkdown
+          <> "shared"
+          .= fileNoteShared
+          <> "created_at"
+          .= showFileNoteTime fileNoteCreatedAt
+          <> "updated_at"
+          .= showFileNoteTime fileNoteUpdatedAt
       )
 
 readFileNoteTime ::
@@ -75,8 +99,8 @@ fileNoteToNote user FileNote {..} = do
         noteLength = fileNoteLength,
         noteTitle = fileNoteTitle,
         noteText = fileNoteText,
-        noteIsMarkdown = False,
-        noteShared = False,
+        noteIsMarkdown = fromMaybe False fileNoteIsMarkdown,
+        noteShared = fromMaybe False fileNoteShared,
         noteCreated = fileNoteCreatedAt,
         noteUpdated = fileNoteUpdatedAt
       }
@@ -94,8 +118,14 @@ readFileNotes fpath =
 insertFileNotes :: Key User -> [FileNote] -> DB Int
 insertFileNotes userId fnotes = do
   notes <- liftIO $ mapM (fileNoteToNote userId) fnotes
-  void $ mapM insertUnique notes
-  pure (length notes)
+  ins <- forM (zip fnotes notes) $ \(fnote, note) -> do
+    existing <- case fileNoteSlug fnote of
+      Just fslug -> checkUnique note {noteSlug = NtSlug fslug}
+      Nothing -> pure Nothing
+    case existing of
+      Just _ -> pure 0
+      Nothing -> insertUnique note >> pure 1
+  pure (sum ins)
 
 insertDirFileNotes :: Key User -> FilePath -> DB (Either String Int)
 insertDirFileNotes userId noteDirectory = do
@@ -108,9 +138,12 @@ noteToFileNote :: Entity Note -> FileNote
 noteToFileNote (Entity k Note {..}) =
   FileNote
     { fileNoteId = tshow (fromSqlKey k),
+      fileNoteSlug = Just (unNtSlug noteSlug),
       fileNoteTitle = noteTitle,
       fileNoteText = noteText,
       fileNoteLength = noteLength,
+      fileNoteIsMarkdown = Just noteIsMarkdown,
+      fileNoteShared = Just noteShared,
       fileNoteCreatedAt = noteCreated,
       fileNoteUpdatedAt = noteUpdated
     }

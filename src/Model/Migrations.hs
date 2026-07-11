@@ -40,6 +40,26 @@ runPersistentMigrations enableLogging = do
     then void $ runMigration migrateSchema
     else void $ runMigrationQuiet migrateSchema
 
+runPreMigrations :: Bool -> DB ()
+runPreMigrations enableLogging =
+  runPreMigrations' (if enableLogging then liftIO . TIO.hPutStrLn stderr else const (pure ()))
+
+-- runs before runPersistentMigrations, so the schema may not exist yet and
+-- only raw SQL guarded by table-existence checks is safe here
+runPreMigrations' :: forall m. (MonadUnliftIO m) => (Text -> m ()) -> DBM m ()
+runPreMigrations' logger = do
+  (mcv, _) <- getDbVersions True
+  let cv = maybe 0 (\(CurrentDbVersion v) -> v) mcv
+  when (cv <= 2) $ do
+    noteTableExists <- rawSql "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'note'" []
+    case noteTableExists :: [Single Int] of
+      [] -> pure ()
+      _ -> do
+        lift (logger "Applying preMigration operation: dedupe-duplicate-note-slugs")
+        rawExecute
+          "UPDATE note SET slug = lower(hex(randomblob(10))) WHERE id NOT IN (SELECT MIN(id) FROM note GROUP BY user_id, slug)"
+          []
+
 runAppMigrations :: Bool -> DB ()
 runAppMigrations enableLogging = do
   insertCurrentAppVersion
@@ -54,12 +74,22 @@ insertCurrentAppVersion = do
 
 appMigrations :: (MonadUnliftIO m) => AppMigrations m
 appMigrations =
-  [ 0 ~> 1 := [operation_create_initial_indexes],
-    1 ~> 2 := [operation_normalize_bookmark_utctime_remove_z, operation_normalize_note_utctime_remove_z]
+  [ 0 ~> 1 := [],
+    1 ~> 2 := [operation_normalize_bookmark_utctime_remove_z, operation_normalize_note_utctime_remove_z],
+    2 ~> 3 := [operation_marker_unique_user_note_slug]
   ]
+
+-- run on every startup regardless of DbVersion, since migrateSchema may
+-- recreate tables (dropping their indexes) at any time
+alwaysAppMigrations :: (MonadUnliftIO m) => [OperationSpec m]
+alwaysAppMigrations = [operation_create_initial_indexes]
 
 printAppMigrations :: forall m. DBM m ()
 printAppMigrations = do
+  forM_ (alwaysAppMigrations :: [OperationSpec m]) $ \(name, opSpec) -> do
+    putStrLn ("*** Dumping always-run migration operation: " <> name)
+    statements <- opSpec
+    traverse_ (\(SqlStatement sql vals) -> putStrLn (sql <> " " <> tshow vals)) statements
   (mcv, LatestMigrationVersion lmv) <- getDbVersions True
   let CurrentDbVersion cv = fromMaybe (CurrentDbVersion 0) mcv
   if (cv >= lmv)
@@ -84,6 +114,9 @@ printAppMigrations = do
 runAppMigrations' :: (MonadUnliftIO m) => (Text -> m ()) -> DBM m ()
 runAppMigrations' logger = do
   let logFunc = lift . logger
+  forM_ alwaysAppMigrations $ \(_, opSpec) -> do
+    statements <- opSpec
+    traverse_ (\(SqlStatement sql vals) -> rawExecute sql vals) statements
   (mcv, LatestMigrationVersion lmv) <- getDbVersions False
   case mcv of
     Nothing -> do
@@ -177,3 +210,9 @@ operation_normalize_note_utctime_remove_z =
     <$> filter (not . T.null . T.strip) (T.splitOn ";" operationSql)
   where
     operationSql = decodeUtf8 $(embedFile "appmigrations/002-normalize-note-utctime-remove-z.sql")
+
+-- marker only: the unique_user_note_slug constraint itself is added by
+-- runPersistentMigrations, after runPreMigrations has deduplicated any
+-- conflicting note slugs
+operation_marker_unique_user_note_slug :: (Applicative m) => OperationSpec m
+operation_marker_unique_user_note_slug = ("marker-unique-user-note-slug", pure [])

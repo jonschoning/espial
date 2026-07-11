@@ -13,7 +13,7 @@ import Model
 import Model.Custom
 import Model.File
 import Model.FileNetscape (exportNetscapeBookmarks)
-import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations)
+import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations, runPreMigrations)
 import Options.Applicative qualified as OA
 import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
@@ -129,6 +129,7 @@ main = do
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
+      P.runSqliteInfo connInfo (runPreMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateDB {..} -> do
@@ -136,6 +137,7 @@ main = do
       let connInfo =
             P.mkSqliteConnectionInfo connText
               & set P.fkEnabled False
+      P.runSqliteInfo connInfo (runPreMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runPersistentMigrations $ maybe True not silent)
       P.runSqliteInfo connInfo (runAppMigrations $ maybe True not silent)
     CreateUser {..} -> do
