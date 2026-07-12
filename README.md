@@ -23,7 +23,7 @@ Log in with:
 
 https://espdemo.ae8.org/u:demo
 
-![jpg](./docs/demo-bookmarks-page.png)
+![jpg](./docs/demo-bookmarks-page-dark.png)
 
 ## Related Projects
 
