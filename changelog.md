@@ -6,6 +6,7 @@
   - add search term grouping with parentheses `(`, `)`
   - add exact search on a specific field `field=`
   - search query help doc updated
+- bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
 
 ## v0.0.40 (2026-07-11)
 

@@ -2,7 +2,6 @@
 
 module Handler.User where
 
-import Data.Aeson.Encoding (encodingToLazyByteString)
 import Data.Map qualified as Map
 import Data.Text qualified as T
 import Data.Time (diffUTCTime)
@@ -93,7 +92,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     $(widgetFile "user")
     toWidgetBody
       [julius|
-        app.dat.bmarks = #{ toRawJs $ toBookmarkFormListForViewer isowner btmarks } || [];
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormListForViewer isowner btmarks } || [];
         app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
@@ -122,8 +121,6 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
             renderBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
           }, 0);
     |]
-  where
-    toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding
 
 -- Form
 
