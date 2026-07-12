@@ -229,6 +229,8 @@
     "betweenQuery": "між кожним пошуковим запитом.",
     "excludeWords": "Виключення слів із пошуку",
     "inFrontWord": "перед словом, яке потрібно виключити.",
+    "groupTerms": "Групування пошукових термінів",
+    "putInParens": "Візьміть терміни в дужки, щоб об'єднати їх в одну групу. Групи можна комбінувати, заперечувати та вкладати одна в одну.",
     "exactMatch": "Пошук точного збігу",
     "putInQuotes": "Візьміть слово або фразу в лапки.",
     "specificField": "Пошук у конкретному полі",
@@ -241,6 +243,7 @@
     "exampleHeader": "ПРИКЛАД",
     "complexExamples": "Складніші приклади",
     "complexExample1Desc": "\"youtube\" в url, і назва містить \"haskell\" або назва містить \"python\", і після 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" не в назві, а \"news\", \"cnn\", \"npr\" будь-де, або \"the guardian\" в описі"
+    "complexExample2Desc": "\"hacker news\" не в назві, а \"news\", \"cnn\", \"npr\" будь-де, або \"the guardian\" в описі",
+    "complexExample3Desc": "з тегами \"haskell\" і \"youtube\", або без обох тегів \"haskell\" і \"vimeo\"; та без обох тегів \"surveys\" і \"news\", і після 2018-12-31"
   }
 }

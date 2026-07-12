@@ -229,6 +229,8 @@
     "betweenQuery": "放在每个搜索查询之间。",
     "excludeWords": "从搜索中排除词语",
     "inFrontWord": "放在你想排除的词前面。",
+    "groupTerms": "使用括号分组搜索词",
+    "putInParens": "用括号将搜索词括起来，使其成为一个整体。分组可以组合、取反和嵌套。",
     "exactMatch": "搜索精确匹配",
     "putInQuotes": "将单词或短语放在引号中。",
     "specificField": "在特定字段中搜索",
@@ -241,6 +243,7 @@
     "exampleHeader": "示例",
     "complexExamples": "更复杂的示例",
     "complexExample1Desc": "url 中包含 \"youtube\"，标题中包含 \"haskell\" 或标题中包含 \"python\"，并且日期晚于 2017/12/31",
-    "complexExample2Desc": "标题中不包含 \"hacker news\"，并且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或者描述中包含 \"the guardian\""
+    "complexExample2Desc": "标题中不包含 \"hacker news\"，并且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或者描述中包含 \"the guardian\"",
+    "complexExample3Desc": "标签同时包含 \"haskell\" 和 \"youtube\"，或者标签不同时包含 \"haskell\" 和 \"vimeo\"；并且标签不同时包含 \"surveys\" 和 \"news\"，且在 2018-12-31 之后"
   }
 }

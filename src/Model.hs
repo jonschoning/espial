@@ -676,15 +676,16 @@ parseSearchQuery ::
 parseSearchQuery toExpr =
   fmap where_ . either (const Nothing) Just . P.parseOnly andE
   where
-    andE = foldl1 (&&.) <$> P.many1 (P.skipSpace *> orE <|> tokenTermE)
+    andE = foldl1 (&&.) <$> P.many1 (P.skipSpace *> orE)
     orE = foldl1 (||.) <$> tokenTermE `P.sepBy1` P.char '|'
-    tokenTermE = negE termE <|> termE
+    tokenTermE = negE (groupE <|> termE) <|> groupE <|> termE
       where
         negE p = not_ <$> (P.char '-' *> p)
+        groupE = P.char '(' *> andE <* P.skipSpace <* P.char ')'
         termE = toExpr <$> (fieldTerm <|> quotedTerm <|> simpleTerm)
         fieldTerm = concat <$> sequence [simpleTerm, P.string ":", quotedTerm <|> simpleTerm]
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
-        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|')
+        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|' && c /= '(' && c /= ')')
 
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
 withTags key = selectList [BookmarkTagBookmarkId CP.==. key] [Asc BookmarkTagSeq]

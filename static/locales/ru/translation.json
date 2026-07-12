@@ -229,6 +229,8 @@
     "betweenQuery": "между каждым поисковым запросом.",
     "excludeWords": "Исключить слова из поиска",
     "inFrontWord": "перед словом, которое хотите исключить.",
+    "groupTerms": "Группировка условий поиска",
+    "putInParens": "Заключите условия в скобки, чтобы объединить их в одну группу. Группы можно комбинировать, отрицать и вкладывать друг в друга.",
     "exactMatch": "Поиск точного совпадения",
     "putInQuotes": "Заключите слово или фразу в кавычки.",
     "specificField": "Поиск в определённом поле",
@@ -241,6 +243,7 @@
     "exampleHeader": "ПРИМЕР",
     "complexExamples": "Более сложные примеры",
     "complexExample1Desc": "«youtube» в URL, и заголовок «haskell» или заголовок «python» и после 31.12.2017",
-    "complexExample2Desc": "«hacker news» не в заголовке, и «news», «cnn», «npr» где угодно, или «the guardian» в описании"
+    "complexExample2Desc": "«hacker news» не в заголовке, и «news», «cnn», «npr» где угодно, или «the guardian» в описании",
+    "complexExample3Desc": "с тегами «haskell» и «youtube», или без обоих тегов «haskell» и «vimeo»; и без обоих тегов «surveys» и «news», и после 2018-12-31"
   }
 }

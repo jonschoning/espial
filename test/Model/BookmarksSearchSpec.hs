@@ -399,6 +399,91 @@ spec = withApp $ do
       bids <- runDB $ search uid "\"tallest building\""
       liftIO $ bids `shouldNotContain` [bid]
 
+  -- ─── Parentheses grouping ────────────────────────────────────────────────
+
+  describe "parentheses grouping" $ do
+    it "a|(b c) matches a bookmark containing only the first alternative" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "apple pie" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "a|(b c) matches a bookmark containing both grouped terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "banana cherry smoothie" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "a|(b c) does not match a bookmark containing only one grouped term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "banana bread" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "-(a b) excludes a bookmark containing both terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bid "surveys" 1
+        tagBm uid bid "news" 2
+        return (uid, bid)
+      bids <- runDB $ search uid "-(t:surveys t:news)"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "-(a b) includes a bookmark containing only one of the terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bid "surveys" 1
+        return (uid, bid)
+      bids <- runDB $ search uid "-(t:surveys t:news)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "supports nested groups" $ do
+      (uid, bMatch, bNoMatch) <- runDB $ do
+        uid <- createTestUser
+        bMatch <- createBm uid "https://a.com" "alpha beta" "" t2019
+        bNoMatch <- createBm uid "https://b.com" "alpha delta" "" t2019
+        return (uid, bMatch, bNoMatch)
+      bids <- runDB $ search uid "(alpha (beta|gamma))"
+      liftIO $ bids `shouldContain` [bMatch]
+      liftIO $ bids `shouldNotContain` [bNoMatch]
+
+    it "groups combine with field prefixes, OR, NOT, and date filters" $ do
+      let t2018 = UTCTime (fromGregorian 2018 1 1) 0
+          q = "(t:haskell t:youtube)|-(t:haskell t:vimeo) -(t:surveys t:news) a:2018-12-31"
+      (uid, bHsYt, bHsVimeo, bSurveysNews, bOther, bOld) <- runDB $ do
+        uid <- createTestUser
+        bHsYt <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bHsYt "haskell" 1
+        tagBm uid bHsYt "youtube" 2
+        bHsVimeo <- createBm uid "https://b.com" "" "" t2019
+        tagBm uid bHsVimeo "haskell" 1
+        tagBm uid bHsVimeo "vimeo" 2
+        bSurveysNews <- createBm uid "https://c.com" "" "" t2019
+        tagBm uid bSurveysNews "haskell" 1
+        tagBm uid bSurveysNews "youtube" 2
+        tagBm uid bSurveysNews "surveys" 3
+        tagBm uid bSurveysNews "news" 4
+        bOther <- createBm uid "https://d.com" "" "" t2019
+        tagBm uid bOther "cooking" 1
+        bOld <- createBm uid "https://e.com" "" "" t2018
+        tagBm uid bOld "haskell" 1
+        tagBm uid bOld "youtube" 2
+        return (uid, bHsYt, bHsVimeo, bSurveysNews, bOther, bOld)
+      bids <- runDB $ search uid q
+      liftIO $ bids `shouldContain` [bHsYt]
+      liftIO $ bids `shouldNotContain` [bHsVimeo]
+      liftIO $ bids `shouldNotContain` [bSurveysNews]
+      liftIO $ bids `shouldContain` [bOther]
+      liftIO $ bids `shouldNotContain` [bOld]
+
   -- ─── Complex combined queries ─────────────────────────────────────────────
 
   describe "complex combined queries" $ do

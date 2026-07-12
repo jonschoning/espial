@@ -48,6 +48,18 @@ spec = withApp $ do
       nids <- runDB $ search uid SharedAll (Just "markdown:tutorial")
       liftIO $ nids `shouldBe` [nid1]
 
+    it "supports parentheses grouping with OR and NOT" $ do
+      (uid, nApple, nBananaCherry, nBanana) <- runDB $ do
+        uid <- createTestUser
+        nApple <- createNote uid "apple pie" False False
+        nBananaCherry <- createNote uid "banana cherry smoothie" False False
+        nBanana <- createNote uid "banana bread" False False
+        return (uid, nApple, nBananaCherry, nBanana)
+      nids <- runDB $ search uid SharedAll (Just "apple|(banana cherry)")
+      liftIO $ sort nids `shouldBe` sort [nApple, nBananaCherry]
+      nids' <- runDB $ search uid SharedAll (Just "-(banana cherry)")
+      liftIO $ sort nids' `shouldBe` sort [nApple, nBanana]
+
     it "the shared filter restricts results" $ do
       (uid, nid1, nid2) <- runDB $ do
         uid <- createTestUser

@@ -21,6 +21,10 @@
   <p .ml3>#{t "docs.put"} <span class="code fw9 docs-item-bg">-</span>&nbsp;#{t "docs.inFrontWord"}&nbsp;
     <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">-car</span>
   
+  <h3>#{t "docs.groupTerms"}
+  <p .ml3>#{t "docs.putInParens"}&nbsp;
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">(marathon|race) -(car|bike)</span>
+
   <h3>#{t "docs.exactMatch"}
   <p .ml3>#{t "docs.putInQuotes"}&nbsp;
     <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">"tallest building"</span>
@@ -85,5 +89,9 @@
   <div .ml3.pt3>
     <span>#{t "docs.complexExample2Desc"}
     <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">-ti:"hacker news" news|cnn|npr|d:"the guardian"
+
+  <div .ml3.pt3>
+    <span>#{t "docs.complexExample3Desc"}
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">(t:haskell t:youtube)|-(t:haskell t:vimeo) -(t:surveys t:news) a:2018-12-31
 
 

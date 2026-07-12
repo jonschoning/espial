@@ -229,6 +229,8 @@
     "betweenQuery": "zwischen jede Suchanfrage.",
     "excludeWords": "Wörter aus der Suche ausschließen",
     "inFrontWord": "vor ein Wort, das Sie ausschließen möchten.",
+    "groupTerms": "Suchbegriffe gruppieren",
+    "putInParens": "Setzen Sie Klammern um Begriffe, um sie zu einer Einheit zu gruppieren. Gruppen können kombiniert, negiert und verschachtelt werden.",
     "exactMatch": "Nach einer genauen Übereinstimmung suchen",
     "putInQuotes": "Ein Wort oder eine Phrase in Anführungszeichen setzen.",
     "specificField": "In einem bestimmten Feld suchen",
@@ -241,6 +243,7 @@
     "exampleHeader": "BEISPIEL",
     "complexExamples": "Komplexere Beispiele",
     "complexExample1Desc": "\"youtube\" in URL, und Titel \"haskell\" oder Titel \"python\" und nach dem 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" nicht im Titel, und \"news\", \"cnn\", \"npr\" irgendwo, oder \"the guardian\" in der Beschreibung"
+    "complexExample2Desc": "\"hacker news\" nicht im Titel, und \"news\", \"cnn\", \"npr\" irgendwo, oder \"the guardian\" in der Beschreibung",
+    "complexExample3Desc": "mit den Tags \"haskell\" und \"youtube\", oder nicht mit beiden Tags \"haskell\" und \"vimeo\"; und nicht mit beiden Tags \"surveys\" und \"news\", und nach dem 2018-12-31"
   }
 }

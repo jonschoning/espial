@@ -229,6 +229,8 @@
     "betweenQuery": "her arama sorgusunun arasina.",
     "excludeWords": "Aramadan kelime cikar",
     "inFrontWord": "haric tutmak istediginiz kelimenin onune koyun.",
+    "groupTerms": "Arama terimlerini gruplama",
+    "putInParens": "Terimleri tek bir birim olarak gruplamak icin parantez icine alin. Gruplar birlestirilebilir, olumsuzlanabilir ve ic ice kullanilabilir.",
     "exactMatch": "Tam eslesme ara",
     "putInQuotes": "Bir kelimeyi veya ifadeyi tirnak icine alin.",
     "specificField": "Belirli bir alanda ara",
@@ -241,6 +243,7 @@
     "exampleHeader": "ORNEK",
     "complexExamples": "Daha karmasik ornekler",
     "complexExample1Desc": "url icinde \"youtube\", ve baslikta \"haskell\" veya baslikta \"python\" ve 31/12/2017 sonrasinda",
-    "complexExample2Desc": "baslikta \"hacker news\" yok, ve herhangi bir yerde \"news\", \"cnn\", \"npr\", veya aciklamada \"the guardian\""
+    "complexExample2Desc": "baslikta \"hacker news\" yok, ve herhangi bir yerde \"news\", \"cnn\", \"npr\", veya aciklamada \"the guardian\"",
+    "complexExample3Desc": "\"haskell\" ve \"youtube\" etiketlerinin ikisi de var, veya \"haskell\" ve \"vimeo\" etiketlerinin ikisi birden yok; ve \"surveys\" ile \"news\" etiketlerinin ikisi birden yok, ve 2018-12-31 sonrasinda"
   }
 }

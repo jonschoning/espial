@@ -229,6 +229,8 @@
     "betweenQuery": "między każdym zapytaniem wyszukiwania.",
     "excludeWords": "Wyklucz słowa z wyszukiwania",
     "inFrontWord": "przed słowem, które chcesz wykluczyć.",
+    "groupTerms": "Grupowanie terminów wyszukiwania",
+    "putInParens": "Umieść terminy w nawiasach, aby zgrupować je w jedną całość. Grupy można łączyć, negować i zagnieżdżać.",
     "exactMatch": "Wyszukaj dokładne dopasowanie",
     "putInQuotes": "Umieść słowo lub frazę w cudzysłowie.",
     "specificField": "Wyszukaj w określonym polu",
@@ -241,6 +243,7 @@
     "exampleHeader": "PRZYKŁAD",
     "complexExamples": "Bardziej złożone przykłady",
     "complexExample1Desc": "\"youtube\" w URL oraz tytuł \"haskell\" lub tytuł \"python\" i po 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" nie w tytule, oraz \"news\", \"cnn\", \"npr\" gdziekolwiek lub \"the guardian\" w opisie"
+    "complexExample2Desc": "\"hacker news\" nie w tytule, oraz \"news\", \"cnn\", \"npr\" gdziekolwiek lub \"the guardian\" w opisie",
+    "complexExample3Desc": "z tagami \"haskell\" i \"youtube\", lub bez obu tagów \"haskell\" i \"vimeo\"; oraz bez obu tagów \"surveys\" i \"news\", i po 2018-12-31"
   }
 }

@@ -229,6 +229,8 @@
     "betweenQuery": "放在每個搜尋查詢之間。",
     "excludeWords": "從搜尋中排除字詞",
     "inFrontWord": "放在想排除字詞的前面。",
+    "groupTerms": "使用括號分組搜尋詞",
+    "putInParens": "用括號將搜尋詞括起來，使其成為一個整體。分組可以組合、否定與巢狀使用。",
     "exactMatch": "搜尋完全相符的內容",
     "putInQuotes": "將單字或片語放在引號內。",
     "specificField": "針對特定欄位搜尋",
@@ -241,6 +243,7 @@
     "exampleHeader": "範例",
     "complexExamples": "更複雜的範例",
     "complexExample1Desc": "URL 中含有 \"youtube\"，且標題為 \"haskell\" 或標題為 \"python\"，並且在 2017/12/31 之後",
-    "complexExample2Desc": "標題中不含 \"hacker news\"，且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或描述中包含 \"the guardian\""
+    "complexExample2Desc": "標題中不含 \"hacker news\"，且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或描述中包含 \"the guardian\"",
+    "complexExample3Desc": "標籤同時包含 \"haskell\" 與 \"youtube\"，或標籤未同時包含 \"haskell\" 與 \"vimeo\"；且標籤未同時包含 \"surveys\" 與 \"news\"，並在 2018-12-31 之後"
   }
 }

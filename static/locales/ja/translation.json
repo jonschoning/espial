@@ -229,6 +229,8 @@
     "betweenQuery": "を各検索クエリの間に入れます。",
     "excludeWords": "検索から単語を除外",
     "inFrontWord": "を除外したい単語の前に付けます。",
+    "groupTerms": "検索語をグループ化",
+    "putInParens": "語句を括弧で囲むと、ひとつのまとまりとしてグループ化できます。グループは組み合わせ、否定、入れ子にできます。",
     "exactMatch": "完全一致で検索",
     "putInQuotes": "単語またはフレーズを引用符で囲みます。",
     "specificField": "特定のフィールドで検索",
@@ -241,6 +243,7 @@
     "exampleHeader": "例",
     "complexExamples": "より複雑な例",
     "complexExample1Desc": "URLに「youtube」、タイトルに「haskell」またはタイトルに「python」、かつ2017/12/31以降",
-    "complexExample2Desc": "タイトルに「hacker news」を含まず、どこかに「news」「cnn」「npr」があるか、説明に「the guardian」がある"
+    "complexExample2Desc": "タイトルに「hacker news」を含まず、どこかに「news」「cnn」「npr」があるか、説明に「the guardian」がある",
+    "complexExample3Desc": "タグに「haskell」と「youtube」の両方があるか、またはタグに「haskell」と「vimeo」の両方はない。かつタグに「surveys」と「news」の両方はなく、2018-12-31以降"
   }
 }

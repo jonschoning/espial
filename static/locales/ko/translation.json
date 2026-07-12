@@ -229,6 +229,8 @@
     "betweenQuery": "각 검색어 사이에 넣으세요.",
     "excludeWords": "검색에서 단어 제외하기",
     "inFrontWord": "빼고 싶은 단어 앞에 붙이세요.",
+    "groupTerms": "검색어 그룹화",
+    "putInParens": "괄호로 검색어를 묶으면 하나의 단위로 그룹화됩니다. 그룹은 결합, 부정, 중첩할 수 있습니다.",
     "exactMatch": "정확히 일치하는 항목 검색",
     "putInQuotes": "단어 또는 구문을 따옴표 안에 넣으세요.",
     "specificField": "특정 필드에서 검색",
@@ -241,6 +243,7 @@
     "exampleHeader": "예시",
     "complexExamples": "더 복잡한 예시",
     "complexExample1Desc": "url에 \"youtube\"가 있고, 제목에 \"haskell\" 또는 제목에 \"python\"이 있으며 2017-12-31 이후",
-    "complexExample2Desc": "제목에는 \"hacker news\"가 없고, 어디에나 \"news\", \"cnn\", \"npr\"이 있거나 설명에 \"the guardian\"이 있음"
+    "complexExample2Desc": "제목에는 \"hacker news\"가 없고, 어디에나 \"news\", \"cnn\", \"npr\"이 있거나 설명에 \"the guardian\"이 있음",
+    "complexExample3Desc": "\"haskell\"과 \"youtube\" 태그가 모두 있거나, \"haskell\"과 \"vimeo\" 태그가 모두 있지는 않음; 그리고 \"surveys\"와 \"news\" 태그가 모두 있지는 않으며, 2018-12-31 이후"
   }
 }
