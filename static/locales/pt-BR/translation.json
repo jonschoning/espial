@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Senha antiga",
     "newPassword": "Nova senha",
-    "submit": "Salvar alteracoes"
+    "submit": "Salvar alteracoes",
+    "demoMode": "modo de demonstracao: alteracoes de senha estao desabilitadas"
   },
   "settings": {
     "serverDefault": "Padrao do servidor",

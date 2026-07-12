@@ -133,6 +133,7 @@ getChangePasswordR = do
   (_, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t = \key -> appTranslate app lang (I18nKey key)
+  -- demoMode = appDemoMode (appSettings app)
   defaultLayout
     $ $(widgetFile "change-password")
 
@@ -142,6 +143,9 @@ postChangePasswordR = do
   (userId, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t = \key -> appTranslate app lang (I18nKey key)
+  when (appDemoMode (appSettings app)) $ do
+    setMessage (toHtml (t "changePassword.demoMode"))
+    redirect ChangePasswordR
   let hashAlgo = appPasswordHashConfig (appSettings app)
   runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
     FormSuccess (old, new) -> do

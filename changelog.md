@@ -7,6 +7,7 @@
   - add exact search on a specific field `field=`
   - search query help doc updated
 - bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
+- add appSetting `demo-mode` (disables password changes)
 
 ## v0.0.40 (2026-07-11)
 

@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Eski sifre",
     "newPassword": "Yeni sifre",
-    "submit": "Degisiklikleri kaydet"
+    "submit": "Degisiklikleri kaydet",
+    "demoMode": "demo modu: sifre degisiklikleri devre disi"
   },
   "settings": {
     "serverDefault": "Sunucu varsayilani",

@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Vecchia password",
     "newPassword": "Nuova password",
-    "submit": "Salva modifiche"
+    "submit": "Salva modifiche",
+    "demoMode": "modalità demo: la modifica della password è disabilitata"
   },
   "settings": {
     "serverDefault": "Predefinito del server",

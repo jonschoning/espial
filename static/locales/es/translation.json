@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Contrasena anterior",
     "newPassword": "Nueva contrasena",
-    "submit": "Guardar cambios"
+    "submit": "Guardar cambios",
+    "demoMode": "modo demo: los cambios de contrasena estan deshabilitados"
   },
   "settings": {
     "serverDefault": "Predeterminado del servidor",

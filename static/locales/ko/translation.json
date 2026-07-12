@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "기존 비밀번호",
     "newPassword": "새 비밀번호",
-    "submit": "변경 사항 저장"
+    "submit": "변경 사항 저장",
+    "demoMode": "데모 모드: 비밀번호 변경이 비활성화되어 있습니다"
   },
   "settings": {
     "serverDefault": "서버 기본값",

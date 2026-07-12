@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
-    "submit": "変更を保存"
+    "submit": "変更を保存",
+    "demoMode": "デモモード：パスワードの変更は無効です"
   },
   "settings": {
     "serverDefault": "サーバーのデフォルト",

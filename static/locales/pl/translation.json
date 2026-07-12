@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Stare hasło",
     "newPassword": "Nowe hasło",
-    "submit": "Zapisz zmiany"
+    "submit": "Zapisz zmiany",
+    "demoMode": "tryb demo: zmiana hasła jest wyłączona"
   },
   "settings": {
     "serverDefault": "Domyslne ustawienie serwera",

@@ -121,7 +121,9 @@ data AppSettings = AppSettings
     appLoginRateLimitWindowSeconds :: Int,
     -- | Maximum allowed request body size, in bytes (e.g. for Settings/import).
     -- @0@ disables the limit.
-    appMaximumContentLength :: Int
+    appMaximumContentLength :: Int,
+    -- | When true, users cannot change their password.
+    appDemoMode :: Bool
   }
 
 instance FromJSON AppSettings where
@@ -190,6 +192,8 @@ instance FromJSON AppSettings where
     appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
 
     appMaximumContentLength <- o .:? "maximum-content-length" .!= (2 * 1024 * 1024)
+
+    appDemoMode <- o .:? "demo-mode" .!= False
 
     pure AppSettings {..}
     where

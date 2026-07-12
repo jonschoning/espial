@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Ancien mot de passe",
     "newPassword": "Nouveau mot de passe",
-    "submit": "Enregistrer les modifications"
+    "submit": "Enregistrer les modifications",
+    "demoMode": "mode démo : la modification du mot de passe est désactivée"
   },
   "settings": {
     "serverDefault": "Par defaut du serveur",

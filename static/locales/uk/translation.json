@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "Старий пароль",
     "newPassword": "Новий пароль",
-    "submit": "Зберегти зміни"
+    "submit": "Зберегти зміни",
+    "demoMode": "демо-режим: зміну пароля вимкнено"
   },
   "settings": {
     "serverDefault": "Типове значення сервера",

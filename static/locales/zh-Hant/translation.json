@@ -42,7 +42,8 @@
   "changePassword": {
     "oldPassword": "舊密碼",
     "newPassword": "新密碼",
-    "submit": "儲存變更"
+    "submit": "儲存變更",
+    "demoMode": "示範模式：密碼修改已停用"
   },
   "settings": {
     "serverDefault": "伺服器預設值",
