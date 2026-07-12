@@ -48,6 +48,25 @@ spec = withApp $ do
       nids <- runDB $ search uid SharedAll (Just "markdown:tutorial")
       liftIO $ nids `shouldBe` [nid1]
 
+    it "title= matches only when the entire title equals the term" $ do
+      (uid, nExact) <- runDB $ do
+        uid <- createTestUser
+        nExact <- createNote uid "haskell" False False
+        _ <- createNote uid "haskell tutorial" False False
+        return (uid, nExact)
+      nids <- runDB $ search uid SharedAll (Just "title=haskell")
+      liftIO $ nids `shouldBe` [nExact]
+
+    it "d= matches only when the entire text equals the term" $ do
+      (uid, nid) <- runDB $ do
+        uid <- createTestUser
+        nid <- createNote uid "a" False False
+        return (uid, nid)
+      nids <- runDB $ search uid SharedAll (Just "d=text")
+      liftIO $ nids `shouldBe` [nid]
+      nids' <- runDB $ search uid SharedAll (Just "d=tex")
+      liftIO $ nids' `shouldBe` []
+
     it "supports parentheses grouping with OR and NOT" $ do
       (uid, nApple, nBananaCherry, nBanana) <- runDB $ do
         uid <- createTestUser

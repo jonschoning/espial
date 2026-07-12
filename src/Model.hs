@@ -431,33 +431,34 @@ bookmarkLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
 bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
   where
     toLikeB field s = sqliteLikeContains (b ^. field) s
+    toExactB field s = sqliteLikeExact (b ^. field) s
+    tagsExpr match term' =
+      exists $ from (table @BookmarkTag) >>= \t ->
+        where_
+          $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+          &&. match (t ^. BookmarkTagTag) term'
     p_allFields =
       toLikeB BookmarkHref term
         ||. toLikeB BookmarkDescription term
         ||. toLikeB BookmarkExtended term
-        ||. exists
-          ( from (table @BookmarkTag) >>= \t ->
-              where_
-                $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                &&. sqliteLikeContains (t ^. BookmarkTagTag) term
-          )
+        ||. tagsExpr sqliteLikeContains term
     p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
       where
-        p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
-        p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
-        p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
+        p_url = p_textField ("url" <|> "u") BookmarkHref
+        p_title = p_textField ("title" <|> "ti") BookmarkDescription
+        p_description = p_textField ("description" <|> "d") BookmarkExtended
         p_tags =
-          ("tags:" <|> "t:")
-            *> fmap
-              ( \term' ->
-                  exists $ from (table @BookmarkTag) >>= \t ->
-                    where_
-                      $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                      &&. sqliteLikeContains (t ^. BookmarkTagTag) term'
-              )
-              P.takeText
+          ("tags" <|> "t")
+            *> ( P.char ':' *> fmap (tagsExpr sqliteLikeContains) P.takeText
+                   <|> P.char '=' *> fmap (tagsExpr sqliteLikeExact) P.takeText
+               )
         p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
         p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+        p_textField name field =
+          name
+            *> ( P.char ':' *> fmap (toLikeB field) P.takeText
+                   <|> P.char '=' *> fmap (toExactB field) P.takeText
+               )
 
 -- * BulkEdit types
 
@@ -683,7 +684,8 @@ parseSearchQuery toExpr =
         negE p = not_ <$> (P.char '-' *> p)
         groupE = P.char '(' *> andE <* P.skipSpace <* P.char ')'
         termE = toExpr <$> (fieldTerm <|> quotedTerm <|> simpleTerm)
-        fieldTerm = concat <$> sequence [simpleTerm, P.string ":", quotedTerm <|> simpleTerm]
+        fieldTerm = concat <$> sequence [fieldName, P.string ":" <|> P.string "=", quotedTerm <|> simpleTerm]
+        fieldName = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '=' && c /= '|' && c /= '(' && c /= ')')
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
         simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|' && c /= '(' && c /= ')')
 
@@ -757,14 +759,20 @@ noteWhereClause key sharedp mquery b = do
     toLikeExpr term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         toLikeN field s = sqliteLikeContains (b ^. field) s
+        toExactN field s = sqliteLikeExact (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_markdown <|> p_after <|> p_before
           where
-            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
-            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_title = p_textField ("title" <|> "ti") NoteTitle
+            p_text = p_textField ("description" <|> "d") NoteText
             p_markdown = ("markdown:" <|> "m:") *> fmap ((b ^. NoteIsMarkdown ==.) . val) (parseBoolText =<< P.takeText)
             p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+            p_textField name field =
+              name
+                *> ( P.char ':' *> fmap (toLikeN field) P.takeText
+                       <|> P.char '=' *> fmap (toExactN field) P.takeText
+                   )
 
 -- * Note BulkEdit
 

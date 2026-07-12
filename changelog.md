@@ -2,7 +2,10 @@
 
 ## v0.0.41 (2026-07-XX)
 
-- TBD
+- search query updates
+  - add search term grouping with parentheses `(`, `)`
+  - add exact search on a specific field `field=`
+  - search query help doc updated
 
 ## v0.0.40 (2026-07-11)
 

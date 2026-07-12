@@ -9,6 +9,8 @@
 --   BookmarkExtended    notes   description:/d:
 --   BookmarkTag         tags    tags:/t:
 --   BookmarkTime        time    after:/a:  before:/b:
+--
+-- field: is a contains search; field= (url/title/description/tags) matches the entire field.
 
 module Model.BookmarksSearchSpec (spec) where
 
@@ -197,6 +199,73 @@ spec = withApp $ do
         tagBm uid bid "haskell" 1
         return (uid, bid)
       bids <- runDB $ search uid "t:haskell"
+      liftIO $ bids `shouldContain` [bid]
+
+  -- ─── field= exact search ─────────────────────────────────────────────────
+
+  describe "field= exact search" $ do
+    it "title= matches when the entire title equals the term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=haskell"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "title= does not match when the title merely contains the term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell tutorial" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=haskell"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "title= is case-insensitive" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=HASKELL"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "title= accepts a quoted phrase" $ do
+      (uid, bidExact, bidLonger) <- runDB $ do
+        uid <- createTestUser
+        bidExact <- createBm uid "https://a.com" "hacker news" "" t2019
+        bidLonger <- createBm uid "https://b.com" "hacker newsletter" "" t2019
+        return (uid, bidExact, bidLonger)
+      bids <- runDB $ search uid "title=\"hacker news\""
+      liftIO $ bids `shouldContain` [bidExact]
+      liftIO $ bids `shouldNotContain` [bidLonger]
+
+    it "tags= matches only the whole tag" $ do
+      (uid, bidWhole, bidPartial) <- runDB $ do
+        uid <- createTestUser
+        bidWhole <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bidWhole "linux" 1
+        bidPartial <- createBm uid "https://b.com" "" "" t2019
+        tagBm uid bidPartial "linuxkernel" 1
+        return (uid, bidWhole, bidPartial)
+      bids <- runDB $ search uid "tags=linux"
+      liftIO $ bids `shouldContain` [bidWhole]
+      liftIO $ bids `shouldNotContain` [bidPartial]
+
+    it "u= is an alias for url=" $ do
+      (uid, bidExact, bidPartial) <- runDB $ do
+        uid <- createTestUser
+        bidExact <- createBm uid "https://a.com" "" "" t2019
+        bidPartial <- createBm uid "https://a.com/page" "" "" t2019
+        return (uid, bidExact, bidPartial)
+      bids <- runDB $ search uid "u=\"https://a.com\""
+      liftIO $ bids `shouldContain` [bidExact]
+      liftIO $ bids `shouldNotContain` [bidPartial]
+
+    it "field: still performs a contains search" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell tutorial" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title:haskell"
       liftIO $ bids `shouldContain` [bid]
 
   -- ─── after: / a: date filter ─────────────────────────────────────────────
