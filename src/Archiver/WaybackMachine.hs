@@ -9,7 +9,7 @@ import Archiver.Backend
 import ClassyPrelude
 import Control.Monad.Logger (LoggingT, logDebug, runLoggingT)
 import Data.ByteString qualified as BS
-import Database.Persist.Sql (ConnectionPool, Key, runSqlPool)
+import Database.Persist.Sql (Key)
 import Model (Bookmark, Url (..), User, UserAgent (UserAgent), updateBookmarkArchiveUrl)
 import Network.HTTP.Client qualified as NH
 import Network.HTTP.Types.Status qualified as NH
@@ -17,10 +17,10 @@ import Web.FormUrlEncoded qualified as WH
 import Yesod.Default.Main (LogFunc)
 
 -- | Wayback Machine backend.
-waybackMachineBackend :: Text -> Text -> ConnectionPool -> NH.Manager -> LogFunc -> ArchiverBackend
-waybackMachineBackend accessKey secretKey connPool manager logFunc =
+waybackMachineBackend :: Text -> Text -> ArchiverDB -> NH.Manager -> LogFunc -> ArchiverBackend
+waybackMachineBackend accessKey secretKey archiverDB manager logFunc =
   ArchiverBackend
-    { runArchiver = \uid bid ua url -> flip runLoggingT logFunc $ _waybackMachineRun accessKey secretKey connPool manager uid bid ua url,
+    { runArchiver = \uid bid ua url -> flip runLoggingT logFunc $ _waybackMachineRun accessKey secretKey archiverDB manager uid bid ua url,
       isUrlDenylisted = \(Url url) -> any (`isInfixOf` url) _waybackMachineDenylist
     }
 
@@ -30,8 +30,8 @@ _waybackMachineDenylist =
     "web.archive.org"
   ]
 
-_waybackMachineRun :: Text -> Text -> ConnectionPool -> NH.Manager -> Key User -> Key Bookmark -> UserAgent -> Url -> LoggingT IO ()
-_waybackMachineRun accessKey secretKey connPool manager userId bookmarkId ua url = do
+_waybackMachineRun :: Text -> Text -> ArchiverDB -> NH.Manager -> Key User -> Key Bookmark -> UserAgent -> Url -> LoggingT IO ()
+_waybackMachineRun accessKey secretKey ArchiverDB {archiverRunDBWrite} manager userId bookmarkId ua url = do
   $(logDebug) $ "Archiving URL with Wayback Machine: " <> unUrl url
   let req = _buildWaybackMachineSubmitRequest accessKey secretKey ua url
   $(logDebug) $ "Wayback Machine request: " <> tshow req
@@ -45,7 +45,7 @@ _waybackMachineRun accessKey secretKey connPool manager userId bookmarkId ua url
   $(logDebug) $ "Archive response status: " <> tshow status <> ", URL result: " <> tshow mArchiveUrl
   $(logDebug) $ "Archive response body: " <> tshow (NH.responseBody res)
   forM_ mArchiveUrl $ \archiveUrl ->
-    liftIO $ runSqlPool (updateBookmarkArchiveUrl userId bookmarkId (Just archiveUrl)) connPool
+    liftIO $ archiverRunDBWrite (updateBookmarkArchiveUrl userId bookmarkId (Just archiveUrl))
 
 _buildWaybackMachineSubmitRequest :: Text -> Text -> UserAgent -> Url -> NH.Request
 _buildWaybackMachineSubmitRequest accessKey secretKey (UserAgent ua) (Url href) =

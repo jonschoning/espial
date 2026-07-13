@@ -39,6 +39,12 @@ data AppSettings = AppSettings
     appStaticDir :: String,
     -- | Configuration settings for accessing the database.
     appDatabaseConf :: SqliteConf,
+    -- | Serialize all DB write transactions through a single in-process lock, to
+    -- avoid SQLite `SQLITE_BUSY`/snapshot conflicts under concurrent writers.
+    appSqliteAppWriteLock :: Bool,
+    -- | SQLite @busy_timeout@, in milliseconds: how long a connection retries
+    -- before returning `SQLITE_BUSY` on lock contention.
+    appSqliteBusyTimeoutMs :: Int,
     -- | Base for all generated URLs. If @Nothing@, determined
     -- from the request headers.
     appRoot :: Maybe Text,
@@ -128,6 +134,8 @@ instance FromJSON AppSettings where
 #endif
     appStaticDir <- o .: "static-dir"
     appDatabaseConf <- o .: "database"
+    appSqliteAppWriteLock <- o .:? "sqlite-app-write-lock" .!= True
+    appSqliteBusyTimeoutMs <- o .:? "sqlite-busy-timeout-ms" .!= 30000
     appRoot <- o .:? "approot"
     appHost <- fromString <$> o .: "host"
     appPort <- o .: "port"

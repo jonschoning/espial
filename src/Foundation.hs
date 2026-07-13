@@ -28,6 +28,12 @@ type PublicTagCloudCache = IORef (Map (Text, TagCloudMode) (UTCTime, Map Text In
 -- | Sliding-window login-attempt counters, keyed by e.g. @"ip:1.2.3.4"@ or @"user:alice"@.
 type LoginRateLimiter = IORef (Map Text (UTCTime, Int))
 
+-- | Serializes DB write transactions; see 'appDBWriteLock'.
+newtype DBWriteLock = DBWriteLock (MVar ())
+
+newDBWriteLock :: (MonadIO m) => m DBWriteLock
+newDBWriteLock = DBWriteLock <$> newMVar ()
+
 data App = App
   { appSettings :: AppSettings,
     -- | Settings for static file serving.
@@ -49,7 +55,9 @@ data App = App
     -- | In-memory cache for public tag cloud responses (30s TTL, 1000-entry cap).
     appPublicTagCloudCache :: PublicTagCloudCache,
     -- | Login-attempt counters used to throttle the login endpoint.
-    appLoginRateLimiter :: LoginRateLimiter
+    appLoginRateLimiter :: LoginRateLimiter,
+    -- | Serializes DB write transactions to avoid SQLite `SQLITE_BUSY`/snapshot conflicts under concurrent writers.
+    appDBWriteLock :: DBWriteLock
   }
 mkYesodData "App" $(parseRoutesFile "config/routes")
 
@@ -65,6 +73,25 @@ instance YesodPersist App where
 
 instance YesodPersistRunner App where
   getDBRunner = defaultGetDBRunner appConnPool
+
+-- | Like 'runDB', but holds 'appDBWriteLock' for the duration of the transaction.
+--
+-- SQLite allows only one writer at a time; under concurrent writers, a read
+-- promoted to a write mid-transaction can hit a snapshot conflict that SQLite
+-- reports as `SQLITE_BUSY` without retrying (unlike ordinary lock contention).
+-- Serializes writes at the application level.
+runDBWrite :: ReaderT SqlBackend Handler a -> Handler a
+runDBWrite action = do
+  App {appDBWriteLock, appSettings = AppSettings {appSqliteAppWriteLock}} <- getYesod
+  withDBWriteLock appSqliteAppWriteLock appDBWriteLock (runDB action)
+
+-- | Holds a write-serialization lock for the duration of the action, when enabled.
+-- Shared by 'runDBWrite' and the archiver backends (which run outside the Handler monad).
+withDBWriteLock :: (MonadUnliftIO m) => Bool -> DBWriteLock -> m a -> m a
+withDBWriteLock writeLockEnabled (DBWriteLock writeLock) action =
+  if writeLockEnabled
+    then withMVar writeLock $ \_ -> action
+    else action
 
 session_timeout_minutes :: Int
 session_timeout_minutes = 10080 -- (7 days)
@@ -337,7 +364,7 @@ instance YesodAuth App where
         muser <- case lookup "password" credsExtra of
           Just pwd | credsPlugin == dbAuthPluginName -> do
             rehashAlgo <- appPasswordHashConfig . appSettings <$> getYesod
-            liftHandler $ runDB $ authenticatePassword rehashAlgo credsIdent pwd
+            liftHandler $ runDBWrite $ authenticatePassword rehashAlgo credsIdent pwd
           _ -> pure Nothing
         case muser of
           Nothing -> pure (UserError InvalidUsernamePass)

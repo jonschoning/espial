@@ -22,12 +22,12 @@ where
 -- Don't forget to add new modules to your cabal file!
 
 import Archiver.ArchiveBox07 (archiveBox07Backend)
-import Archiver.Backend (ArchiverBackend)
+import Archiver.Backend (ArchiverBackend, ArchiverDB (..))
 import Archiver.Debug (debugArchiverBackend)
 import Archiver.WaybackMachine (waybackMachineBackend)
 import Control.Monad.Logger
 import Data.Aeson qualified as A
-import Database.Persist.Sqlite (ConnectionPool, createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, runSqlPool, sqlDatabase, sqlPoolSize)
+import Database.Persist.Sqlite (ConnectionPool, createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, runSqlPool, sqlDatabase, sqlPoolSize, extraPragmas)
 import Handler.AccountSettings
 import Handler.Add
 import Handler.Archive
@@ -76,6 +76,7 @@ makeFoundation appSettings@AppSettings {..} = do
   (appTranslationsHash, appTranslations) <- I18n.loadTranslations appStaticDir
   appPublicTagCloudCache <- newIORef mempty
   appLoginRateLimiter <- newIORef mempty
+  appDBWriteLock <- newDBWriteLock
   let appTranslate lang = I18n.translate appTranslations lang (I18nNs "translation")
       appI18nR = LocalesFileR appTranslationsHash []
       mkFoundation appConnPool appArchiver = App {..}
@@ -88,7 +89,12 @@ makeFoundation appSettings@AppSettings {..} = do
      runSqlPool (runPersistentMigrations appEnableStartupLogging) migrationsPool
      runSqlPool (runAppMigrations appEnableStartupLogging) migrationsPool
   appPool <- mkPool appLogFunc True
-  appArchiver <- mkArchiverBackend appLogFunc appPool
+  let archiverDB =
+        ArchiverDB
+          { archiverRunDB = \action -> runSqlPool action appPool,
+            archiverRunDBWrite = \action -> withDBWriteLock appSqliteAppWriteLock appDBWriteLock (runSqlPool action appPool)
+          }
+  appArchiver <- mkArchiverBackend appLogFunc archiverDB
   flip runLoggingT startupLogFunc $ do 
     (logInfoNS "startup" $ "archive backend: " <> tshow appArchiveBackend)
     (logDebugNS "startup" ("language-default: " <> fromI18nLang' appLanguageDefault))
@@ -102,9 +108,10 @@ makeFoundation appSettings@AppSettings {..} = do
             connInfo =
               mkSqliteConnectionInfo dbPath
                 & set fkEnabled isFkEnabled
+                & set extraPragmas ["PRAGMA busy_timeout = " <> tshow appSqliteBusyTimeoutMs <> ";"]
         createSqlitePoolFromInfo connInfo poolSize
-    mkArchiverBackend :: _ -> ConnectionPool -> IO (Maybe ArchiverBackend)
-    mkArchiverBackend logFunc pool = do
+    mkArchiverBackend :: _ -> ArchiverDB -> IO (Maybe ArchiverBackend)
+    mkArchiverBackend logFunc archiverDB = do
       case appArchiveBackend of
         ArchiveBackendDisabled -> pure Nothing
         ArchiveBackendDebug -> pure (Just (debugArchiverBackend logFunc))
@@ -121,11 +128,11 @@ makeFoundation appSettings@AppSettings {..} = do
               archiveManager <- do
                 let mSocks = NC.SockSettingsSimple <$> fmap unpack appArchiveSocksProxyHost <*> fmap toEnum appArchiveSocksProxyPort
                 NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
-              pure $ Just $ waybackMachineBackend accessKey secretKey pool archiveManager logFunc
+              pure $ Just $ waybackMachineBackend accessKey secretKey archiverDB archiveManager logFunc
             _ -> do
               flip runLoggingT logFunc ($(logWarn) ("Archive backend `wayback-machine` selected but access/secret key missing; archiving disabled"))
               pure Nothing
-        mkArchiveBox07Archiver = archiveBox07Backend appSettings pool logFunc
+        mkArchiveBox07Archiver = archiveBox07Backend appSettings archiverDB logFunc
 
 loadFrontendBundleName :: FilePath -> IO Text
 loadFrontendBundleName staticDir = do

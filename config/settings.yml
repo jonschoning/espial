@@ -37,6 +37,15 @@ database:
   # database: ":memory:"
   poolsize: "_env:SQLITE_POOLSIZE:10"
 
+# SQLite only allows one writer at a time; these two settings work together to
+# avoid `SQLITE_BUSY`/"database is locked" errors under concurrent writers.
+# sqlite-app-write-lock serializes all DB write transactions through a single
+# in-process lock (see `runDBWrite`), which avoids the errors outright.
+# sqlite-busy-timeout-ms is a defense-in-depth backstop for lock contention
+# that still occurs (e.g. an external `sqlite3` CLI session touching the file).
+sqlite-app-write-lock: "_env:SQLITE_APP_WRITE_LOCK:true"
+sqlite-busy-timeout-ms: "_env:SQLITE_BUSY_TIMEOUT_MS:30000"
+
 copyright: Insert copyright statement here
 # analytics: UA-YOURCODE
 

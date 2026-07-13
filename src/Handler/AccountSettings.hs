@@ -37,7 +37,7 @@ postEditAccountSettingsR = do
   app <- getYesod
   userId <- requireAuthId
   accountSettingsForm <- requireCheckJsonBody
-  runDB (updateUserFromAccountSettingsForm userId accountSettingsForm)
+  runDBWrite (updateUserFromAccountSettingsForm userId accountSettingsForm)
   case _language accountSettingsForm of
     Nothing -> setLanguage (fromI18nLang (appLanguageDefault (appSettings app)))
     Just lang -> setLanguage (fromI18nLang lang)
@@ -47,13 +47,13 @@ postApiKeyR :: Handler Value
 postApiKeyR = do
   userId <- requireAuthId
   apiKey <- liftIO generateApiKey
-  runDB (update userId [UserApiToken CP.=. Just (hashApiKey apiKey)])
+  runDBWrite (update userId [UserApiToken CP.=. Just (hashApiKey apiKey)])
   pure (A.object ["apiKey" A..= unApiKey apiKey])
 
 deleteApiKeyR :: Handler Value
 deleteApiKeyR = do
   userId <- requireAuthId
-  runDB (update userId [UserApiToken CP.=. Nothing])
+  runDBWrite (update userId [UserApiToken CP.=. Nothing])
   pure (A.object ["ok" A..= True])
 
 getExportBookmarksJsonR :: Handler TypedContent
@@ -83,7 +83,7 @@ postImportBookmarksJsonR = do
   body <- importBodyLbs
   case A.eitherDecode' body of
     Left e -> sendResponseStatus status400 (pack e :: Text)
-    Right (fmarks :: [FileBookmark]) -> respondImported =<< runDB (insertFileBookmarks userId fmarks)
+    Right (fmarks :: [FileBookmark]) -> respondImported =<< runDBWrite (insertFileBookmarks userId fmarks)
 
 postImportBookmarksFirefoxR :: Handler ()
 postImportBookmarksFirefoxR = do
@@ -91,7 +91,7 @@ postImportBookmarksFirefoxR = do
   body <- importBodyLbs
   case A.eitherDecode' body of
     Left e -> sendResponseStatus status400 (pack e :: Text)
-    Right (node :: FirefoxBookmarkNode) -> respondImported =<< runDB (insertFirefoxBookmarks userId node)
+    Right (node :: FirefoxBookmarkNode) -> respondImported =<< runDBWrite (insertFirefoxBookmarks userId node)
 
 postImportBookmarksNetscapeR :: Handler ()
 postImportBookmarksNetscapeR = do
@@ -99,7 +99,7 @@ postImportBookmarksNetscapeR = do
   body <- importBodyLbs
   case parseNetscapeBookmarks (decodeUtf8 (toStrict body)) of
     Left e -> sendResponseStatus status400 (pack e :: Text)
-    Right nbmarks -> respondImported =<< runDB (insertNetscapeBookmarks userId nbmarks)
+    Right nbmarks -> respondImported =<< runDBWrite (insertNetscapeBookmarks userId nbmarks)
 
 postImportNotesJsonR :: Handler ()
 postImportNotesJsonR = do
@@ -107,7 +107,7 @@ postImportNotesJsonR = do
   body <- importBodyLbs
   case A.eitherDecode' body of
     Left e -> sendResponseStatus status400 (pack e :: Text)
-    Right (fnotes :: [FileNote]) -> respondImported =<< runDB (insertFileNotes userId fnotes)
+    Right (fnotes :: [FileNote]) -> respondImported =<< runDBWrite (insertFileNotes userId fnotes)
 
 downloadAttachment :: (ToContent a) => ContentType -> Text -> a -> Handler TypedContent
 downloadAttachment ct filename body = do
@@ -145,13 +145,13 @@ postChangePasswordR = do
   let hashAlgo = appPasswordHashConfig (appSettings app)
   runInputPostResult ((,) <$> ireq textField "oldpassword" <*> ireq textField "newpassword") >>= \case
     FormSuccess (old, new) -> do
-      runDB (authenticatePassword hashAlgo (userName user) old) >>= \case
+      runDBWrite (authenticatePassword hashAlgo (userName user) old) >>= \case
         Nothing -> setMessage (toHtml (t "auth.incorrectOldPassword"))
         Just _ ->
           validateNewPassword t new >>= \case
             Just newValid -> do
               newHash <- liftIO (hashPasswordWith hashAlgo newValid)
-              void $ runDB (update userId [UserPasswordHash CP.=. newHash])
+              void $ runDBWrite (update userId [UserPasswordHash CP.=. newHash])
               setMessage (toHtml (t "auth.passUpdated"))
             _ -> pure ()
     _ -> setMessage (toHtml (t "auth.missingRequiredFields"))

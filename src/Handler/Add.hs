@@ -80,7 +80,7 @@ postAddR = do
           let mkbid = toSqlKey <$> _bid bookmarkForm
               tags = maybe [] normalizeTags (_tags bookmarkForm)
           bm <- liftIO $ bookmarkFormToBookmark userId bookmarkForm
-          res <- runDB (upsertBookmark userId mkbid bm tags)
+          res <- runDBWrite (upsertBookmark userId mkbid bm tags)
           case res of
             Created kbid
               | fromMaybe (userArchiveDefault user) (_archiveRequested bookmarkForm) ->

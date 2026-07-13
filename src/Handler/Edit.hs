@@ -17,7 +17,7 @@ patchUnstarR bid = _setSelected bid False
 patchReadR :: Int64 -> Handler Html
 patchReadR bid = do
   userId <- requireAuthId
-  runDB do
+  runDBWrite do
     let k_bid = toSqlKey bid
     _ <- _requireResource userId k_bid
     update k_bid [BookmarkToRead =. False]
@@ -26,7 +26,7 @@ patchReadR bid = do
 deleteDeleteR :: Int64 -> Handler Html
 deleteDeleteR bid = do
   userId <- requireAuthId
-  runDB do
+  runDBWrite do
     let k_bid = toSqlKey bid
     _ <- _requireResource userId k_bid
     delete k_bid
@@ -39,7 +39,7 @@ postBmBulkR = do
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t key = appTranslate app lang (I18nKey key)
   bmBulkForm <- requireCheckJsonBody
-  result <- runDB $ bookmarksBulkEdit userId bmBulkForm
+  result <- runDBWrite $ bookmarksBulkEdit userId bmBulkForm
   case result of
     Left err -> sendResponseStatus status409 (translateBulkEditError t err)
     Right editedCount -> do
@@ -67,7 +67,7 @@ postBmBulkR = do
 _setSelected :: Int64 -> Bool -> Handler Html
 _setSelected bid selected = do
   userId <- requireAuthId
-  runDB do
+  runDBWrite do
     let k_bid = toSqlKey bid
     bm <- _requireResource userId k_bid
     update k_bid [BookmarkSelected =. selected]

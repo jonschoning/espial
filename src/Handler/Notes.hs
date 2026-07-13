@@ -147,7 +147,7 @@ postNoteBulkR = do
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
       t key = appTranslate app lang (I18nKey key)
   noteBulkForm <- requireCheckJsonBody
-  result <- runDB $ notesBulkEdit userId noteBulkForm
+  result <- runDBWrite $ notesBulkEdit userId noteBulkForm
   case result of
     Left err -> sendResponseStatus status409 (translateBulkEditError t err)
     Right editedCount -> do
@@ -173,7 +173,7 @@ postNoteBulkR = do
 deleteDeleteNoteR :: Int64 -> Handler Html
 deleteDeleteNoteR nid = do
   userId <- requireAuthId
-  runDB do
+  runDBWrite do
     let k_nid = toSqlKey nid
     _ <- requireResource userId k_nid
     delete k_nid
@@ -198,7 +198,7 @@ _handleFormSuccess :: NoteForm -> Handler (UpsertResult (Key Note))
 _handleFormSuccess noteForm = do
   userId <- requireAuthId
   note <- liftIO $ _toNote userId noteForm
-  runDB (upsertNote userId knid note)
+  runDBWrite (upsertNote userId knid note)
   where
     knid = toSqlKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
 
