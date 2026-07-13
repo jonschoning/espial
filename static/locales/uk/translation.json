@@ -17,7 +17,12 @@
     "error": "помилка: {{status}}",
     "errorWithMsg": "помилка {{status}}: {{msg}}",
     "requestTimedOut": "час очікування запиту вичерпано",
-    "networkError": "помилка мережі"
+    "networkError": "помилка мережі",
+    "upsertUnauthorized": "немає доступу",
+    "upsertNotFound": "не знайдено",
+    "upsertHrefUsedByOther": "ця url-адреса вже використовується іншою закладкою",
+    "upsertConflictWithNewer": "елемент на сервері було оновлено пізніше; перезавантажте та спробуйте ще раз",
+    "upsertInvalidInput": "недійсні дані"
   },
   "nav": {
     "privateProfileEnabled": "приватний профіль увімкнено",

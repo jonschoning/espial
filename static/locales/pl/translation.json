@@ -17,7 +17,12 @@
     "error": "błąd: {{status}}",
     "errorWithMsg": "błąd {{status}}: {{msg}}",
     "requestTimedOut": "przekroczono limit czasu żądania",
-    "networkError": "błąd sieci"
+    "networkError": "błąd sieci",
+    "upsertUnauthorized": "brak autoryzacji",
+    "upsertNotFound": "nie znaleziono",
+    "upsertHrefUsedByOther": "adres url jest już używany przez inną zakładkę",
+    "upsertConflictWithNewer": "element na serwerze został zaktualizowany później; odśwież i spróbuj ponownie",
+    "upsertInvalidInput": "nieprawidłowe dane wejściowe"
   },
   "nav": {
     "privateProfileEnabled": "profil prywatny wlaczony",

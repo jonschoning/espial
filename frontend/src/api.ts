@@ -70,11 +70,11 @@ export async function destroy(
 }
 
 export async function bulkEdit(req: BulkEditRequest): Promise<BulkEditResponse> {
-  return bulkEditPost('api/bm/bulk', req);
+  return bulkEditPost('api/bm/bulkEdit', req);
 }
 
 export async function noteBulkEdit(req: NoteBulkEditRequest): Promise<BulkEditResponse> {
-  return bulkEditPost('api/note/bulk', req);
+  return bulkEditPost('api/note/bulkEdit', req);
 }
 
 async function bulkEditPost(

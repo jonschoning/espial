@@ -84,9 +84,9 @@ appMigrations =
 alwaysAppMigrations :: (MonadUnliftIO m) => [OperationSpec m]
 alwaysAppMigrations = [operation_create_initial_indexes]
 
-printAppMigrations :: forall m. DBM m ()
+printAppMigrations :: DB ()
 printAppMigrations = do
-  forM_ (alwaysAppMigrations :: [OperationSpec m]) $ \(name, opSpec) -> do
+  forM_ alwaysAppMigrations $ \(name, opSpec) -> do
     putStrLn ("*** Dumping always-run migration operation: " <> name)
     statements <- opSpec
     traverse_ (\(SqlStatement sql vals) -> putStrLn (sql <> " " <> tshow vals)) statements

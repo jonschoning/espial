@@ -1017,47 +1017,57 @@ fetchBookmarkByUrl userId murl = runMaybeT do
   btags <- lift $ withTags (entityKey bmark)
   pure (bmark, btags)
 
-data UpsertResult a = Created a | Updated a | Failed String
+data FailedReason
+  = ReasonUnauthorized
+  | ReasonNotFound
+  | ReasonConflictWithNewer
+  | ReasonHrefUsedByOther
+  | ReasonInvalidInput Text
+  deriving (Show, Eq)
+
+data UpsertResult a = Created a | Updated a | Failed FailedReason
   deriving (Show, Eq, Functor)
 
-maybeUpsertResult :: UpsertResult a -> Maybe a
-maybeUpsertResult (Created a) = Just a
-maybeUpsertResult (Updated a) = Just a
-maybeUpsertResult _ = Nothing
-
 upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult (Key Bookmark))
-upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed "unauthorized")
+upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed ReasonUnauthorized)
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
-    Just bid ->
-      get bid >>= \case
-        Just prev_bm
-          | userId == bookmarkUserId prev_bm ->
-              replaceBookmark bid prev_bm
-        Just _ -> pure (Failed "unauthorized")
-        _ -> pure (Failed "not found")
+    Just bid -> get bid >>= \case
+      Nothing -> pure (Failed ReasonNotFound)
+      Just prev_bm | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
+      Just prev_bm -> do
+        getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
+          Just (Entity otherBid _) | otherBid /= bid -> pure (Failed ReasonHrefUsedByOther)
+          _ -> replaceBookmark bid prev_bm
     Nothing ->
       getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
-        Just (Entity bid prev_bm)
-          | userId == bookmarkUserId prev_bm ->
-              replaceBookmark bid prev_bm
-        Just _ -> pure (Failed "unauthorized")
-        _ -> Created <$> insert bm
+        Nothing -> Created <$> insert bm
+        Just (Entity _ prev_bm) | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
+        Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
   forM_ (maybeUpsertResult res) (insertTags (bookmarkUserId bm))
   pure res
   where
-    prepareReplace prev_bm =
-      if bookmarkHref bm /= bookmarkHref prev_bm
-        then bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = Nothing}
-        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+    maybeUpsertResult (Created a) = Just a
+    maybeUpsertResult (Updated a) = Just a
+    maybeUpsertResult _ = Nothing
     replaceBookmark bid prev_bm = do
-      replace bid (prepareReplace prev_bm)
+      replace bid (prepareBookmarkReplace prev_bm)
       deleteTags bid
       pure (Updated bid)
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
       insertMany_ (mkBookmarkTags userId' bid' tags)
+    -- | Preserves the existing bookmark's slug (and, unless the href changed, its archive url).
+    prepareBookmarkReplace :: Bookmark -> Bookmark
+    prepareBookmarkReplace prev_bm =
+      if bookmarkHref bm /= bookmarkHref prev_bm
+        then bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = Nothing}
+        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+
+upsertBookmarks :: Key User -> [Maybe (Key Bookmark)] -> [Bookmark] -> [[Text]] -> DB [UpsertResult (Key Bookmark)]
+upsertBookmarks userId mbids bms tagss =
+  forM (zip3 mbids bms tagss) $ \(mbid, bm, tags) -> upsertBookmark userId mbid bm tags
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl =
@@ -1068,14 +1078,12 @@ updateBookmarkArchiveUrl userId bid marchiveUrl =
 upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Key Note))
 upsertNote userId mnid note =
   case mnid of
-    Just nid -> do
-      get nid >>= \case
-        Just note' -> do
-          when
-            (userId /= noteUserId note')
-            (throwString "unauthorized")
-          replace nid note
-          pure (Updated nid)
-        _ -> throwString "not found"
-    Nothing -> do
-      Created <$> insert note
+    Nothing -> Created <$> insert note
+    Just nid -> get nid >>= \case
+      Nothing -> pure (Failed ReasonNotFound)
+      Just note' | userId /= noteUserId note' -> pure (Failed ReasonUnauthorized)
+      Just note' | noteUpdated note' > noteUpdated note -> pure (Failed ReasonConflictWithNewer)
+      Just _ -> do
+        now <- liftIO getCurrentTime
+        replace nid note {noteUpdated = now}
+        pure (Updated nid)

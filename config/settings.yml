@@ -88,4 +88,8 @@ login-rate-limit-window-seconds: "_env:LOGIN_RATE_LIMIT_WINDOW_SECONDS:60"
 # Settings/import uploads) are rejected with 413. Set to 0 to disable the limit.
 maximum-content-length: "_env:MAXIMUM_CONTENT_LENGTH:10485760"
 
-demo-mode: "_env:DEMO_MODE:false" # when true, users cannot change their password.
+# when true, users cannot change their password.
+demo-mode: "_env:DEMO_MODE:false" 
+
+# Maximum number of bookmarks allowed in a single AddBulkR request
+add-bulk-max-items: "_env:ADD_BULK_MAX_ITEMS:200"

@@ -17,7 +17,12 @@
     "error": "hata: {{status}}",
     "errorWithMsg": "hata {{status}}: {{msg}}",
     "requestTimedOut": "istek zaman aşımına uğradı",
-    "networkError": "ağ hatası"
+    "networkError": "ağ hatası",
+    "upsertUnauthorized": "yetkisiz",
+    "upsertNotFound": "bulunamadı",
+    "upsertHrefUsedByOther": "bu url zaten başka bir yer imi tarafından kullanılıyor",
+    "upsertConflictWithNewer": "sunucudaki öğe daha yakın zamanda güncellendi; yeniden yükleyip tekrar deneyin",
+    "upsertInvalidInput": "geçersiz girdi"
   },
   "nav": {
     "privateProfileEnabled": "ozel profil etkin",

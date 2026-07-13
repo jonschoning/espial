@@ -32,8 +32,8 @@ deleteDeleteR bid = do
     delete k_bid
   pure ""
 
-postBmBulkR :: Handler ()
-postBmBulkR = do
+postBmBulkEditR :: Handler ()
+postBmBulkEditR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)

@@ -17,7 +17,12 @@
     "error": "Fehler: {{status}}",
     "errorWithMsg": "Fehler {{status}}: {{msg}}",
     "requestTimedOut": "Anfrage abgelaufen",
-    "networkError": "Netzwerkfehler"
+    "networkError": "Netzwerkfehler",
+    "upsertUnauthorized": "Nicht autorisiert",
+    "upsertNotFound": "Nicht gefunden",
+    "upsertHrefUsedByOther": "URL wird bereits von einem anderen Lesezeichen verwendet",
+    "upsertConflictWithNewer": "Eintrag auf dem Server wurde zwischenzeitlich aktualisiert; bitte neu laden und erneut versuchen",
+    "upsertInvalidInput": "Ungültige Eingabe"
   },
   "nav": {
     "privateProfileEnabled": "privates Profil aktiviert",

@@ -17,7 +17,12 @@
     "error": "error: {{status}}",
     "errorWithMsg": "error {{status}}: {{msg}}",
     "requestTimedOut": "tiempo de espera agotado",
-    "networkError": "error de red"
+    "networkError": "error de red",
+    "upsertUnauthorized": "no autorizado",
+    "upsertNotFound": "no encontrado",
+    "upsertHrefUsedByOther": "la url ya está siendo usada por otro marcador",
+    "upsertConflictWithNewer": "el elemento en el servidor se ha actualizado más recientemente; recargue y vuelva a intentarlo",
+    "upsertInvalidInput": "entrada no válida"
   },
   "nav": {
     "privateProfileEnabled": "perfil privado activado",

@@ -481,12 +481,14 @@ test-suite test
       Handler.LocalesSpec
       I18nSpec
       Model.BookmarksBulkEditSpec
+      Model.BookmarksBulkUpsertSpec
       Model.BookmarksPagingSpec
       Model.BookmarksQuerySpec
       Model.BookmarksSearchSpec
       Model.FileImportExportSpec
       Model.NotesBulkEditSpec
       Model.NotesSearchSpec
+      Model.NotesUpsertSpec
       Model.PasswordHashSpec
       TestImport
       Paths_espial

@@ -126,9 +126,10 @@ instance Yesod App where
           -- `maybeAuthId` checks for the validity of the Authorization
           -- header anyway, but it is still a good idea to limit this
           -- flexibility to designated routes.
-          -- For the time being, `AddR` is the only route that accepts an
+          -- For the time being, `AddR` and `AddBulkR` are the only routes that accept an
           -- authentication token.
           Just AddR -> isJust <$> lookupHeader "Authorization"
+          Just AddBulkR -> isJust <$> lookupHeader "Authorization"
           _ -> pure False
         (if dontCheckCsrf then id else defaultCsrfMiddleware) handler
 

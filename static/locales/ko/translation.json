@@ -17,7 +17,12 @@
     "error": "오류: {{status}}",
     "errorWithMsg": "오류 {{status}}: {{msg}}",
     "requestTimedOut": "요청 시간 초과",
-    "networkError": "네트워크 오류"
+    "networkError": "네트워크 오류",
+    "upsertUnauthorized": "권한이 없습니다",
+    "upsertNotFound": "찾을 수 없음",
+    "upsertHrefUsedByOther": "이 url은 이미 다른 북마크에서 사용 중입니다",
+    "upsertConflictWithNewer": "서버의 항목이 더 최근에 업데이트되었습니다. 새로고침 후 다시 시도하세요",
+    "upsertInvalidInput": "잘못된 입력입니다"
   },
   "nav": {
     "privateProfileEnabled": "비공개 프로필 활성화됨",

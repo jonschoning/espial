@@ -140,8 +140,8 @@ getAddNoteViewR unamep@(UserNameP uname) = do
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
-postNoteBulkR :: Handler ()
-postNoteBulkR = do
+postNoteBulkEditR :: Handler ()
+postNoteBulkEditR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
   let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
@@ -181,11 +181,23 @@ deleteDeleteNoteR nid = do
 
 postAddNoteR :: Handler Text
 postAddNoteR = do
+  app <- getYesod
+  (_, user) <- requireAuthPair
+  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
+      t key = appTranslate app lang (I18nKey key)
   noteForm <- requireCheckJsonBody
   _handleFormSuccess noteForm >>= \case
     Created nid -> sendStatusJSON created201 nid
     Updated _ -> sendResponseStatus noContent204 ()
-    Failed s -> sendResponseStatus status400 s
+    Failed reason -> sendResponseStatus status400 (translateFailedReason t reason)
+  where
+    translateFailedReason :: (Text -> Text) -> FailedReason -> Text
+    translateFailedReason t = \case
+      ReasonUnauthorized -> t "error.upsertUnauthorized"
+      ReasonNotFound -> t "error.upsertNotFound"
+      ReasonHrefUsedByOther -> t "error.upsertHrefUsedByOther"
+      ReasonConflictWithNewer -> t "error.upsertConflictWithNewer"
+      ReasonInvalidInput _ -> t "error.upsertInvalidInput"
 
 requireResource :: UserId -> Key Note -> DBM Handler Note
 requireResource userId k_nid = do

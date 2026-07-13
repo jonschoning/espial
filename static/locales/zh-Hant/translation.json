@@ -17,7 +17,12 @@
     "error": "錯誤：{{status}}",
     "errorWithMsg": "錯誤 {{status}}：{{msg}}",
     "requestTimedOut": "請求逾時",
-    "networkError": "網路錯誤"
+    "networkError": "網路錯誤",
+    "upsertUnauthorized": "未授權",
+    "upsertNotFound": "找不到",
+    "upsertHrefUsedByOther": "此網址已被其他書籤使用",
+    "upsertConflictWithNewer": "伺服器上的項目已被更近期地更新；請重新載入後再試一次",
+    "upsertInvalidInput": "輸入無效"
   },
   "nav": {
     "privateProfileEnabled": "已啟用私人個人資料",

@@ -17,7 +17,12 @@
     "error": "error: {{status}}",
     "errorWithMsg": "error {{status}}: {{msg}}",
     "requestTimedOut": "request timed out",
-    "networkError": "network error"
+    "networkError": "network error",
+    "upsertUnauthorized": "not authorized",
+    "upsertNotFound": "not found",
+    "upsertHrefUsedByOther": "href already used by another bookmark",
+    "upsertConflictWithNewer": "item on server has been updated more recently; reload and retry",
+    "upsertInvalidInput": "invalid input"
   },
   "nav": {
     "privateProfileEnabled": "private profile enabled",

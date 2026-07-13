@@ -6,8 +6,13 @@
   - add search term grouping with parentheses `(`, `)`
   - add exact search on a specific field `field=`
   - search query help doc updated
-- bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
+- add `/api/addBulk` for adding multiple bookmarks in a single request
+  - include documentation for `/api/add` and `/api/addBulk` in readme
+  - add appSetting `add-bulk-max-items` (default 200);
+- add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
 - add appSetting `demo-mode` (disables password changes)
+- note update is blocked when the stored copy was updated more recently than the client's copy
+- bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
 
 ## v0.0.40 (2026-07-11)
 

@@ -17,7 +17,12 @@
     "error": "错误：{{status}}",
     "errorWithMsg": "错误 {{status}}：{{msg}}",
     "requestTimedOut": "请求超时",
-    "networkError": "网络错误"
+    "networkError": "网络错误",
+    "upsertUnauthorized": "未授权",
+    "upsertNotFound": "未找到",
+    "upsertHrefUsedByOther": "该网址已被其他书签使用",
+    "upsertConflictWithNewer": "服务器上的条目已被更近期地更新；请重新加载后重试",
+    "upsertInvalidInput": "输入无效"
   },
   "nav": {
     "privateProfileEnabled": "已启用私密个人资料",

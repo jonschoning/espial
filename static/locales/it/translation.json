@@ -17,7 +17,12 @@
     "error": "errore: {{status}}",
     "errorWithMsg": "errore {{status}}: {{msg}}",
     "requestTimedOut": "richiesta scaduta",
-    "networkError": "errore di rete"
+    "networkError": "errore di rete",
+    "upsertUnauthorized": "non autorizzato",
+    "upsertNotFound": "non trovato",
+    "upsertHrefUsedByOther": "url già utilizzato da un altro segnalibro",
+    "upsertConflictWithNewer": "l'elemento sul server è stato aggiornato più di recente; ricarica e riprova",
+    "upsertInvalidInput": "input non valido"
   },
   "nav": {
     "privateProfileEnabled": "profilo privato abilitato",

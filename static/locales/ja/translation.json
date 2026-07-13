@@ -17,7 +17,12 @@
     "error": "エラー: {{status}}",
     "errorWithMsg": "エラー {{status}}: {{msg}}",
     "requestTimedOut": "リクエストがタイムアウトしました",
-    "networkError": "ネットワークエラー"
+    "networkError": "ネットワークエラー",
+    "upsertUnauthorized": "権限がありません",
+    "upsertNotFound": "見つかりません",
+    "upsertHrefUsedByOther": "このURLは既に別のブックマークで使用されています",
+    "upsertConflictWithNewer": "サーバー上の項目がより新しく更新されています。再読み込みしてやり直してください",
+    "upsertInvalidInput": "無効な入力です"
   },
   "nav": {
     "privateProfileEnabled": "プライベートプロフィールが有効",

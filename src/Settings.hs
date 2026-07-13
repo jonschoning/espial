@@ -123,7 +123,9 @@ data AppSettings = AppSettings
     -- @0@ disables the limit.
     appMaximumContentLength :: Int,
     -- | When true, users cannot change their password.
-    appDemoMode :: Bool
+    appDemoMode :: Bool,
+    -- | Maximum number of bookmarks allowed in a single 'AddBulkR' request.
+    appAddBulkMaxItems :: Int
   }
 
 instance FromJSON AppSettings where
@@ -194,6 +196,8 @@ instance FromJSON AppSettings where
     appMaximumContentLength <- o .:? "maximum-content-length" .!= (2 * 1024 * 1024)
 
     appDemoMode <- o .:? "demo-mode" .!= False
+
+    appAddBulkMaxItems <- o .:? "add-bulk-max-items" .!= 200
 
     pure AppSettings {..}
     where

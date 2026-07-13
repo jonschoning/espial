@@ -17,7 +17,12 @@
     "error": "ошибка: {{status}}",
     "errorWithMsg": "ошибка {{status}}: {{msg}}",
     "requestTimedOut": "время ожидания запроса истекло",
-    "networkError": "ошибка сети"
+    "networkError": "ошибка сети",
+    "upsertUnauthorized": "нет доступа",
+    "upsertNotFound": "не найдено",
+    "upsertHrefUsedByOther": "url уже используется другой закладкой",
+    "upsertConflictWithNewer": "элемент на сервере был обновлён позже; перезагрузите и повторите попытку",
+    "upsertInvalidInput": "недопустимые данные"
   },
   "nav": {
     "privateProfileEnabled": "приватный профиль включён",
