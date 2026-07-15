@@ -122,12 +122,14 @@ export async function editBookmark(
 
 export async function editNote(
   note: Note,
-): Promise<{ ok: boolean; status: number; bodyText: string }> {
+): Promise<{ ok: boolean; status: number; bodyText: string; note: Note | null }> {
   const res = await request('POST', 'api/note/add', {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(note),
   });
-  return { ok: res.ok, status: res.status, bodyText: await res.text() };
+  if (!res.ok) return { ok: false, status: res.status, bodyText: await res.text(), note: null };
+  const updated = await res.json<Note>();
+  return { ok: true, status: res.status, bodyText: '', note: updated };
 }
 
 export async function lookupTitle(bm: Bookmark): Promise<string | null> {

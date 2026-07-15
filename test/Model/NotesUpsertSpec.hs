@@ -53,7 +53,9 @@ spec = withApp $ do
       let edit = mkNoteEdit uid slug "edited" t0
       result <- runDB $ upsertNote uid (Just nid) edit
       afterTime <- liftIO getCurrentTime
-      liftIO $ result `shouldBe` Updated nid
+      case result of
+        Updated (Entity resultNid _) -> liftIO $ resultNid `shouldBe` nid
+        other -> liftIO $ expectationFailure ("expected Updated, got " <> show other)
       mnote <- runDB $ getNote' nid
       case mnote of
         Nothing -> liftIO $ expectationFailure "note missing after update"

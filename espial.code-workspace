@@ -1,9 +1,19 @@
 {
   "folders": [
     {
+      "name": "espial-root",
       "path": ".",
     },
     {
+      "name": "espial-src",
+      "path": "./src",
+    },
+    {
+      "name": "espial-migration-app",
+      "path": "./app/migration",
+    },
+    {
+      "name": "espial-frontend",
       "path": "frontend",
     },
   ],

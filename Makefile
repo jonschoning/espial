@@ -14,7 +14,7 @@ LICENSES := $(shell sed -n 's/^license:[[:space:]]*//p' espial.cabal)
 all: build
 
 build: 
-	@stack build
+	@stack build --ghc-options="-Werror"
 
 build-fast: 
 	@stack build --fast
@@ -36,6 +36,21 @@ devel:
 
 serve:
 	@stack exec espial -- +RTS -T
+
+test:
+	@stack test
+
+ghci:
+	@stack ghci --main-is espial:exe:espial
+
+ghci-migration:
+	@stack ghci --main-is espial:exe:migration
+
+ghci-nocode:
+	@stack ghci --main-is espial:exe:espial --ghci-options=-fno-code
+
+ghci-test:
+	@stack ghci --main-is espial:test:test --test --ghci-options="-e main"
 
 _ESPIAL_PS_ID = $$($(_DOCKER_COMPOSE) ps -q espial)
 _LOCAL_INSTALL_PATH = $$(stack path | grep local-install-root | awk -e '{print $$2}')

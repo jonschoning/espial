@@ -483,9 +483,8 @@ bookmarkHrefNoSchemeExpr b =
     sqlIntLit n = unsafeSqlValue (TLB.fromString (show n))
     sqliteSubstr col start = unsafeSqlFunction "substr" (col, start)
     sqliteInstr col str = unsafeSqlFunction "instr" (col, sqlStrLit str)
-      where sqlStrLit t = unsafeSqlValue ("'" <> TLB.fromText (T.replace "'" "''" t) <> "'")
-
-
+      where
+        sqlStrLit t = unsafeSqlValue ("'" <> TLB.fromText (T.replace "'" "''" t) <> "'")
 
 bookmarkWhereClause ::
   Key User ->
@@ -546,15 +545,19 @@ bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
         p_description = p_textField ("description" <|> "d") BookmarkExtended
         p_tags =
           ("tags" <|> "t")
-            *> ( P.char ':' *> fmap (tagsExpr sqliteLikeContains) P.takeText
-                   <|> P.char '=' *> fmap (tagsExpr sqliteLikeExact) P.takeText
+            *> ( P.char ':'
+                   *> fmap (tagsExpr sqliteLikeContains) P.takeText
+                   <|> P.char '='
+                   *> fmap (tagsExpr sqliteLikeExact) P.takeText
                )
         p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
         p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
         p_textField name field =
           name
-            *> ( P.char ':' *> fmap (toLikeB field) P.takeText
-                   <|> P.char '=' *> fmap (toExactB field) P.takeText
+            *> ( P.char ':'
+                   *> fmap (toLikeB field) P.takeText
+                   <|> P.char '='
+                   *> fmap (toExactB field) P.takeText
                )
 
 -- * BulkEdit types
@@ -867,8 +870,10 @@ noteWhereClause key sharedp mquery b = do
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
             p_textField name field =
               name
-                *> ( P.char ':' *> fmap (toLikeN field) P.takeText
-                       <|> P.char '=' *> fmap (toExactN field) P.takeText
+                *> ( P.char ':'
+                       *> fmap (toLikeN field) P.takeText
+                       <|> P.char '='
+                       *> fmap (toExactN field) P.takeText
                    )
 
 -- * Note BulkEdit
@@ -1129,13 +1134,14 @@ upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (
 upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed ReasonUnauthorized)
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
-    Just bid -> get bid >>= \case
-      Nothing -> pure (Failed ReasonNotFound)
-      Just prev_bm | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
-      Just prev_bm -> do
-        getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
-          Just (Entity otherBid _) | otherBid /= bid -> pure (Failed ReasonHrefUsedByOther)
-          _ -> replaceBookmark bid prev_bm
+    Just bid ->
+      get bid >>= \case
+        Nothing -> pure (Failed ReasonNotFound)
+        Just prev_bm | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
+        Just prev_bm -> do
+          getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
+            Just (Entity otherBid _) | otherBid /= bid -> pure (Failed ReasonHrefUsedByOther)
+            _ -> replaceBookmark bid prev_bm
     Nothing ->
       getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
         Nothing -> Created <$> insert bm
@@ -1155,7 +1161,7 @@ upsertBookmark userId mbid bm tags = do
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
       insertMany_ (mkBookmarkTags userId' bid' tags)
-    -- | Preserves the existing bookmark's slug (and, unless the href changed, its archive url).
+    -- \| Preserves the existing bookmark's slug (and, unless the href changed, its archive url).
     prepareBookmarkReplace :: Bookmark -> Bookmark
     prepareBookmarkReplace prev_bm =
       if bookmarkHref bm /= bookmarkHref prev_bm
@@ -1172,18 +1178,24 @@ updateBookmarkArchiveUrl userId bid marchiveUrl =
     [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
     [BookmarkArchiveHref CP.=. marchiveUrl]
 
-upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Key Note))
-upsertNote userId mnid note =
+upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Entity Note))
+upsertNote userId mnid note = do
   case mnid of
-    Nothing -> Created <$> insert note
-    Just nid -> get nid >>= \case
-      Nothing -> pure (Failed ReasonNotFound)
-      Just note' | userId /= noteUserId note' -> pure (Failed ReasonUnauthorized)
-      Just note' | noteUpdated note' > noteUpdated note -> pure (Failed ReasonConflictWithNewer)
-      Just _ -> do
-        now <- liftIO getCurrentTime
-        replace nid note {noteUpdated = now}
-        pure (Updated nid)
+    Nothing -> do
+      now <- liftIO getCurrentTime
+      let note'' = note {noteUserId = userId, noteLength = T.length (noteText note), noteUpdated = now}
+      nid <- insert note''
+      pure (Created (Entity nid note''))
+    Just nid ->
+      get nid >>= \case
+        Nothing -> pure (Failed ReasonNotFound)
+        Just note' | userId /= noteUserId note' -> pure (Failed ReasonUnauthorized)
+        Just note' | noteUpdated note' > noteUpdated note -> pure (Failed ReasonConflictWithNewer)
+        Just _ -> do
+          now <- liftIO getCurrentTime
+          let note'' = note {noteLength = T.length (noteText note), noteUpdated = now}
+          replace nid note''
+          pure (Updated (Entity nid note''))
 
 -- * Archive Job Store
 

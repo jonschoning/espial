@@ -3,7 +3,6 @@
 module Main where
 
 import ClassyPrelude
-import Data.CaseInsensitive qualified as CI
 import Data.Text qualified as T
 import Database.Persist qualified as P
 import Database.Persist.Sqlite qualified as P
@@ -12,10 +11,8 @@ import Lens.Micro
 import Model
 import Model.Custom
 import Model.File
-import Model.FileNetscape (exportNetscapeBookmarks)
 import Model.Migrations (dumpMigration, runAppMigrations, runPersistentMigrations, runPreMigrations)
 import Options.Applicative qualified as OA
-import Options.Applicative.Help (suggestionsHelp)
 import Options.Generic
 import Settings (AppSettings (..), appPasswordHashConfig)
 import Types
@@ -37,7 +34,7 @@ data MigrationOpts
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
         previewNotes :: Maybe Bool,
-        userLanguage :: Maybe I18nLang
+        userLanguage :: Maybe Language
       }
   | CreateApiKey
       { conn :: Maybe Text,
@@ -112,8 +109,12 @@ parseI18nLang =
       pure
       (toI18nLang s)
 
-instance ParseField I18nLang where
-  readField = parseI18nLang
+newtype Language = Language {unLanguage :: I18nLang}
+  deriving (Show)
+
+instance ParseField Language where
+  readField = Language <$> parseI18nLang
+  metavar _ = "LANGUAGE"
 
 main :: IO ()
 main = do
@@ -155,7 +156,7 @@ main = do
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
             previewNotesVal = fromMaybe True previewNotes
-            userLanguageVal = userLanguage
+            userLanguageVal = unLanguage <$> userLanguage
         void $
           P.upsertBy
             (UniqueUserName userName)

@@ -304,7 +304,7 @@ executable espial
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       aeson >=2.0
     , attoparsec
@@ -398,7 +398,7 @@ executable migration
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       aeson >=2.0
     , attoparsec

@@ -187,8 +187,8 @@ postAddNoteR = do
       t key = appTranslate app lang (I18nKey key)
   noteForm <- requireCheckJsonBody
   _handleFormSuccess noteForm >>= \case
-    Created nid -> sendStatusJSON created201 nid
-    Updated _ -> sendResponseStatus noContent204 ()
+    Created note -> sendStatusJSON created201 note
+    Updated note -> sendStatusJSON ok200 note
     Failed reason -> sendResponseStatus status400 (translateFailedReason t reason)
   where
     translateFailedReason :: (Text -> Text) -> FailedReason -> Text
@@ -206,7 +206,7 @@ requireResource userId k_nid = do
     then pure nnote
     else notFound
 
-_handleFormSuccess :: NoteForm -> Handler (UpsertResult (Key Note))
+_handleFormSuccess :: NoteForm -> Handler (UpsertResult (Entity Note))
 _handleFormSuccess noteForm = do
   userId <- requireAuthId
   note <- liftIO $ _toNote userId noteForm

@@ -79,8 +79,9 @@ export function NNote({ initial }: { initial: Note }) {
           else window.location.href = org;
         } else if (editNoteState.id === 0) {
           window.location.href = fromNullableStr(a.noteR);
-        } else {
-          setNote(editNoteState);
+        } else if (res.note) {
+          setNote(res.note);
+          setEditNoteState(res.note);
           setEdit(false);
         }
       } else {
