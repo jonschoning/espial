@@ -23,12 +23,12 @@ createBmAt uid href t = do
 
 queryWithCursor :: Key User -> Maybe BookmarkPagingCursorTime -> DB [Key Bookmark]
 queryWithCursor uid mcursor = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor 100 1
+  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor defaultBookmarkSort 100 1
   return $ map (entityKey . fst) rows
 
 queryFlags :: Key User -> Maybe BookmarkPagingCursorTime -> Limit -> DB (Bool, Bool)
 queryFlags uid mcursor lim = do
-  (_, _, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor lim 1
+  (_, _, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor defaultBookmarkSort lim 1
   return (hasEarlier, hasLater)
 
 spec :: Spec

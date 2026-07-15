@@ -30,7 +30,7 @@ tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
 
 queryBids :: Key User -> [Text] -> Maybe Text -> Bool -> DB [Key Bookmark]
 queryBids uid tags mq isowner = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid isowner SharedAll FilterAll tags mq Nothing 100 1
+  (_, rows, _, _) <- bookmarksTagsQuery uid isowner SharedAll FilterAll tags mq Nothing defaultBookmarkSort 100 1
   return $ map (entityKey . fst) rows
 
 spec :: Spec
@@ -67,7 +67,7 @@ spec = withApp $ do
         tagBm uid bid ".secret" 1
         tagBm uid bid "public" 2
         return (uid, bid)
-      (_, rows, _, _) <- runDB $ bookmarksTagsQuery uid False SharedAll FilterAll [] Nothing Nothing 100 1
+      (_, rows, _, _) <- runDB $ bookmarksTagsQuery uid False SharedAll FilterAll [] Nothing Nothing defaultBookmarkSort 100 1
       let mTagStr = snd =<< listToMaybe rows
       liftIO $ mTagStr `shouldBe` Just "public"
 

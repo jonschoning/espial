@@ -20,8 +20,9 @@ import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Data.Text.Lazy.Builder qualified as TLB
 import Database.Esqueleto.Experimental hiding ((<&>))
-import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
+import Database.Esqueleto.Internal.Internal (unsafeSqlFunction, unsafeSqlValue)
 import Model.Custom
 import Text.Blaze (ToMarkup, toMarkup)
 import Types
@@ -184,6 +185,28 @@ type BookmarkPagingCursorTime = PagingCursor UTCTime
 
 type NotePagingCursorTime = PagingCursor UTCTime
 
+-- * Sorting
+
+data SortDirection
+  = SortAsc
+  | SortDesc
+  deriving (Eq, Show, Read)
+
+data BookmarkSortField
+  = BookmarkSortTime
+  | BookmarkSortTitle
+  | BookmarkSortNumTags
+  | BookmarkSortUrl
+  deriving (Eq, Show, Read)
+
+data BookmarkSort = BookmarkSort BookmarkSortField SortDirection
+  deriving (Eq, Show, Read)
+
+-- | Cursor-based (before/after) paging is only defined for this ordering;
+-- other sorts fall back to page/offset paging. See 'bookmarksTagsQuery'.
+defaultBookmarkSort :: BookmarkSort
+defaultBookmarkSort = BookmarkSort BookmarkSortTime SortDesc
+
 -- * I18n
 
 -- | Translation map: language -> namespace -> key -> translation
@@ -341,10 +364,11 @@ bookmarksTagsQuery ::
   [Tag] ->
   Maybe Text ->
   Maybe BookmarkPagingCursorTime ->
+  BookmarkSort ->
   Limit ->
   Page ->
   DB (Int, [(Entity Bookmark, Maybe Text)], Bool, Bool)
-bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' page = do
+bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor bsort limit' page = do
   total <-
     fmap
       (sum . fmap unValue)
@@ -357,7 +381,7 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       unValue
       ( select $ from (table @Bookmark) >>= \b -> do
           bookmarkWhereClause userId sharedp filterp tags mquery b
-          for_ mcursor $ \case
+          for_ effectiveCursor $ \case
             PagingCursorBefore before -> where_ (isBeforeCursor b before)
             PagingCursorAfter after -> where_ (isAfterCursor b after)
           orderBy (bookmarkOrder b)
@@ -377,27 +401,91 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       )
   let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
       pageRows = take (fromIntegral limit') rows
-      hasEarlier =
-        case mcursor of
-          Just (PagingCursorAfter _) -> not (null pageRows)
-          _ -> hasMoreInQueryDirection
-      hasLater =
-        case mcursor of
-          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
-          Just (PagingCursorBefore _) -> not (null pageRows)
-          Nothing -> False
+      -- sorts without cursor support always page by offset, where "earlier"
+      -- and "later" just mean the previous/next page rather than carrying
+      -- any temporal meaning
+      hasEarlier
+        | bsort /= defaultBookmarkSort = page > 1
+        | otherwise =
+            case effectiveCursor of
+              Just (PagingCursorAfter _) -> not (null pageRows)
+              _ -> hasMoreInQueryDirection
+      hasLater
+        | bsort /= defaultBookmarkSort = hasMoreInQueryDirection
+        | otherwise =
+            case effectiveCursor of
+              Just (PagingCursorAfter _) -> hasMoreInQueryDirection
+              Just (PagingCursorBefore _) -> not (null pageRows)
+              Nothing -> False
   pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
-    bookmarkOrder b = case mcursor of
-      Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
-      _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
-    finalizeRows = case mcursor of
+    -- before/after cursor paging assumes newest-first BookmarkTime order;
+    -- any other sort falls back to page/offset paging instead
+    effectiveCursor
+      | bsort == defaultBookmarkSort = mcursor
+      | otherwise = Nothing
+    bookmarkOrder b = case bsort of
+      BookmarkSort BookmarkSortTime SortDesc ->
+        case effectiveCursor of
+          Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+          _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortTime SortAsc ->
+        [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortTitle SortAsc ->
+        [asc (lower_ (b ^. BookmarkDescription)), asc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortTitle SortDesc ->
+        [desc (lower_ (b ^. BookmarkDescription)), desc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortNumTags SortAsc ->
+        [asc (bookmarkNumTagsExpr isowner b), asc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortNumTags SortDesc ->
+        [desc (bookmarkNumTagsExpr isowner b), desc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortUrl SortAsc ->
+        [asc (bookmarkHrefNoSchemeExpr b), asc (b ^. BookmarkId)]
+      BookmarkSort BookmarkSortUrl SortDesc ->
+        [desc (bookmarkHrefNoSchemeExpr b), desc (b ^. BookmarkId)]
+    finalizeRows = case effectiveCursor of
       Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
       _ -> id
     isBeforeCursor b before =
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
     isAfterCursor b after =
       ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
+
+-- | Number of tags on a bookmark, for sorting by tag count. Excludes
+-- dot-prefixed (private) tags for non-owners, matching the tag list built
+-- alongside it in 'bookmarksTagsQuery'.
+bookmarkNumTagsExpr :: Bool -> SqlExpr (Entity Bookmark) -> SqlExpr (Value (Maybe Int))
+bookmarkNumTagsExpr isowner b =
+  subSelect $ from (table @BookmarkTag) >>= \t -> do
+    where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+    when
+      (not isowner)
+      (where_ (not_ (t ^. BookmarkTagTag `like` val ".%")))
+    pure countRows
+
+-- | Bookmark href with a leading "<scheme>://" stripped, for sorting by URL
+-- while ignoring scheme. The '://' delimiter and the 0/3 literals are
+-- spliced as raw SQL (not bind parameters) so this expression matches,
+-- token-for-token, the expression index idx_bookmark_url_no_scheme created
+-- in Model.Migrations.operation_create_initial_indexes -- SQLite can only
+-- use an expression index when the query expression is parsed identically
+-- to the indexed expression, and bind parameters never match literals.
+-- Keep both sides in sync if this expression ever changes.
+bookmarkHrefNoSchemeExpr :: SqlExpr (Entity Bookmark) -> SqlExpr (Value Text)
+bookmarkHrefNoSchemeExpr b =
+  case_
+    [when_ (schemeEnd Database.Esqueleto.Experimental.>. sqlIntLit 0) then_ (sqliteSubstr href (schemeEnd +. sqlIntLit 3))]
+    (else_ href)
+  where
+    href = b ^. BookmarkHref
+    schemeEnd = sqliteInstr href "://"
+    sqlIntLit :: Int -> SqlExpr (Value Int)
+    sqlIntLit n = unsafeSqlValue (TLB.fromString (show n))
+    sqliteSubstr col start = unsafeSqlFunction "substr" (col, start)
+    sqliteInstr col str = unsafeSqlFunction "instr" (col, sqlStrLit str)
+      where sqlStrLit t = unsafeSqlValue ("'" <> TLB.fromText (T.replace "'" "''" t) <> "'")
+
+
 
 bookmarkWhereClause ::
   Key User ->

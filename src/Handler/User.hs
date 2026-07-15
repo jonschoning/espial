@@ -58,7 +58,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     (bcount, btmarks, hasEarlier, hasLater) <-
-      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
+      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor defaultBookmarkSort limit page
     pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
@@ -235,7 +235,7 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor defaultBookmarkSort limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

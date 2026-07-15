@@ -488,6 +488,7 @@ test-suite test
       Model.BookmarksPagingSpec
       Model.BookmarksQuerySpec
       Model.BookmarksSearchSpec
+      Model.BookmarksSortSpec
       Model.FileImportExportSpec
       Model.NotesBulkEditSpec
       Model.NotesSearchSpec

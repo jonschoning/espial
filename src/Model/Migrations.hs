@@ -190,7 +190,13 @@ operation_create_initial_indexes =
           "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_time ON bookmark (user_id, shared, time DESC)",
           "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
           "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_note_user_shared_created ON note (user_id, shared, created DESC)"
+          "CREATE INDEX IF NOT EXISTS idx_note_user_shared_created ON note (user_id, shared, created DESC)",
+          -- expression must match Model.bookmarkHrefNoSchemeExpr token-for-token
+          -- for SQLite to use this index when sorting by BookmarkSortUrl
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_href_no_scheme ON bookmark (user_id, (CASE WHEN instr(href, '://') > 0 THEN substr(href, instr(href, '://') + 3) ELSE href END))",
+          -- expression must match the `lower_ (b ^. BookmarkDescription)` used
+          -- for BookmarkSortTitle in Model.bookmarksTagsQuery
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_title ON bookmark (user_id, (LOWER(description)))"
         ]
 
 operation_normalize_bookmark_utctime_remove_z :: (Applicative m) => OperationSpec m
