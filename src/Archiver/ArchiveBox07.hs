@@ -88,7 +88,7 @@ archiveBox07Backend AppSettings {..} archiverDB logFunc = flip runLoggingT logFu
       pure $
         Just
           ArchiverBackend
-            { runArchiver = \uid bid _ua url ->
+            { runArchiver = \uid bid url ->
                 flip runLoggingT logFunc $ _archiveBoxRun ctx uid bid url,
               isUrlDenylisted =
                 \(Url inputUrl) ->

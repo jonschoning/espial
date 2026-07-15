@@ -53,6 +53,9 @@ archive-backend: "_env:ARCHIVE_BACKEND:disabled"
 # archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 # archive-backend: "_env:ARCHIVE_BACKEND:archivebox07"
 
+archive-rate-limit-ms: "_env:ARCHIVE_RATE_LIMIT_MS:2000" # minimum delay between successive archive requests.
+archive-queue-capacity: "_env:ARCHIVE_QUEUE_CAPACITY:500" # max pending archive jobs held in memory; excess are dropped.
+
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
 

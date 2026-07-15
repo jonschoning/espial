@@ -2,10 +2,8 @@
 module Handler.Common where
 
 import Data.Aeson qualified as A
-import Data.ByteString.Char8 qualified as BS8
 import Data.FileEmbed (embedFile)
 import Import
-import Network.Wai (requestHeaderHost)
 import Text.Read
 import Util (format8601z, parseTimeText)
 
@@ -63,10 +61,8 @@ parsePagingCursorParams ::
 parsePagingCursorParams mkBefore mkAfter mbefore mafter =
   (mkBefore =<< mbefore) <|> (mkAfter =<< mafter)
 
-espialUserAgent :: Handler UserAgent
-espialUserAgent = do
-  mHost <- requestHeaderHost . reqWaiRequest <$> getRequest
-  pure $ UserAgent $ pack $ "espial-" <> maybe "" (BS8.unpack . BS8.takeWhile (/= ':')) mHost
+espialUserAgent :: UserAgent
+espialUserAgent = UserAgent "espial"
 
 browserUserAgent :: UserAgent
 browserUserAgent =

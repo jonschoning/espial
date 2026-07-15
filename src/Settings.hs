@@ -99,6 +99,10 @@ data AppSettings = AppSettings
     appArchiveBoxPlugins :: Maybe Text,
     -- | Which archiver backend to use (or disabled)
     appArchiveBackend :: ArchiveBackend,
+    -- | Minimum delay, in milliseconds, between successive calls to the archiver backend.
+    appArchiveRateLimitMs :: Int,
+    -- | Maximum number of pending archive jobs held in memory; excess jobs are dropped.
+    appArchiveQueueCapacity :: Int,
     -- | Uri to app source code
     appSourceCodeUri :: Maybe Text,
     -- | Whether to only allow SSL connections (i.e. disable non-https cookies and redirects)
@@ -174,6 +178,9 @@ instance FromJSON AppSettings where
     appArchiveBoxPassword <- fmap toText <$> o .:? "archivebox-password"
     appArchiveBoxTag <- (fmap toText <$> o .:? "archivebox-tag") .!= "espial"
     appArchiveBoxPlugins <- o .:? "archivebox-plugins"
+
+    appArchiveRateLimitMs <- o .:? "archive-rate-limit-ms" .!= 2000
+    appArchiveQueueCapacity <- o .:? "archive-queue-capacity" .!= 500
 
     appSourceCodeUri <- o .:? "source-code-uri"
 

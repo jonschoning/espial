@@ -17,10 +17,10 @@ import Web.FormUrlEncoded qualified as WH
 import Yesod.Default.Main (LogFunc)
 
 -- | Wayback Machine backend.
-waybackMachineBackend :: Text -> Text -> ArchiverDB -> NH.Manager -> LogFunc -> ArchiverBackend
-waybackMachineBackend accessKey secretKey archiverDB manager logFunc =
+waybackMachineBackend :: Text -> Text -> ArchiverDB -> NH.Manager -> UserAgent -> LogFunc -> ArchiverBackend
+waybackMachineBackend accessKey secretKey archiverDB manager userAgent logFunc =
   ArchiverBackend
-    { runArchiver = \uid bid ua url -> flip runLoggingT logFunc $ _waybackMachineRun accessKey secretKey archiverDB manager uid bid ua url,
+    { runArchiver = \uid bid url -> flip runLoggingT logFunc $ _waybackMachineRun accessKey secretKey archiverDB manager userAgent uid bid url,
       isUrlDenylisted = \(Url url) -> any (`isInfixOf` url) _waybackMachineDenylist
     }
 
@@ -30,10 +30,10 @@ _waybackMachineDenylist =
     "web.archive.org"
   ]
 
-_waybackMachineRun :: Text -> Text -> ArchiverDB -> NH.Manager -> Key User -> Key Bookmark -> UserAgent -> Url -> LoggingT IO ()
-_waybackMachineRun accessKey secretKey ArchiverDB {archiverRunDBWrite} manager userId bookmarkId ua url = do
+_waybackMachineRun :: Text -> Text -> ArchiverDB -> NH.Manager -> UserAgent -> Key User -> Key Bookmark -> Url -> LoggingT IO ()
+_waybackMachineRun accessKey secretKey ArchiverDB {archiverRunDBWrite} manager userAgent userId bookmarkId url = do
   $(logDebug) $ "Archiving URL with Wayback Machine: " <> unUrl url
-  let req = _buildWaybackMachineSubmitRequest accessKey secretKey ua url
+  let req = _buildWaybackMachineSubmitRequest accessKey secretKey userAgent url
   $(logDebug) $ "Wayback Machine request: " <> tshow req
   res <- liftIO $ NH.httpLbs req manager
   let status = NH.responseStatus res

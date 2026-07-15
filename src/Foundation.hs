@@ -2,8 +2,9 @@
 
 module Foundation where
 
-import Archiver.Backend (ArchiverBackend)
+import Archiver.Backend (ArchiveQueue, ArchiverBackend)
 import ClassyPrelude.Yesod qualified as CP (Lang)
+import Control.Concurrent (ThreadId)
 import Data.ByteString.Char8 qualified as BS8
 import Data.CaseInsensitive qualified as CI
 import Data.IP (fromSockAddr)
@@ -46,8 +47,11 @@ data App = App
     appHttpManager :: Manager,
     -- | Logger
     appLogger :: Logger,
-    -- | Active archiver plugin; 'Nothing' disables archiving.
-    appArchiver :: Maybe ArchiverBackend,
+    -- | Active archiver plugin paired with its job queue
+    appArchiver :: Maybe (ArchiverBackend, ArchiveQueue),
+    -- | Thread running 'Archiver.Backend.runArchiveQueueWorker'; killed by
+    -- 'Application.shutdownApp' so dev hot-reloads don't leak worker threads.
+    appArchiveWorkerThreadId :: Maybe ThreadId,
     -- | i18n translation function
     appTranslate :: I18nLang -> I18nKey -> Text,
     -- | Route to the i18n json data
@@ -76,17 +80,14 @@ instance YesodPersistRunner App where
 
 -- | Like 'runDB', but holds 'appDBWriteLock' for the duration of the transaction.
 --
--- SQLite allows only one writer at a time; under concurrent writers, a read
+-- (SQLite allows only one writer at a time; under concurrent writers, a read
 -- promoted to a write mid-transaction can hit a snapshot conflict that SQLite
--- reports as `SQLITE_BUSY` without retrying (unlike ordinary lock contention).
--- Serializes writes at the application level.
+-- reports as `SQLITE_BUSY` without retrying (unlike ordinary lock contention))
 runDBWrite :: ReaderT SqlBackend Handler a -> Handler a
 runDBWrite action = do
   App {appDBWriteLock, appSettings = AppSettings {appSqliteAppWriteLock}} <- getYesod
   withDBWriteLock appSqliteAppWriteLock appDBWriteLock (runDB action)
 
--- | Holds a write-serialization lock for the duration of the action, when enabled.
--- Shared by 'runDBWrite' and the archiver backends (which run outside the Handler monad).
 withDBWriteLock :: (MonadUnliftIO m) => Bool -> DBWriteLock -> m a -> m a
 withDBWriteLock writeLockEnabled (DBWriteLock writeLock) action =
   if writeLockEnabled

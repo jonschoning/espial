@@ -244,6 +244,7 @@ library
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -350,6 +351,7 @@ executable espial
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -445,6 +447,7 @@ executable migration
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -555,6 +558,7 @@ test-suite test
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short

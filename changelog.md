@@ -9,6 +9,11 @@
 - add `/api/addBulk` for adding multiple bookmarks in a single request
   - include documentation for `/api/add` and `/api/addBulk` in readme
   - add appSetting `add-bulk-max-items` (default 200);
+- add queuing for archive requests
+  - add appSettings `archive-rate-limit-ms`, `archive-queue-capacity`
+  - archive requests to the archiveBacked are perfomred at a maximum rate of `archive-rate-limit-ms`
+  - archive requests waiting in the queue are backed by persistent storage
+  - archive requests exceeding queue capacity are dropped; best-effort only
 - add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
 - add appSetting `demo-mode` (disables password changes)
 - note update is blocked when the stored copy was updated more recently than the client's copy

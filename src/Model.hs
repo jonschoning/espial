@@ -41,6 +41,7 @@ AppMigration
     UniqueAppMigrationDbVersion dbVersion
     deriving Show Eq Ord
 
+-- | List of Espial versions that have interacted with the database
 AppVersion
     appVersionSpec Text
     appVersion Text
@@ -98,6 +99,14 @@ Note json
   created UTCTime
   updated UTCTime
   UniqueUserNoteSlug userId slug
+  deriving Show Eq Ord
+
+-- | Durable record of a pending archive job
+ArchiveJobRecord
+  userId UserId OnDeleteCascade
+  bookmarkId BookmarkId OnDeleteCascade
+  href Text
+  created UTCTime
   deriving Show Eq Ord
 |]
 
@@ -1087,3 +1096,16 @@ upsertNote userId mnid note =
         now <- liftIO getCurrentTime
         replace nid note {noteUpdated = now}
         pure (Updated nid)
+
+-- * Archive Job Store
+
+insertArchiveJobRecords :: [(Key User, Key Bookmark, Text)] -> DB [Key ArchiveJobRecord]
+insertArchiveJobRecords records = do
+  now <- liftIO getCurrentTime
+  forM records $ \(userId, bid, href) -> insert (ArchiveJobRecord userId bid href now)
+
+deleteArchiveJobRecord :: Key ArchiveJobRecord -> DB ()
+deleteArchiveJobRecord jobId = CP.delete jobId
+
+getArchiveJobRecords :: DB [Entity ArchiveJobRecord]
+getArchiveJobRecords = selectList [] [Asc ArchiveJobRecordId]
