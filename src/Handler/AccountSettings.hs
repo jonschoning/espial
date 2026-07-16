@@ -9,8 +9,8 @@ getAccountSettingsR :: Handler Html
 getAccountSettingsR = do
   app <- getYesod
   (_, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      frontendBundleName = appFrontendBundleName app
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let frontendBundleName = appFrontendBundleName app
       archiveBackendEnabled = isJust (appArchiver app)
       t = \key -> appTranslate app lang (I18nKey key)
   let accountSettingsEl = "accountSettings" :: Text
@@ -131,8 +131,8 @@ getChangePasswordR = do
   req <- getRequest
   app <- getYesod
   (_, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t = \key -> appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t = \key -> appTranslate app lang (I18nKey key)
   -- demoMode = appDemoMode (appSettings app)
   defaultLayout
     $ $(widgetFile "change-password")
@@ -141,8 +141,8 @@ postChangePasswordR :: Handler Html
 postChangePasswordR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t = \key -> appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t = \key -> appTranslate app lang (I18nKey key)
   when (appDemoMode (appSettings app)) $ do
     setMessage (toHtml (t "changePassword.demoMode"))
     redirect ChangePasswordR

@@ -20,8 +20,8 @@ _getNotes :: UserNameP -> SharedP -> Handler Html
 _getNotes unamep@(UserNameP uname) sharedp' = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
-      previewNotes = maybe True userPreviewNotes muser
+  lang <- getCurrentLang (LangSourceUser muser)
+  let previewNotes = maybe True userPreviewNotes muser
       frontendBundleName = appFrontendBundleName app
       t = \key -> appTranslate app lang (I18nKey key)
       tc = \key n ->
@@ -144,8 +144,8 @@ postNoteBulkEditR :: Handler ()
 postNoteBulkEditR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t key = appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t key = appTranslate app lang (I18nKey key)
   noteBulkForm <- requireCheckJsonBody
   result <- runDBWrite $ notesBulkEdit userId noteBulkForm
   case result of
@@ -183,8 +183,8 @@ postAddNoteR :: Handler Text
 postAddNoteR = do
   app <- getYesod
   (_, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t key = appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t key = appTranslate app lang (I18nKey key)
   noteForm <- requireCheckJsonBody
   _handleFormSuccess noteForm >>= \case
     Created note -> sendStatusJSON created201 note

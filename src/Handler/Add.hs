@@ -68,8 +68,8 @@ postAddR :: Handler Text
 postAddR = do
   app <- getYesod
   (_, authUser) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage authUser)
-      t key = appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just authUser))
+  let t key = appTranslate app lang (I18nKey key)
   bookmarkForm <- requireCheckJsonBody
   handleFormSuccess bookmarkForm >>= \case
     Created bid -> sendStatusJSON created201 bid

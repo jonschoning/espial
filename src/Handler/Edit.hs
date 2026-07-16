@@ -36,8 +36,8 @@ postBmBulkEditR :: Handler ()
 postBmBulkEditR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t key = appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t key = appTranslate app lang (I18nKey key)
   bmBulkForm <- requireCheckJsonBody
   result <- runDBWrite $ bookmarksBulkEdit userId bmBulkForm
   case result of

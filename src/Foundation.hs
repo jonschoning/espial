@@ -173,9 +173,8 @@ instance Yesod App where
   errorHandler :: ErrorResponse -> HandlerFor App TypedContent
   errorHandler err = do
     app <- getYesod
-    session <- getSession
-    let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-        t = \key -> appTranslate app lang (I18nKey key)
+    lang <- getCurrentLang LangSourceSession
+    let t = \key -> appTranslate app lang (I18nKey key)
     case err of
       NotFound -> _notFoundErrorHandler (t "error.notFound")
       InternalError e -> _internalErrorHandler e (t "error.internalError")
@@ -242,10 +241,9 @@ instance Yesod App where
     mmsg <- getMessage
     musername <- maybeAuthUsername
     muser <- (fmap . fmap) snd maybeAuthPair
-    session <- getSession
+    lang <- getCurrentLang (LangSourceUserOrSession muser)
     let msourceCodeUri = appSourceCodeUri (appSettings app)
         frontendBundleName = appFrontendBundleName app
-        lang = fromMaybe (appLanguageDefault (appSettings app)) ((muser >>= userLanguage) <|> (toI18nLang . decodeUtf8 =<< lookup "_LANG" session))
         t = \key -> appTranslate app lang (I18nKey key)
         i18nR = appI18nR app
     pc <- widgetToPageContent do
@@ -261,12 +259,11 @@ popupLayout widget = do
   req <- getRequest
   app <- getYesod
   mmsg <- getMessage
-  session <- getSession
   muser <- fmap entityVal <$> maybeAuth
+  lang <- getCurrentLang (LangSourceUserOrSession muser)
   let musername = fmap userName muser
       msourceCodeUri = appSourceCodeUri (appSettings app)
       frontendBundleName = appFrontendBundleName app
-      lang = fromMaybe (appLanguageDefault (appSettings app)) ((muser >>= userLanguage) <|> (toI18nLang . decodeUtf8 =<< lookup "_LANG" session))
       t = \key -> appTranslate app lang (I18nKey key)
       i18nR = appI18nR app
   pc <- widgetToPageContent do
@@ -276,6 +273,27 @@ popupLayout widget = do
     addStylesheet (StaticR css_popup_css)
     $(widgetFile "popup-layout")
   withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+-- | Where 'getCurrentLang' may read a language from, besides the app default.
+data LangSource
+  = -- | anonymous/pre-auth pages: session cookie only
+    LangSourceSession
+  | -- | a (possibly absent) user's saved language, ignoring the session cookie
+    LangSourceUser (Maybe User)
+  | -- | a (possibly absent) user's saved language, falling back to the session cookie
+    LangSourceUserOrSession (Maybe User)
+
+getCurrentLang :: (MonadHandler m, HandlerSite m ~ App) => LangSource -> m I18nLang
+getCurrentLang source = do
+  app <- getYesod
+  let langDefault = appLanguageDefault (appSettings app)
+      fromSession session = toI18nLang . decodeUtf8 =<< lookup "_LANG" session
+  case source of
+    LangSourceSession -> fromMaybe langDefault . fromSession <$> getSession
+    LangSourceUser muser -> pure (fromMaybe langDefault (muser >>= userLanguage))
+    LangSourceUserOrSession muser -> do
+      session <- getSession
+      pure (fromMaybe langDefault ((muser >>= userLanguage) <|> fromSession session))
 
 -- * YesodAuth App
 
@@ -302,18 +320,16 @@ instance YesodAuth App where
                 | not (currentApproot `isPrefixOf` dest) -> deleteSession ultDestKey
               _ -> pure ()
             app <- getYesod
-            session <- getSession
-            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                t = \key -> appTranslate app lang (I18nKey key)
+            lang <- getCurrentLang LangSourceSession
+            let t = \key -> appTranslate app lang (I18nKey key)
             setTitle (toHtml ("Espial | " <> t "login.pageTitle"))
             $(widgetFile "login")
 
           dbPostLoginR :: (master ~ App) => AuthHandler master TypedContent
           dbPostLoginR = do
             app <- getYesod
-            session <- getSession
-            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                t = \key -> appTranslate app lang (I18nKey key)
+            lang <- getCurrentLang LangSourceSession
+            let t = \key -> appTranslate app lang (I18nKey key)
             mresult <-
               runInputPostResult
                 ( dbLoginCreds
@@ -377,8 +393,7 @@ instance YesodAuth App where
     maybeAuth >>= \case
       Nothing -> $(logWarn) "onLogin: could not find user"
       Just (Entity user uname) -> do
-        app <- getYesod
-        let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage uname)
+        lang <- getCurrentLang (LangSourceUser (Just uname))
         setSession userNameKey (userName uname)
         setLanguage (fromI18nLang lang)
   onLogout =

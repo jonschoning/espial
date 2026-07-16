@@ -30,8 +30,8 @@ _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
-      t = \key -> appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser muser)
+  let t = \key -> appTranslate app lang (I18nKey key)
       frontendBundleName = appFrontendBundleName app
   (limit', page') <- lookupPagingParams Nothing
   let limit = maybe 120 (min 160 . fromIntegral) limit'
