@@ -235,14 +235,14 @@ getTagSuggestions user TagSuggestionRequest {_query = query, _currentTags = curr
         ( t
             ^. BookmarkTagUserId
             ==. val user
-            &&. (lower_ (t ^. BookmarkTagTag) `like` lower_ ((%) ++. val query ++. (%)))
+            &&. sqliteLikeContains (t ^. BookmarkTagTag) query
         )
       unless (null excludedTags) $ where_ $ not_ (lower_ (t ^. BookmarkTagTag) `in_` valList excludedTags)
       let countRows' = countRows
           matchPriority =
             case_
               [ when_ (lower_ (t ^. BookmarkTagTag) ==. lower_ (val query)) then_ (val (0 :: Int)),
-                when_ (lower_ (t ^. BookmarkTagTag) `like` lower_ (val query ++. (%))) then_ (val (1 :: Int))
+                when_ (sqliteLikePrefix (t ^. BookmarkTagTag) query) then_ (val (1 :: Int))
               ]
               (else_ (val (2 :: Int)))
       groupBy (lower_ (t ^. BookmarkTagTag))

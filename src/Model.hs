@@ -458,6 +458,10 @@ sqliteLikeExact col = sqliteLike escapeLike "\\" col
 sqliteLikeContains :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
 sqliteLikeContains col = sqliteLike (\v -> "%" <> escapeLike v <> "%") "\\" col
 
+-- Equivalent to: col LIKE escaped_term || '%' ESCAPE '\'
+sqliteLikePrefix :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikePrefix col = sqliteLike (\v -> escapeLike v <> "%") "\\" col
+
 -- | Escape wildcards in a string for use in a LIKE pattern, so that _ and % match literally.
 escapeLike :: Text -> Text
 escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
