@@ -37,7 +37,12 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
   mquery <- lookupGetParam queryp
   msort <- lookupGetParam sortp
   morder <- lookupGetParam orderp
-  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
+  mcursor <-
+    parsePagingCursorParams
+      (fmap PagingCursorBefore . parsePagingCursorNt)
+      (fmap PagingCursorAfter . parsePagingCursorNt)
+      <$> lookupGetParam beforep
+      <*> lookupGetParam afterp
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       nsort = parseNoteSortParams msort morder
@@ -63,11 +68,11 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
       mqueryEarlierp =
         fmap
           (beforep,)
-          (formatEntityPagingCursorTimeNt <$> moldestNote)
+          (formatEntityPagingCursorNt <$> moldestNote)
       mqueryLaterp =
         fmap
           (afterp,)
-          (formatEntityPagingCursorTimeNt <$> mnewestNote)
+          (formatEntityPagingCursorNt <$> mnewestNote)
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do
@@ -303,7 +308,12 @@ getNotesFeedR unamep@(UserNameP uname) = do
   morder <- lookupGetParam orderParam
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
-  let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
+  let mcursor =
+        parsePagingCursorParams
+          (fmap PagingCursorBefore . parsePagingCursorNt)
+          (fmap PagingCursorAfter . parsePagingCursorNt)
+          mbefore
+          mafter
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       nsort = parseNoteSortParams msort morder

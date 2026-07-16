@@ -95,7 +95,7 @@ spec = withApp $ do
               uid
               Nothing
               SharedAll
-              (mkNotePaging (NoteSort NoteSortTitle SortAsc) (Just (PagingCursorBefore t0)) 1)
+              (mkNotePaging (NoteSort NoteSortTitle SortAsc) (Just (PagingCursorBefore (NoteCursor t0 Nothing))) 1)
               100
         let nids = map entityKey rows
         liftIO $ nids `shouldBe` [nOld, nNew]
@@ -115,7 +115,7 @@ spec = withApp $ do
               uid
               Nothing
               SharedAll
-              (mkNotePaging (NoteSort NoteSortTitle SortAsc) (Just (PagingCursorAfter t0)) 1)
+              (mkNotePaging (NoteSort NoteSortTitle SortAsc) (Just (PagingCursorAfter (NoteCursor t0 Nothing))) 1)
               100
         let nids = map entityKey rows
         liftIO $ nids `shouldBe` [nOld, nNew]

@@ -192,7 +192,13 @@ data BookmarkCursor = BookmarkCursor
 
 type BookmarkPagingCursor = PagingCursor BookmarkCursor
 
-type NotePagingCursorTime = PagingCursor UTCTime
+data NoteCursor = NoteCursor
+  { noteCursorCreated :: UTCTime,
+    noteCursorId :: Maybe NoteId
+  }
+  deriving (Eq, Show)
+
+type NotePagingCursor = PagingCursor NoteCursor
 
 -- * Sorting
 
@@ -323,9 +329,9 @@ parseNoteSortParams msort morder =
   where
     NoteSort defaultField defaultDirection = defaultNoteSort
 
-type NotePaging = Paging NoteSort UTCTime
+type NotePaging = Paging NoteSort NoteCursor
 
-mkNotePaging :: NoteSort -> Maybe NotePagingCursorTime -> Page -> NotePaging
+mkNotePaging :: NoteSort -> Maybe NotePagingCursor -> Page -> NotePaging
 mkNotePaging nsort mcursor page = case nsort of
   NoteSort NoteSortCreated dir -> PageByCursor dir mcursor
   _ -> PageByOffset nsort page
@@ -990,10 +996,20 @@ getNoteList key mquery sharedp paging limit' = do
       PageByCursor SortDesc (Just (PagingCursorAfter _)) -> reverse
       PageByCursor SortAsc (Just (PagingCursorBefore _)) -> reverse
       _ -> id
-    isBeforeCursor b before =
-      (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val before
-    isAfterCursor b after =
-      (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val after
+    isBeforeCursor b (NoteCursor t mnid) = case mnid of
+      Nothing -> createdLt
+      Just nid ->
+        createdLt
+          ||. ((b ^. NoteCreated ==. val t) &&. ((b ^. NoteId) Database.Esqueleto.Experimental.<. val nid))
+      where
+        createdLt = (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val t
+    isAfterCursor b (NoteCursor t mnid) = case mnid of
+      Nothing -> createdGt
+      Just nid ->
+        createdGt
+          ||. ((b ^. NoteCreated ==. val t) &&. ((b ^. NoteId) Database.Esqueleto.Experimental.>. val nid))
+      where
+        createdGt = (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val t
 
 noteWhereClause :: Key User -> SharedP -> Maybe Text -> SqlExpr (Entity Note) -> SqlQuery ()
 noteWhereClause key sharedp mquery b = do

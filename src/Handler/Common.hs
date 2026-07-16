@@ -44,15 +44,15 @@ orderParam :: Text
 orderParam = "order"
 
 -- | "~" is unreserved in URL queries and cannot occur in the ISO8601 time
-bookmarkCursorSeparator :: Text
-bookmarkCursorSeparator = "~"
+pagingCursorSeparator :: Text
+pagingCursorSeparator = "~"
 
 formatEntityPagingCursorBm :: Entity Bookmark -> Text
 formatEntityPagingCursorBm (Entity bid bm) =
-  format8601z (bookmarkTime bm) <> bookmarkCursorSeparator <> tshow (fromSqlKey bid)
+  format8601z (bookmarkTime bm) <> pagingCursorSeparator <> tshow (fromSqlKey bid)
 
 parsePagingCursorBm :: Text -> Maybe BookmarkCursor
-parsePagingCursorBm t = case T.splitOn bookmarkCursorSeparator t of
+parsePagingCursorBm t = case T.splitOn pagingCursorSeparator t of
   [timeText] -> flip BookmarkCursor Nothing <$> parseTimeText timeText
   [timeText, idText] ->
     BookmarkCursor
@@ -60,11 +60,18 @@ parsePagingCursorBm t = case T.splitOn bookmarkCursorSeparator t of
       <*> (Just <$> parsePagingCursorKey idText)
   _ -> Nothing
 
-formatEntityPagingCursorTimeNt :: Entity Note -> Text
-formatEntityPagingCursorTimeNt = format8601z . noteCreated . entityVal
+formatEntityPagingCursorNt :: Entity Note -> Text
+formatEntityPagingCursorNt (Entity nid nt) =
+  format8601z (noteCreated nt) <> pagingCursorSeparator <> tshow (fromSqlKey nid)
 
-parsePagingCursorTime :: Text -> Maybe UTCTime
-parsePagingCursorTime = parseTimeText
+parsePagingCursorNt :: Text -> Maybe NoteCursor
+parsePagingCursorNt t = case T.splitOn pagingCursorSeparator t of
+  [timeText] -> flip NoteCursor Nothing <$> parseTimeText timeText
+  [timeText, idText] ->
+    NoteCursor
+      <$> parseTimeText timeText
+      <*> (Just <$> parsePagingCursorKey idText)
+  _ -> Nothing
 
 formatEntityPagingCursorKey :: (ToBackendKey SqlBackend record) => Entity record -> Text
 formatEntityPagingCursorKey = tshow . fromSqlKey . entityKey

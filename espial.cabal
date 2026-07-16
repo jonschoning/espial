@@ -496,6 +496,7 @@ test-suite test
       Model.BookmarksSortSpec
       Model.FileImportExportSpec
       Model.NotesBulkEditSpec
+      Model.NotesPagingSpec
       Model.NotesSearchSpec
       Model.NotesSortSpec
       Model.NotesUpsertSpec
