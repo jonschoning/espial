@@ -37,6 +37,10 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       mqueryp = fmap (queryp,) mquery
+      msortp = Nothing :: Maybe (Text, Text)
+      morderp = Nothing :: Maybe (Text, Text)
+      msort = Nothing :: Maybe Text
+      morder = Nothing :: Maybe Text
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
   (bcount, notes, hasEarlier, hasLater) <- runDB do

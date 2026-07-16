@@ -190,22 +190,71 @@ type NotePagingCursorTime = PagingCursor UTCTime
 data SortDirection
   = SortAsc
   | SortDesc
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON SortDirection where toJSON = A.String . fromSortDirection
+
+instance FromJSON SortDirection where
+  parseJSON = A.withText "SortDirection" \s ->
+    maybe (fail $ "Invalid sort direction: '" <> unpack s <> "'") pure (toSortDirection s)
+
+fromSortDirection :: (IsString a) => SortDirection -> a
+fromSortDirection = \case
+  SortAsc -> "asc"
+  SortDesc -> "desc"
+
+toSortDirection :: (Ord s, IsString s) => s -> Maybe SortDirection
+toSortDirection = inverseMap fromSortDirection
 
 data BookmarkSortField
   = BookmarkSortTime
   | BookmarkSortTitle
   | BookmarkSortNumTags
   | BookmarkSortUrl
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON BookmarkSortField where toJSON = A.String . fromBookmarkSortField
+
+instance FromJSON BookmarkSortField where
+  parseJSON = A.withText "BookmarkSortField" \s ->
+    maybe (fail $ "Invalid sort field: '" <> unpack s <> "'") pure (toBookmarkSortField s)
+
+fromBookmarkSortField :: (IsString a) => BookmarkSortField -> a
+fromBookmarkSortField = \case
+  BookmarkSortTime -> "time"
+  BookmarkSortTitle -> "title"
+  BookmarkSortNumTags -> "numtags"
+  BookmarkSortUrl -> "url"
+
+toBookmarkSortField :: (Ord s, IsString s) => s -> Maybe BookmarkSortField
+toBookmarkSortField = inverseMap fromBookmarkSortField
 
 data BookmarkSort = BookmarkSort BookmarkSortField SortDirection
   deriving (Eq, Show, Read)
+
+instance ToJSON BookmarkSort where
+  toJSON (BookmarkSort field dir) =
+    A.object ["field" A..= field, "direction" A..= dir]
+
+instance FromJSON BookmarkSort where
+  parseJSON = A.withObject "BookmarkSort" $ \o ->
+    BookmarkSort <$> o A..: "field" <*> o A..: "direction"
 
 -- | Cursor-based (before/after) paging is only defined for this ordering;
 -- other sorts fall back to page/offset paging. See 'bookmarksTagsQuery'.
 defaultBookmarkSort :: BookmarkSort
 defaultBookmarkSort = BookmarkSort BookmarkSortTime SortDesc
+
+-- | Parses the "sort"/"order" querystring params into a 'BookmarkSort',
+-- falling back to 'defaultBookmarkSort's field/direction independently for
+-- any missing or unrecognized value.
+parseBookmarkSortParams :: Maybe Text -> Maybe Text -> BookmarkSort
+parseBookmarkSortParams msort morder =
+  BookmarkSort
+    (fromMaybe defaultField (toBookmarkSortField =<< msort))
+    (fromMaybe defaultDirection (toSortDirection =<< morder))
+  where
+    BookmarkSort defaultField defaultDirection = defaultBookmarkSort
 
 -- * I18n
 

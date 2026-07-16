@@ -45,20 +45,25 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
+      sortp = bookmarkSortParam
+      orderp = bookmarkOrderParam
   mquery <- lookupGetParam queryp
+  msort <- lookupGetParam sortp
+  morder <- lookupGetParam orderp
   mcursor <-
     parsePagingCursorParams
       (fmap PagingCursorBefore . parsePagingCursorTime)
       (fmap PagingCursorAfter . parsePagingCursorTime)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
+  let bsort = parseBookmarkSortParams msort morder
   (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     (bcount, btmarks, hasEarlier, hasLater) <-
-      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor defaultBookmarkSort limit page
+      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor bsort limit page
     pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
@@ -76,6 +81,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
           (afterp,)
           (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
       mqueryp = fmap (queryp,) mquery
+      msortp = fmap (sortp,) msort
+      morderp = fmap (orderp,) morder
       renderEl = "bookmarks" :: Text
       tagCloudRenderEl = "tagCloud" :: Text
       showTagCloud = isowner || publicTagCloud
@@ -102,6 +109,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.dat.sharedp = #{ toJSON sharedp };
         app.dat.tags = #{ toJSON pathtags };
         app.dat.query = #{ toJSON mquery };
+        app.dat.sort = #{ toJSON bsort };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
         app.tagCloudR = #{toJSON tagCloudUrl};
@@ -223,19 +231,24 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
+      sortp = bookmarkSortParam
+      orderp = bookmarkOrderParam
   mquery <- lookupGetParam queryp
+  msort <- lookupGetParam sortp
+  morder <- lookupGetParam orderp
   mcursor <-
     parsePagingCursorParams
       (fmap PagingCursorBefore . parsePagingCursorTime)
       (fmap PagingCursorAfter . parsePagingCursorTime)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
+  let bsort = parseBookmarkSortParams msort morder
   (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor defaultBookmarkSort limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor bsort limit page
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

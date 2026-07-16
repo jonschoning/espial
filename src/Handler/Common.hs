@@ -36,6 +36,12 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
+bookmarkSortParam :: Text
+bookmarkSortParam = "sort"
+
+bookmarkOrderParam :: Text
+bookmarkOrderParam = "order"
+
 formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
 formatEntityPagingCursorTimeBm = format8601z . bookmarkTime . entityVal
 
