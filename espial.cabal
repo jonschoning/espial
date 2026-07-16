@@ -487,6 +487,7 @@ test-suite test
       Handler.HomeSpec
       Handler.LocalesSpec
       I18nSpec
+      JsonWireFormatSpec
       Model.BookmarksBulkEditSpec
       Model.BookmarksBulkUpsertSpec
       Model.BookmarksPagingSpec
