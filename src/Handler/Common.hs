@@ -37,11 +37,11 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
-bookmarkSortParam :: Text
-bookmarkSortParam = "sort"
+sortParam :: Text
+sortParam = "sort"
 
-bookmarkOrderParam :: Text
-bookmarkOrderParam = "order"
+orderParam :: Text
+orderParam = "order"
 
 -- | "~" is unreserved in URL queries and cannot occur in the ISO8601 time
 bookmarkCursorSeparator :: Text

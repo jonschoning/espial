@@ -45,8 +45,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
-      sortp = bookmarkSortParam
-      orderp = bookmarkOrderParam
+      sortp = sortParam
+      orderp = orderParam
   mquery <- lookupGetParam queryp
   msort <- lookupGetParam sortp
   morder <- lookupGetParam orderp
@@ -237,8 +237,8 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
-      sortp = bookmarkSortParam
-      orderp = bookmarkOrderParam
+      sortp = sortParam
+      orderp = orderParam
   mquery <- lookupGetParam queryp
   msort <- lookupGetParam sortp
   morder <- lookupGetParam orderp

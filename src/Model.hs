@@ -263,10 +263,12 @@ parseBookmarkSortParams msort morder =
   where
     BookmarkSort defaultField defaultDirection = defaultBookmarkSort
 
-data BookmarkPaging
-  = PageByCursor SortDirection (Maybe BookmarkPagingCursor)
-  | PageByOffset BookmarkSort Page
+data Paging sort cursor
+  = PageByCursor SortDirection (Maybe (PagingCursor cursor))
+  | PageByOffset sort Page
   deriving (Eq, Show)
+
+type BookmarkPaging = Paging BookmarkSort BookmarkCursor
 
 -- | Cursor (before/after) paging is defined for time ordering in either
 -- direction; every other sort pages by offset, where "earlier"/"later"
@@ -276,6 +278,57 @@ mkBookmarkPaging :: BookmarkSort -> Maybe BookmarkPagingCursor -> Page -> Bookma
 mkBookmarkPaging bsort mcursor page = case bsort of
   BookmarkSort BookmarkSortTime dir -> PageByCursor dir mcursor
   _ -> PageByOffset bsort page
+
+data NoteSortField
+  = NoteSortCreated
+  | NoteSortTitle
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON NoteSortField where toJSON = A.String . fromNoteSortField
+
+instance FromJSON NoteSortField where
+  parseJSON = A.withText "NoteSortField" \s ->
+    maybe (fail $ "Invalid sort field: '" <> unpack s <> "'") pure (toNoteSortField s)
+
+fromNoteSortField :: (IsString a) => NoteSortField -> a
+fromNoteSortField = \case
+  NoteSortCreated -> "created"
+  NoteSortTitle -> "title"
+
+toNoteSortField :: (Ord s, IsString s) => s -> Maybe NoteSortField
+toNoteSortField = inverseMap fromNoteSortField
+
+data NoteSort = NoteSort NoteSortField SortDirection
+  deriving (Eq, Show, Read)
+
+instance ToJSON NoteSort where
+  toJSON (NoteSort field dir) =
+    A.object ["field" A..= field, "direction" A..= dir]
+
+instance FromJSON NoteSort where
+  parseJSON = A.withObject "NoteSort" $ \o ->
+    NoteSort <$> o A..: "field" <*> o A..: "direction"
+
+defaultNoteSort :: NoteSort
+defaultNoteSort = NoteSort NoteSortCreated SortDesc
+
+-- | Parses the "sort"/"order" querystring params into a 'NoteSort',
+-- falling back to 'defaultNoteSort's field/direction independently for
+-- any missing or unrecognized value.
+parseNoteSortParams :: Maybe Text -> Maybe Text -> NoteSort
+parseNoteSortParams msort morder =
+  NoteSort
+    (fromMaybe defaultField (toNoteSortField =<< msort))
+    (fromMaybe defaultDirection (toSortDirection =<< morder))
+  where
+    NoteSort defaultField defaultDirection = defaultNoteSort
+
+type NotePaging = Paging NoteSort UTCTime
+
+mkNotePaging :: NoteSort -> Maybe NotePagingCursorTime -> Page -> NotePaging
+mkNotePaging nsort mcursor page = case nsort of
+  NoteSort NoteSortCreated dir -> PageByCursor dir mcursor
+  _ -> PageByOffset nsort page
 
 -- * I18n
 
@@ -876,8 +929,8 @@ getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
   selectFirst [NoteUserId CP.==. userKey, NoteSlug CP.==. slug] []
 
-getNoteList :: Key User -> Maybe Text -> Maybe NotePagingCursorTime -> SharedP -> Limit -> Page -> DB (Int, [Entity Note], Bool, Bool)
-getNoteList key mquery mcursor sharedp limit' page = do
+getNoteList :: Key User -> Maybe Text -> SharedP -> NotePaging -> Limit -> DB (Int, [Entity Note], Bool, Bool)
+getNoteList key mquery sharedp paging limit' = do
   total <-
     fmap
       (sum . fmap unValue)
@@ -895,30 +948,48 @@ getNoteList key mquery mcursor sharedp limit' page = do
         PagingCursorAfter after -> where_ (isAfterCursor b after)
       orderBy (noteOrder b)
       limit (limit' + 1) -- fetch one extra row to determine if there are more rows in the given direction
-      offset ((page - 1) * limit')
+      offset pageOffset
       pure b
   let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
       pageRows = take (fromIntegral limit') rows
-      hasEarlier =
-        case mcursor of
-          Just (PagingCursorAfter _) -> not (null pageRows)
-          _ -> hasMoreInQueryDirection
-      hasLater =
-        case mcursor of
-          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
-          Just (PagingCursorBefore _) -> not (null pageRows)
-          Nothing -> False
+      -- cursor flags are temporal and independent of display direction;
+      -- offset flags just mean the previous/next page exists
+      (hasEarlier, hasLater) = case paging of
+        PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
+        PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
+        PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
+        PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
+        PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
   pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
     _whereClause = noteWhereClause key sharedp mquery
-    noteOrder b =
-      case mcursor of
-        Just (PagingCursorAfter _) -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
-        _ -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
-    finalizeRows =
-      case mcursor of
-        Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
-        _ -> id
+    mcursor = case paging of
+      PageByCursor _ c -> c
+      PageByOffset _ _ -> Nothing
+    pageOffset = case paging of
+      PageByCursor _ _ -> 0
+      PageByOffset _ page -> (page - 1) * limit'
+    -- a before cursor always scans desc through older rows and an after
+    -- cursor asc through newer ones, so limit takes the rows adjacent to the
+    -- cursor; finalizeRows restores display order when the scan opposes it
+    noteOrder b = case paging of
+      PageByCursor _ (Just (PagingCursorBefore _)) -> createdOrder SortDesc b
+      PageByCursor _ (Just (PagingCursorAfter _)) -> createdOrder SortAsc b
+      PageByCursor dir Nothing -> createdOrder dir b
+      PageByOffset nsort _ -> case nsort of
+        NoteSort NoteSortCreated dir ->
+          createdOrder dir b
+        NoteSort NoteSortTitle SortAsc ->
+          [asc (lower_ (b ^. NoteTitle)), asc (b ^. NoteId)]
+        NoteSort NoteSortTitle SortDesc ->
+          [desc (lower_ (b ^. NoteTitle)), desc (b ^. NoteId)]
+    createdOrder dir b = case dir of
+      SortDesc -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
+      SortAsc -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
+    finalizeRows = case paging of
+      PageByCursor SortDesc (Just (PagingCursorAfter _)) -> reverse
+      PageByCursor SortAsc (Just (PagingCursorBefore _)) -> reverse
+      _ -> id
     isBeforeCursor b before =
       (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val before
     isAfterCursor b after =

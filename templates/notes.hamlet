@@ -4,7 +4,7 @@
       <div .fr.nt1.nowrap style="margin-bottom:.7rem">
         <div .dib.v-mid.f6.pr2>
             <a .link.rss
-               href="@{NotesFeedR unamep}">#{t "rss"}
+               href="@?{(NotesFeedR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
         <div .dib.v-mid>
           ^{search}
       <div .di>
@@ -48,8 +48,8 @@
         $maybe route <- mroute
           <div .dib.ml5>
             <span .silver.mr1>#{t "pagination.perPage"}
-            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
-            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
-            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
-            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
-            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp, msortp, morderp])}"‧>20</a> ‧
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp, msortp, morderp])}"‧>40</a> ‧
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp, msortp, morderp])}"‧>80</a> ‧
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp, msortp, morderp])}"‧>120</a> ‧
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp, msortp, morderp])}"‧>160</a>

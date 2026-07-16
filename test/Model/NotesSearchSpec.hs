@@ -22,7 +22,7 @@ createNote uid title isMarkdown shared = do
 
 search :: Key User -> SharedP -> Maybe Text -> DB [Key Note]
 search uid sharedp mquery = do
-  (_, rows, _, _) <- getNoteList uid mquery Nothing sharedp 100 1
+  (_, rows, _, _) <- getNoteList uid mquery sharedp (mkNotePaging defaultNoteSort Nothing 1) 100
   return $ map entityKey rows
 
 spec :: Spec

@@ -32,15 +32,19 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
   let queryp = "query"
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
+      sortp = sortParam
+      orderp = orderParam
   mquery <- lookupGetParam queryp
+  msort <- lookupGetParam sortp
+  morder <- lookupGetParam orderp
   mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
+      nsort = parseNoteSortParams msort morder
+      paging = mkNotePaging nsort mcursor page
       mqueryp = fmap (queryp,) mquery
-      msortp = Nothing :: Maybe (Text, Text)
-      morderp = Nothing :: Maybe (Text, Text)
-      msort = Nothing :: Maybe Text
-      morder = Nothing :: Maybe Text
+      msortp = fmap (sortp,) msort
+      morderp = fmap (orderp,) morder
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
   (bcount, notes, hasEarlier, hasLater) <- runDB do
@@ -48,17 +52,22 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery mcursor sharedp limit page
+    getNoteList userId mquery sharedp paging limit
   let mfirstNote = headMay notes
       mlastNote = lastMay notes
+      -- the earlier link anchors at the oldest row on the page and the later
+      -- link at the newest; which list end holds which depends on direction
+      (moldestNote, mnewestNote) = case nsort of
+        NoteSort NoteSortCreated SortAsc -> (mfirstNote, mlastNote)
+        _ -> (mlastNote, mfirstNote)
       mqueryEarlierp =
         fmap
           (beforep,)
-          (formatEntityPagingCursorTimeNt <$> mlastNote)
+          (formatEntityPagingCursorTimeNt <$> moldestNote)
       mqueryLaterp =
         fmap
           (afterp,)
-          (formatEntityPagingCursorTimeNt <$> mfirstNote)
+          (formatEntityPagingCursorTimeNt <$> mnewestNote)
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do
@@ -76,6 +85,7 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
         app.dat.previewNotes = #{ previewNotes };
         app.dat.sharedp = #{ toJSON sharedp };
         app.dat.query = #{ toJSON mquery };
+        app.dat.sort = #{ toJSON nsort };
     |]
     toWidget
       [hamlet|
@@ -289,11 +299,15 @@ getNotesFeedR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams (Just "n")
   mquery <- lookupGetParam "query"
+  msort <- lookupGetParam sortParam
+  morder <- lookupGetParam orderParam
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
   let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
+      nsort = parseNoteSortParams msort morder
+      paging = mkNotePaging nsort mcursor page
       isowner = Just uname == mauthuname
       sharedp = if isowner then SharedAll else SharedPublic
   (_, notes, _, _) <- runDB do
@@ -301,7 +315,7 @@ getNotesFeedR unamep@(UserNameP uname) = do
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery mcursor sharedp limit page
+    getNoteList userId mquery sharedp paging limit
   render <- getUrlRender
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
       entries = map (noteToRssEntry render unamep) notes
