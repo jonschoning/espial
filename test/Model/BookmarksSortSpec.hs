@@ -26,12 +26,12 @@ tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
 
 queryOrder :: Key User -> Bool -> BookmarkSort -> DB [Key Bookmark]
 queryOrder uid isowner bsort = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid isowner SharedAll FilterAll [] Nothing Nothing bsort 100 1
+  (_, rows, _, _) <- bookmarksTagsQuery uid isowner SharedAll FilterAll [] Nothing (mkBookmarkPaging bsort Nothing 1) 100
   return $ map (entityKey . fst) rows
 
 queryPageFlags :: Key User -> BookmarkSort -> Limit -> Page -> DB (Bool, Bool)
 queryPageFlags uid bsort lim pg = do
-  (_, _, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing Nothing bsort lim pg
+  (_, _, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing (mkBookmarkPaging bsort Nothing pg) lim
   return (hasEarlier, hasLater)
 
 spec :: Spec
@@ -174,7 +174,7 @@ spec = withApp $ do
           bNew <- createBmAt uid "https://new.com" "bbb" (addUTCTime 100 t0)
           return (uid, bOld, bNew)
         -- a "before t0" cursor would normally exclude bOld under time sort;
-        -- under title sort it must be ignored entirely
+        -- under title sort mkBookmarkPaging must discard it entirely
         (_, rows, _, _) <-
           runDB
             $ bookmarksTagsQuery
@@ -184,17 +184,15 @@ spec = withApp $ do
               FilterAll
               []
               Nothing
-              (Just (PagingCursorBefore t0))
-              (BookmarkSort BookmarkSortTitle SortAsc)
+              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorBefore t0)) 1)
               100
-              1
         let bids = map (entityKey . fst) rows
         liftIO $ bids `shouldBe` [bOld, bNew]
 
       it "does not reverse results when an after-cursor is given with a non-default sort" $ do
         -- an "after t0" cursor would normally exclude bOld and, on the
-        -- BookmarkSortTime/PagingCursorAfter path, trigger a reverse() to
-        -- restore display order; under title sort neither must happen
+        -- PagingCursorAfter path, trigger a reverse() to restore display
+        -- order; under title sort neither must happen
         (uid, bOld, bNew) <- runDB $ do
           uid <- createTestUser
           bOld <- createBmAt uid "https://old.com" "aaa" t0
@@ -209,10 +207,8 @@ spec = withApp $ do
               FilterAll
               []
               Nothing
-              (Just (PagingCursorAfter t0))
-              (BookmarkSort BookmarkSortTitle SortAsc)
+              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorAfter t0)) 1)
               100
-              1
         let bids = map (entityKey . fst) rows
         liftIO $ bids `shouldBe` [bOld, bNew]
 

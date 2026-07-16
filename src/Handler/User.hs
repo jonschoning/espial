@@ -57,13 +57,14 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder
+      paging = mkBookmarkPaging bsort mcursor page
   (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
     (bcount, btmarks, hasEarlier, hasLater) <-
-      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor bsort limit page
+      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery paging limit
     pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
@@ -243,12 +244,13 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder
+      paging = mkBookmarkPaging bsort mcursor page
   (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor bsort limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery paging limit
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

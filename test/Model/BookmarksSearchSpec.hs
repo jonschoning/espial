@@ -39,7 +39,7 @@ tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
 
 search :: Key User -> Text -> DB [Key Bookmark]
 search uid q = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] (Just q) Nothing defaultBookmarkSort 100 1
+  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] (Just q) (PageByCursor Nothing) 100
   return $ map (entityKey . fst) rows
 
 -- ─── Spec ──────────────────────────────────────────────────────────────────
