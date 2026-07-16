@@ -2,6 +2,7 @@ module Handler.Archive where
 
 import Archiver.Backend (ArchiveJob (..), ArchiverBackend (..), enqueueArchiveJobs)
 import Import
+import Network.PrivateAddress (isDisallowedFetchUrl)
 
 postArchiveBookmarkR :: Int64 -> Handler ()
 postArchiveBookmarkR bid = do
@@ -35,4 +36,5 @@ shouldArchiveBookmark bm = do
     (ArchiverBackend {isUrlDenylisted}, _) <- MaybeT (appArchiver <$> getYesod)
     guard (bookmarkShared bm)
     guard (not (isUrlDenylisted (Url (bookmarkHref bm))))
+    guard . not =<< liftIO (isDisallowedFetchUrl (bookmarkHref bm))
   pure (isJust b)

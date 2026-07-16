@@ -65,6 +65,7 @@ runArchiveQueueWorker archiver@ArchiverBackend {runArchiver} archiveQueue@(Archi
   where
     processJobs = forever do
       QueuedArchiveJob storeId (ArchiveJob userId bookmarkId url) <- atomically (readTBQueue tbqueue)
+      -- delete before running: at-most-once, so a crashing/poisoned URL isn't retried forever
       archiveJobStoreDelete store storeId
       whenM (archiveJobStoreBookmarkExists store bookmarkId) do
         runArchiver userId bookmarkId url `catch` onError

@@ -135,6 +135,7 @@ dependencies:
   - http-types
   - iproute
   - microlens
+  - network
   - mtl
   - parser-combinators
   - persistent-sqlite == 2.13.3.0 # do not upgrade to 2.13.3.1 due to UTCTime behavior in that version (see https://github.com/yesodweb/persistent/issues/1628)

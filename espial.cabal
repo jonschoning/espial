@@ -176,6 +176,7 @@ library
       Model.FileNote
       Model.Form
       Model.Migrations
+      Network.PrivateAddress
       PathPiece
       Pretty
       Settings
@@ -238,6 +239,7 @@ library
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
@@ -345,6 +347,7 @@ executable espial
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
@@ -439,6 +442,7 @@ executable migration
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , optparse-applicative
     , optparse-generic >=1.2.3
     , parser-combinators
@@ -553,6 +557,7 @@ test-suite test
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0

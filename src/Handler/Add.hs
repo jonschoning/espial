@@ -1,7 +1,7 @@
 module Handler.Add where
 
 import Data.Attoparsec.ByteString qualified as AP
-import Data.ByteString.Lazy qualified as LBS
+import Data.ByteString qualified as BS
 import Data.Char (ord)
 import Data.Function ((&))
 import Data.Text.Lazy.Builder (toLazyText)
@@ -11,6 +11,7 @@ import Handler.Common (browserUserAgent)
 import Import
 import Network.HTTP.Client qualified as NH
 import Network.HTTP.Client.TLS qualified as NHT
+import Network.PrivateAddress (isDisallowedFetchHost)
 import Util
 import Data.Either (isRight)
 
@@ -170,18 +171,35 @@ postLookupTitleR = do
     Left _ -> sendResponseStatus noContent204 ()
     Right title -> sendResponseStatus ok200 title
   where
+    maxTitleFetchBytes :: Int
+    maxTitleFetchBytes = 1024 * 1024
+
     fetchPageTitle :: Url -> Handler (Either String Text)
     fetchPageTitle url =
       do
-        req <- buildPageTitleRequest
-        res <- liftIO $ NH.httpLbs req =<< NHT.getGlobalManager
-        let body = LBS.toStrict (responseBody res)
-        pure (decodeHtmlBs <$> parseTitle body)
+        let req = buildPageTitleRequest
+        disallowed <- liftIO $ isDisallowedFetchHost (unpack (decodeUtf8 (NH.host req)))
+        if disallowed
+          then pure (Left "URL host is not allowed")
+          else do
+            manager <- liftIO NHT.getGlobalManager
+            body <- liftIO $ NH.withResponse req manager (readBoundedBody . NH.responseBody)
+            pure (decodeHtmlBs <$> parseTitle body)
         `catch` ( \(e :: SomeException) -> do
                     $(logError) $ (pack . show) e
                     pure (Left (show e))
                 )
       where
+        readBoundedBody :: NH.BodyReader -> IO ByteString
+        readBoundedBody br = BS.concat <$> go 0
+          where
+            go total
+              | total >= maxTitleFetchBytes = pure []
+              | otherwise = do
+                  chunk <- NH.brRead br
+                  if null chunk
+                    then pure []
+                    else (chunk :) <$> go (total + BS.length chunk)
         parseTitle bs =
           flip AP.parseOnly bs do
             _ <- skipAnyTill (AP.string "<title")
@@ -190,15 +208,15 @@ postLookupTitleR = do
             AP.takeTill (== lt)
         decodeHtmlBs = toStrict . toLazyText . htmlEncodedText . decodeUtf8
         skipAnyTill end = go where go = end $> () <|> AP.anyWord8 *> go
-        buildPageTitleRequest = do
+        buildPageTitleRequest =
           let UserAgent ua = browserUserAgent
-          pure $ NH.parseRequest_ (unpack (unUrl url)) & \r ->
-            r
-              { NH.requestHeaders =
-                  [ ("Cache-Control", "max-age=0"),
-                    ("User-Agent", encodeUtf8 ua)
-                  ]
-              }
+           in NH.parseRequest_ (unpack (unUrl url)) & \r ->
+                r
+                  { NH.requestHeaders =
+                      [ ("Cache-Control", "max-age=0"),
+                        ("User-Agent", encodeUtf8 ua)
+                      ]
+                  }
 
 postTagSuggestionsR :: Handler Text
 postTagSuggestionsR = do
