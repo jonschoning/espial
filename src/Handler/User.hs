@@ -52,8 +52,8 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   morder <- lookupGetParam orderp
   mcursor <-
     parsePagingCursorParams
-      (fmap PagingCursorBefore . parsePagingCursorTime)
-      (fmap PagingCursorAfter . parsePagingCursorTime)
+      (fmap PagingCursorBefore . parsePagingCursorBm)
+      (fmap PagingCursorAfter . parsePagingCursorBm)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder
@@ -73,14 +73,19 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   let archiveBackendEnabled = isJust (appArchiver app)
       mfirstBookmark = headMay (map fst btmarks)
       mlastBookmark = lastMay (map fst btmarks)
+      -- the earlier link anchors at the oldest row on the page and the later
+      -- link at the newest; which list end holds which depends on direction
+      (moldestBookmark, mnewestBookmark) = case bsort of
+        BookmarkSort BookmarkSortTime SortAsc -> (mfirstBookmark, mlastBookmark)
+        _ -> (mlastBookmark, mfirstBookmark)
       mqueryEarlierp =
         fmap
           (beforep,)
-          (formatEntityPagingCursorTimeBm <$> mlastBookmark)
+          (formatEntityPagingCursorBm <$> moldestBookmark)
       mqueryLaterp =
         fmap
           (afterp,)
-          (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
+          (formatEntityPagingCursorBm <$> mnewestBookmark)
       mqueryp = fmap (queryp,) mquery
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
@@ -239,8 +244,8 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   morder <- lookupGetParam orderp
   mcursor <-
     parsePagingCursorParams
-      (fmap PagingCursorBefore . parsePagingCursorTime)
-      (fmap PagingCursorAfter . parsePagingCursorTime)
+      (fmap PagingCursorBefore . parsePagingCursorBm)
+      (fmap PagingCursorAfter . parsePagingCursorBm)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder

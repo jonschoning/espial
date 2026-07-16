@@ -3,6 +3,7 @@ module Handler.Common where
 
 import Data.Aeson qualified as A
 import Data.FileEmbed (embedFile)
+import Data.Text qualified as T
 import Import
 import Text.Read
 import Util (format8601z, parseTimeText)
@@ -42,8 +43,22 @@ bookmarkSortParam = "sort"
 bookmarkOrderParam :: Text
 bookmarkOrderParam = "order"
 
-formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
-formatEntityPagingCursorTimeBm = format8601z . bookmarkTime . entityVal
+-- | "~" is unreserved in URL queries and cannot occur in the ISO8601 time
+bookmarkCursorSeparator :: Text
+bookmarkCursorSeparator = "~"
+
+formatEntityPagingCursorBm :: Entity Bookmark -> Text
+formatEntityPagingCursorBm (Entity bid bm) =
+  format8601z (bookmarkTime bm) <> bookmarkCursorSeparator <> tshow (fromSqlKey bid)
+
+parsePagingCursorBm :: Text -> Maybe BookmarkCursor
+parsePagingCursorBm t = case T.splitOn bookmarkCursorSeparator t of
+  [timeText] -> flip BookmarkCursor Nothing <$> parseTimeText timeText
+  [timeText, idText] ->
+    BookmarkCursor
+      <$> parseTimeText timeText
+      <*> (Just <$> parsePagingCursorKey idText)
+  _ -> Nothing
 
 formatEntityPagingCursorTimeNt :: Entity Note -> Text
 formatEntityPagingCursorTimeNt = format8601z . noteCreated . entityVal

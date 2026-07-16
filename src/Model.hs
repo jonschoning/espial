@@ -181,7 +181,16 @@ data PagingCursor a
   | PagingCursorAfter a
   deriving (Eq, Show, Read)
 
-type BookmarkPagingCursorTime = PagingCursor UTCTime
+-- | Keyset cursor position: the id breaks ties between rows sharing a
+-- timestamp so paging never skips or repeats them. Nothing falls back to a
+-- time-only boundary (older links and the view-in-context link carry no id).
+data BookmarkCursor = BookmarkCursor
+  { bookmarkCursorTime :: UTCTime,
+    bookmarkCursorId :: Maybe BookmarkId
+  }
+  deriving (Eq, Show)
+
+type BookmarkPagingCursor = PagingCursor BookmarkCursor
 
 type NotePagingCursorTime = PagingCursor UTCTime
 
@@ -240,8 +249,6 @@ instance FromJSON BookmarkSort where
   parseJSON = A.withObject "BookmarkSort" $ \o ->
     BookmarkSort <$> o A..: "field" <*> o A..: "direction"
 
--- | Cursor-based (before/after) paging is only defined for this ordering;
--- other sorts fall back to page/offset paging. See 'mkBookmarkPaging'.
 defaultBookmarkSort :: BookmarkSort
 defaultBookmarkSort = BookmarkSort BookmarkSortTime SortDesc
 
@@ -257,18 +264,18 @@ parseBookmarkSortParams msort morder =
     BookmarkSort defaultField defaultDirection = defaultBookmarkSort
 
 data BookmarkPaging
-  = PageByCursor (Maybe BookmarkPagingCursorTime)
+  = PageByCursor SortDirection (Maybe BookmarkPagingCursor)
   | PageByOffset BookmarkSort Page
   deriving (Eq, Show)
 
--- | Cursor (before/after) paging assumes the 'defaultBookmarkSort'
--- newest-first time order; every other sort pages by offset, where
--- "earlier"/"later" just mean the previous/next page rather than carrying
--- any temporal meaning.
-mkBookmarkPaging :: BookmarkSort -> Maybe BookmarkPagingCursorTime -> Page -> BookmarkPaging
-mkBookmarkPaging bsort mcursor page
-  | bsort == defaultBookmarkSort = PageByCursor mcursor
-  | otherwise = PageByOffset bsort page
+-- | Cursor (before/after) paging is defined for time ordering in either
+-- direction; every other sort pages by offset, where "earlier"/"later"
+-- just mean the previous/next page rather than carrying any temporal
+-- meaning.
+mkBookmarkPaging :: BookmarkSort -> Maybe BookmarkPagingCursor -> Page -> BookmarkPaging
+mkBookmarkPaging bsort mcursor page = case bsort of
+  BookmarkSort BookmarkSortTime dir -> PageByCursor dir mcursor
+  _ -> PageByOffset bsort page
 
 -- * I18n
 
@@ -462,28 +469,32 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
       )
   let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
       pageRows = take (fromIntegral limit') rows
+      -- cursor flags are temporal and independent of display direction;
+      -- offset flags just mean the previous/next page exists
       (hasEarlier, hasLater) = case paging of
         PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
-        PageByCursor (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
-        PageByCursor (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
-        PageByCursor Nothing -> (hasMoreInQueryDirection, False)
+        PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
+        PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
+        PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
+        PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
   pure (total, finalizeRows pageRows, hasEarlier, hasLater)
   where
-    (mcursor, pageOffset) = case paging of
-      PageByCursor c -> (c, 0)
-      PageByOffset _ page -> (Nothing, (page - 1) * limit')
+    mcursor = case paging of
+      PageByCursor _ c -> c
+      PageByOffset _ _ -> Nothing
+    pageOffset = case paging of
+      PageByCursor _ _ -> 0
+      PageByOffset _ page -> (page - 1) * limit'
+    -- a before cursor always scans desc through older rows and an after
+    -- cursor asc through newer ones, so limit takes the rows adjacent to the
+    -- cursor; finalizeRows restores display order when the scan opposes it
     bookmarkOrder b = case paging of
-      -- fetch ascending away from the cursor so limit takes the rows
-      -- adjacent to it; finalizeRows restores newest-first display order
-      PageByCursor (Just (PagingCursorAfter _)) ->
-        [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
-      PageByCursor _ ->
-        [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+      PageByCursor _ (Just (PagingCursorBefore _)) -> timeOrder SortDesc b
+      PageByCursor _ (Just (PagingCursorAfter _)) -> timeOrder SortAsc b
+      PageByCursor dir Nothing -> timeOrder dir b
       PageByOffset bsort _ -> case bsort of
-        BookmarkSort BookmarkSortTime SortDesc ->
-          [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
-        BookmarkSort BookmarkSortTime SortAsc ->
-          [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTime dir ->
+          timeOrder dir b
         BookmarkSort BookmarkSortTitle SortAsc ->
           [asc (lower_ (b ^. BookmarkDescription)), asc (b ^. BookmarkId)]
         BookmarkSort BookmarkSortTitle SortDesc ->
@@ -496,13 +507,27 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
           [asc (bookmarkHrefNoSchemeExpr b), asc (b ^. BookmarkId)]
         BookmarkSort BookmarkSortUrl SortDesc ->
           [desc (bookmarkHrefNoSchemeExpr b), desc (b ^. BookmarkId)]
+    timeOrder dir b = case dir of
+      SortDesc -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+      SortAsc -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
     finalizeRows = case paging of
-      PageByCursor (Just (PagingCursorAfter _)) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
+      PageByCursor SortDesc (Just (PagingCursorAfter _)) -> reverse
+      PageByCursor SortAsc (Just (PagingCursorBefore _)) -> reverse
       _ -> id
-    isBeforeCursor b before =
-      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
-    isAfterCursor b after =
-      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
+    isBeforeCursor b (BookmarkCursor t mbid) = case mbid of
+      Nothing -> timeLt
+      Just bid ->
+        timeLt
+          ||. ((b ^. BookmarkTime ==. val t) &&. ((b ^. BookmarkId) Database.Esqueleto.Experimental.<. val bid))
+      where
+        timeLt = (b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val t
+    isAfterCursor b (BookmarkCursor t mbid) = case mbid of
+      Nothing -> timeGt
+      Just bid ->
+        timeGt
+          ||. ((b ^. BookmarkTime ==. val t) &&. ((b ^. BookmarkId) Database.Esqueleto.Experimental.>. val bid))
+      where
+        timeGt = (b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val t
 
 -- | Number of tags on a bookmark, for sorting by tag count. Excludes
 -- dot-prefixed (private) tags for non-owners, matching the tag list built

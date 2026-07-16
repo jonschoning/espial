@@ -164,7 +164,7 @@ spec = withApp $ do
         bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortUrl SortAsc)
         liftIO $ bids `shouldBe` [bNoScheme, bWithScheme]
 
-    -- ─── cursor paging is only defined for the default time-desc sort ─────
+    -- ─── cursor paging is only defined for time sorts ─────────────────────
 
     describe "before/after cursor paging" $ do
       it "has no filtering effect when sorting by a non-default field" $ do
@@ -184,7 +184,7 @@ spec = withApp $ do
               FilterAll
               []
               Nothing
-              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorBefore t0)) 1)
+              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorBefore (BookmarkCursor t0 Nothing))) 1)
               100
         let bids = map (entityKey . fst) rows
         liftIO $ bids `shouldBe` [bOld, bNew]
@@ -207,7 +207,7 @@ spec = withApp $ do
               FilterAll
               []
               Nothing
-              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorAfter t0)) 1)
+              (mkBookmarkPaging (BookmarkSort BookmarkSortTitle SortAsc) (Just (PagingCursorAfter (BookmarkCursor t0 Nothing))) 1)
               100
         let bids = map (entityKey . fst) rows
         liftIO $ bids `shouldBe` [bOld, bNew]
