@@ -11,7 +11,7 @@ import { BulkEdit } from './components/BulkEdit';
 import { NList } from './components/NList';
 import { NNote } from './components/NNote';
 import { NoteBulkEdit } from './components/NoteBulkEdit';
-import { TagCloud } from './components/TagCloud';
+import { bindTagCloudHeader, TagCloudBody } from './components/TagCloud';
 import type { AccountSettings, Bookmark, ColorSchemePreference, Note, TagCloudMode } from './types';
 import { tagCloudModeToF } from './types';
 
@@ -54,8 +54,10 @@ export const renderBulkEdit = (renderElSelector: string) => (bcount: number) => 
 export const renderTagCloud = (renderElSelector: string) => (tagCloudMode: TagCloudMode) => () => {
   const el = selectEl(renderElSelector);
   if (!el) return;
-  createRoot(el).render(<TagCloud initialMode={tagCloudModeToF(tagCloudMode)} />);
+  createRoot(el).render(<TagCloudBody initialMode={tagCloudModeToF(tagCloudMode)} />);
 };
+
+export { bindTagCloudHeader };
 
 export const renderAddForm = (renderElSelector: string) => (bmark: Bookmark) => () => {
   renderView(renderElSelector, <AddForm initial={bmark} />);

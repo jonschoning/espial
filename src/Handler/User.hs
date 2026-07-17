@@ -95,13 +95,13 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
       renderEl = "bookmarks" :: Text
-      tagCloudRenderEl = "tagCloud" :: Text
       showTagCloud = isowner || publicTagCloud
       tagCloudUrl :: Text
       tagCloudUrl
         | isowner = render UserTagCloudR
         | publicTagCloud = render (UserPublicTagCloudR unamep)
         | otherwise = ""
+      TagCloudHamletBindings {..} = mkTagCloudHamletBindings tagCloudMode
 
   defaultLayout do
     let pager = $(widgetFile "pager")
@@ -128,18 +128,67 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toWidget
       [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
+        import { renderBookmarks, renderTagCloud, bindTagCloudHeader, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);
         setTimeout(() => {
-          renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
+          renderTagCloud('##{tagCloudBodyEl}')(app.tagCloudMode)();
+        }, 0);
+        setTimeout(() => {
+          bindTagCloudHeader('##{tagCloudHeaderEl}')();
         }, 0);
         $if isowner
           setTimeout(() => {
             renderBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
           }, 0);
     |]
+
+-- | Values the "user" hamlet template needs to render the tag cloud header
+-- (mode toggle, min-count filters, expand/collapse), derived from the
+-- session/route-resolved 'TagCloudMode'.
+data TagCloudHamletBindings = TagCloudHamletBindings
+  { tagCloudHeaderEl :: Text,
+    tagCloudBodyEl :: Text,
+    isTagCloudModeRelated :: Bool,
+    tagCloudExpanded :: Bool,
+    tagCloudActiveTop :: Bool,
+    tagCloudActiveRelated :: Bool,
+    tagCloudActiveLowerBound :: Maybe Int,
+    tagCloudActiveRelatedLowerBound :: Maybe Int,
+    tagCloudCounts :: [(Int, Text)]
+  }
+
+mkTagCloudHamletBindings :: TagCloudMode -> TagCloudHamletBindings
+mkTagCloudHamletBindings tagCloudMode =
+  TagCloudHamletBindings
+    { tagCloudHeaderEl = "tagCloudHeader",
+      tagCloudBodyEl = "tagCloudBody",
+      isTagCloudModeRelated = case tagCloudMode of
+        TagCloudModeRelated _ _ -> True
+        TagCloudModeRelatedLowerBound _ _ _ -> True
+        _ -> False,
+      tagCloudExpanded = isExpanded tagCloudMode,
+      tagCloudActiveTop = case tagCloudMode of
+        TagCloudModeTop _ -> True
+        _ -> False,
+      tagCloudActiveRelated = case tagCloudMode of
+        TagCloudModeRelated _ _ -> True
+        _ -> False,
+      tagCloudActiveLowerBound = case tagCloudMode of
+        TagCloudModeTopLowerBound _ n -> Just n
+        _ -> Nothing,
+      tagCloudActiveRelatedLowerBound = case tagCloudMode of
+        TagCloudModeRelatedLowerBound _ _ n -> Just n
+        _ -> Nothing,
+      tagCloudCounts =
+        [ (1, "tagCloud.allTitle"),
+          (2, "tagCloud.min2Title"),
+          (5, "tagCloud.min5Title"),
+          (10, "tagCloud.min10Title"),
+          (20, "tagCloud.min20Title")
+        ]
+    }
 
 -- Form
 

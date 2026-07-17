@@ -68,7 +68,35 @@ $maybe route <- mroute
           <div #bulkEditRenderEl>
     
         $if showTagCloud
-          <div ##{tagCloudRenderEl} .tag-cloud-placeholder>
+          <div .tag-cloud-placeholder>
+            <div .tag_cloud.mv3>
+              <div ##{tagCloudHeaderEl} .tag_cloud_header.mb2>
+                $if isTagCloudModeRelated
+                  <button type=button .pa1.f7.link.thm-hover-link-color.mr1 :tagCloudActiveRelated:.b title=#{t "tagCloud.topTagsTitle"} data-tcm-action=related>#{t "tagCloud.relatedTags"}
+                  $forall (n, titleKey) <- tagCloudCounts
+                    $if n /= 1
+                      \ ‧
+                    <button type=button .pa1.f7.link.thm-hover-link-color :n == 1:.ml2 :tagCloudActiveRelatedLowerBound == Just n:.b title=#{t titleKey} data-tcm-action=relatedLowerBound data-tcm-lb=#{n}>
+                      $if n == 1
+                        #{t "filter.all"}
+                      $else
+                        #{n}
+                $else
+                  <button type=button .pa1.f7.link.thm-hover-link-color.mr1 :tagCloudActiveTop:.b title=#{t "tagCloud.topTagsTitle"} data-tcm-action=top>#{t "tagCloud.topTags"}
+                  $forall (n, titleKey) <- tagCloudCounts
+                    $if n /= 1
+                      \ ‧
+                    <button type=button .pa1.f7.link.thm-hover-link-color :n == 1:.ml2 :tagCloudActiveLowerBound == Just n:.b title=#{t titleKey} data-tcm-action=lowerBound data-tcm-value=#{n}>
+                      $if n == 1
+                        #{t "filter.all"}
+                      $else
+                        #{n}
+                <button type=button .pa1.ml2.f7.link.thm-text-faded.thm-hover-link-color data-tcm-action=toggleExpand data-show-label=#{t "tagCloud.show"} data-hide-label=#{t "tagCloud.hide"}>
+                  $if tagCloudExpanded
+                    #{t "tagCloud.hide"}
+                  $else
+                    #{t "tagCloud.show"}
+              <div ##{tagCloudBodyEl} .tag_cloud_body>
 
         <div ##{renderEl} .mt3>
     

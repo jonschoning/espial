@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getTagCloud, updateTagCloudMode } from '../api';
 import { app } from '../globals';
@@ -15,9 +14,134 @@ import {
 } from '../types';
 import { encodeTag, fromNullableStr } from '../util';
 
-/** Displays the tag cloud, with controls to filter by top tags, frequency, or related tags. */
-export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
-  const { t } = useTranslation();
+/** Binds click handlers on the server-rendered tag cloud header (mode/filter controls) to the tag cloud store. */
+export function bindTagCloudHeader(renderElSelector: string) {
+  return () => {
+    const container = document.querySelector<HTMLElement>(renderElSelector);
+    if (!container) return;
+
+    container.addEventListener('click', (e) => {
+      const target = (e.target as HTMLElement).closest<HTMLElement>('[data-tcm-action]');
+      if (!target || !container.contains(target)) return;
+      const parsed = readTagCloudHeaderAction(target);
+      if (!parsed) return;
+      e.preventDefault();
+
+      const mode = useTagCloudStore.getState().mode;
+
+      if (parsed.action === 'toggleExpand') {
+        void applyTagCloudMode(setExpanded(mode, !isExpanded(mode)));
+        return;
+      }
+
+      if (parsed.action === 'top' || parsed.action === 'lowerBound') {
+        const next: TagCloudModeBrowse =
+          parsed.action === 'top'
+            ? { kind: 'top', expanded: isExpanded(mode) }
+            : { kind: 'lowerBound', expanded: isExpanded(mode), value: parsed.value };
+        const isActive =
+          (next.kind === 'top' && mode.kind === 'top') ||
+          (next.kind === 'lowerBound' && mode.kind === 'lowerBound' && mode.value === next.value);
+        void applyTagCloudMode(
+          isActive ? setExpanded(mode, !isExpanded(mode)) : setExpanded(next, true),
+        );
+        return;
+      }
+
+      const relatedTags = currentRelatedTags(mode);
+      const next: TagCloudModeRelated =
+        parsed.action === 'related'
+          ? { kind: 'related', expanded: isExpanded(mode), value: relatedTags }
+          : {
+              kind: 'relatedLowerBound',
+              expanded: isExpanded(mode),
+              value: relatedTags,
+              lowerBound: parsed.lowerBound,
+            };
+      const isActive =
+        (next.kind === 'related' && mode.kind === 'related') ||
+        (next.kind === 'relatedLowerBound' &&
+          mode.kind === 'relatedLowerBound' &&
+          mode.lowerBound === next.lowerBound);
+      void applyTagCloudMode(
+        isActive ? setExpanded(mode, !isExpanded(mode)) : setExpanded(next, true),
+      );
+    });
+
+    function updateHeaderUI(mode: TagCloudModeF) {
+      if (!container) return;
+      if (mode.kind === 'none') return;
+      container.querySelectorAll<HTMLElement>('[data-tcm-action]').forEach((btn) => {
+        const parsed = readTagCloudHeaderAction(btn);
+        if (!parsed) return;
+        switch (parsed.action) {
+          case 'top':
+            btn.classList.toggle('b', mode.kind === 'top');
+            return;
+          case 'lowerBound':
+            btn.classList.toggle('b', mode.kind === 'lowerBound' && mode.value === parsed.value);
+            return;
+          case 'related':
+            btn.classList.toggle('b', mode.kind === 'related');
+            return;
+          case 'relatedLowerBound':
+            btn.classList.toggle(
+              'b',
+              mode.kind === 'relatedLowerBound' && mode.lowerBound === parsed.lowerBound,
+            );
+            return;
+          case 'toggleExpand': {
+            const label = isExpanded(mode) ? btn.dataset.hideLabel : btn.dataset.showLabel;
+            if (label !== undefined) btn.textContent = label;
+            return;
+          }
+        }
+      });
+    }
+
+    useTagCloudStore.subscribe((state) => {
+      updateHeaderUI(state.mode);
+    });
+  };
+}
+
+type TagCloudHeaderAction =
+  | { action: 'top' }
+  | { action: 'lowerBound'; value: number }
+  | { action: 'related' }
+  | { action: 'relatedLowerBound'; lowerBound: number }
+  | { action: 'toggleExpand' };
+
+function readTagCloudHeaderAction(el: HTMLElement): TagCloudHeaderAction | null {
+  switch (el.dataset.tcmAction) {
+    case 'top':
+      return { action: 'top' };
+    case 'lowerBound':
+      return { action: 'lowerBound', value: Number(el.dataset.tcmValue) };
+    case 'related':
+      return { action: 'related' };
+    case 'relatedLowerBound':
+      return { action: 'relatedLowerBound', lowerBound: Number(el.dataset.tcmLb) };
+    case 'toggleExpand':
+      return { action: 'toggleExpand' };
+    default:
+      return null;
+  }
+}
+
+async function applyTagCloudMode(next: TagCloudModeF) {
+  useTagCloudStore.getState().setMode(next);
+  if (app().dat.isowner) {
+    await updateTagCloudMode(tagCloudModeFromF(next));
+  }
+}
+
+function currentRelatedTags(mode: TagCloudModeF): string[] {
+  return mode.kind === 'related' || mode.kind === 'relatedLowerBound' ? mode.value : [];
+}
+
+/** Displays the tag cloud body (the list of tag links). The header (mode/filter controls) is server-rendered; see bindTagCloudHeader. */
+export function TagCloudBody({ initialMode }: { initialMode: TagCloudModeF }) {
   const mode = useTagCloudStore((s) => s.mode);
   const tagcloud = useTagCloudStore((s) => s.tagcloud);
   const setMode = useTagCloudStore((s) => s.setMode);
@@ -36,151 +160,11 @@ export function TagCloud({ initialMode }: { initialMode: TagCloudModeF }) {
     void fetchTagCloud(mode);
   }, [mode, setTagCloud]);
 
-  if (mode.kind === 'none') return <div className="tag_cloud" />;
+  if (mode.kind === 'none' || !isExpanded(mode)) return null;
 
-  const makeLbMode = (n: number): TagCloudModeBrowse => ({
-    kind: 'lowerBound',
-    expanded: isExpanded(mode),
-    value: n,
-  });
+  const curtags = mode.kind === 'related' || mode.kind === 'relatedLowerBound' ? mode.value : [];
 
-  const relatedTags =
-    mode.kind === 'related' || mode.kind === 'relatedLowerBound' ? mode.value : [];
-  const makeRelatedMode = (): TagCloudModeRelated => ({
-    kind: 'related',
-    expanded: isExpanded(mode),
-    value: relatedTags,
-  });
-  const makeRelatedLbMode = (lb: number): TagCloudModeRelated => ({
-    kind: 'relatedLowerBound',
-    expanded: isExpanded(mode),
-    value: relatedTags,
-    lowerBound: lb,
-  });
-
-  async function onExpanded(expanded: boolean) {
-    const next = setExpanded(mode, expanded);
-    setMode(next);
-    if (app().dat.isowner) {
-      await updateTagCloudMode(tagCloudModeFromF(next));
-    }
-  }
-
-  async function onChangeBrowse(next: TagCloudModeBrowse) {
-    const isActive =
-      (next.kind === 'top' && mode.kind === 'top') ||
-      (next.kind === 'lowerBound' && mode.kind === 'lowerBound' && mode.value === next.value);
-    if (isActive) {
-      await onExpanded(!isExpanded(mode));
-    } else {
-      setMode(setExpanded(next, true));
-    }
-  }
-
-  function onChangeRelated(next: TagCloudModeRelated) {
-    const isActive =
-      (next.kind === 'related' && mode.kind === 'related') ||
-      (next.kind === 'relatedLowerBound' &&
-        mode.kind === 'relatedLowerBound' &&
-        mode.lowerBound === next.lowerBound);
-    if (isActive) {
-      void onExpanded(!isExpanded(mode));
-    } else {
-      setMode(setExpanded(next, true));
-    }
-  }
-
-  const isTagCloudModeRelated = mode.kind === 'related' || mode.kind === 'relatedLowerBound';
-  const activeLb = mode.kind === 'relatedLowerBound' ? mode.lowerBound : 0;
-
-  return (
-    <div className="tag_cloud mv3">
-      <div className="tag_cloud_header mb2">
-        {isTagCloudModeRelated ? (
-          <>
-            <button
-              type="button"
-              className={`pa1 f7 link thm-hover-link-color mr1${mode.kind === 'related' ? ' b' : ''}`}
-              title={t('tagCloud.topTagsTitle')}
-              onClick={() => {
-                onChangeRelated(makeRelatedMode());
-              }}
-            >
-              {t('tagCloud.relatedTags')}
-            </button>
-            {(
-              [
-                [1, 'tagCloud.allTitle'],
-                [2, 'tagCloud.min2Title'],
-                [5, 'tagCloud.min5Title'],
-                [10, 'tagCloud.min10Title'],
-                [20, 'tagCloud.min20Title'],
-              ] as const
-            ).map(([lb, titleKey]) => (
-              <React.Fragment key={lb}>
-                {lb !== 1 && '‧'}
-                <button
-                  type="button"
-                  className={`pa1 f7 link thm-hover-link-color${lb === 1 ? ' ml2' : ''}${activeLb === lb ? ' b' : ''}`}
-                  title={t(titleKey)}
-                  onClick={() => {
-                    onChangeRelated(makeRelatedLbMode(lb));
-                  }}
-                >
-                  {lb === 1 ? t('filter.all') : lb}
-                </button>
-              </React.Fragment>
-            ))}
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className={`pa1 f7 link thm-hover-link-color mr1${mode.kind === 'top' ? ' b' : ''}`}
-              title={t('tagCloud.topTagsTitle')}
-              onClick={() => void onChangeBrowse({ kind: 'top', expanded: isExpanded(mode) })}
-            >
-              {t('tagCloud.topTags')}
-            </button>
-            {(
-              [
-                [1, 'tagCloud.allTitle'],
-                [2, 'tagCloud.min2Title'],
-                [5, 'tagCloud.min5Title'],
-                [10, 'tagCloud.min10Title'],
-                [20, 'tagCloud.min20Title'],
-              ] as const
-            ).map(([n, titleKey]) => (
-              <React.Fragment key={n}>
-                {n !== 1 && '‧'}
-                <button
-                  type="button"
-                  className={`pa1 f7 link thm-hover-link-color${n === 1 ? ' ml2' : ''}${mode.kind === 'lowerBound' && mode.value === n ? ' b' : ''}`}
-                  title={t(titleKey)}
-                  onClick={() => void onChangeBrowse(makeLbMode(n))}
-                >
-                  {n === 1 ? t('filter.all') : n}
-                </button>
-              </React.Fragment>
-            ))}
-          </>
-        )}
-        <button
-          type="button"
-          className="pa1 ml2 f7 link thm-text-faded thm-hover-link-color"
-          onClick={() => void onExpanded(!isExpanded(mode))}
-        >
-          {isExpanded(mode) ? t('tagCloud.hide') : t('tagCloud.show')}
-        </button>
-      </div>
-
-      {isExpanded(mode) ? (
-        <div className="tag_cloud_body">
-          {renderLinks(isTagCloudModeRelated ? mode.value : [], tagcloud)}
-        </div>
-      ) : null}
-    </div>
-  );
+  return <div className="tag_cloud_body">{renderLinks(curtags, tagcloud)}</div>;
 }
 
 function renderLinks(curtags: string[], tagcloud: TagCloud) {
