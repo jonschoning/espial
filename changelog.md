@@ -16,7 +16,8 @@
   - archive requests exceeding queue capacity are dropped; best-effort only
 - add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
 - add appSetting `demo-mode` (disables password changes)
-- note update is blocked when the stored copy was updated more recently than the client's copy
+- note update is blocked when the server copy was updated more recently than the client's copy
+- db indexes reworked for the new sort fields: time/created indexes now match the (sort-field, id) cursor orderings, and title/url sorts (including shared-filtered views) are index-backed
 - bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
 
 ## v0.0.40 (2026-07-11)
