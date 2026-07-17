@@ -29,23 +29,23 @@ $maybe route <- mroute
             <span .f7.silver>#{bcount}</span>
           $if isowner
             <div .fl.pr2.dib.mb2>
-              <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active 
-                 href="@{UserR unamep}">#{t "filter.all"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active 
-                 href="@{UserSharedR unamep SharedPrivate}">#{t "filter.private"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active 
-                 href="@{UserSharedR unamep SharedPublic}">#{t "filter.public"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active 
-                 href="@{UserFilterR unamep FilterUnread}">#{t "filter.unread"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active 
-                 href="@{UserFilterR unamep FilterUntagged}">#{t "filter.untagged"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active 
-                 href="@{UserFilterR unamep FilterStarred}">#{t "filter.starred"}
+              <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active
+                 href="@?{(UserR unamep, catMaybes [msortp, morderp])}">#{t "filter.all"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
+                 href="@?{(UserSharedR unamep SharedPrivate, catMaybes [msortp, morderp])}">#{t "filter.private"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
+                 href="@?{(UserSharedR unamep SharedPublic, catMaybes [msortp, morderp])}">#{t "filter.public"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active
+                 href="@?{(UserFilterR unamep FilterUnread, catMaybes [msortp, morderp])}">#{t "filter.unread"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active
+                 href="@?{(UserFilterR unamep FilterUntagged, catMaybes [msortp, morderp])}">#{t "filter.untagged"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active
+                 href="@?{(UserFilterR unamep FilterStarred, catMaybes [msortp, morderp])}">#{t "filter.starred"}
     
         <div .cf>
 
@@ -54,6 +54,15 @@ $maybe route <- mroute
           $if isowner
             <span .f6.pl2>
               <a .link.silver.hover-alt #bulk-edit-toggle href="#">#{t "bulkEdit.edit"}
+          <span .f6.pl4.dn #sort-controls>
+            <span .silver>sort:
+            <a .link :bsortField == BookmarkSortTime:.nav-active #sort-time href="@?{(route, catMaybes [mqueryp, Just (sortp, "time"), morderp])}">time</a>
+            <a .link :bsortField == BookmarkSortUrl:.nav-active #sort-url href="@?{(route, catMaybes [mqueryp, Just (sortp, "url"), morderp])}">url</a>
+            <a .link :bsortField == BookmarkSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">title</a>
+            <a .link :bsortField == BookmarkSortNumTags:.nav-active #sort-numtags href="@?{(route, catMaybes [mqueryp, Just (sortp, "numtags"), morderp])}">numtags</a>
+            <span .silver.mr1.ml1>
+            <a .link :bsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">↑</a>
+            <a .link.pl1 :bsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">↓</a>
 
         $if isowner
           <div #bulkEditRenderEl>

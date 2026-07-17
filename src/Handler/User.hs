@@ -57,6 +57,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder
+      BookmarkSort bsortField bsortDir = bsort
       paging = mkBookmarkPaging bsort mcursor page
       isCursorPaging = case paging of
         PageByCursor {} -> True

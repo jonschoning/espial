@@ -46,6 +46,7 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
       nsort = parseNoteSortParams msort morder
+      NoteSort nsortField nsortDir = nsort
       paging = mkNotePaging nsort mcursor page
       isCursorPaging = case paging of
         PageByCursor {} -> True

@@ -16,13 +16,13 @@
         $if isowner
           <div .fl.pr2.dib.mb2>
             <a .dib.mb1.link.silver.hover-alt :sharedp == SharedAll:.nav-active
-               href="@{NotesR unamep}">#{t "filter.all"}
+               href="@?{(NotesR unamep, catMaybes [msortp, morderp])}">#{t "filter.all"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
-               href="@{NotesSharedR unamep SharedPrivate}">#{t "filter.private"}
+               href="@?{(NotesSharedR unamep SharedPrivate, catMaybes [msortp, morderp])}">#{t "filter.private"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
-               href="@{NotesSharedR unamep SharedPublic}">#{t "filter.public"}
+               href="@?{(NotesSharedR unamep SharedPublic, catMaybes [msortp, morderp])}">#{t "filter.public"}
 
       <div .cf>
 
@@ -31,6 +31,14 @@
         $if isowner
           <span .f6.pl2>
             <a .link.silver.hover-alt #bulk-edit-toggle href="#">#{t "bulkEdit.edit"}
+        $maybe route <- mroute
+          <span .f6.pl4.dn #sort-controls>
+            <span .silver.mr1>sort:
+            <a .link :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">created</a>
+            <a .link :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">title</a>
+            <span .silver.mr1.ml1>
+            <a .link :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">↑</a>
+            <a .link :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">↓</a>
 
       $if isowner
         <div #bulkEditRenderEl>

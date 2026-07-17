@@ -258,16 +258,24 @@ instance FromJSON BookmarkSort where
 defaultBookmarkSort :: BookmarkSort
 defaultBookmarkSort = BookmarkSort BookmarkSortTime SortDesc
 
--- | Parses the "sort"/"order" querystring params into a 'BookmarkSort',
--- falling back to 'defaultBookmarkSort's field/direction independently for
--- any missing or unrecognized value.
+-- | Parses the "sort"/"order" querystring params into a 'BookmarkSort'. The
+-- field falls back to 'defaultBookmarkSort's field for any missing or
+-- unrecognized value; the direction falls back to a field-dependent default
+-- (see 'defaultBookmarkSortDirection') rather than always following
+-- 'defaultBookmarkSort'.
 parseBookmarkSortParams :: Maybe Text -> Maybe Text -> BookmarkSort
 parseBookmarkSortParams msort morder =
-  BookmarkSort
-    (fromMaybe defaultField (toBookmarkSortField =<< msort))
-    (fromMaybe defaultDirection (toSortDirection =<< morder))
+  BookmarkSort field (fromMaybe (defaultBookmarkSortDirection field) (toSortDirection =<< morder))
   where
-    BookmarkSort defaultField defaultDirection = defaultBookmarkSort
+    BookmarkSort defaultField _ = defaultBookmarkSort
+    field = fromMaybe defaultField (toBookmarkSortField =<< msort)
+
+-- | Time sorts default to newest-first; every other field defaults to
+-- ascending, since there is no comparable recency bias for it.
+defaultBookmarkSortDirection :: BookmarkSortField -> SortDirection
+defaultBookmarkSortDirection = \case
+  BookmarkSortTime -> SortDesc
+  _ -> SortAsc
 
 data Paging sort cursor
   = PageByCursor SortDirection (Maybe (PagingCursor cursor))
@@ -318,16 +326,24 @@ instance FromJSON NoteSort where
 defaultNoteSort :: NoteSort
 defaultNoteSort = NoteSort NoteSortCreated SortDesc
 
--- | Parses the "sort"/"order" querystring params into a 'NoteSort',
--- falling back to 'defaultNoteSort's field/direction independently for
--- any missing or unrecognized value.
+-- | Parses the "sort"/"order" querystring params into a 'NoteSort'. The
+-- field falls back to 'defaultNoteSort's field for any missing or
+-- unrecognized value; the direction falls back to a field-dependent default
+-- (see 'defaultNoteSortDirection') rather than always following
+-- 'defaultNoteSort'.
 parseNoteSortParams :: Maybe Text -> Maybe Text -> NoteSort
 parseNoteSortParams msort morder =
-  NoteSort
-    (fromMaybe defaultField (toNoteSortField =<< msort))
-    (fromMaybe defaultDirection (toSortDirection =<< morder))
+  NoteSort field (fromMaybe (defaultNoteSortDirection field) (toSortDirection =<< morder))
   where
-    NoteSort defaultField defaultDirection = defaultNoteSort
+    NoteSort defaultField _ = defaultNoteSort
+    field = fromMaybe defaultField (toNoteSortField =<< msort)
+
+-- | Time sorts default to newest-first; every other field defaults to
+-- ascending, since there is no comparable recency bias for it.
+defaultNoteSortDirection :: NoteSortField -> SortDirection
+defaultNoteSortDirection = \case
+  NoteSortCreated -> SortDesc
+  _ -> SortAsc
 
 type NotePaging = Paging NoteSort NoteCursor
 

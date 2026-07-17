@@ -19,4 +19,3 @@ $maybe route <- mroute
                     #{t "pager.later"}
                   $else
                     #{t "pager.next"}
-d
