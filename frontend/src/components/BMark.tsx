@@ -28,6 +28,7 @@ export function BMark({
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [archiving, setArchiving] = React.useState(false);
+  const [archived, setArchived] = React.useState(false);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [errorFadingOut, setErrorFadingOut] = React.useState(false);
   const errorTimer = React.useRef<number | null>(null);
@@ -159,6 +160,7 @@ export function BMark({
     setActionError(null);
     setErrorFadingOut(false);
     setArchiving(false);
+    setArchived(false);
     closeSuggestions();
     if (next) setFocus(tagInputId);
   }
@@ -175,6 +177,7 @@ export function BMark({
 
   async function onArchive() {
     setArchiving(true);
+    setArchived(true);
     try {
       const res = await archiveBookmark(bm.bid);
       if (!res.ok) {
@@ -208,7 +211,7 @@ export function BMark({
     }
   };
 
-  const archivingDisabled = archiving || bm.private || bm.url !== editBm.url;
+  const archivingDisabled = archiving || archived || bm.private || bm.url !== editBm.url;
 
   return (
     <div
