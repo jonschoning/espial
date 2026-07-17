@@ -58,14 +58,17 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       <*> lookupGetParam afterp
   let bsort = parseBookmarkSortParams msort morder
       paging = mkBookmarkPaging bsort mcursor page
-  (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
+      isCursorPaging = case paging of
+        PageByCursor {} -> True
+        PageByOffset {} -> False
+  (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasPrevious, hasNext) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (bcount, btmarks, hasEarlier, hasLater) <-
+    (bcount, btmarks, hasPrevious, hasNext) <-
       bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery paging limit
-    pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
+    pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasPrevious, hasNext)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner publicTagCloud pathtags
@@ -78,14 +81,15 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       (moldestBookmark, mnewestBookmark) = case bsort of
         BookmarkSort BookmarkSortTime SortAsc -> (mfirstBookmark, mlastBookmark)
         _ -> (mlastBookmark, mfirstBookmark)
-      mqueryEarlierp =
-        fmap
-          (beforep,)
-          (formatEntityPagingCursorBm <$> moldestBookmark)
-      mqueryLaterp =
-        fmap
-          (afterp,)
-          (formatEntityPagingCursorBm <$> mnewestBookmark)
+      pagep = pagingPageParam Nothing
+      -- offset paging has no cursor entities to anchor on, so it pages by
+      -- adjacent page numbers instead of before/after cursors
+      mqueryPreviousp
+        | isCursorPaging = fmap (beforep,) (formatEntityPagingCursorBm <$> moldestBookmark)
+        | otherwise = Just (pagep, tshow (page - 1))
+      mqueryNextp
+        | isCursorPaging = fmap (afterp,) (formatEntityPagingCursorBm <$> mnewestBookmark)
+        | otherwise = Just (pagep, tshow (page + 1))
       mqueryp = fmap (queryp,) mquery
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder

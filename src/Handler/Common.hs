@@ -29,7 +29,10 @@ lookupPagingParams :: Maybe Text -> Handler (Maybe Int64, Maybe Int64)
 lookupPagingParams prefix =
   (,)
     <$> getsetUrlSessionParam "count" (fromMaybe "" prefix)
-    <*> getUrlParam (fromMaybe "" prefix <> "page")
+    <*> getUrlParam (pagingPageParam prefix)
+
+pagingPageParam :: Maybe Text -> Text
+pagingPageParam prefix = fromMaybe "" prefix <> "page"
 
 pagingCursorBeforeParam :: Text
 pagingCursorBeforeParam = "before"

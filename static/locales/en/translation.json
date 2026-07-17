@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« earlier",
-    "later": "later »"
+    "later": "later »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} note",

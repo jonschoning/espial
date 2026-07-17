@@ -47,12 +47,15 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
       page = maybe 1 fromIntegral page'
       nsort = parseNoteSortParams msort morder
       paging = mkNotePaging nsort mcursor page
+      isCursorPaging = case paging of
+        PageByCursor {} -> True
+        PageByOffset {} -> False
       mqueryp = fmap (queryp,) mquery
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
       isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
-  (bcount, notes, hasEarlier, hasLater) <- runDB do
+  (bcount, notes, hasPrevious, hasNext) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
@@ -65,14 +68,15 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
       (moldestNote, mnewestNote) = case nsort of
         NoteSort NoteSortCreated SortAsc -> (mfirstNote, mlastNote)
         _ -> (mlastNote, mfirstNote)
-      mqueryEarlierp =
-        fmap
-          (beforep,)
-          (formatEntityPagingCursorNt <$> moldestNote)
-      mqueryLaterp =
-        fmap
-          (afterp,)
-          (formatEntityPagingCursorNt <$> mnewestNote)
+      pagep = pagingPageParam (Just "n")
+      -- offset paging has no cursor entities to anchor on, so it pages by
+      -- adjacent page numbers instead of before/after cursors
+      mqueryPreviousp
+        | isCursorPaging = fmap (beforep,) (formatEntityPagingCursorNt <$> moldestNote)
+        | otherwise = Just (pagep, tshow (page - 1))
+      mqueryNextp
+        | isCursorPaging = fmap (afterp,) (formatEntityPagingCursorNt <$> mnewestNote)
+        | otherwise = Just (pagep, tshow (page + 1))
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do

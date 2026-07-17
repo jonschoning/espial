@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« 이전",
-    "later": "다음 »"
+    "later": "다음 »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "노트 {{count}}개",

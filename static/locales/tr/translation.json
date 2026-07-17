@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« onceki",
-    "later": "sonraki »"
+    "later": "sonraki »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} not",

@@ -534,13 +534,13 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
       pageRows = take (fromIntegral limit') rows
       -- cursor flags are temporal and independent of display direction;
       -- offset flags just mean the previous/next page exists
-      (hasEarlier, hasLater) = case paging of
+      (hasPrevious, hasNext) = case paging of
         PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
         PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
         PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
         PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
         PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
-  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
+  pure (total, finalizeRows pageRows, hasPrevious, hasNext)
   where
     mcursor = case paging of
       PageByCursor _ c -> c
@@ -964,13 +964,13 @@ getNoteList key mquery sharedp paging limit' = do
       pageRows = take (fromIntegral limit') rows
       -- cursor flags are temporal and independent of display direction;
       -- offset flags just mean the previous/next page exists
-      (hasEarlier, hasLater) = case paging of
+      (hasPrevious, hasNext) = case paging of
         PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
         PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
         PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
         PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
         PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
-  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
+  pure (total, finalizeRows pageRows, hasPrevious, hasNext)
   where
     _whereClause = noteWhereClause key sharedp mquery
     mcursor = case paging of

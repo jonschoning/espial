@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« 更早",
-    "later": "更晚 »"
+    "later": "更晚 »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} 条笔记",

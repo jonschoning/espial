@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« ранее",
-    "later": "позже »"
+    "later": "позже »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} заметка",

@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« anteriores",
-    "later": "siguientes »"
+    "later": "siguientes »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} nota",

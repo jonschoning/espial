@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« 前へ",
-    "later": "次へ »"
+    "later": "次へ »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}}件のメモ",

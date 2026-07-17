@@ -108,7 +108,9 @@
   },
   "pager": {
     "earlier": "« 較早",
-    "later": "較晚 »"
+    "later": "較晚 »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} 條筆記",
