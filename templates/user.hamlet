@@ -30,22 +30,22 @@ $maybe route <- mroute
           $if isowner
             <div .fl.pr2.dib.mb2>
               <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active
-                 href="@?{(UserR unamep, catMaybes [msortp, morderp])}">#{t "filter.all"}
+                 href="@?{(UserR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
-                 href="@?{(UserSharedR unamep SharedPrivate, catMaybes [msortp, morderp])}">#{t "filter.private"}
+                 href="@?{(UserSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
-                 href="@?{(UserSharedR unamep SharedPublic, catMaybes [msortp, morderp])}">#{t "filter.public"}
+                 href="@?{(UserSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active
-                 href="@?{(UserFilterR unamep FilterUnread, catMaybes [msortp, morderp])}">#{t "filter.unread"}
+                 href="@?{(UserFilterR unamep FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.unread"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active
-                 href="@?{(UserFilterR unamep FilterUntagged, catMaybes [msortp, morderp])}">#{t "filter.untagged"}
+                 href="@?{(UserFilterR unamep FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.untagged"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active
-                 href="@?{(UserFilterR unamep FilterStarred, catMaybes [msortp, morderp])}">#{t "filter.starred"}
+                 href="@?{(UserFilterR unamep FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.starred"}
     
         <div .cf>
 

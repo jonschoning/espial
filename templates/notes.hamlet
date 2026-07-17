@@ -16,13 +16,13 @@
         $if isowner
           <div .fl.pr2.dib.mb2>
             <a .dib.mb1.link.silver.hover-alt :sharedp == SharedAll:.nav-active
-               href="@?{(NotesR unamep, catMaybes [msortp, morderp])}">#{t "filter.all"}
+               href="@?{(NotesR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
-               href="@?{(NotesSharedR unamep SharedPrivate, catMaybes [msortp, morderp])}">#{t "filter.private"}
+               href="@?{(NotesSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
-               href="@?{(NotesSharedR unamep SharedPublic, catMaybes [msortp, morderp])}">#{t "filter.public"}
+               href="@?{(NotesSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
 
       <div .cf>
 
