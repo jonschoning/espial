@@ -623,10 +623,11 @@ bookmarkNumTagsExpr isowner b =
 -- | Bookmark href with a leading "<scheme>://" stripped, for sorting by URL
 -- while ignoring scheme. The '://' delimiter and the 0/3 literals are
 -- spliced as raw SQL (not bind parameters) so this expression matches,
--- token-for-token, the expression index idx_bookmark_url_no_scheme created
--- in Model.Migrations.operation_create_initial_indexes -- SQLite can only
--- use an expression index when the query expression is parsed identically
--- to the indexed expression, and bind parameters never match literals.
+-- token-for-token, the idx_bookmark_href_no_scheme expression indexes
+-- created in Model.Migrations.operation_create_initial_indexes -- SQLite
+-- can only use an expression index when the query expression is parsed
+-- identically to the indexed expression, and bind parameters never match
+-- literals.
 -- Keep both sides in sync if this expression ever changes.
 bookmarkHrefNoSchemeExpr :: SqlExpr (Entity Bookmark) -> SqlExpr (Value Text)
 bookmarkHrefNoSchemeExpr b =

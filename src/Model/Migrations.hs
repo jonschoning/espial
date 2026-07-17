@@ -82,7 +82,7 @@ appMigrations =
 -- run on every startup regardless of DbVersion, since migrateSchema may
 -- recreate tables (dropping their indexes) at any time
 alwaysAppMigrations :: (MonadUnliftIO m) => [OperationSpec m]
-alwaysAppMigrations = [operation_create_initial_indexes]
+alwaysAppMigrations = [operation_drop_superseded_indexes, operation_create_initial_indexes]
 
 printAppMigrations :: DB ()
 printAppMigrations = do
@@ -181,22 +181,46 @@ getOperations migration mVersion =
 getLatestVersion :: AppMigrations m -> DbVersion
 getLatestVersion = maybe 0 maximum . fromNullable . map (\((_, v2) := _) -> v2)
 
+-- all key columns are ASC so each index serves its (sort-field, id)
+-- ordering in both directions: SQLite appends the rowid to every index
+-- entry, which supplies the id tiebreak on forward (asc, asc) and backward
+-- (desc, desc) scans, whereas a DESC key column flips against that
+-- trailing rowid and forces a sort step for the id tiebreak
 operation_create_initial_indexes :: (Applicative m) => OperationSpec m
 operation_create_initial_indexes =
   ("ensure-base-indexes",)
     $ pure
     $ flip SqlStatement []
-    <$> [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time ON bookmark (user_id, time DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_time ON bookmark (user_id, shared, time DESC)",
+    <$> [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time_id ON bookmark (user_id, time)",
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_time_id ON bookmark (user_id, shared, time)",
           "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
-          "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_note_user_shared_created ON note (user_id, shared, created DESC)",
+          "CREATE INDEX IF NOT EXISTS idx_note_created_id ON note (user_id, created)",
+          "CREATE INDEX IF NOT EXISTS idx_note_shared_created_id ON note (user_id, shared, created)",
           -- expression must match Model.bookmarkHrefNoSchemeExpr token-for-token
-          -- for SQLite to use this index when sorting by BookmarkSortUrl
+          -- for SQLite to use these indexes when sorting by BookmarkSortUrl
           "CREATE INDEX IF NOT EXISTS idx_bookmark_href_no_scheme ON bookmark (user_id, (CASE WHEN instr(href, '://') > 0 THEN substr(href, instr(href, '://') + 3) ELSE href END))",
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_href_no_scheme ON bookmark (user_id, shared, (CASE WHEN instr(href, '://') > 0 THEN substr(href, instr(href, '://') + 3) ELSE href END))",
           -- expression must match the `lower_ (b ^. BookmarkDescription)` used
           -- for BookmarkSortTitle in Model.bookmarksTagsQuery
-          "CREATE INDEX IF NOT EXISTS idx_bookmark_title ON bookmark (user_id, (LOWER(description)))"
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_title ON bookmark (user_id, (LOWER(description)))",
+          "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_title ON bookmark (user_id, shared, (LOWER(description)))",
+          -- expression must match the `lower_ (b ^. NoteTitle)` used for
+          -- NoteSortTitle in Model.getNoteList
+          "CREATE INDEX IF NOT EXISTS idx_note_title ON note (user_id, (LOWER(title)))",
+          "CREATE INDEX IF NOT EXISTS idx_note_shared_title ON note (user_id, shared, (LOWER(title)))"
+        ]
+
+-- superseded by the ASC (sort-field, id)-ordering indexes above, which are
+-- created under new names; harmless no-op once dropped
+operation_drop_superseded_indexes :: (Applicative m) => OperationSpec m
+operation_drop_superseded_indexes =
+  ("drop-superseded-indexes",)
+    $ pure
+    $ flip SqlStatement []
+    <$> [ "DROP INDEX IF EXISTS idx_bookmark_time",
+          "DROP INDEX IF EXISTS idx_bookmark_shared_time",
+          "DROP INDEX IF EXISTS idx_note_user_created",
+          "DROP INDEX IF EXISTS idx_note_user_shared_created"
         ]
 
 operation_normalize_bookmark_utctime_remove_z :: (Applicative m) => OperationSpec m
