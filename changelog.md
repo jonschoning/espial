@@ -16,7 +16,7 @@
   - archive requests to the archiveBacked are perfomred at a maximum rate of `archive-rate-limit-ms`
   - archive requests waiting in the queue are backed by persistent storage
   - archive requests exceeding queue capacity are dropped; best-effort only
-- made note updates safer: updated is rejected when server has newer copy
+- improve note update safety: updated is rejected when server has newer copy
 - db indexes reworked for the new sort fields
 - add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
 - styling/css adjustments

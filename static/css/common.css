@@ -287,9 +287,8 @@ a.unread {
 }
 
 .nav-active {
-  /* color: light-dark(rgb(0, 0, 255), #9ec1ff); */
-  background: light-dark(#ff8, #645700);
   font-weight: 700;
+  color: light-dark(oklch(42.903% 0.29735 264.073), oklch(76% 0.29735 264.073));
 }
 
 .close-x {
