@@ -147,6 +147,10 @@ label {
   color: light-dark(#777, #999);
 }
 
+.pager-invisible {
+  visibility: hidden;
+}
+
 .thm-text-muted {
   color: light-dark(#aaa, #7a7a7a);
 }

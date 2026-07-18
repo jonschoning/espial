@@ -3,19 +3,17 @@ $maybe route <- mroute
     <table style="float:left" border="0">
       <tbody>
         <tr>
-          $if hasPrevious
-            <td .dib.mr4>
-              $maybe queryPreviousp <- mqueryPreviousp
-                <a .link.pager-arrow href="@?{(route, catMaybes [mqueryp, msortp, morderp, Just queryPreviousp])}">
-                  $if isCursorPaging
-                    #{t "pager.earlier"}
-                  $else
-                    #{t "pager.previous"}
-          $if hasNext
-            <td .dib.mr4>
-              $maybe queryNextp <- mqueryNextp
-                <a .link.pager-arrow href="@?{(route, catMaybes [mqueryp, msortp, morderp, Just queryNextp])}">
-                  $if isCursorPaging
-                    #{t "pager.later"}
-                  $else
-                    #{t "pager.next"}
+          <td .dib.mr4>
+            $maybe queryPreviousp <- mqueryPreviousp
+              <a .link.pager-arrow :not hasPrevious:.pager-invisible href="@?{(route, catMaybes [mqueryp, msortp, morderp, Just queryPreviousp])}">
+                $if isCursorPaging
+                  #{t "pager.earlier"}
+                $else
+                  #{t "pager.previous"}
+          <td .dib.mr4>
+            $maybe queryNextp <- mqueryNextp
+              <a .link.pager-arrow :not hasNext:.pager-invisible href="@?{(route, catMaybes [mqueryp, msortp, morderp, Just queryNextp])}">
+                $if isCursorPaging
+                  #{t "pager.later"}
+                $else
+                  #{t "pager.next"}
