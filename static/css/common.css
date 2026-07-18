@@ -12,7 +12,8 @@ a {
   color: light-dark(oklch(42.903% 0.29735 264.073), oklch(76% 0.29735 264.073));
 }
 
-a:visited {
+a.bmark-link:visited,
+a.note-link:visited {
   color: light-dark(oklch(37.836% 0.17168 302.149), oklch(73% 0.12 283));
 }
 
@@ -221,18 +222,15 @@ input::placeholder {
   color: light-dark(#22a, #7da2ff);
 }
 
-.tag,
-a.tag:visited {
+.tag {
   color: light-dark(oklch(54.38% 0.13279 52.009), oklch(64% 0.13229 52.009));
 }
 
-.tag-include,
-a.tag-include:visited {
+.tag-include {
   color: light-dark(#ddd, #9a9a9a);
 }
 
-.tag-exclude,
-a.tag-exclude:visited {
+.tag-exclude {
   color: light-dark(#faa, #ff9b9b);
 }
 

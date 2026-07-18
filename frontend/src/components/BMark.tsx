@@ -236,12 +236,12 @@ export function BMark({
             href={bm.url}
             target="_blank"
             rel="noreferrer"
-            className={`link f5 lh-title${bm.toread ? ' unread' : ''}`}
+            className={`link bmark-link f5 lh-title${bm.toread ? ' unread' : ''}`}
           >
             {bm.title === '' ? t('noTitle') : bm.title}
           </a>
           <br />
-          <a href={bm.url} className="link f7 thm-text-tertiary thm-hover-link-color">
+          <a href={bm.url} className="link bmark-link f7 thm-text-tertiary thm-hover-link-color">
             {bm.url}
           </a>
           {bm.archiveUrl ? (

@@ -31,14 +31,14 @@
         $maybe route <- mroute
           <span .f6.dib.mb2 #sort-controls>
             <span .silver.mr1.dib.mb1>#{t "sort.label"}
-            <a .link.dib.mb1 :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">#{t "sort.created"}</a>
+            <a .link.dib.mb1.silver.hover-alt :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">#{t "sort.created"}</a>
             ‧
-            <a .link.dib.mb1 :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
+            <a .link.dib.mb1.silver.hover-alt :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
             <span .silver.mr1.ml2.dib.mb1>
             <span .nowrap.dib.mb1>
-              <a .link :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
+              <a .link.silver.hover-alt :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
               ‧
-              <a .link.ml1 :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
+              <a .link.ml1.silver.hover-alt :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
 
       <div .flex.items-center>
         ^{pager}

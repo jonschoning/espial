@@ -19,6 +19,7 @@
 - made note updates safer: updated is rejected when server has newer copy
 - db indexes reworked for the new sort fields
 - add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
+- styling/css adjustments
 - add appSetting `demo-mode` (disables password changes)
 - security: guard against SSRF for private addresses
 - bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`

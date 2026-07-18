@@ -41,7 +41,7 @@ export function NList({ initial }: { initial: Note[] }) {
             className={`note w-100 mw7 pa1 mb2${note.shared ? '' : ' private'}`}
           >
             <div className="display">
-              <a href={linkToFilterSingle(note.slug)} className="link f5 lh-title">
+              <a href={linkToFilterSingle(note.slug)} className="link note-link f5 lh-title">
                 {note.title === '' ? t('noTitle') : note.title}
               </a>
               <br />
@@ -51,7 +51,7 @@ export function NList({ initial }: { initial: Note[] }) {
                 </div>
               ) : null}
               <a
-                className="link f7 dib thm-text-tertiary w4"
+                className="link note-link f7 dib thm-text-tertiary w4"
                 data-created={note.created}
                 title={shdatetime(a.lang, note.created)}
                 href={linkToFilterSingle(note.slug)}
