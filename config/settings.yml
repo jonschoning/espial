@@ -37,12 +37,24 @@ database:
   # database: ":memory:"
   poolsize: "_env:SQLITE_POOLSIZE:10"
 
+# SQLite only allows one writer at a time; these two settings work together to
+# avoid `SQLITE_BUSY`/"database is locked" errors under concurrent writers.
+# sqlite-app-write-lock serializes all DB write transactions through a single
+# in-process lock (see `runDBWrite`), which avoids the errors outright.
+# sqlite-busy-timeout-ms is a defense-in-depth backstop for lock contention
+# that still occurs (e.g. an external `sqlite3` CLI session touching the file).
+sqlite-app-write-lock: "_env:SQLITE_APP_WRITE_LOCK:true"
+sqlite-busy-timeout-ms: "_env:SQLITE_BUSY_TIMEOUT_MS:30000"
+
 copyright: Insert copyright statement here
 # analytics: UA-YOURCODE
 
 archive-backend: "_env:ARCHIVE_BACKEND:disabled"
 # archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 # archive-backend: "_env:ARCHIVE_BACKEND:archivebox07"
+
+archive-rate-limit-ms: "_env:ARCHIVE_RATE_LIMIT_MS:2000" # minimum delay between successive archive requests.
+archive-queue-capacity: "_env:ARCHIVE_QUEUE_CAPACITY:500" # max pending archive jobs held in memory; excess are dropped.
 
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
@@ -78,3 +90,9 @@ login-rate-limit-window-seconds: "_env:LOGIN_RATE_LIMIT_WINDOW_SECONDS:60"
 # Maximum allowed request body size, in bytes. Requests exceeding this (e.g. large
 # Settings/import uploads) are rejected with 413. Set to 0 to disable the limit.
 maximum-content-length: "_env:MAXIMUM_CONTENT_LENGTH:10485760"
+
+# Maximum number of bookmarks allowed in a single AddBulkR request
+add-bulk-max-items: "_env:ADD_BULK_MAX_ITEMS:200"
+
+# when true, users cannot change their password.
+demo-mode: "_env:DEMO_MODE:false"

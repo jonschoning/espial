@@ -17,7 +17,12 @@
     "error": "ошибка: {{status}}",
     "errorWithMsg": "ошибка {{status}}: {{msg}}",
     "requestTimedOut": "время ожидания запроса истекло",
-    "networkError": "ошибка сети"
+    "networkError": "ошибка сети",
+    "upsertUnauthorized": "нет доступа",
+    "upsertNotFound": "не найдено",
+    "upsertHrefUsedByOther": "url уже используется другой закладкой",
+    "upsertConflictWithNewer": "элемент на сервере был обновлён позже; перезагрузите и повторите попытку",
+    "upsertInvalidInput": "недопустимые данные"
   },
   "nav": {
     "privateProfileEnabled": "приватный профиль включён",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Старый пароль",
     "newPassword": "Новый пароль",
-    "submit": "Сохранить изменения"
+    "submit": "Сохранить изменения",
+    "demoMode": "демо-режим: изменение пароля отключено"
   },
   "settings": {
     "serverDefault": "По умолчанию на сервере",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "на странице:"
   },
+  "sort": {
+    "label": "сортировать:",
+    "time": "время",
+    "url": "url",
+    "title": "заголовок",
+    "tagcount": "кол-во тегов",
+    "created": "создано"
+  },
   "pager": {
     "earlier": "« ранее",
-    "later": "позже »"
+    "later": "позже »",
+    "previous": "« предыдущая",
+    "next": "следующая »"
   },
   "notes": {
     "count_one": "{{count}} заметка",
@@ -229,18 +245,24 @@
     "betweenQuery": "между каждым поисковым запросом.",
     "excludeWords": "Исключить слова из поиска",
     "inFrontWord": "перед словом, которое хотите исключить.",
-    "exactMatch": "Поиск точного совпадения",
-    "putInQuotes": "Заключите слово или фразу в кавычки.",
+    "groupTerms": "Группировка условий поиска",
+    "putInParens": "Заключите условия в скобки, чтобы объединить их в одну группу. Группы можно комбинировать, отрицать и вкладывать друг в друга.",
+    "searchPhrase": "Поиск фразы",
+    "putInQuotes": "Заключите фразу в кавычки.",
     "specificField": "Поиск в определённом поле",
     "inFrontTerm": "перед термином,",
     "where": "где",
     "isOneOfOptions": "является одним из вариантов ниже",
+    "fieldContainsDesc": "Поиск по полю — это поиск по вхождению: достаточно, чтобы поле содержало термин.",
+    "exactField": "Точный поиск в определённом поле",
+    "exactFieldDesc": "перед термином, чтобы всё поле точно совпадало с термином. Доступно для текстовых полей: url, title, description, tags.",
     "bookmarkSearch": "Поиск закладок",
     "noteSearch": "Поиск заметок",
     "fieldHeader": "ПОЛЕ",
     "exampleHeader": "ПРИМЕР",
     "complexExamples": "Более сложные примеры",
     "complexExample1Desc": "«youtube» в URL, и заголовок «haskell» или заголовок «python» и после 31.12.2017",
-    "complexExample2Desc": "«hacker news» не в заголовке, и «news», «cnn», «npr» где угодно, или «the guardian» в описании"
+    "complexExample2Desc": "«hacker news» не в заголовке, и «news», «cnn», «npr» где угодно, или «the guardian» в описании",
+    "complexExample3Desc": "с тегами «haskell» и «youtube», или без обоих тегов «haskell» и «vimeo»; и без обоих тегов «surveys» и «news», и после 2018-12-31"
   }
 }

@@ -17,7 +17,12 @@
     "error": "Fehler: {{status}}",
     "errorWithMsg": "Fehler {{status}}: {{msg}}",
     "requestTimedOut": "Anfrage abgelaufen",
-    "networkError": "Netzwerkfehler"
+    "networkError": "Netzwerkfehler",
+    "upsertUnauthorized": "Nicht autorisiert",
+    "upsertNotFound": "Nicht gefunden",
+    "upsertHrefUsedByOther": "URL wird bereits von einem anderen Lesezeichen verwendet",
+    "upsertConflictWithNewer": "Eintrag auf dem Server wurde zwischenzeitlich aktualisiert; bitte neu laden und erneut versuchen",
+    "upsertInvalidInput": "Ungültige Eingabe"
   },
   "nav": {
     "privateProfileEnabled": "privates Profil aktiviert",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Altes Passwort",
     "newPassword": "Neues Passwort",
-    "submit": "Änderungen speichern"
+    "submit": "Änderungen speichern",
+    "demoMode": "Demo-Modus: Passwortänderungen sind deaktiviert"
   },
   "settings": {
     "serverDefault": "Serverstandard",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "pro Seite:"
   },
+  "sort": {
+    "label": "sortieren:",
+    "time": "Zeit",
+    "url": "URL",
+    "title": "Titel",
+    "tagcount": "Taganzahl",
+    "created": "erstellt"
+  },
   "pager": {
     "earlier": "« früher",
-    "later": "später »"
+    "later": "später »",
+    "previous": "« vorherige",
+    "next": "nächste »"
   },
   "notes": {
     "count_one": "{{count}} Notiz",
@@ -229,18 +245,24 @@
     "betweenQuery": "zwischen jede Suchanfrage.",
     "excludeWords": "Wörter aus der Suche ausschließen",
     "inFrontWord": "vor ein Wort, das Sie ausschließen möchten.",
-    "exactMatch": "Nach einer genauen Übereinstimmung suchen",
-    "putInQuotes": "Ein Wort oder eine Phrase in Anführungszeichen setzen.",
+    "groupTerms": "Suchbegriffe gruppieren",
+    "putInParens": "Setzen Sie Klammern um Begriffe, um sie zu einer Einheit zu gruppieren. Gruppen können kombiniert, negiert und verschachtelt werden.",
+    "searchPhrase": "Nach einer Phrase suchen",
+    "putInQuotes": "Die Phrase in Anführungszeichen setzen.",
     "specificField": "In einem bestimmten Feld suchen",
     "inFrontTerm": "vor dem Begriff,",
     "where": "wobei",
     "isOneOfOptions": "eine der folgenden Optionen ist",
+    "fieldContainsDesc": "Eine Feldsuche ist eine Enthält-Suche: Das Feld muss den Begriff nur enthalten.",
+    "exactField": "Exakte Suche in einem bestimmten Feld",
+    "exactFieldDesc": "vor den Begriff, damit das gesamte Feld exakt dem Begriff entsprechen muss. Verfügbar für Textfelder: url, title, description, tags.",
     "bookmarkSearch": "Lesezeichen-Suche",
     "noteSearch": "Notizen-Suche",
     "fieldHeader": "FELD",
     "exampleHeader": "BEISPIEL",
     "complexExamples": "Komplexere Beispiele",
     "complexExample1Desc": "\"youtube\" in URL, und Titel \"haskell\" oder Titel \"python\" und nach dem 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" nicht im Titel, und \"news\", \"cnn\", \"npr\" irgendwo, oder \"the guardian\" in der Beschreibung"
+    "complexExample2Desc": "\"hacker news\" nicht im Titel, und \"news\", \"cnn\", \"npr\" irgendwo, oder \"the guardian\" in der Beschreibung",
+    "complexExample3Desc": "mit den Tags \"haskell\" und \"youtube\", oder nicht mit beiden Tags \"haskell\" und \"vimeo\"; und nicht mit beiden Tags \"surveys\" und \"news\", und nach dem 2018-12-31"
   }
 }

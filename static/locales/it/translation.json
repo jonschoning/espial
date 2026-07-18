@@ -17,7 +17,12 @@
     "error": "errore: {{status}}",
     "errorWithMsg": "errore {{status}}: {{msg}}",
     "requestTimedOut": "richiesta scaduta",
-    "networkError": "errore di rete"
+    "networkError": "errore di rete",
+    "upsertUnauthorized": "non autorizzato",
+    "upsertNotFound": "non trovato",
+    "upsertHrefUsedByOther": "url già utilizzato da un altro segnalibro",
+    "upsertConflictWithNewer": "l'elemento sul server è stato aggiornato più di recente; ricarica e riprova",
+    "upsertInvalidInput": "input non valido"
   },
   "nav": {
     "privateProfileEnabled": "profilo privato abilitato",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Vecchia password",
     "newPassword": "Nuova password",
-    "submit": "Salva modifiche"
+    "submit": "Salva modifiche",
+    "demoMode": "modalità demo: la modifica della password è disabilitata"
   },
   "settings": {
     "serverDefault": "Predefinito del server",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "per pagina:"
   },
+  "sort": {
+    "label": "ordina:",
+    "time": "data",
+    "url": "url",
+    "title": "titolo",
+    "tagcount": "conteggio tag",
+    "created": "creato"
+  },
   "pager": {
     "earlier": "« precedenti",
-    "later": "successivi »"
+    "later": "successivi »",
+    "previous": "« precedente",
+    "next": "successivo »"
   },
   "notes": {
     "count_one": "{{count}} nota",
@@ -229,18 +245,24 @@
     "betweenQuery": "tra ogni query di ricerca.",
     "excludeWords": "Escludi parole dalla ricerca",
     "inFrontWord": "davanti a una parola che vuoi omettere.",
-    "exactMatch": "Cerca una corrispondenza esatta",
-    "putInQuotes": "Metti una parola o una frase tra virgolette.",
+    "groupTerms": "Raggruppa i termini di ricerca",
+    "putInParens": "Metti i termini tra parentesi per raggrupparli in una singola unità. I gruppi possono essere combinati, negati e annidati.",
+    "searchPhrase": "Cerca una frase",
+    "putInQuotes": "Metti la frase tra virgolette.",
     "specificField": "Cerca in un campo specifico",
     "inFrontTerm": "davanti al termine,",
     "where": "dove",
     "isOneOfOptions": "e una delle opzioni seguenti",
+    "fieldContainsDesc": "Una ricerca per campo e una ricerca per contenuto: e sufficiente che il campo contenga il termine.",
+    "exactField": "Ricerca esatta su un campo specifico",
+    "exactFieldDesc": "davanti al termine per richiedere che l'intero campo sia esattamente uguale al termine. Disponibile per i campi di testo: url, title, description, tags.",
     "bookmarkSearch": "Ricerca segnalibri",
     "noteSearch": "Ricerca note",
     "fieldHeader": "CAMPO",
     "exampleHeader": "ESEMPIO",
     "complexExamples": "Esempi piu complessi",
     "complexExample1Desc": "\"youtube\" nell'url, e titolo di \"haskell\" o titolo di \"python\" e dopo il 31/12/2017",
-    "complexExample2Desc": "\"hacker news\" non nel titolo, e \"news\", \"cnn\", \"npr\" ovunque, o \"the guardian\" nella descrizione"
+    "complexExample2Desc": "\"hacker news\" non nel titolo, e \"news\", \"cnn\", \"npr\" ovunque, o \"the guardian\" nella descrizione",
+    "complexExample3Desc": "con i tag \"haskell\" e \"youtube\", oppure senza entrambi i tag \"haskell\" e \"vimeo\"; e senza entrambi i tag \"surveys\" e \"news\", e dopo il 2018-12-31"
   }
 }

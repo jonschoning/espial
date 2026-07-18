@@ -17,7 +17,12 @@
     "error": "錯誤：{{status}}",
     "errorWithMsg": "錯誤 {{status}}：{{msg}}",
     "requestTimedOut": "請求逾時",
-    "networkError": "網路錯誤"
+    "networkError": "網路錯誤",
+    "upsertUnauthorized": "未授權",
+    "upsertNotFound": "找不到",
+    "upsertHrefUsedByOther": "此網址已被其他書籤使用",
+    "upsertConflictWithNewer": "伺服器上的項目已被更近期地更新；請重新載入後再試一次",
+    "upsertInvalidInput": "輸入無效"
   },
   "nav": {
     "privateProfileEnabled": "已啟用私人個人資料",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "舊密碼",
     "newPassword": "新密碼",
-    "submit": "儲存變更"
+    "submit": "儲存變更",
+    "demoMode": "示範模式：密碼修改已停用"
   },
   "settings": {
     "serverDefault": "伺服器預設值",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "每頁："
   },
+  "sort": {
+    "label": "排序:",
+    "time": "時間",
+    "url": "網址",
+    "title": "標題",
+    "tagcount": "標籤數",
+    "created": "建立時間"
+  },
   "pager": {
     "earlier": "« 較早",
-    "later": "較晚 »"
+    "later": "較晚 »",
+    "previous": "« 上一頁",
+    "next": "下一頁 »"
   },
   "notes": {
     "count_one": "{{count}} 條筆記",
@@ -229,18 +245,24 @@
     "betweenQuery": "放在每個搜尋查詢之間。",
     "excludeWords": "從搜尋中排除字詞",
     "inFrontWord": "放在想排除字詞的前面。",
-    "exactMatch": "搜尋完全相符的內容",
-    "putInQuotes": "將單字或片語放在引號內。",
+    "groupTerms": "使用括號分組搜尋詞",
+    "putInParens": "用括號將搜尋詞括起來，使其成為一個整體。分組可以組合、否定與巢狀使用。",
+    "searchPhrase": "搜尋片語",
+    "putInQuotes": "將片語放在引號內。",
     "specificField": "針對特定欄位搜尋",
     "inFrontTerm": "放在查詢詞前面，",
     "where": "其中",
     "isOneOfOptions": "是下列選項之一",
+    "fieldContainsDesc": "欄位搜尋是包含搜尋：欄位只需包含該查詢詞即可符合。",
+    "exactField": "針對特定欄位精確搜尋",
+    "exactFieldDesc": "放在查詢詞前面，要求整個欄位與查詢詞完全相等。適用於文字欄位：url、title、description、tags。",
     "bookmarkSearch": "書籤搜尋",
     "noteSearch": "筆記搜尋",
     "fieldHeader": "欄位",
     "exampleHeader": "範例",
     "complexExamples": "更複雜的範例",
     "complexExample1Desc": "URL 中含有 \"youtube\"，且標題為 \"haskell\" 或標題為 \"python\"，並且在 2017/12/31 之後",
-    "complexExample2Desc": "標題中不含 \"hacker news\"，且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或描述中包含 \"the guardian\""
+    "complexExample2Desc": "標題中不含 \"hacker news\"，且任意位置包含 \"news\"、\"cnn\"、\"npr\"，或描述中包含 \"the guardian\"",
+    "complexExample3Desc": "標籤同時包含 \"haskell\" 與 \"youtube\"，或標籤未同時包含 \"haskell\" 與 \"vimeo\"；且標籤未同時包含 \"surveys\" 與 \"news\"，並在 2018-12-31 之後"
   }
 }

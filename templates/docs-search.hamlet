@@ -21,14 +21,25 @@
   <p .ml3>#{t "docs.put"} <span class="code fw9 docs-item-bg">-</span>&nbsp;#{t "docs.inFrontWord"}&nbsp;
     <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">-car</span>
   
-  <h3>#{t "docs.exactMatch"}
+  <h3>#{t "docs.groupTerms"}
+  <p .ml3>#{t "docs.putInParens"}&nbsp;
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">(marathon|race) -(car|bike)</span>
+
+  <h3>#{t "docs.searchPhrase"}
   <p .ml3>#{t "docs.putInQuotes"}&nbsp;
     <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">"tallest building"</span>
-  
+
   <h3>#{t "docs.specificField"}
   <p .ml3>
     #{t "docs.put"} <span class="code fw9 docs-item-bg"><span class="i">field</span>:</span> #{t "docs.inFrontTerm"}
     #{t "docs.where"} <span class="code fw9 docs-item-bg"><span class="i">field</span></span> #{t "docs.isOneOfOptions"}
+    <br>#{t "docs.fieldContainsDesc"}
+
+  <h3>#{t "docs.exactField"}
+  <p .ml3>
+    #{t "docs.put"} <span class="code fw9 docs-item-bg"><span class="i">field</span>=</span> #{t "docs.exactFieldDesc"}
+    <br>#{t "docs.forExample"} <span class="code fw9 docs-item-bg">tags=linux</span> <span class="code fw9 docs-item-bg">title="hacker news"</span>
+
   <div .ml3>
     <div .f5.fw6.pb3.underline>#{t "docs.bookmarkSearch"}
     <table .collapse.ba.br2.thm-border-doc-table.pv2.ph3>
@@ -85,5 +96,9 @@
   <div .ml3.pt3>
     <span>#{t "docs.complexExample2Desc"}
     <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">-ti:"hacker news" news|cnn|npr|d:"the guardian"
+
+  <div .ml3.pt3>
+    <span>#{t "docs.complexExample3Desc"}
+    <br><span class="mw6 overflow-x-scroll nowrap db mt1 pa2 code fw9 docs-item-bg">(t:haskell t:youtube)|-(t:haskell t:vimeo) -(t:surveys t:news) a:2018-12-31
 
 

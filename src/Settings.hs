@@ -39,6 +39,12 @@ data AppSettings = AppSettings
     appStaticDir :: String,
     -- | Configuration settings for accessing the database.
     appDatabaseConf :: SqliteConf,
+    -- | Serialize all DB write transactions through a single in-process lock, to
+    -- avoid SQLite `SQLITE_BUSY`/snapshot conflicts under concurrent writers.
+    appSqliteAppWriteLock :: Bool,
+    -- | SQLite @busy_timeout@, in milliseconds: how long a connection retries
+    -- before returning `SQLITE_BUSY` on lock contention.
+    appSqliteBusyTimeoutMs :: Int,
     -- | Base for all generated URLs. If @Nothing@, determined
     -- from the request headers.
     appRoot :: Maybe Text,
@@ -93,6 +99,10 @@ data AppSettings = AppSettings
     appArchiveBoxPlugins :: Maybe Text,
     -- | Which archiver backend to use (or disabled)
     appArchiveBackend :: ArchiveBackend,
+    -- | Minimum delay, in milliseconds, between successive calls to the archiver backend.
+    appArchiveRateLimitMs :: Int,
+    -- | Maximum number of pending archive jobs held in memory; excess jobs are dropped.
+    appArchiveQueueCapacity :: Int,
     -- | Uri to app source code
     appSourceCodeUri :: Maybe Text,
     -- | Whether to only allow SSL connections (i.e. disable non-https cookies and redirects)
@@ -115,7 +125,11 @@ data AppSettings = AppSettings
     appLoginRateLimitWindowSeconds :: Int,
     -- | Maximum allowed request body size, in bytes (e.g. for Settings/import).
     -- @0@ disables the limit.
-    appMaximumContentLength :: Int
+    appMaximumContentLength :: Int,
+    -- | When true, users cannot change their password.
+    appDemoMode :: Bool,
+    -- | Maximum number of bookmarks allowed in a single 'AddBulkR' request.
+    appAddBulkMaxItems :: Int
   }
 
 instance FromJSON AppSettings where
@@ -128,6 +142,8 @@ instance FromJSON AppSettings where
 #endif
     appStaticDir <- o .: "static-dir"
     appDatabaseConf <- o .: "database"
+    appSqliteAppWriteLock <- o .:? "sqlite-app-write-lock" .!= True
+    appSqliteBusyTimeoutMs <- o .:? "sqlite-busy-timeout-ms" .!= 30000
     appRoot <- o .:? "approot"
     appHost <- fromString <$> o .: "host"
     appPort <- o .: "port"
@@ -163,6 +179,9 @@ instance FromJSON AppSettings where
     appArchiveBoxTag <- (fmap toText <$> o .:? "archivebox-tag") .!= "espial"
     appArchiveBoxPlugins <- o .:? "archivebox-plugins"
 
+    appArchiveRateLimitMs <- o .:? "archive-rate-limit-ms" .!= 2000
+    appArchiveQueueCapacity <- o .:? "archive-queue-capacity" .!= 500
+
     appSourceCodeUri <- o .:? "source-code-uri"
 
     appSSLOnly <- fromMaybe False <$> o .:? "ssl-only"
@@ -182,6 +201,10 @@ instance FromJSON AppSettings where
     appLoginRateLimitWindowSeconds <- o .:? "login-rate-limit-window-seconds" .!= 60
 
     appMaximumContentLength <- o .:? "maximum-content-length" .!= (2 * 1024 * 1024)
+
+    appDemoMode <- o .:? "demo-mode" .!= False
+
+    appAddBulkMaxItems <- o .:? "add-bulk-max-items" .!= 200
 
     pure AppSettings {..}
     where

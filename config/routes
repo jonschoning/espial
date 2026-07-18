@@ -16,7 +16,7 @@
 !/#UserNameP/notes/#NtSlug NoteR GET
 !/api/note/add AddNoteR POST
 !/api/note/#Int64 DeleteNoteR DELETE
-/!api/note/bulk NoteBulkR POST
+/!api/note/bulkEdit NoteBulkEditR POST
 
 -- user
 / HomeR GET
@@ -53,6 +53,7 @@
 -- add
 /add AddViewR GET
 /api/add AddR POST
+/api/addBulk AddBulkR POST
 
 -- api
 /api/lookuptitle LookupTitleR POST
@@ -67,7 +68,7 @@
 /api/bm/#Int64/star StarR PATCH
 /api/bm/#Int64/unstar UnstarR PATCH
 /api/bm/#Int64/archive ArchiveBookmarkR POST
-/!api/bm/bulk BmBulkR POST
+/!api/bm/bulkEdit BmBulkEditR POST
 
 -- doc
 /docs/search DocsSearchR GET

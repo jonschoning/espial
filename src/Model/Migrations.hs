@@ -82,11 +82,11 @@ appMigrations =
 -- run on every startup regardless of DbVersion, since migrateSchema may
 -- recreate tables (dropping their indexes) at any time
 alwaysAppMigrations :: (MonadUnliftIO m) => [OperationSpec m]
-alwaysAppMigrations = [operation_create_initial_indexes]
+alwaysAppMigrations = [operation_drop_superseded_indexes, operation_create_initial_indexes]
 
-printAppMigrations :: forall m. DBM m ()
+printAppMigrations :: DB ()
 printAppMigrations = do
-  forM_ (alwaysAppMigrations :: [OperationSpec m]) $ \(name, opSpec) -> do
+  forM_ alwaysAppMigrations $ \(name, opSpec) -> do
     putStrLn ("*** Dumping always-run migration operation: " <> name)
     statements <- opSpec
     traverse_ (\(SqlStatement sql vals) -> putStrLn (sql <> " " <> tshow vals)) statements
@@ -181,16 +181,61 @@ getOperations migration mVersion =
 getLatestVersion :: AppMigrations m -> DbVersion
 getLatestVersion = maybe 0 maximum . fromNullable . map (\((_, v2) := _) -> v2)
 
-operation_create_initial_indexes :: (Applicative m) => OperationSpec m
+operation_create_initial_indexes :: (MonadIO m) => OperationSpec m
 operation_create_initial_indexes =
-  ("ensure-base-indexes",)
+  ("ensure-base-indexes",) do
+    needsAnalyze <- bookmarkStatsMissing
+    pure
+      $ (flip SqlStatement [] <$> indexStatements)
+      -- on an already-analyzed database a fresh index has no sqlite_stat1 row,
+      -- which can make the planner prefer it over the (time, id)-ordered
+      -- indexes and force a sort step, so analyze once when stats are missing
+      <> [SqlStatement "ANALYZE bookmark" [] | needsAnalyze]
+  where
+    bookmarkStatsMissing = do
+      statTable <- rawSql "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_stat1'" []
+      case statTable :: [Single Int] of
+        [] -> pure False
+        _ -> do
+          found <- rawSql "SELECT COUNT(*) FROM sqlite_stat1 WHERE tbl = 'bookmark' AND idx IN ('idx_bookmark_user_shared', 'idx_bookmark_id_shared')" []
+          pure (found /= [Single (2 :: Int)])
+    indexStatements =
+      [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time_id ON bookmark (user_id, time)",
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_time_id ON bookmark (user_id, shared, time)",
+        -- narrowest covering index for shared-filtered counts; without it the
+        -- planner satisfies them from a wider expression index
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_user_shared ON bookmark (user_id, shared)",
+        "CREATE INDEX IF NOT EXISTS idx_note_user_shared ON note (user_id, shared)",
+        -- covers the shared check when joining bookmark_tag to bookmark by id
+        -- (public tag cloud counts), avoiding row lookups in the main table
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_id_shared ON bookmark (id, shared)",
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
+        "CREATE INDEX IF NOT EXISTS idx_note_created_id ON note (user_id, created)",
+        "CREATE INDEX IF NOT EXISTS idx_note_shared_created_id ON note (user_id, shared, created)",
+        -- expression must match Model.bookmarkHrefNoSchemeExpr token-for-token
+        -- for SQLite to use these indexes when sorting by BookmarkSortUrl
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_href_no_scheme ON bookmark (user_id, (CASE WHEN instr(href, '://') > 0 THEN substr(href, instr(href, '://') + 3) ELSE href END))",
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_href_no_scheme ON bookmark (user_id, shared, (CASE WHEN instr(href, '://') > 0 THEN substr(href, instr(href, '://') + 3) ELSE href END))",
+        -- expression must match the `lower_ (b ^. BookmarkDescription)` used
+        -- for BookmarkSortTitle in Model.bookmarksTagsQuery
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_title ON bookmark (user_id, (LOWER(description)))",
+        "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_title ON bookmark (user_id, shared, (LOWER(description)))",
+        -- expression must match the `lower_ (b ^. NoteTitle)` used for
+        -- NoteSortTitle in Model.getNoteList
+        "CREATE INDEX IF NOT EXISTS idx_note_title ON note (user_id, (LOWER(title)))",
+        "CREATE INDEX IF NOT EXISTS idx_note_shared_title ON note (user_id, shared, (LOWER(title)))"
+      ]
+
+-- superseded by the ASC (sort-field, id)-ordering indexes above
+operation_drop_superseded_indexes :: (Applicative m) => OperationSpec m
+operation_drop_superseded_indexes =
+  ("drop-superseded-indexes",)
     $ pure
     $ flip SqlStatement []
-    <$> [ "CREATE INDEX IF NOT EXISTS idx_bookmark_time ON bookmark (user_id, time DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_bookmark_shared_time ON bookmark (user_id, shared, time DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_bookmark_tag_bookmark_id ON bookmark_tag (bookmark_id, id, tag, seq)",
-          "CREATE INDEX IF NOT EXISTS idx_note_user_created ON note (user_id, created DESC)",
-          "CREATE INDEX IF NOT EXISTS idx_note_user_shared_created ON note (user_id, shared, created DESC)"
+    <$> [ "DROP INDEX IF EXISTS idx_bookmark_time",
+          "DROP INDEX IF EXISTS idx_bookmark_shared_time",
+          "DROP INDEX IF EXISTS idx_note_user_created",
+          "DROP INDEX IF EXISTS idx_note_user_shared_created"
         ]
 
 operation_normalize_bookmark_utctime_remove_z :: (Applicative m) => OperationSpec m

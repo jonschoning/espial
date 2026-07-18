@@ -2,7 +2,6 @@
 
 module Handler.User where
 
-import Data.Aeson.Encoding (encodingToLazyByteString)
 import Data.Map qualified as Map
 import Data.Text qualified as T
 import Data.Time (diffUTCTime)
@@ -31,8 +30,8 @@ _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
-      t = \key -> appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser muser)
+  let t = \key -> appTranslate app lang (I18nKey key)
       frontendBundleName = appFrontendBundleName app
   (limit', page') <- lookupPagingParams Nothing
   let limit = maybe 120 (min 160 . fromIntegral) limit'
@@ -46,21 +45,35 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
-  mquery <- lookupGetParam queryp
+      sortp = sortParam
+      orderp = orderParam
+  -- non-owners get no search box and no query filtering, so their listing
+  -- stays on the plain shared/time-indexed path
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  -- non-owners always get the default time ordering; dropping the sort params
+  -- keeps their paging on the indexed time cursor and off the offset path
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
   mcursor <-
     parsePagingCursorParams
-      (fmap PagingCursorBefore . parsePagingCursorTime)
-      (fmap PagingCursorAfter . parsePagingCursorTime)
+      (fmap PagingCursorBefore . parsePagingCursorBm)
+      (fmap PagingCursorAfter . parsePagingCursorBm)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
-  (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasEarlier, hasLater) <- runDB $ do
+  let bsort = parseBookmarkSortParams msort morder
+      BookmarkSort bsortField bsortDir = bsort
+      paging = mkBookmarkPaging bsort mcursor page
+      isCursorPaging = case paging of
+        PageByCursor {} -> True
+        PageByOffset {} -> False
+  (suggestTags, suggestTagsUseReturnKey, publicTagCloud, bcount, btmarks, hasPrevious, hasNext) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    (bcount, btmarks, hasEarlier, hasLater) <-
-      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
-    pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasEarlier, hasLater)
+    (bcount, btmarks, hasPrevious, hasNext) <-
+      bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery paging limit
+    pure (userSuggestTags user, userSuggestTagsUseReturnKey user, userPublicTagCloud user, bcount, btmarks, hasPrevious, hasNext)
   when (bcount == 0) (case filterp of FilterSingle _ -> notFound; _ -> pure ())
   mroute <- getCurrentRoute
   tagCloudMode <- getTagCloudMode isowner publicTagCloud pathtags
@@ -68,23 +81,31 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
   let archiveBackendEnabled = isJust (appArchiver app)
       mfirstBookmark = headMay (map fst btmarks)
       mlastBookmark = lastMay (map fst btmarks)
-      mqueryEarlierp =
-        fmap
-          (beforep,)
-          (formatEntityPagingCursorTimeBm <$> mlastBookmark)
-      mqueryLaterp =
-        fmap
-          (afterp,)
-          (formatEntityPagingCursorTimeBm <$> mfirstBookmark)
+      -- the earlier link anchors at the oldest row on the page and the later
+      -- link at the newest; which list end holds which depends on direction
+      (moldestBookmark, mnewestBookmark) = case bsort of
+        BookmarkSort BookmarkSortTime SortAsc -> (mfirstBookmark, mlastBookmark)
+        _ -> (mlastBookmark, mfirstBookmark)
+      pagep = pagingPageParam Nothing
+      -- offset paging has no cursor entities to anchor on, so it pages by
+      -- adjacent page numbers instead of before/after cursors
+      mqueryPreviousp
+        | isCursorPaging = fmap (beforep,) (formatEntityPagingCursorBm <$> moldestBookmark)
+        | otherwise = Just (pagep, tshow (page - 1))
+      mqueryNextp
+        | isCursorPaging = fmap (afterp,) (formatEntityPagingCursorBm <$> mnewestBookmark)
+        | otherwise = Just (pagep, tshow (page + 1))
       mqueryp = fmap (queryp,) mquery
+      msortp = fmap (sortp,) msort
+      morderp = fmap (orderp,) morder
       renderEl = "bookmarks" :: Text
-      tagCloudRenderEl = "tagCloud" :: Text
       showTagCloud = isowner || publicTagCloud
       tagCloudUrl :: Text
       tagCloudUrl
         | isowner = render UserTagCloudR
         | publicTagCloud = render (UserPublicTagCloudR unamep)
         | otherwise = ""
+      TagCloudHamletBindings {..} = mkTagCloudHamletBindings tagCloudMode
 
   defaultLayout do
     let pager = $(widgetFile "pager")
@@ -93,7 +114,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     $(widgetFile "user")
     toWidgetBody
       [julius|
-        app.dat.bmarks = #{ toRawJs $ toBookmarkFormListForViewer isowner btmarks } || [];
+        app.dat.bmarks = #{ toJSON $ toBookmarkFormListForViewer isowner btmarks } || [];
         app.dat.bcount = #{ toJSON bcount };
         app.dat.isowner = #{ isowner };
         app.dat.suggestTags = #{ suggestTags };
@@ -103,6 +124,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
         app.dat.sharedp = #{ toJSON sharedp };
         app.dat.tags = #{ toJSON pathtags };
         app.dat.query = #{ toJSON mquery };
+        app.dat.sort = #{ toJSON bsort };
         app.userR = "@{UserR unamep}";
         app.tagCloudMode = #{ toJSON $ tagCloudMode } || {};
         app.tagCloudR = #{toJSON tagCloudUrl};
@@ -110,20 +132,67 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
     toWidget
       [hamlet|
       <script type="module">
-        import { renderBookmarks, renderTagCloud, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
+        import { renderBookmarks, renderTagCloud, bindTagCloudHeader, renderBulkEdit } from '@{StaticR (StaticRoute ["js", frontendBundleName] [])}'
         setTimeout(() => {
           renderBookmarks('##{renderEl}')(app.dat.bmarks)();
         }, 0);
         setTimeout(() => {
-          renderTagCloud('##{tagCloudRenderEl}')(app.tagCloudMode)();
+          renderTagCloud('##{tagCloudBodyEl}')(app.tagCloudMode)();
+        }, 0);
+        setTimeout(() => {
+          bindTagCloudHeader('##{tagCloudHeaderEl}')();
         }, 0);
         $if isowner
           setTimeout(() => {
             renderBulkEdit('#bulkEditRenderEl')(app.dat.bcount)();
           }, 0);
     |]
-  where
-    toRawJs = rawJS . decodeUtf8 . encodingToLazyByteString . toEncoding
+
+-- | Values the "user" hamlet template needs to render the tag cloud header
+-- (mode toggle, min-count filters, expand/collapse), derived from the
+-- session/route-resolved 'TagCloudMode'.
+data TagCloudHamletBindings = TagCloudHamletBindings
+  { tagCloudHeaderEl :: Text,
+    tagCloudBodyEl :: Text,
+    isTagCloudModeRelated :: Bool,
+    tagCloudExpanded :: Bool,
+    tagCloudActiveTop :: Bool,
+    tagCloudActiveRelated :: Bool,
+    tagCloudActiveLowerBound :: Maybe Int,
+    tagCloudActiveRelatedLowerBound :: Maybe Int,
+    tagCloudCounts :: [(Int, Text)]
+  }
+
+mkTagCloudHamletBindings :: TagCloudMode -> TagCloudHamletBindings
+mkTagCloudHamletBindings tagCloudMode =
+  TagCloudHamletBindings
+    { tagCloudHeaderEl = "tagCloudHeader",
+      tagCloudBodyEl = "tagCloudBody",
+      isTagCloudModeRelated = case tagCloudMode of
+        TagCloudModeRelated _ _ -> True
+        TagCloudModeRelatedLowerBound _ _ _ -> True
+        _ -> False,
+      tagCloudExpanded = isExpanded tagCloudMode,
+      tagCloudActiveTop = case tagCloudMode of
+        TagCloudModeTop _ -> True
+        _ -> False,
+      tagCloudActiveRelated = case tagCloudMode of
+        TagCloudModeRelated _ _ -> True
+        _ -> False,
+      tagCloudActiveLowerBound = case tagCloudMode of
+        TagCloudModeTopLowerBound _ n -> Just n
+        _ -> Nothing,
+      tagCloudActiveRelatedLowerBound = case tagCloudMode of
+        TagCloudModeRelatedLowerBound _ _ n -> Just n
+        _ -> Nothing,
+      tagCloudCounts =
+        [ (1, "tagCloud.allTitle"),
+          (2, "tagCloud.min2Title"),
+          (5, "tagCloud.min5Title"),
+          (10, "tagCloud.min10Title"),
+          (20, "tagCloud.min20Title")
+        ]
+    }
 
 -- Form
 
@@ -226,19 +295,25 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       queryp = "query" :: Text
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
-  mquery <- lookupGetParam queryp
+      sortp = sortParam
+      orderp = orderParam
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
   mcursor <-
     parsePagingCursorParams
-      (fmap PagingCursorBefore . parsePagingCursorTime)
-      (fmap PagingCursorAfter . parsePagingCursorTime)
+      (fmap PagingCursorBefore . parsePagingCursorBm)
+      (fmap PagingCursorAfter . parsePagingCursorBm)
       <$> lookupGetParam beforep
       <*> lookupGetParam afterp
+  let bsort = parseBookmarkSortParams msort morder
+      paging = mkBookmarkPaging bsort mcursor page
   (_, btmarks, _, _) <- runDB $ do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery mcursor limit page
+    bookmarksTagsQuery userId isowner sharedp filterp pathtags mquery paging limit
   let (descr :: Html) = toHtml $ H.text ("Bookmarks saved by " <> uname)
       entries = map bookmarkToRssEntry btmarks
   updated <- case maximumMay (map feedEntryUpdated entries) of

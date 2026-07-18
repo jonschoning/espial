@@ -17,7 +17,12 @@
     "error": "エラー: {{status}}",
     "errorWithMsg": "エラー {{status}}: {{msg}}",
     "requestTimedOut": "リクエストがタイムアウトしました",
-    "networkError": "ネットワークエラー"
+    "networkError": "ネットワークエラー",
+    "upsertUnauthorized": "権限がありません",
+    "upsertNotFound": "見つかりません",
+    "upsertHrefUsedByOther": "このURLは既に別のブックマークで使用されています",
+    "upsertConflictWithNewer": "サーバー上の項目がより新しく更新されています。再読み込みしてやり直してください",
+    "upsertInvalidInput": "無効な入力です"
   },
   "nav": {
     "privateProfileEnabled": "プライベートプロフィールが有効",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
-    "submit": "変更を保存"
+    "submit": "変更を保存",
+    "demoMode": "デモモード：パスワードの変更は無効です"
   },
   "settings": {
     "serverDefault": "サーバーのデフォルト",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "1ページあたり:"
   },
+  "sort": {
+    "label": "並び替え:",
+    "time": "時間",
+    "url": "URL",
+    "title": "タイトル",
+    "tagcount": "タグ数",
+    "created": "作成日"
+  },
   "pager": {
     "earlier": "« 前へ",
-    "later": "次へ »"
+    "later": "次へ »",
+    "previous": "« 前へ",
+    "next": "次へ »"
   },
   "notes": {
     "count_one": "{{count}}件のメモ",
@@ -229,18 +245,24 @@
     "betweenQuery": "を各検索クエリの間に入れます。",
     "excludeWords": "検索から単語を除外",
     "inFrontWord": "を除外したい単語の前に付けます。",
-    "exactMatch": "完全一致で検索",
-    "putInQuotes": "単語またはフレーズを引用符で囲みます。",
+    "groupTerms": "検索語をグループ化",
+    "putInParens": "語句を括弧で囲むと、ひとつのまとまりとしてグループ化できます。グループは組み合わせ、否定、入れ子にできます。",
+    "searchPhrase": "フレーズで検索",
+    "putInQuotes": "フレーズを引用符で囲みます。",
     "specificField": "特定のフィールドで検索",
     "inFrontTerm": "を語句の前に付けます、",
     "where": "ここで",
     "isOneOfOptions": "は以下のオプションのいずれかです",
+    "fieldContainsDesc": "フィールド検索は部分一致検索です。フィールドに語句が含まれていれば一致します。",
+    "exactField": "特定のフィールドで完全一致検索",
+    "exactFieldDesc": "を語句の前に付けると、フィールド全体が語句と完全に一致する必要があります。テキストフィールド（url、title、description、tags）で利用できます。",
     "bookmarkSearch": "ブックマーク検索",
     "noteSearch": "メモ検索",
     "fieldHeader": "フィールド",
     "exampleHeader": "例",
     "complexExamples": "より複雑な例",
     "complexExample1Desc": "URLに「youtube」、タイトルに「haskell」またはタイトルに「python」、かつ2017/12/31以降",
-    "complexExample2Desc": "タイトルに「hacker news」を含まず、どこかに「news」「cnn」「npr」があるか、説明に「the guardian」がある"
+    "complexExample2Desc": "タイトルに「hacker news」を含まず、どこかに「news」「cnn」「npr」があるか、説明に「the guardian」がある",
+    "complexExample3Desc": "タグに「haskell」と「youtube」の両方があるか、またはタグに「haskell」と「vimeo」の両方はない。かつタグに「surveys」と「news」の両方はなく、2018-12-31以降"
   }
 }

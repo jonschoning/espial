@@ -17,7 +17,12 @@
     "error": "błąd: {{status}}",
     "errorWithMsg": "błąd {{status}}: {{msg}}",
     "requestTimedOut": "przekroczono limit czasu żądania",
-    "networkError": "błąd sieci"
+    "networkError": "błąd sieci",
+    "upsertUnauthorized": "brak autoryzacji",
+    "upsertNotFound": "nie znaleziono",
+    "upsertHrefUsedByOther": "adres url jest już używany przez inną zakładkę",
+    "upsertConflictWithNewer": "element na serwerze został zaktualizowany później; odśwież i spróbuj ponownie",
+    "upsertInvalidInput": "nieprawidłowe dane wejściowe"
   },
   "nav": {
     "privateProfileEnabled": "profil prywatny wlaczony",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Stare hasło",
     "newPassword": "Nowe hasło",
-    "submit": "Zapisz zmiany"
+    "submit": "Zapisz zmiany",
+    "demoMode": "tryb demo: zmiana hasła jest wyłączona"
   },
   "settings": {
     "serverDefault": "Domyslne ustawienie serwera",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "na stronę:"
   },
+  "sort": {
+    "label": "sortuj:",
+    "time": "czas",
+    "url": "url",
+    "title": "tytuł",
+    "tagcount": "liczba tagów",
+    "created": "utworzono"
+  },
   "pager": {
     "earlier": "« wcześniejsze",
-    "later": "późniejsze »"
+    "later": "późniejsze »",
+    "previous": "« poprzednia",
+    "next": "następna »"
   },
   "notes": {
     "count_one": "{{count}} notatka",
@@ -229,18 +245,24 @@
     "betweenQuery": "między każdym zapytaniem wyszukiwania.",
     "excludeWords": "Wyklucz słowa z wyszukiwania",
     "inFrontWord": "przed słowem, które chcesz wykluczyć.",
-    "exactMatch": "Wyszukaj dokładne dopasowanie",
-    "putInQuotes": "Umieść słowo lub frazę w cudzysłowie.",
+    "groupTerms": "Grupowanie terminów wyszukiwania",
+    "putInParens": "Umieść terminy w nawiasach, aby zgrupować je w jedną całość. Grupy można łączyć, negować i zagnieżdżać.",
+    "searchPhrase": "Wyszukaj frazę",
+    "putInQuotes": "Umieść frazę w cudzysłowie.",
     "specificField": "Wyszukaj w określonym polu",
     "inFrontTerm": "przed terminem,",
     "where": "gdzie",
     "isOneOfOptions": "jest jedną z poniższych opcji",
+    "fieldContainsDesc": "Wyszukiwanie po polu sprawdza zawieranie: pole musi jedynie zawierać dany termin.",
+    "exactField": "Dokładne wyszukiwanie w określonym polu",
+    "exactFieldDesc": "przed terminem, aby całe pole musiało być dokładnie równe terminowi. Dostępne dla pól tekstowych: url, title, description, tags.",
     "bookmarkSearch": "Wyszukiwanie zakładek",
     "noteSearch": "Wyszukiwanie notatek",
     "fieldHeader": "POLE",
     "exampleHeader": "PRZYKŁAD",
     "complexExamples": "Bardziej złożone przykłady",
     "complexExample1Desc": "\"youtube\" w URL oraz tytuł \"haskell\" lub tytuł \"python\" i po 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" nie w tytule, oraz \"news\", \"cnn\", \"npr\" gdziekolwiek lub \"the guardian\" w opisie"
+    "complexExample2Desc": "\"hacker news\" nie w tytule, oraz \"news\", \"cnn\", \"npr\" gdziekolwiek lub \"the guardian\" w opisie",
+    "complexExample3Desc": "z tagami \"haskell\" i \"youtube\", lub bez obu tagów \"haskell\" i \"vimeo\"; oraz bez obu tagów \"surveys\" i \"news\", i po 2018-12-31"
   }
 }

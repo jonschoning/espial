@@ -4,9 +4,10 @@
       <div .fr.nt1.nowrap style="margin-bottom:.7rem">
         <div .dib.v-mid.f6.pr2>
             <a .link.rss
-               href="@{NotesFeedR unamep}">#{t "rss"}
-        <div .dib.v-mid>
-          ^{search}
+               href="@?{(NotesFeedR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
+        $if isowner
+          <div .dib.v-mid>
+            ^{search}
       <div .di>
         <div .fl.pr3.dib.mb2>
           <b>
@@ -16,15 +17,28 @@
         $if isowner
           <div .fl.pr2.dib.mb2>
             <a .dib.mb1.link.silver.hover-alt :sharedp == SharedAll:.nav-active
-               href="@{NotesR unamep}">#{t "filter.all"}
+               href="@?{(NotesR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
-               href="@{NotesSharedR unamep SharedPrivate}">#{t "filter.private"}
+               href="@?{(NotesSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
             ‧
             <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
-               href="@{NotesSharedR unamep SharedPublic}">#{t "filter.public"}
+               href="@?{(NotesSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
 
       <div .cf>
+
+      $if isowner
+        $maybe route <- mroute
+          <span .f6.dib.mb2 #sort-controls>
+            <span .silver.mr1.dib.mb1>#{t "sort.label"}
+            <a .link.dib.mb1.silver.hover-alt :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">#{t "sort.created"}</a>
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
+            <span .silver.mr1.ml2.dib.mb1>
+            <span .nowrap.dib.mb1>
+              <a .link.silver.hover-alt :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
+              ‧
+              <a .link.ml1.silver.hover-alt :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
 
       <div .flex.items-center>
         ^{pager}
@@ -48,8 +62,8 @@
         $maybe route <- mroute
           <div .dib.ml5>
             <span .silver.mr1>#{t "pagination.perPage"}
-            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
-            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
-            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
-            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
-            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp, msortp, morderp])}"‧>20</a> ‧
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp, msortp, morderp])}"‧>40</a> ‧
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp, msortp, morderp])}"‧>80</a> ‧
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp, msortp, morderp])}"‧>120</a> ‧
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp, msortp, morderp])}"‧>160</a>

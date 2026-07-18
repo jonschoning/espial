@@ -17,7 +17,12 @@
     "error": "помилка: {{status}}",
     "errorWithMsg": "помилка {{status}}: {{msg}}",
     "requestTimedOut": "час очікування запиту вичерпано",
-    "networkError": "помилка мережі"
+    "networkError": "помилка мережі",
+    "upsertUnauthorized": "немає доступу",
+    "upsertNotFound": "не знайдено",
+    "upsertHrefUsedByOther": "ця url-адреса вже використовується іншою закладкою",
+    "upsertConflictWithNewer": "елемент на сервері було оновлено пізніше; перезавантажте та спробуйте ще раз",
+    "upsertInvalidInput": "недійсні дані"
   },
   "nav": {
     "privateProfileEnabled": "приватний профіль увімкнено",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Старий пароль",
     "newPassword": "Новий пароль",
-    "submit": "Зберегти зміни"
+    "submit": "Зберегти зміни",
+    "demoMode": "демо-режим: зміну пароля вимкнено"
   },
   "settings": {
     "serverDefault": "Типове значення сервера",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "на сторінці:"
   },
+  "sort": {
+    "label": "сортувати:",
+    "time": "час",
+    "url": "url",
+    "title": "заголовок",
+    "tagcount": "кількість тегів",
+    "created": "створено"
+  },
   "pager": {
     "earlier": "« раніше",
-    "later": "пізніше »"
+    "later": "пізніше »",
+    "previous": "« попередня",
+    "next": "наступна »"
   },
   "notes": {
     "count_one": "{{count}} нотатка",
@@ -229,18 +245,24 @@
     "betweenQuery": "між кожним пошуковим запитом.",
     "excludeWords": "Виключення слів із пошуку",
     "inFrontWord": "перед словом, яке потрібно виключити.",
-    "exactMatch": "Пошук точного збігу",
-    "putInQuotes": "Візьміть слово або фразу в лапки.",
+    "groupTerms": "Групування пошукових термінів",
+    "putInParens": "Візьміть терміни в дужки, щоб об'єднати їх в одну групу. Групи можна комбінувати, заперечувати та вкладати одна в одну.",
+    "searchPhrase": "Пошук фрази",
+    "putInQuotes": "Візьміть фразу в лапки.",
     "specificField": "Пошук у конкретному полі",
     "inFrontTerm": "перед терміном,",
     "where": "де",
     "isOneOfOptions": "є одним із варіантів нижче",
+    "fieldContainsDesc": "Пошук за полем — це пошук за входженням: достатньо, щоб поле містило термін.",
+    "exactField": "Точний пошук у конкретному полі",
+    "exactFieldDesc": "перед терміном, щоб усе поле точно збігалося з терміном. Доступно для текстових полів: url, title, description, tags.",
     "bookmarkSearch": "Пошук закладок",
     "noteSearch": "Пошук нотаток",
     "fieldHeader": "ПОЛЕ",
     "exampleHeader": "ПРИКЛАД",
     "complexExamples": "Складніші приклади",
     "complexExample1Desc": "\"youtube\" в url, і назва містить \"haskell\" або назва містить \"python\", і після 31.12.2017",
-    "complexExample2Desc": "\"hacker news\" не в назві, а \"news\", \"cnn\", \"npr\" будь-де, або \"the guardian\" в описі"
+    "complexExample2Desc": "\"hacker news\" не в назві, а \"news\", \"cnn\", \"npr\" будь-де, або \"the guardian\" в описі",
+    "complexExample3Desc": "з тегами \"haskell\" і \"youtube\", або без обох тегів \"haskell\" і \"vimeo\"; та без обох тегів \"surveys\" і \"news\", і після 2018-12-31"
   }
 }

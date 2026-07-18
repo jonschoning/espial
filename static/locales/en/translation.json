@@ -17,7 +17,12 @@
     "error": "error: {{status}}",
     "errorWithMsg": "error {{status}}: {{msg}}",
     "requestTimedOut": "request timed out",
-    "networkError": "network error"
+    "networkError": "network error",
+    "upsertUnauthorized": "not authorized",
+    "upsertNotFound": "not found",
+    "upsertHrefUsedByOther": "href already used by another bookmark",
+    "upsertConflictWithNewer": "item on server has been updated more recently; reload and retry",
+    "upsertInvalidInput": "invalid input"
   },
   "nav": {
     "privateProfileEnabled": "private profile enabled",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Old Password",
     "newPassword": "New Password",
-    "submit": "Save Changes"
+    "submit": "Save Changes",
+    "demoMode": "demo mode: password changes are disabled"
   },
   "settings": {
     "serverDefault": "Server Default",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "per page:"
   },
+  "sort": {
+    "label": "sort:",
+    "time": "time",
+    "url": "url",
+    "title": "title",
+    "tagcount": "tagcount",
+    "created": "created"
+  },
   "pager": {
     "earlier": "« earlier",
-    "later": "later »"
+    "later": "later »",
+    "previous": "« previous",
+    "next": "next »"
   },
   "notes": {
     "count_one": "{{count}} note",
@@ -229,18 +245,24 @@
     "betweenQuery": "between each search query.",
     "excludeWords": "Exclude words from your search",
     "inFrontWord": "in front of a word you want to leave out.",
-    "exactMatch": "Search for an exact match",
-    "putInQuotes": "Put a word or phrase inside quotes.",
+    "groupTerms": "Group search terms",
+    "putInParens": "Put parentheses around terms to group them into a single unit. Groups can be combined, negated, and nested.",
+    "searchPhrase": "Search for a phrase",
+    "putInQuotes": "Put phrase inside quotes.",
     "specificField": "Search on a specific field",
     "inFrontTerm": "in front of the term,",
     "where": "where",
     "isOneOfOptions": "is one of the options below",
+    "fieldContainsDesc": "A field search performs a contains search: the field only needs to contain the term.",
+    "exactField": "Exact search on a specific field",
+    "exactFieldDesc": "in front of the term to require the entire field to equal the term exactly. Available for text fields: url, title, description, tags.",
     "bookmarkSearch": "Bookmark Search",
     "noteSearch": "Note Search",
     "fieldHeader": "FIELD",
     "exampleHeader": "EXAMPLE",
     "complexExamples": "More Complex Examples",
     "complexExample1Desc": "\"youtube\" in url, and title of \"haskell\" or title of \"python\" and after 12/31/2017",
-    "complexExample2Desc": "\"hacker news\" not in title, and \"news\", \"cnn\", \"npr\" anywhere, or \"the guardian\" in the description"
+    "complexExample2Desc": "\"hacker news\" not in title, and \"news\", \"cnn\", \"npr\" anywhere, or \"the guardian\" in the description",
+    "complexExample3Desc": "tagged both \"haskell\" and \"youtube\", or not tagged both \"haskell\" and \"vimeo\"; and not tagged both \"surveys\" and \"news\", and after 2018-12-31"
   }
 }

@@ -13,7 +13,7 @@ import Yesod.Default.Main (LogFunc)
 debugArchiverBackend :: LogFunc -> ArchiverBackend
 debugArchiverBackend logFunc =
   ArchiverBackend
-    { runArchiver = \uid bid ua url -> flip runLoggingT logFunc $ do
-        $(logDebug) $ "Debug archiver: would archive URL " <> unUrl url <> " for bookmark ID " <> tshow bid <> " and user ID " <> tshow uid <> " with user agent " <> tshow ua,
+    { runArchiver = \uid bid url -> flip runLoggingT logFunc $ do
+        $(logDebug) $ "Debug archiver: would archive URL " <> unUrl url <> " for bookmark ID " <> tshow bid <> " and user ID " <> tshow uid,
       isUrlDenylisted = const False
     }

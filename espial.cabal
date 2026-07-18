@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.40
+version:        0.0.41
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
@@ -86,10 +86,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-REOQEZQK.min.js
-    static/js/app-REOQEZQK.min.js.gz
-    static/js/app-REOQEZQK.min.js.map
-    static/js/app-REOQEZQK.min.js.map.gz
+    static/js/app-LILLUWFD.min.js
+    static/js/app-LILLUWFD.min.js.gz
+    static/js/app-LILLUWFD.min.js.map
+    static/js/app-LILLUWFD.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -144,6 +144,11 @@ flag usebuildinfo
   manual: True
   default: False
 
+flag werror
+  description: Treat warnings as errors in executables. Off by default so the package still builds against future GHC versions that add new warnings; enabled for development via stack.yaml.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Application
@@ -176,6 +181,7 @@ library
       Model.FileNote
       Model.Form
       Model.Migrations
+      Network.PrivateAddress
       PathPiece
       Pretty
       Settings
@@ -238,12 +244,14 @@ library
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -303,7 +311,7 @@ executable espial
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       aeson >=2.0
     , attoparsec
@@ -344,12 +352,14 @@ executable espial
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -374,6 +384,8 @@ executable espial
   if !os(windows)
     build-depends:
         unix
+  if flag(werror)
+    ghc-options: -Werror
   if flag(library-only)
     buildable: False
 
@@ -396,7 +408,7 @@ executable migration
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       aeson >=2.0
     , attoparsec
@@ -437,6 +449,7 @@ executable migration
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , optparse-applicative
     , optparse-generic >=1.2.3
     , parser-combinators
@@ -445,6 +458,7 @@ executable migration
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short
@@ -469,6 +483,8 @@ executable migration
   if !os(windows)
     build-depends:
         unix
+  if flag(werror)
+    ghc-options: -Werror
   if flag(library-only)
     buildable: False
 
@@ -480,13 +496,19 @@ test-suite test
       Handler.HomeSpec
       Handler.LocalesSpec
       I18nSpec
+      JsonWireFormatSpec
       Model.BookmarksBulkEditSpec
+      Model.BookmarksBulkUpsertSpec
       Model.BookmarksPagingSpec
       Model.BookmarksQuerySpec
       Model.BookmarksSearchSpec
+      Model.BookmarksSortSpec
       Model.FileImportExportSpec
       Model.NotesBulkEditSpec
+      Model.NotesPagingSpec
       Model.NotesSearchSpec
+      Model.NotesSortSpec
+      Model.NotesUpsertSpec
       Model.PasswordHashSpec
       TestImport
       Paths_espial
@@ -547,12 +569,14 @@ test-suite test
     , microlens
     , monad-logger ==0.3.*
     , mtl
+    , network
     , parser-combinators
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
     , safe
     , shakespeare >=2.0 && <2.3
+    , stm
     , template-haskell
     , text ==2.*
     , text-short

@@ -82,6 +82,111 @@ stack exec migration -- importfirefoxbookmarks --userName myusername --bookmarkF
 stack exec espial
 ```
 
+## API
+
+### Adding a Bookmark via `curl`
+
+Bookmarks can be added programmatically by POSTing JSON to `/api/add`, authenticated with an API key.
+
+1. Generate an API key for a user, either:
+   - From the Account Settings (`settings`) page in the web UI, under **API Key** — click **Create API Key** (or **Reset API Key** to replace an existing one). The key is shown only once, so copy it immediately.
+   - Or via the CLI:
+
+     ```bash
+     stack exec migration -- createapikey --userName myusername
+     ```
+
+2. Call the endpoint, passing the key in the `Authorization: ApiKey <key>` header:
+
+Example Request:
+
+```bash
+curl -X POST https://your-espial-host/api/add \
+  -H "Authorization: ApiKey <key>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "url": "https://example.com",
+        "title": "Example Site",
+        "description": "",
+        "tags": "example some-tag",
+        "private": false,
+        "toread": false
+      }'
+```
+
+Only `url` is required; all other fields are optional. On success the response is `201 Created` with the new bookmark id, or `204 No Content` if an existing bookmark was updated instead — matched by `bid` if given, otherwise by the (`userid`, `url`) pair.
+
+### `/api/add` Fields
+
+| Field              | Type      | Description                                                                                                                                                                                  |
+| ------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`              | `string`  | The bookmark's URL. Required.                                                                                                                                                                |
+| `title`            | `string`  | The bookmark's title/description line. Defaults to empty.                                                                                                                                    |
+| `description`      | `string`  | Extended/longer notes for the bookmark. Defaults to empty.                                                                                                                                   |
+| `tags`             | `string`  | Space-separated list of tags, e.g. `"example some-tag"`.                                                                                                                                     |
+| `private`          | `boolean` | `true` keeps the bookmark private to the owner; `false` (or omitted) makes it shared/public.                                                                                                 |
+| `toread`           | `boolean` | Marks the bookmark on the "to read" list. Defaults to `false`.                                                                                                                               |
+| `bid`              | `number`  | Existing bookmark id to update. Omit to create a new bookmark (or update by matching `url` — see above).                                                                                     |
+| `slug`             | `string`  | URL-friendly identifier used in bookmark links (`u:<user>/<slug>`). Auto-generated when omitted.                                                                                             |
+| `selected`         | `boolean` | Whether the bookmark is "starred". Defaults to `false`.                                                                                                                                      |
+| `time`             | `string`  | Creation timestamp, ISO 8601 (e.g. `"2018-02-26T22:57:20Z"`). Defaults to the current time; useful when importing bookmarks with a historical date.                                          |
+| `archiveUrl`       | `string`  | Link to an already-archived copy of the page. Normally set by the archiver, not supplied by clients.                                                                                         |
+| `archiveRequested` | `boolean` | Whether to kick off archiving of `url` after saving. Only takes effect when an archive backend is configured (see [Archive Backends](#archive-backends)). Not stored on the bookmark itself. |
+
+### Adding Multiple Bookmarks via `curl`
+
+Multiple bookmarks can be added in a single request by POSTing a JSON array to `/api/addBulk`, using the same fields and auth as `/api/add`.
+
+Example Request:
+
+```bash
+curl -X POST https://your-espial-host/api/addBulk \
+  -H "Authorization: ApiKey <key>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '
+  [
+    {
+      "url": "https://example.com/11111111",
+      "title": "Example Site 1",
+      "description": "Random test bookmark 11111111",
+      "tags": "example test run1",
+      "private": false,
+      "toread": false
+    },
+    {
+      "url": "https://example.com/22222222",
+      "title": "Example Site 2",
+      "description": "Random test bookmark 22222222",
+      "tags": "example test run2",
+      "private": false,
+      "toread": false
+    },
+    {
+      "url": "33333333",
+      "title": "Example Site 3",
+      "description": "Random test bookmark 33333333",
+      "tags": "example test run3",
+      "private": false,
+      "toread": false
+    }
+  ]'
+```
+
+The response is `200 OK` with a JSON array of per-bookmark results, in the same order as the request:
+
+```json
+[
+  { "status": "created", "id": 105831 },
+  { "status": "updated", "id": 105832 },
+  { "status": "failed", "error": "Invalid URL: InvalidUrlException \"33333333\" \"Invalid URL\"" }
+]
+```
+
+If the request array has more items than the `add-bulk-max-items` setting allows (default `200`), the response is `413 Payload Too Large` and no bookmarks are saved.
+
+
 ## Configuration
 
 See `config/settings.yml` for changing default run-time parameters & environment variables.

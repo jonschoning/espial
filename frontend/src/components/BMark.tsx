@@ -28,6 +28,7 @@ export function BMark({
   const [edit, setEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [archiving, setArchiving] = React.useState(false);
+  const [archived, setArchived] = React.useState(false);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [errorFadingOut, setErrorFadingOut] = React.useState(false);
   const errorTimer = React.useRef<number | null>(null);
@@ -159,6 +160,7 @@ export function BMark({
     setActionError(null);
     setErrorFadingOut(false);
     setArchiving(false);
+    setArchived(false);
     closeSuggestions();
     if (next) setFocus(tagInputId);
   }
@@ -175,6 +177,7 @@ export function BMark({
 
   async function onArchive() {
     setArchiving(true);
+    setArchived(true);
     try {
       const res = await archiveBookmark(bm.bid);
       if (!res.ok) {
@@ -208,7 +211,7 @@ export function BMark({
     }
   };
 
-  const archivingDisabled = archiving || bm.private || bm.url !== editBm.url;
+  const archivingDisabled = archiving || archived || editBm.private || bm.url !== editBm.url;
 
   return (
     <div
@@ -233,12 +236,12 @@ export function BMark({
             href={bm.url}
             target="_blank"
             rel="noreferrer"
-            className={`link f5 lh-title${bm.toread ? ' unread' : ''}`}
+            className={`link bmark-link f5 lh-title${bm.toread ? ' unread' : ''}`}
           >
             {bm.title === '' ? t('noTitle') : bm.title}
           </a>
           <br />
-          <a href={bm.url} className="link f7 thm-text-tertiary thm-hover-link-color">
+          <a href={bm.url} className="link bmark-link f7 thm-text-tertiary thm-hover-link-color">
             {bm.url}
           </a>
           {bm.archiveUrl ? (

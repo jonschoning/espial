@@ -10,7 +10,7 @@ import Control.Monad.Trans.Except (ExceptT (..), runExceptT, throwE)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Default (def)
 import Data.Text qualified as T
-import Database.Persist.Sql (ConnectionPool, Key, runSqlPool)
+import Database.Persist.Sql (Key)
 import Model (Bookmark, Url (..), User, updateBookmarkArchiveUrl)
 import Network.Connection qualified as NC
 import Network.HTTP.Client
@@ -49,7 +49,7 @@ data ArchiveBoxContext = ArchiveBoxContext
     archiveBoxPassword :: Text,
     archiveBoxTag :: Text,
     archiveBoxPlugins :: Maybe Text,
-    archiveBoxConnPool :: ConnectionPool,
+    archiveBoxDB :: ArchiverDB,
     archiveBoxManager :: Manager
   }
 
@@ -60,10 +60,10 @@ data ArchiveBoxSubmitResult
 
 archiveBox07Backend ::
   AppSettings ->
-  ConnectionPool ->
+  ArchiverDB ->
   LogFunc ->
   IO (Maybe ArchiverBackend)
-archiveBox07Backend AppSettings {..} connPool logFunc = flip runLoggingT logFunc $ do
+archiveBox07Backend AppSettings {..} archiverDB logFunc = flip runLoggingT logFunc $ do
   case (nonBlank appArchiveBoxUrl, nonBlank appArchiveBoxUsername, nonBlank appArchiveBoxPassword) of
     (Nothing, _, _) -> $(logWarn) "Archive backend `archivebox` selected but archivebox-url missing; archiving disabled" >> pure Nothing
     (_, Nothing, _) -> $(logWarn) "Archive backend `archivebox` selected but archivebox-username missing; archiving disabled" >> pure Nothing
@@ -81,14 +81,14 @@ archiveBox07Backend AppSettings {..} connPool logFunc = flip runLoggingT logFunc
                 archiveBoxPassword = password,
                 archiveBoxTag = appArchiveBoxTag,
                 archiveBoxPlugins = nonBlank appArchiveBoxPlugins,
-                archiveBoxConnPool = connPool,
+                archiveBoxDB = archiverDB,
                 archiveBoxManager = archiveManager
               }
           denyHosts = catMaybes [extractHost baseUrl, extractHost publicUrl]
       pure $
         Just
           ArchiverBackend
-            { runArchiver = \uid bid _ua url ->
+            { runArchiver = \uid bid url ->
                 flip runLoggingT logFunc $ _archiveBoxRun ctx uid bid url,
               isUrlDenylisted =
                 \(Url inputUrl) ->
@@ -144,10 +144,7 @@ _archiveBoxRun ctx@ArchiveBoxContext {..} userId bookmarkId url = do
   where
     storeArchiveUrl archiveUrl = do
       $(logDebug) $ "storing archive link: " <> archiveUrl
-      liftIO $
-        runSqlPool
-          (updateBookmarkArchiveUrl userId bookmarkId (Just archiveUrl))
-          archiveBoxConnPool
+      liftIO $ archiverRunDBWrite archiveBoxDB (updateBookmarkArchiveUrl userId bookmarkId (Just archiveUrl))
     pluginFormFields =
       maybe
         []

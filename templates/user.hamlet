@@ -5,19 +5,20 @@ $maybe route <- mroute
         <div .fr.nt1.nowrap style="margin-bottom:.7rem">
           <div .dib.v-mid.f6.pr2>
             $if sharedp == SharedPrivate
-              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp])}">#{t "rss"}
+              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
             $elseif sharedp == SharedPublic
-              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp])}">#{t "rss"}
+              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
             $elseif filterp == FilterUnread
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp])}">#{t "rss"}
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
             $elseif filterp == FilterUntagged
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp])}">#{t "rss"}
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
             $elseif filterp == FilterStarred
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp])}">#{t "rss"}
+              <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
             $else
-              <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp])}">#{t "rss"}
-          <div .dib.v-mid>
-            ^{search}
+              <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
+          $if isowner
+            <div .dib.v-mid>
+              ^{search}
         <div .di>
           <div .fl.pr3.dib.mb2>
             <b>
@@ -29,25 +30,41 @@ $maybe route <- mroute
             <span .f7.silver>#{bcount}</span>
           $if isowner
             <div .fl.pr2.dib.mb2>
-              <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active 
-                 href="@{UserR unamep}">#{t "filter.all"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active 
-                 href="@{UserSharedR unamep SharedPrivate}">#{t "filter.private"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active 
-                 href="@{UserSharedR unamep SharedPublic}">#{t "filter.public"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active 
-                 href="@{UserFilterR unamep FilterUnread}">#{t "filter.unread"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active 
-                 href="@{UserFilterR unamep FilterUntagged}">#{t "filter.untagged"}
-              ‧  
-              <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active 
-                 href="@{UserFilterR unamep FilterStarred}">#{t "filter.starred"}
+              <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active
+                 href="@?{(UserR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
+                 href="@?{(UserSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
+                 href="@?{(UserSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active
+                 href="@?{(UserFilterR unamep FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.unread"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active
+                 href="@?{(UserFilterR unamep FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.untagged"}
+              ‧
+              <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active
+                 href="@?{(UserFilterR unamep FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.starred"}
     
         <div .cf>
+
+        $if isowner
+          <span .f6.dib.mb2 #sort-controls>
+            <span .silver.mr1.dib.mb1>#{t "sort.label"}
+            <a .link.dib.mb1.silver.hover-alt :bsortField == BookmarkSortTime:.nav-active #sort-time href="@?{(route, catMaybes [mqueryp, Just (sortp, "time"), morderp])}">#{t "sort.time"}</a>
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :bsortField == BookmarkSortUrl:.nav-active #sort-url href="@?{(route, catMaybes [mqueryp, Just (sortp, "url"), morderp])}">#{t "sort.url"}</a>
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :bsortField == BookmarkSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
+            ‧
+            <a .link.dib.mb1.silver.hover-alt :bsortField == BookmarkSortTagCount:.nav-active #sort-tagcount href="@?{(route, catMaybes [mqueryp, Just (sortp, "tagcount"), morderp])}">#{t "sort.tagcount"}</a>
+            <span .silver.mr1.ml2.dib.mb1>
+            <span .nowrap.dib.mb1>
+              <a .link.silver.hover-alt :bsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
+              ‧
+              <a .link.ml1.silver.hover-alt :bsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
 
         <div .flex.items-center>
           ^{pager}
@@ -59,7 +76,35 @@ $maybe route <- mroute
           <div #bulkEditRenderEl>
     
         $if showTagCloud
-          <div ##{tagCloudRenderEl} .tag-cloud-placeholder>
+          <div .tag-cloud-placeholder>
+            <div .tag_cloud.mv3>
+              <div ##{tagCloudHeaderEl} .tag_cloud_header.mb2>
+                $if isTagCloudModeRelated
+                  <button type=button .pa1.f7.link.thm-hover-link-color.mr1 :tagCloudActiveRelated:.b title=#{t "tagCloud.topTagsTitle"} data-tcm-action=related>#{t "tagCloud.relatedTags"}
+                  $forall (n, titleKey) <- tagCloudCounts
+                    $if n /= 1
+                      \ ‧
+                    <button type=button .pa1.f7.link.thm-hover-link-color :n == 1:.ml2 :tagCloudActiveRelatedLowerBound == Just n:.b title=#{t titleKey} data-tcm-action=relatedLowerBound data-tcm-lb=#{n}>
+                      $if n == 1
+                        #{t "filter.all"}
+                      $else
+                        #{n}
+                $else
+                  <button type=button .pa1.f7.link.thm-hover-link-color.mr1 :tagCloudActiveTop:.b title=#{t "tagCloud.topTagsTitle"} data-tcm-action=top>#{t "tagCloud.topTags"}
+                  $forall (n, titleKey) <- tagCloudCounts
+                    $if n /= 1
+                      \ ‧
+                    <button type=button .pa1.f7.link.thm-hover-link-color :n == 1:.ml2 :tagCloudActiveLowerBound == Just n:.b title=#{t titleKey} data-tcm-action=lowerBound data-tcm-value=#{n}>
+                      $if n == 1
+                        #{t "filter.all"}
+                      $else
+                        #{n}
+                <button type=button .pa1.ml2.f7.link.thm-text-faded.thm-hover-link-color data-tcm-action=toggleExpand data-show-label=#{t "tagCloud.show"} data-hide-label=#{t "tagCloud.hide"}>
+                  $if tagCloudExpanded
+                    #{t "tagCloud.hide"}
+                  $else
+                    #{t "tagCloud.show"}
+              <div ##{tagCloudBodyEl} .tag_cloud_body>
 
         <div ##{renderEl} .mt3>
     
@@ -71,9 +116,9 @@ $maybe route <- mroute
         $if (fromIntegral bcount >= limit) || (page > 1)
           <div .dib.ml5>
             <span .silver.mr1>#{t "pagination.perPage"}
-            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp])}"‧>20</a> ‧ 
-            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp])}"‧>40</a> ‧ 
-            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp])}"‧>80</a> ‧ 
-            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp])}"‧>120</a> ‧ 
-            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp])}"‧>160</a>
+            <a .link.pager-link :limit == 20:.nav-active href="@?{(route, catMaybes [Just ("count", "20"), mqueryp, msortp, morderp])}"‧>20</a> ‧
+            <a .link.pager-link :limit == 40:.nav-active href="@?{(route, catMaybes [Just ("count", "40"), mqueryp, msortp, morderp])}"‧>40</a> ‧
+            <a .link.pager-link :limit == 80:.nav-active href="@?{(route, catMaybes [Just ("count", "80"), mqueryp, msortp, morderp])}"‧>80</a> ‧
+            <a .link.pager-link :limit == 120:.nav-active href="@?{(route, catMaybes [Just ("count", "120"), mqueryp, msortp, morderp])}"‧>120</a> ‧
+            <a .link.pager-link :limit == 160:.nav-active href="@?{(route, catMaybes [Just ("count", "160"), mqueryp, msortp, morderp])}"‧>160</a>
   

@@ -20,8 +20,8 @@ _getNotes :: UserNameP -> SharedP -> Handler Html
 _getNotes unamep@(UserNameP uname) sharedp' = do
   app <- getYesod
   muser <- fmap entityVal <$> maybeAuth
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (muser >>= userLanguage)
-      previewNotes = maybe True userPreviewNotes muser
+  lang <- getCurrentLang (LangSourceUser muser)
+  let previewNotes = maybe True userPreviewNotes muser
       frontendBundleName = appFrontendBundleName app
       t = \key -> appTranslate app lang (I18nKey key)
       tc = \key n ->
@@ -29,32 +29,60 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
          in T.replace "{{count}}" (tshow n) (t (key <> suffix))
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams (Just "n")
-  let queryp = "query"
+  let isowner = Just uname == mauthuname
+      queryp = "query"
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
-  mquery <- lookupGetParam queryp
-  mcursor <- parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) <$> lookupGetParam beforep <*> lookupGetParam afterp
+      sortp = sortParam
+      orderp = orderParam
+  -- non-owners get no search box and no query filtering, so their listing
+  -- stays on the plain shared/time-indexed path
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  -- non-owners always get the default created-time ordering; dropping the
+  -- sort params keeps their paging on the indexed time cursor and off the
+  -- offset path
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
+  mcursor <-
+    parsePagingCursorParams
+      (fmap PagingCursorBefore . parsePagingCursorNt)
+      (fmap PagingCursorAfter . parsePagingCursorNt)
+      <$> lookupGetParam beforep
+      <*> lookupGetParam afterp
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
+      nsort = parseNoteSortParams msort morder
+      NoteSort nsortField nsortDir = nsort
+      paging = mkNotePaging nsort mcursor page
+      isCursorPaging = case paging of
+        PageByCursor {} -> True
+        PageByOffset {} -> False
       mqueryp = fmap (queryp,) mquery
-      isowner = Just uname == mauthuname
+      msortp = fmap (sortp,) msort
+      morderp = fmap (orderp,) morder
       sharedp = if isowner then sharedp' else SharedPublic
-  (bcount, notes, hasEarlier, hasLater) <- runDB do
+  (bcount, notes, hasPrevious, hasNext) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery mcursor sharedp limit page
+    getNoteList userId mquery sharedp paging limit
   let mfirstNote = headMay notes
       mlastNote = lastMay notes
-      mqueryEarlierp =
-        fmap
-          (beforep,)
-          (formatEntityPagingCursorTimeNt <$> mlastNote)
-      mqueryLaterp =
-        fmap
-          (afterp,)
-          (formatEntityPagingCursorTimeNt <$> mfirstNote)
+      -- the earlier link anchors at the oldest row on the page and the later
+      -- link at the newest; which list end holds which depends on direction
+      (moldestNote, mnewestNote) = case nsort of
+        NoteSort NoteSortCreated SortAsc -> (mfirstNote, mlastNote)
+        _ -> (mlastNote, mfirstNote)
+      pagep = pagingPageParam (Just "n")
+      -- offset paging has no cursor entities to anchor on, so it pages by
+      -- adjacent page numbers instead of before/after cursors
+      mqueryPreviousp
+        | isCursorPaging = fmap (beforep,) (formatEntityPagingCursorNt <$> moldestNote)
+        | otherwise = Just (pagep, tshow (page - 1))
+      mqueryNextp
+        | isCursorPaging = fmap (afterp,) (formatEntityPagingCursorNt <$> mnewestNote)
+        | otherwise = Just (pagep, tshow (page + 1))
   req <- getRequest
   mroute <- getCurrentRoute
   defaultLayout do
@@ -72,6 +100,7 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
         app.dat.previewNotes = #{ previewNotes };
         app.dat.sharedp = #{ toJSON sharedp };
         app.dat.query = #{ toJSON mquery };
+        app.dat.sort = #{ toJSON nsort };
     |]
     toWidget
       [hamlet|
@@ -140,14 +169,14 @@ getAddNoteViewR unamep@(UserNameP uname) = do
         renderNote('##{renderEl}')(app.dat.note)();
     |]
 
-postNoteBulkR :: Handler ()
-postNoteBulkR = do
+postNoteBulkEditR :: Handler ()
+postNoteBulkEditR = do
   app <- getYesod
   (userId, user) <- requireAuthPair
-  let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage user)
-      t key = appTranslate app lang (I18nKey key)
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t key = appTranslate app lang (I18nKey key)
   noteBulkForm <- requireCheckJsonBody
-  result <- runDB $ notesBulkEdit userId noteBulkForm
+  result <- runDBWrite $ notesBulkEdit userId noteBulkForm
   case result of
     Left err -> sendResponseStatus status409 (translateBulkEditError t err)
     Right editedCount -> do
@@ -173,7 +202,7 @@ postNoteBulkR = do
 deleteDeleteNoteR :: Int64 -> Handler Html
 deleteDeleteNoteR nid = do
   userId <- requireAuthId
-  runDB do
+  runDBWrite do
     let k_nid = toSqlKey nid
     _ <- requireResource userId k_nid
     delete k_nid
@@ -181,11 +210,23 @@ deleteDeleteNoteR nid = do
 
 postAddNoteR :: Handler Text
 postAddNoteR = do
+  app <- getYesod
+  (_, user) <- requireAuthPair
+  lang <- getCurrentLang (LangSourceUser (Just user))
+  let t key = appTranslate app lang (I18nKey key)
   noteForm <- requireCheckJsonBody
   _handleFormSuccess noteForm >>= \case
-    Created nid -> sendStatusJSON created201 nid
-    Updated _ -> sendResponseStatus noContent204 ()
-    Failed s -> sendResponseStatus status400 s
+    Created note -> sendStatusJSON created201 note
+    Updated note -> sendStatusJSON ok200 note
+    Failed reason -> sendResponseStatus status400 (translateFailedReason t reason)
+  where
+    translateFailedReason :: (Text -> Text) -> FailedReason -> Text
+    translateFailedReason t = \case
+      ReasonUnauthorized -> t "error.upsertUnauthorized"
+      ReasonNotFound -> t "error.upsertNotFound"
+      ReasonHrefUsedByOther -> t "error.upsertHrefUsedByOther"
+      ReasonConflictWithNewer -> t "error.upsertConflictWithNewer"
+      ReasonInvalidInput _ -> t "error.upsertInvalidInput"
 
 requireResource :: UserId -> Key Note -> DBM Handler Note
 requireResource userId k_nid = do
@@ -194,11 +235,11 @@ requireResource userId k_nid = do
     then pure nnote
     else notFound
 
-_handleFormSuccess :: NoteForm -> Handler (UpsertResult (Key Note))
+_handleFormSuccess :: NoteForm -> Handler (UpsertResult (Entity Note))
 _handleFormSuccess noteForm = do
   userId <- requireAuthId
   note <- liftIO $ _toNote userId noteForm
-  runDB (upsertNote userId knid note)
+  runDBWrite (upsertNote userId knid note)
   where
     knid = toSqlKey <$> (_id noteForm >>= \i -> if i > 0 then Just i else Nothing)
 
@@ -272,20 +313,29 @@ getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams (Just "n")
-  mquery <- lookupGetParam "query"
+  let isowner = Just uname == mauthuname
+  mquery <- if isowner then lookupGetParam "query" else pure Nothing
+  msort <- if isowner then lookupGetParam sortParam else pure Nothing
+  morder <- if isowner then lookupGetParam orderParam else pure Nothing
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
-  let mcursor = parsePagingCursorParams (fmap PagingCursorBefore . parsePagingCursorTime) (fmap PagingCursorAfter . parsePagingCursorTime) mbefore mafter
+  let mcursor =
+        parsePagingCursorParams
+          (fmap PagingCursorBefore . parsePagingCursorNt)
+          (fmap PagingCursorAfter . parsePagingCursorNt)
+          mbefore
+          mafter
   let limit = maybe 20 (min 160 . fromIntegral) limit'
       page = maybe 1 fromIntegral page'
-      isowner = Just uname == mauthuname
+      nsort = parseNoteSortParams msort morder
+      paging = mkNotePaging nsort mcursor page
       sharedp = if isowner then SharedAll else SharedPublic
   (_, notes, _, _) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when
       (not isowner && userPrivacyLock user)
       (redirect (AuthR LoginR))
-    getNoteList userId mquery mcursor sharedp limit page
+    getNoteList userId mquery sharedp paging limit
   render <- getUrlRender
   let (descr :: Html) = toHtml $ H.text (uname <> " notes")
       entries = map (noteToRssEntry render unamep) notes

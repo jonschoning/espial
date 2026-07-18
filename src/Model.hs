@@ -20,8 +20,9 @@ import Data.Foldable (foldl, foldl1, sequenceA_)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Data.Text.Lazy.Builder qualified as TLB
 import Database.Esqueleto.Experimental hiding ((<&>))
-import Database.Esqueleto.Internal.Internal (unsafeSqlFunction)
+import Database.Esqueleto.Internal.Internal (unsafeSqlFunction, unsafeSqlValue)
 import Model.Custom
 import Text.Blaze (ToMarkup, toMarkup)
 import Types
@@ -41,6 +42,7 @@ AppMigration
     UniqueAppMigrationDbVersion dbVersion
     deriving Show Eq Ord
 
+-- | List of Espial versions that have interacted with the database
 AppVersion
     appVersionSpec Text
     appVersion Text
@@ -98,6 +100,14 @@ Note json
   created UTCTime
   updated UTCTime
   UniqueUserNoteSlug userId slug
+  deriving Show Eq Ord
+
+-- | Durable record of a pending archive job
+ArchiveJobRecord
+  userId UserId OnDeleteCascade
+  bookmarkId BookmarkId OnDeleteCascade
+  href Text
+  created UTCTime
   deriving Show Eq Ord
 |]
 
@@ -171,9 +181,176 @@ data PagingCursor a
   | PagingCursorAfter a
   deriving (Eq, Show, Read)
 
-type BookmarkPagingCursorTime = PagingCursor UTCTime
+-- | Keyset cursor position: the id breaks ties between rows sharing a
+-- timestamp so paging never skips or repeats them. Nothing falls back to a
+-- time-only boundary (older links and the view-in-context link carry no id).
+data BookmarkCursor = BookmarkCursor
+  { bookmarkCursorTime :: UTCTime,
+    bookmarkCursorId :: Maybe BookmarkId
+  }
+  deriving (Eq, Show)
 
-type NotePagingCursorTime = PagingCursor UTCTime
+type BookmarkPagingCursor = PagingCursor BookmarkCursor
+
+data NoteCursor = NoteCursor
+  { noteCursorCreated :: UTCTime,
+    noteCursorId :: Maybe NoteId
+  }
+  deriving (Eq, Show)
+
+type NotePagingCursor = PagingCursor NoteCursor
+
+-- * Sorting
+
+data SortDirection
+  = SortAsc
+  | SortDesc
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON SortDirection where toJSON = A.String . fromSortDirection
+
+instance FromJSON SortDirection where
+  parseJSON = A.withText "SortDirection" \s ->
+    maybe (fail $ "Invalid sort direction: '" <> unpack s <> "'") pure (toSortDirection s)
+
+fromSortDirection :: (IsString a) => SortDirection -> a
+fromSortDirection = \case
+  SortAsc -> "asc"
+  SortDesc -> "desc"
+
+toSortDirection :: (Ord s, IsString s) => s -> Maybe SortDirection
+toSortDirection = inverseMap fromSortDirection
+
+data BookmarkSortField
+  = BookmarkSortTime
+  | BookmarkSortTitle
+  | BookmarkSortTagCount
+  | BookmarkSortUrl
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON BookmarkSortField where toJSON = A.String . fromBookmarkSortField
+
+instance FromJSON BookmarkSortField where
+  parseJSON = A.withText "BookmarkSortField" \s ->
+    maybe (fail $ "Invalid sort field: '" <> unpack s <> "'") pure (toBookmarkSortField s)
+
+fromBookmarkSortField :: (IsString a) => BookmarkSortField -> a
+fromBookmarkSortField = \case
+  BookmarkSortTime -> "time"
+  BookmarkSortTitle -> "title"
+  BookmarkSortTagCount -> "tagcount"
+  BookmarkSortUrl -> "url"
+
+toBookmarkSortField :: (Ord s, IsString s) => s -> Maybe BookmarkSortField
+toBookmarkSortField = inverseMap fromBookmarkSortField
+
+data BookmarkSort = BookmarkSort BookmarkSortField SortDirection
+  deriving (Eq, Show, Read)
+
+instance ToJSON BookmarkSort where
+  toJSON (BookmarkSort field dir) =
+    A.object ["field" A..= field, "direction" A..= dir]
+
+instance FromJSON BookmarkSort where
+  parseJSON = A.withObject "BookmarkSort" $ \o ->
+    BookmarkSort <$> o A..: "field" <*> o A..: "direction"
+
+defaultBookmarkSort :: BookmarkSort
+defaultBookmarkSort = BookmarkSort BookmarkSortTime SortDesc
+
+-- | Parses the "sort"/"order" querystring params into a 'BookmarkSort'. The
+-- field falls back to 'defaultBookmarkSort's field for any missing or
+-- unrecognized value; the direction falls back to a field-dependent default
+-- (see 'defaultBookmarkSortDirection') rather than always following
+-- 'defaultBookmarkSort'.
+parseBookmarkSortParams :: Maybe Text -> Maybe Text -> BookmarkSort
+parseBookmarkSortParams msort morder =
+  BookmarkSort field (fromMaybe (defaultBookmarkSortDirection field) (toSortDirection =<< morder))
+  where
+    BookmarkSort defaultField _ = defaultBookmarkSort
+    field = fromMaybe defaultField (toBookmarkSortField =<< msort)
+
+-- | Time sorts default to newest-first; every other field defaults to
+-- ascending, since there is no comparable recency bias for it.
+defaultBookmarkSortDirection :: BookmarkSortField -> SortDirection
+defaultBookmarkSortDirection = \case
+  BookmarkSortTime -> SortDesc
+  _ -> SortAsc
+
+data Paging sort cursor
+  = PageByCursor SortDirection (Maybe (PagingCursor cursor))
+  | PageByOffset sort Page
+  deriving (Eq, Show)
+
+type BookmarkPaging = Paging BookmarkSort BookmarkCursor
+
+-- | Cursor (before/after) paging is defined for time ordering in either
+-- direction; every other sort pages by offset, where "earlier"/"later"
+-- just mean the previous/next page rather than carrying any temporal
+-- meaning.
+mkBookmarkPaging :: BookmarkSort -> Maybe BookmarkPagingCursor -> Page -> BookmarkPaging
+mkBookmarkPaging bsort mcursor page = case bsort of
+  BookmarkSort BookmarkSortTime dir -> PageByCursor dir mcursor
+  _ -> PageByOffset bsort page
+
+data NoteSortField
+  = NoteSortCreated
+  | NoteSortTitle
+  deriving (Eq, Show, Read, Bounded, Enum)
+
+instance ToJSON NoteSortField where toJSON = A.String . fromNoteSortField
+
+instance FromJSON NoteSortField where
+  parseJSON = A.withText "NoteSortField" \s ->
+    maybe (fail $ "Invalid sort field: '" <> unpack s <> "'") pure (toNoteSortField s)
+
+fromNoteSortField :: (IsString a) => NoteSortField -> a
+fromNoteSortField = \case
+  NoteSortCreated -> "created"
+  NoteSortTitle -> "title"
+
+toNoteSortField :: (Ord s, IsString s) => s -> Maybe NoteSortField
+toNoteSortField = inverseMap fromNoteSortField
+
+data NoteSort = NoteSort NoteSortField SortDirection
+  deriving (Eq, Show, Read)
+
+instance ToJSON NoteSort where
+  toJSON (NoteSort field dir) =
+    A.object ["field" A..= field, "direction" A..= dir]
+
+instance FromJSON NoteSort where
+  parseJSON = A.withObject "NoteSort" $ \o ->
+    NoteSort <$> o A..: "field" <*> o A..: "direction"
+
+defaultNoteSort :: NoteSort
+defaultNoteSort = NoteSort NoteSortCreated SortDesc
+
+-- | Parses the "sort"/"order" querystring params into a 'NoteSort'. The
+-- field falls back to 'defaultNoteSort's field for any missing or
+-- unrecognized value; the direction falls back to a field-dependent default
+-- (see 'defaultNoteSortDirection') rather than always following
+-- 'defaultNoteSort'.
+parseNoteSortParams :: Maybe Text -> Maybe Text -> NoteSort
+parseNoteSortParams msort morder =
+  NoteSort field (fromMaybe (defaultNoteSortDirection field) (toSortDirection =<< morder))
+  where
+    NoteSort defaultField _ = defaultNoteSort
+    field = fromMaybe defaultField (toNoteSortField =<< msort)
+
+-- | Time sorts default to newest-first; every other field defaults to
+-- ascending, since there is no comparable recency bias for it.
+defaultNoteSortDirection :: NoteSortField -> SortDirection
+defaultNoteSortDirection = \case
+  NoteSortCreated -> SortDesc
+  _ -> SortAsc
+
+type NotePaging = Paging NoteSort NoteCursor
+
+mkNotePaging :: NoteSort -> Maybe NotePagingCursor -> Page -> NotePaging
+mkNotePaging nsort mcursor page = case nsort of
+  NoteSort NoteSortCreated dir -> PageByCursor dir mcursor
+  _ -> PageByOffset nsort page
 
 -- * I18n
 
@@ -297,6 +474,10 @@ sqliteLikeExact col = sqliteLike escapeLike "\\" col
 sqliteLikeContains :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
 sqliteLikeContains col = sqliteLike (\v -> "%" <> escapeLike v <> "%") "\\" col
 
+-- Equivalent to: col LIKE escaped_term || '%' ESCAPE '\'
+sqliteLikePrefix :: SqlExpr (Value Text) -> Text -> SqlExpr (Value Bool)
+sqliteLikePrefix col = sqliteLike (\v -> escapeLike v <> "%") "\\" col
+
 -- | Escape wildcards in a string for use in a LIKE pattern, so that _ and % match literally.
 escapeLike :: Text -> Text
 escapeLike = T.replace "_" "\\_" . T.replace "%" "\\%" . T.replace "\\" "\\\\"
@@ -331,11 +512,10 @@ bookmarksTagsQuery ::
   FilterP ->
   [Tag] ->
   Maybe Text ->
-  Maybe BookmarkPagingCursorTime ->
+  BookmarkPaging ->
   Limit ->
-  Page ->
   DB (Int, [(Entity Bookmark, Maybe Text)], Bool, Bool)
-bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' page = do
+bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
   total <-
     fmap
       (sum . fmap unValue)
@@ -353,7 +533,7 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
             PagingCursorAfter after -> where_ (isAfterCursor b after)
           orderBy (bookmarkOrder b)
           limit (limit' + 1) -- fetch one extra row to determine if there are more rows in the given direction
-          offset ((page - 1) * limit')
+          offset pageOffset
           pure
             ( b,
               subSelect $ from (table @BookmarkTag) >>= \t -> do
@@ -368,27 +548,101 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery mcursor limit' pag
       )
   let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
       pageRows = take (fromIntegral limit') rows
-      hasEarlier =
-        case mcursor of
-          Just (PagingCursorAfter _) -> not (null pageRows)
-          _ -> hasMoreInQueryDirection
-      hasLater =
-        case mcursor of
-          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
-          Just (PagingCursorBefore _) -> not (null pageRows)
-          Nothing -> False
-  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
+      -- cursor flags are temporal and independent of display direction;
+      -- offset flags just mean the previous/next page exists
+      (hasPrevious, hasNext) = case paging of
+        PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
+        PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
+        PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
+        PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
+        PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
+  pure (total, finalizeRows pageRows, hasPrevious, hasNext)
   where
-    bookmarkOrder b = case mcursor of
-      Just (PagingCursorAfter _) -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
-      _ -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
-    finalizeRows = case mcursor of
-      Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
+    mcursor = case paging of
+      PageByCursor _ c -> c
+      PageByOffset _ _ -> Nothing
+    pageOffset = case paging of
+      PageByCursor _ _ -> 0
+      PageByOffset _ page -> (page - 1) * limit'
+    -- a before cursor always scans desc through older rows and an after
+    -- cursor asc through newer ones, so limit takes the rows adjacent to the
+    -- cursor; finalizeRows restores display order when the scan opposes it
+    bookmarkOrder b = case paging of
+      PageByCursor _ (Just (PagingCursorBefore _)) -> timeOrder SortDesc b
+      PageByCursor _ (Just (PagingCursorAfter _)) -> timeOrder SortAsc b
+      PageByCursor dir Nothing -> timeOrder dir b
+      PageByOffset bsort _ -> case bsort of
+        BookmarkSort BookmarkSortTime dir ->
+          timeOrder dir b
+        BookmarkSort BookmarkSortTitle SortAsc ->
+          [asc (lower_ (b ^. BookmarkDescription)), asc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTitle SortDesc ->
+          [desc (lower_ (b ^. BookmarkDescription)), desc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTagCount SortAsc ->
+          [asc (bookmarkTagCountExpr isowner b), asc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTagCount SortDesc ->
+          [desc (bookmarkTagCountExpr isowner b), desc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortUrl SortAsc ->
+          [asc (bookmarkHrefNoSchemeExpr b), asc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortUrl SortDesc ->
+          [desc (bookmarkHrefNoSchemeExpr b), desc (b ^. BookmarkId)]
+    timeOrder dir b = case dir of
+      SortDesc -> [desc (b ^. BookmarkTime), desc (b ^. BookmarkId)]
+      SortAsc -> [asc (b ^. BookmarkTime), asc (b ^. BookmarkId)]
+    finalizeRows = case paging of
+      PageByCursor SortDesc (Just (PagingCursorAfter _)) -> reverse
+      PageByCursor SortAsc (Just (PagingCursorBefore _)) -> reverse
       _ -> id
-    isBeforeCursor b before =
-      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val before)
-    isAfterCursor b after =
-      ((b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val after)
+    isBeforeCursor b (BookmarkCursor t mbid) = case mbid of
+      Nothing -> timeLt
+      Just bid ->
+        timeLt
+          ||. ((b ^. BookmarkTime ==. val t) &&. ((b ^. BookmarkId) Database.Esqueleto.Experimental.<. val bid))
+      where
+        timeLt = (b ^. BookmarkTime) Database.Esqueleto.Experimental.<. val t
+    isAfterCursor b (BookmarkCursor t mbid) = case mbid of
+      Nothing -> timeGt
+      Just bid ->
+        timeGt
+          ||. ((b ^. BookmarkTime ==. val t) &&. ((b ^. BookmarkId) Database.Esqueleto.Experimental.>. val bid))
+      where
+        timeGt = (b ^. BookmarkTime) Database.Esqueleto.Experimental.>. val t
+
+-- | Number of tags on a bookmark, for sorting by tag count. Excludes
+-- dot-prefixed (private) tags for non-owners, matching the tag list built
+-- alongside it in 'bookmarksTagsQuery'.
+bookmarkTagCountExpr :: Bool -> SqlExpr (Entity Bookmark) -> SqlExpr (Value (Maybe Int))
+bookmarkTagCountExpr isowner b =
+  subSelect $ from (table @BookmarkTag) >>= \t -> do
+    where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+    when
+      (not isowner)
+      (where_ (not_ (t ^. BookmarkTagTag `like` val ".%")))
+    pure countRows
+
+-- | Bookmark href with a leading "<scheme>://" stripped, for sorting by URL
+-- while ignoring scheme. The '://' delimiter and the 0/3 literals are
+-- spliced as raw SQL (not bind parameters) so this expression matches,
+-- token-for-token, the idx_bookmark_href_no_scheme expression indexes
+-- created in Model.Migrations.operation_create_initial_indexes -- SQLite
+-- can only use an expression index when the query expression is parsed
+-- identically to the indexed expression, and bind parameters never match
+-- literals.
+-- Keep both sides in sync if this expression ever changes.
+bookmarkHrefNoSchemeExpr :: SqlExpr (Entity Bookmark) -> SqlExpr (Value Text)
+bookmarkHrefNoSchemeExpr b =
+  case_
+    [when_ (schemeEnd Database.Esqueleto.Experimental.>. sqlIntLit 0) then_ (sqliteSubstr href (schemeEnd +. sqlIntLit 3))]
+    (else_ href)
+  where
+    href = b ^. BookmarkHref
+    schemeEnd = sqliteInstr href "://"
+    sqlIntLit :: Int -> SqlExpr (Value Int)
+    sqlIntLit n = unsafeSqlValue (TLB.fromString (show n))
+    sqliteSubstr col start = unsafeSqlFunction "substr" (col, start)
+    sqliteInstr col str = unsafeSqlFunction "instr" (col, sqlStrLit str)
+      where
+        sqlStrLit t = unsafeSqlValue ("'" <> TLB.fromText (T.replace "'" "''" t) <> "'")
 
 bookmarkWhereClause ::
   Key User ->
@@ -431,33 +685,38 @@ bookmarkLikeExpr :: SqlExpr (Entity Bookmark) -> Text -> SqlExpr (Value Bool)
 bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
   where
     toLikeB field s = sqliteLikeContains (b ^. field) s
+    toExactB field s = sqliteLikeExact (b ^. field) s
+    tagsExpr match term' =
+      exists $ from (table @BookmarkTag) >>= \t ->
+        where_
+          $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
+          &&. match (t ^. BookmarkTagTag) term'
     p_allFields =
       toLikeB BookmarkHref term
         ||. toLikeB BookmarkDescription term
         ||. toLikeB BookmarkExtended term
-        ||. exists
-          ( from (table @BookmarkTag) >>= \t ->
-              where_
-                $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                &&. sqliteLikeContains (t ^. BookmarkTagTag) term
-          )
+        ||. tagsExpr sqliteLikeContains term
     p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
       where
-        p_url = ("url:" <|> "u:") *> fmap (toLikeB BookmarkHref) P.takeText
-        p_title = ("title:" <|> "ti:") *> fmap (toLikeB BookmarkDescription) P.takeText
-        p_description = ("description:" <|> "d:") *> fmap (toLikeB BookmarkExtended) P.takeText
+        p_url = p_textField ("url" <|> "u") BookmarkHref
+        p_title = p_textField ("title" <|> "ti") BookmarkDescription
+        p_description = p_textField ("description" <|> "d") BookmarkExtended
         p_tags =
-          ("tags:" <|> "t:")
-            *> fmap
-              ( \term' ->
-                  exists $ from (table @BookmarkTag) >>= \t ->
-                    where_
-                      $ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
-                      &&. sqliteLikeContains (t ^. BookmarkTagTag) term'
-              )
-              P.takeText
+          ("tags" <|> "t")
+            *> ( P.char ':'
+                   *> fmap (tagsExpr sqliteLikeContains) P.takeText
+                   <|> P.char '='
+                   *> fmap (tagsExpr sqliteLikeExact) P.takeText
+               )
         p_after = ("after:" <|> "a:") *> fmap ((b ^. BookmarkTime >=.) . val) (parseTimeText =<< P.takeText)
         p_before = ("before:" <|> "b:") *> fmap ((b ^. BookmarkTime <=.) . val) (parseTimeText =<< P.takeText)
+        p_textField name field =
+          name
+            *> ( P.char ':'
+                   *> fmap (toLikeB field) P.takeText
+                   <|> P.char '='
+                   *> fmap (toExactB field) P.takeText
+               )
 
 -- * BulkEdit types
 
@@ -676,15 +935,17 @@ parseSearchQuery ::
 parseSearchQuery toExpr =
   fmap where_ . either (const Nothing) Just . P.parseOnly andE
   where
-    andE = foldl1 (&&.) <$> P.many1 (P.skipSpace *> orE <|> tokenTermE)
+    andE = foldl1 (&&.) <$> P.many1 (P.skipSpace *> orE)
     orE = foldl1 (||.) <$> tokenTermE `P.sepBy1` P.char '|'
-    tokenTermE = negE termE <|> termE
+    tokenTermE = negE (groupE <|> termE) <|> groupE <|> termE
       where
         negE p = not_ <$> (P.char '-' *> p)
+        groupE = P.char '(' *> andE <* P.skipSpace <* P.char ')'
         termE = toExpr <$> (fieldTerm <|> quotedTerm <|> simpleTerm)
-        fieldTerm = concat <$> sequence [simpleTerm, P.string ":", quotedTerm <|> simpleTerm]
+        fieldTerm = concat <$> sequence [fieldName, P.string ":" <|> P.string "=", quotedTerm <|> simpleTerm]
+        fieldName = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '=' && c /= '|' && c /= '(' && c /= ')')
         quotedTerm = PC.between (P.char '"') (P.char '"') (P.takeWhile1 (/= '"'))
-        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|')
+        simpleTerm = P.takeWhile1 (\c -> not (isSpace c) && c /= ':' && c /= '|' && c /= '(' && c /= ')')
 
 withTags :: Key Bookmark -> DB [Entity BookmarkTag]
 withTags key = selectList [BookmarkTagBookmarkId CP.==. key] [Asc BookmarkTagSeq]
@@ -695,8 +956,8 @@ getNote :: Key User -> NtSlug -> DB (Maybe (Entity Note))
 getNote userKey slug =
   selectFirst [NoteUserId CP.==. userKey, NoteSlug CP.==. slug] []
 
-getNoteList :: Key User -> Maybe Text -> Maybe NotePagingCursorTime -> SharedP -> Limit -> Page -> DB (Int, [Entity Note], Bool, Bool)
-getNoteList key mquery mcursor sharedp limit' page = do
+getNoteList :: Key User -> Maybe Text -> SharedP -> NotePaging -> Limit -> DB (Int, [Entity Note], Bool, Bool)
+getNoteList key mquery sharedp paging limit' = do
   total <-
     fmap
       (sum . fmap unValue)
@@ -714,34 +975,62 @@ getNoteList key mquery mcursor sharedp limit' page = do
         PagingCursorAfter after -> where_ (isAfterCursor b after)
       orderBy (noteOrder b)
       limit (limit' + 1) -- fetch one extra row to determine if there are more rows in the given direction
-      offset ((page - 1) * limit')
+      offset pageOffset
       pure b
   let hasMoreInQueryDirection = fromIntegral (length rows) > limit'
       pageRows = take (fromIntegral limit') rows
-      hasEarlier =
-        case mcursor of
-          Just (PagingCursorAfter _) -> not (null pageRows)
-          _ -> hasMoreInQueryDirection
-      hasLater =
-        case mcursor of
-          Just (PagingCursorAfter _) -> hasMoreInQueryDirection
-          Just (PagingCursorBefore _) -> not (null pageRows)
-          Nothing -> False
-  pure (total, finalizeRows pageRows, hasEarlier, hasLater)
+      -- cursor flags are temporal and independent of display direction;
+      -- offset flags just mean the previous/next page exists
+      (hasPrevious, hasNext) = case paging of
+        PageByOffset _ page -> (page > 1, hasMoreInQueryDirection)
+        PageByCursor _ (Just (PagingCursorBefore _)) -> (hasMoreInQueryDirection, not (null pageRows))
+        PageByCursor _ (Just (PagingCursorAfter _)) -> (not (null pageRows), hasMoreInQueryDirection)
+        PageByCursor SortDesc Nothing -> (hasMoreInQueryDirection, False)
+        PageByCursor SortAsc Nothing -> (False, hasMoreInQueryDirection)
+  pure (total, finalizeRows pageRows, hasPrevious, hasNext)
   where
     _whereClause = noteWhereClause key sharedp mquery
-    noteOrder b =
-      case mcursor of
-        Just (PagingCursorAfter _) -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
-        _ -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
-    finalizeRows =
-      case mcursor of
-        Just (PagingCursorAfter _) -> reverse -- because of asc order fetch for after cursor, reverse to get newest first order
-        _ -> id
-    isBeforeCursor b before =
-      (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val before
-    isAfterCursor b after =
-      (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val after
+    mcursor = case paging of
+      PageByCursor _ c -> c
+      PageByOffset _ _ -> Nothing
+    pageOffset = case paging of
+      PageByCursor _ _ -> 0
+      PageByOffset _ page -> (page - 1) * limit'
+    -- a before cursor always scans desc through older rows and an after
+    -- cursor asc through newer ones, so limit takes the rows adjacent to the
+    -- cursor; finalizeRows restores display order when the scan opposes it
+    noteOrder b = case paging of
+      PageByCursor _ (Just (PagingCursorBefore _)) -> createdOrder SortDesc b
+      PageByCursor _ (Just (PagingCursorAfter _)) -> createdOrder SortAsc b
+      PageByCursor dir Nothing -> createdOrder dir b
+      PageByOffset nsort _ -> case nsort of
+        NoteSort NoteSortCreated dir ->
+          createdOrder dir b
+        NoteSort NoteSortTitle SortAsc ->
+          [asc (lower_ (b ^. NoteTitle)), asc (b ^. NoteId)]
+        NoteSort NoteSortTitle SortDesc ->
+          [desc (lower_ (b ^. NoteTitle)), desc (b ^. NoteId)]
+    createdOrder dir b = case dir of
+      SortDesc -> [desc (b ^. NoteCreated), desc (b ^. NoteId)]
+      SortAsc -> [asc (b ^. NoteCreated), asc (b ^. NoteId)]
+    finalizeRows = case paging of
+      PageByCursor SortDesc (Just (PagingCursorAfter _)) -> reverse
+      PageByCursor SortAsc (Just (PagingCursorBefore _)) -> reverse
+      _ -> id
+    isBeforeCursor b (NoteCursor t mnid) = case mnid of
+      Nothing -> createdLt
+      Just nid ->
+        createdLt
+          ||. ((b ^. NoteCreated ==. val t) &&. ((b ^. NoteId) Database.Esqueleto.Experimental.<. val nid))
+      where
+        createdLt = (b ^. NoteCreated) Database.Esqueleto.Experimental.<. val t
+    isAfterCursor b (NoteCursor t mnid) = case mnid of
+      Nothing -> createdGt
+      Just nid ->
+        createdGt
+          ||. ((b ^. NoteCreated ==. val t) &&. ((b ^. NoteId) Database.Esqueleto.Experimental.>. val nid))
+      where
+        createdGt = (b ^. NoteCreated) Database.Esqueleto.Experimental.>. val t
 
 noteWhereClause :: Key User -> SharedP -> Maybe Text -> SqlExpr (Entity Note) -> SqlQuery ()
 noteWhereClause key sharedp mquery b = do
@@ -756,14 +1045,22 @@ noteWhereClause key sharedp mquery b = do
     toLikeExpr term = fromRight p_allFields (P.parseOnly p_onefield term)
       where
         toLikeN field s = sqliteLikeContains (b ^. field) s
+        toExactN field s = sqliteLikeExact (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
         p_onefield = p_title <|> p_text <|> p_markdown <|> p_after <|> p_before
           where
-            p_title = ("title:" <|> "ti:") *> fmap (toLikeN NoteTitle) P.takeText
-            p_text = ("description:" <|> "d:") *> fmap (toLikeN NoteText) P.takeText
+            p_title = p_textField ("title" <|> "ti") NoteTitle
+            p_text = p_textField ("description" <|> "d") NoteText
             p_markdown = ("markdown:" <|> "m:") *> fmap ((b ^. NoteIsMarkdown ==.) . val) (parseBoolText =<< P.takeText)
             p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
+            p_textField name field =
+              name
+                *> ( P.char ':'
+                       *> fmap (toLikeN field) P.takeText
+                       <|> P.char '='
+                       *> fmap (toExactN field) P.takeText
+                   )
 
 -- * Note BulkEdit
 
@@ -1008,47 +1305,58 @@ fetchBookmarkByUrl userId murl = runMaybeT do
   btags <- lift $ withTags (entityKey bmark)
   pure (bmark, btags)
 
-data UpsertResult a = Created a | Updated a | Failed String
+data FailedReason
+  = ReasonUnauthorized
+  | ReasonNotFound
+  | ReasonConflictWithNewer
+  | ReasonHrefUsedByOther
+  | ReasonInvalidInput Text
+  deriving (Show, Eq)
+
+data UpsertResult a = Created a | Updated a | Failed FailedReason
   deriving (Show, Eq, Functor)
 
-maybeUpsertResult :: UpsertResult a -> Maybe a
-maybeUpsertResult (Created a) = Just a
-maybeUpsertResult (Updated a) = Just a
-maybeUpsertResult _ = Nothing
-
 upsertBookmark :: Key User -> Maybe (Key Bookmark) -> Bookmark -> [Text] -> DB (UpsertResult (Key Bookmark))
-upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed "unauthorized")
+upsertBookmark userId _ bm _ | userId /= bookmarkUserId bm = pure (Failed ReasonUnauthorized)
 upsertBookmark userId mbid bm tags = do
   res <- case mbid of
     Just bid ->
       get bid >>= \case
-        Just prev_bm
-          | userId == bookmarkUserId prev_bm ->
-              replaceBookmark bid prev_bm
-        Just _ -> pure (Failed "unauthorized")
-        _ -> pure (Failed "not found")
+        Nothing -> pure (Failed ReasonNotFound)
+        Just prev_bm | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
+        Just prev_bm -> do
+          getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
+            Just (Entity otherBid _) | otherBid /= bid -> pure (Failed ReasonHrefUsedByOther)
+            _ -> replaceBookmark bid prev_bm
     Nothing ->
       getBy (UniqueUserHref userId (bookmarkHref bm)) >>= \case
-        Just (Entity bid prev_bm)
-          | userId == bookmarkUserId prev_bm ->
-              replaceBookmark bid prev_bm
-        Just _ -> pure (Failed "unauthorized")
-        _ -> Created <$> insert bm
+        Nothing -> Created <$> insert bm
+        Just (Entity _ prev_bm) | userId /= bookmarkUserId prev_bm -> pure (Failed ReasonUnauthorized)
+        Just (Entity bid prev_bm) -> replaceBookmark bid prev_bm
   forM_ (maybeUpsertResult res) (insertTags (bookmarkUserId bm))
   pure res
   where
-    prepareReplace prev_bm =
-      if bookmarkHref bm /= bookmarkHref prev_bm
-        then bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = Nothing}
-        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+    maybeUpsertResult (Created a) = Just a
+    maybeUpsertResult (Updated a) = Just a
+    maybeUpsertResult _ = Nothing
     replaceBookmark bid prev_bm = do
-      replace bid (prepareReplace prev_bm)
+      replace bid (prepareBookmarkReplace prev_bm)
       deleteTags bid
       pure (Updated bid)
     deleteTags bid =
       deleteWhere [BookmarkTagBookmarkId CP.==. bid]
     insertTags userId' bid' =
       insertMany_ (mkBookmarkTags userId' bid' tags)
+    -- \| Preserves the existing bookmark's slug (and, unless the href changed, its archive url).
+    prepareBookmarkReplace :: Bookmark -> Bookmark
+    prepareBookmarkReplace prev_bm =
+      if bookmarkHref bm /= bookmarkHref prev_bm
+        then bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = Nothing}
+        else bm {bookmarkSlug = bookmarkSlug prev_bm, bookmarkArchiveHref = bookmarkArchiveHref prev_bm}
+
+upsertBookmarks :: Key User -> [Maybe (Key Bookmark)] -> [Bookmark] -> [[Text]] -> DB [UpsertResult (Key Bookmark)]
+upsertBookmarks userId mbids bms tagss =
+  forM (zip3 mbids bms tagss) $ \(mbid, bm, tags) -> upsertBookmark userId mbid bm tags
 
 updateBookmarkArchiveUrl :: Key User -> Key Bookmark -> Maybe Text -> DB ()
 updateBookmarkArchiveUrl userId bid marchiveUrl =
@@ -1056,17 +1364,34 @@ updateBookmarkArchiveUrl userId bid marchiveUrl =
     [BookmarkUserId CP.==. userId, BookmarkId CP.==. bid]
     [BookmarkArchiveHref CP.=. marchiveUrl]
 
-upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Key Note))
-upsertNote userId mnid note =
+upsertNote :: Key User -> Maybe (Key Note) -> Note -> DB (UpsertResult (Entity Note))
+upsertNote userId mnid note = do
   case mnid of
-    Just nid -> do
-      get nid >>= \case
-        Just note' -> do
-          when
-            (userId /= noteUserId note')
-            (throwString "unauthorized")
-          replace nid note
-          pure (Updated nid)
-        _ -> throwString "not found"
     Nothing -> do
-      Created <$> insert note
+      now <- liftIO getCurrentTime
+      let note'' = note {noteUserId = userId, noteLength = T.length (noteText note), noteUpdated = now}
+      nid <- insert note''
+      pure (Created (Entity nid note''))
+    Just nid ->
+      get nid >>= \case
+        Nothing -> pure (Failed ReasonNotFound)
+        Just note' | userId /= noteUserId note' -> pure (Failed ReasonUnauthorized)
+        Just note' | noteUpdated note' > noteUpdated note -> pure (Failed ReasonConflictWithNewer)
+        Just _ -> do
+          now <- liftIO getCurrentTime
+          let note'' = note {noteLength = T.length (noteText note), noteUpdated = now}
+          replace nid note''
+          pure (Updated (Entity nid note''))
+
+-- * Archive Job Store
+
+insertArchiveJobRecords :: [(Key User, Key Bookmark, Text)] -> DB [Key ArchiveJobRecord]
+insertArchiveJobRecords records = do
+  now <- liftIO getCurrentTime
+  forM records $ \(userId, bid, href) -> insert (ArchiveJobRecord userId bid href now)
+
+deleteArchiveJobRecord :: Key ArchiveJobRecord -> DB ()
+deleteArchiveJobRecord jobId = CP.delete jobId
+
+getArchiveJobRecords :: DB [Entity ArchiveJobRecord]
+getArchiveJobRecords = selectList [] [Asc ArchiveJobRecordId]

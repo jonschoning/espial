@@ -17,7 +17,12 @@
     "error": "erreur : {{status}}",
     "errorWithMsg": "erreur {{status}} : {{msg}}",
     "requestTimedOut": "délai de la requête dépassé",
-    "networkError": "erreur réseau"
+    "networkError": "erreur réseau",
+    "upsertUnauthorized": "non autorisé",
+    "upsertNotFound": "introuvable",
+    "upsertHrefUsedByOther": "url déjà utilisée par un autre signet",
+    "upsertConflictWithNewer": "l'élément sur le serveur a été mis à jour plus récemment ; rechargez et réessayez",
+    "upsertInvalidInput": "entrée invalide"
   },
   "nav": {
     "privateProfileEnabled": "profil privé activé",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Ancien mot de passe",
     "newPassword": "Nouveau mot de passe",
-    "submit": "Enregistrer les modifications"
+    "submit": "Enregistrer les modifications",
+    "demoMode": "mode démo : la modification du mot de passe est désactivée"
   },
   "settings": {
     "serverDefault": "Par defaut du serveur",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "par page :"
   },
+  "sort": {
+    "label": "trier :",
+    "time": "date",
+    "url": "url",
+    "title": "titre",
+    "tagcount": "nb tags",
+    "created": "créé"
+  },
   "pager": {
     "earlier": "« précédent",
-    "later": "suivant »"
+    "later": "suivant »",
+    "previous": "« précédent",
+    "next": "suivant »"
   },
   "notes": {
     "count_one": "{{count}} note",
@@ -229,18 +245,24 @@
     "betweenQuery": "entre chaque requête de recherche.",
     "excludeWords": "Exclure des mots de votre recherche",
     "inFrontWord": "devant un mot que vous souhaitez exclure.",
-    "exactMatch": "Rechercher une correspondance exacte",
-    "putInQuotes": "Mettez un mot ou une phrase entre guillemets.",
+    "groupTerms": "Grouper les termes de recherche",
+    "putInParens": "Mettez des parenthèses autour des termes pour les grouper en une seule unité. Les groupes peuvent être combinés, niés et imbriqués.",
+    "searchPhrase": "Rechercher une phrase",
+    "putInQuotes": "Mettez la phrase entre guillemets.",
     "specificField": "Rechercher dans un champ spécifique",
     "inFrontTerm": "devant le terme,",
     "where": "où",
     "isOneOfOptions": "est l'une des options ci-dessous",
+    "fieldContainsDesc": "Une recherche par champ est une recherche par contenu : il suffit que le champ contienne le terme.",
+    "exactField": "Recherche exacte sur un champ spécifique",
+    "exactFieldDesc": "devant le terme pour exiger que le champ entier soit exactement égal au terme. Disponible pour les champs texte : url, title, description, tags.",
     "bookmarkSearch": "Recherche de favoris",
     "noteSearch": "Recherche de notes",
     "fieldHeader": "CHAMP",
     "exampleHeader": "EXEMPLE",
     "complexExamples": "Exemples plus complexes",
     "complexExample1Desc": "\"youtube\" dans l'URL, et titre \"haskell\" ou titre \"python\" et après le 31/12/2017",
-    "complexExample2Desc": "\"hacker news\" pas dans le titre, et \"news\", \"cnn\", \"npr\" n'importe où, ou \"the guardian\" dans la description"
+    "complexExample2Desc": "\"hacker news\" pas dans le titre, et \"news\", \"cnn\", \"npr\" n'importe où, ou \"the guardian\" dans la description",
+    "complexExample3Desc": "étiqueté \"haskell\" et \"youtube\", ou pas étiqueté à la fois \"haskell\" et \"vimeo\" ; et pas étiqueté à la fois \"surveys\" et \"news\", et après le 2018-12-31"
   }
 }

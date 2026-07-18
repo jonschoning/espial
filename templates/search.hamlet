@@ -1,5 +1,9 @@
 $maybe route <- mroute
     <form method="get" action="@{route}" onsubmit="this.classList.add('submitting')">
+      $maybe s <- msort
+        <input type="hidden" name="sort" value="#{s}">
+      $maybe o <- morder
+        <input type="hidden" name="order" value="#{o}">
       <div .relative>
         $maybe _ <- mquery
           <a .close-x-wrap href="@{route}" title="#{t "search.clearTitle"}">

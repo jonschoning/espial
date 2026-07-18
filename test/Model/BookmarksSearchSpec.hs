@@ -9,6 +9,8 @@
 --   BookmarkExtended    notes   description:/d:
 --   BookmarkTag         tags    tags:/t:
 --   BookmarkTime        time    after:/a:  before:/b:
+--
+-- field: is a contains search; field= (url/title/description/tags) matches the entire field.
 
 module Model.BookmarksSearchSpec (spec) where
 
@@ -37,7 +39,7 @@ tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
 
 search :: Key User -> Text -> DB [Key Bookmark]
 search uid q = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] (Just q) Nothing 100 1
+  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] (Just q) (PageByCursor SortDesc Nothing) 100
   return $ map (entityKey . fst) rows
 
 -- ─── Spec ──────────────────────────────────────────────────────────────────
@@ -197,6 +199,73 @@ spec = withApp $ do
         tagBm uid bid "haskell" 1
         return (uid, bid)
       bids <- runDB $ search uid "t:haskell"
+      liftIO $ bids `shouldContain` [bid]
+
+  -- ─── field= exact search ─────────────────────────────────────────────────
+
+  describe "field= exact search" $ do
+    it "title= matches when the entire title equals the term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=haskell"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "title= does not match when the title merely contains the term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell tutorial" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=haskell"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "title= is case-insensitive" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title=HASKELL"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "title= accepts a quoted phrase" $ do
+      (uid, bidExact, bidLonger) <- runDB $ do
+        uid <- createTestUser
+        bidExact <- createBm uid "https://a.com" "hacker news" "" t2019
+        bidLonger <- createBm uid "https://b.com" "hacker newsletter" "" t2019
+        return (uid, bidExact, bidLonger)
+      bids <- runDB $ search uid "title=\"hacker news\""
+      liftIO $ bids `shouldContain` [bidExact]
+      liftIO $ bids `shouldNotContain` [bidLonger]
+
+    it "tags= matches only the whole tag" $ do
+      (uid, bidWhole, bidPartial) <- runDB $ do
+        uid <- createTestUser
+        bidWhole <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bidWhole "linux" 1
+        bidPartial <- createBm uid "https://b.com" "" "" t2019
+        tagBm uid bidPartial "linuxkernel" 1
+        return (uid, bidWhole, bidPartial)
+      bids <- runDB $ search uid "tags=linux"
+      liftIO $ bids `shouldContain` [bidWhole]
+      liftIO $ bids `shouldNotContain` [bidPartial]
+
+    it "u= is an alias for url=" $ do
+      (uid, bidExact, bidPartial) <- runDB $ do
+        uid <- createTestUser
+        bidExact <- createBm uid "https://a.com" "" "" t2019
+        bidPartial <- createBm uid "https://a.com/page" "" "" t2019
+        return (uid, bidExact, bidPartial)
+      bids <- runDB $ search uid "u=\"https://a.com\""
+      liftIO $ bids `shouldContain` [bidExact]
+      liftIO $ bids `shouldNotContain` [bidPartial]
+
+    it "field: still performs a contains search" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "haskell tutorial" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "title:haskell"
       liftIO $ bids `shouldContain` [bid]
 
   -- ─── after: / a: date filter ─────────────────────────────────────────────
@@ -398,6 +467,91 @@ spec = withApp $ do
         return (uid, bid)
       bids <- runDB $ search uid "\"tallest building\""
       liftIO $ bids `shouldNotContain` [bid]
+
+  -- ─── Parentheses grouping ────────────────────────────────────────────────
+
+  describe "parentheses grouping" $ do
+    it "a|(b c) matches a bookmark containing only the first alternative" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "apple pie" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "a|(b c) matches a bookmark containing both grouped terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "banana cherry smoothie" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "a|(b c) does not match a bookmark containing only one grouped term" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "banana bread" "" t2019
+        return (uid, bid)
+      bids <- runDB $ search uid "apple|(banana cherry)"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "-(a b) excludes a bookmark containing both terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bid "surveys" 1
+        tagBm uid bid "news" 2
+        return (uid, bid)
+      bids <- runDB $ search uid "-(t:surveys t:news)"
+      liftIO $ bids `shouldNotContain` [bid]
+
+    it "-(a b) includes a bookmark containing only one of the terms" $ do
+      (uid, bid) <- runDB $ do
+        uid <- createTestUser
+        bid <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bid "surveys" 1
+        return (uid, bid)
+      bids <- runDB $ search uid "-(t:surveys t:news)"
+      liftIO $ bids `shouldContain` [bid]
+
+    it "supports nested groups" $ do
+      (uid, bMatch, bNoMatch) <- runDB $ do
+        uid <- createTestUser
+        bMatch <- createBm uid "https://a.com" "alpha beta" "" t2019
+        bNoMatch <- createBm uid "https://b.com" "alpha delta" "" t2019
+        return (uid, bMatch, bNoMatch)
+      bids <- runDB $ search uid "(alpha (beta|gamma))"
+      liftIO $ bids `shouldContain` [bMatch]
+      liftIO $ bids `shouldNotContain` [bNoMatch]
+
+    it "groups combine with field prefixes, OR, NOT, and date filters" $ do
+      let t2018 = UTCTime (fromGregorian 2018 1 1) 0
+          q = "(t:haskell t:youtube)|-(t:haskell t:vimeo) -(t:surveys t:news) a:2018-12-31"
+      (uid, bHsYt, bHsVimeo, bSurveysNews, bOther, bOld) <- runDB $ do
+        uid <- createTestUser
+        bHsYt <- createBm uid "https://a.com" "" "" t2019
+        tagBm uid bHsYt "haskell" 1
+        tagBm uid bHsYt "youtube" 2
+        bHsVimeo <- createBm uid "https://b.com" "" "" t2019
+        tagBm uid bHsVimeo "haskell" 1
+        tagBm uid bHsVimeo "vimeo" 2
+        bSurveysNews <- createBm uid "https://c.com" "" "" t2019
+        tagBm uid bSurveysNews "haskell" 1
+        tagBm uid bSurveysNews "youtube" 2
+        tagBm uid bSurveysNews "surveys" 3
+        tagBm uid bSurveysNews "news" 4
+        bOther <- createBm uid "https://d.com" "" "" t2019
+        tagBm uid bOther "cooking" 1
+        bOld <- createBm uid "https://e.com" "" "" t2018
+        tagBm uid bOld "haskell" 1
+        tagBm uid bOld "youtube" 2
+        return (uid, bHsYt, bHsVimeo, bSurveysNews, bOther, bOld)
+      bids <- runDB $ search uid q
+      liftIO $ bids `shouldContain` [bHsYt]
+      liftIO $ bids `shouldNotContain` [bHsVimeo]
+      liftIO $ bids `shouldNotContain` [bSurveysNews]
+      liftIO $ bids `shouldContain` [bOther]
+      liftIO $ bids `shouldNotContain` [bOld]
 
   -- ─── Complex combined queries ─────────────────────────────────────────────
 

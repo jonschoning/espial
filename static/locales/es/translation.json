@@ -17,7 +17,12 @@
     "error": "error: {{status}}",
     "errorWithMsg": "error {{status}}: {{msg}}",
     "requestTimedOut": "tiempo de espera agotado",
-    "networkError": "error de red"
+    "networkError": "error de red",
+    "upsertUnauthorized": "no autorizado",
+    "upsertNotFound": "no encontrado",
+    "upsertHrefUsedByOther": "la url ya está siendo usada por otro marcador",
+    "upsertConflictWithNewer": "el elemento en el servidor se ha actualizado más recientemente; recargue y vuelva a intentarlo",
+    "upsertInvalidInput": "entrada no válida"
   },
   "nav": {
     "privateProfileEnabled": "perfil privado activado",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Contrasena anterior",
     "newPassword": "Nueva contrasena",
-    "submit": "Guardar cambios"
+    "submit": "Guardar cambios",
+    "demoMode": "modo demo: los cambios de contrasena estan deshabilitados"
   },
   "settings": {
     "serverDefault": "Predeterminado del servidor",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "por pagina:"
   },
+  "sort": {
+    "label": "ordenar:",
+    "time": "fecha",
+    "url": "url",
+    "title": "título",
+    "tagcount": "etiquetas",
+    "created": "creado"
+  },
   "pager": {
     "earlier": "« anteriores",
-    "later": "siguientes »"
+    "later": "siguientes »",
+    "previous": "« anterior",
+    "next": "siguiente »"
   },
   "notes": {
     "count_one": "{{count}} nota",
@@ -229,18 +245,24 @@
     "betweenQuery": "entre cada consulta de busqueda.",
     "excludeWords": "Excluir palabras de tu busqueda",
     "inFrontWord": "delante de una palabra que quieras omitir.",
-    "exactMatch": "Buscar una coincidencia exacta",
-    "putInQuotes": "Pon una palabra o frase entre comillas.",
+    "groupTerms": "Agrupar terminos de busqueda",
+    "putInParens": "Pon parentesis alrededor de los terminos para agruparlos en una sola unidad. Los grupos se pueden combinar, negar y anidar.",
+    "searchPhrase": "Buscar una frase",
+    "putInQuotes": "Pon la frase entre comillas.",
     "specificField": "Buscar en un campo especifico",
     "inFrontTerm": "delante del termino,",
     "where": "donde",
     "isOneOfOptions": "es una de las opciones siguientes",
+    "fieldContainsDesc": "Una busqueda por campo es una busqueda de contenido: basta con que el campo contenga el termino.",
+    "exactField": "Busqueda exacta en un campo especifico",
+    "exactFieldDesc": "delante del termino para exigir que el campo completo sea exactamente igual al termino. Disponible para campos de texto: url, title, description, tags.",
     "bookmarkSearch": "Busqueda de marcadores",
     "noteSearch": "Busqueda de notas",
     "fieldHeader": "CAMPO",
     "exampleHeader": "EJEMPLO",
     "complexExamples": "Ejemplos mas complejos",
     "complexExample1Desc": "\"youtube\" en la url, y titulo de \"haskell\" o titulo de \"python\" y despues del 31/12/2017",
-    "complexExample2Desc": "\"hacker news\" no en el titulo, y \"news\", \"cnn\", \"npr\" en cualquier parte, o \"the guardian\" en la descripcion"
+    "complexExample2Desc": "\"hacker news\" no en el titulo, y \"news\", \"cnn\", \"npr\" en cualquier parte, o \"the guardian\" en la descripcion",
+    "complexExample3Desc": "etiquetado con \"haskell\" y \"youtube\", o no etiquetado con \"haskell\" y \"vimeo\" a la vez; y no etiquetado con \"surveys\" y \"news\" a la vez, y despues del 2018-12-31"
   }
 }

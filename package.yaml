@@ -1,6 +1,6 @@
 name: espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.40"
+version: "0.0.41"
 description: ! "
   Espial is an open-source, web-based bookmarking server.
 
@@ -135,10 +135,12 @@ dependencies:
   - http-types
   - iproute
   - microlens
+  - network
   - mtl
   - parser-combinators
   - persistent-sqlite == 2.13.3.0 # do not upgrade to 2.13.3.1 due to UTCTime behavior in that version (see https://github.com/yesodweb/persistent/issues/1628)
   - transformers >= 0.2.2
+  - stm
 
 when:
   - condition: "!os(windows)"
@@ -185,19 +187,30 @@ executables:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
+      - -Wall
     dependencies:
       - espial
     when:
+      - condition: flag(werror)
+        ghc-options:
+          - -Werror
       - condition: flag(library-only)
         buildable: false
   migration:
     when:
+      - condition: flag(werror)
+        ghc-options:
+          - -Werror
       - condition: flag(library-only)
         buildable: false
     main: Main.hs
     source-dirs:
       - app/migration
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+      - -Wall
     dependencies:
       - espial
       - optparse-generic >= 1.2.3
@@ -226,5 +239,9 @@ flags:
     default: false
   usebuildinfo:
     description: read buildinfo from generated file buildinfo/BuildInfo.hs
+    default: false
+    manual: true
+  werror:
+    description: Treat warnings as errors in executables. Off by default so the package still builds against future GHC versions that add new warnings; enabled for development via stack.yaml.
     default: false
     manual: true

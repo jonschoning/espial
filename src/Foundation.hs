@@ -2,8 +2,9 @@
 
 module Foundation where
 
-import Archiver.Backend (ArchiverBackend)
+import Archiver.Backend (ArchiveQueue, ArchiverBackend)
 import ClassyPrelude.Yesod qualified as CP (Lang)
+import Control.Concurrent (ThreadId)
 import Data.ByteString.Char8 qualified as BS8
 import Data.CaseInsensitive qualified as CI
 import Data.IP (fromSockAddr)
@@ -28,6 +29,12 @@ type PublicTagCloudCache = IORef (Map (Text, TagCloudMode) (UTCTime, Map Text In
 -- | Sliding-window login-attempt counters, keyed by e.g. @"ip:1.2.3.4"@ or @"user:alice"@.
 type LoginRateLimiter = IORef (Map Text (UTCTime, Int))
 
+-- | Serializes DB write transactions; see 'appDBWriteLock'.
+newtype DBWriteLock = DBWriteLock (MVar ())
+
+newDBWriteLock :: (MonadIO m) => m DBWriteLock
+newDBWriteLock = DBWriteLock <$> newMVar ()
+
 data App = App
   { appSettings :: AppSettings,
     -- | Settings for static file serving.
@@ -40,8 +47,11 @@ data App = App
     appHttpManager :: Manager,
     -- | Logger
     appLogger :: Logger,
-    -- | Active archiver plugin; 'Nothing' disables archiving.
-    appArchiver :: Maybe ArchiverBackend,
+    -- | Active archiver plugin paired with its job queue
+    appArchiver :: Maybe (ArchiverBackend, ArchiveQueue),
+    -- | Thread running 'Archiver.Backend.runArchiveQueueWorker'; killed by
+    -- 'Application.shutdownApp' so dev hot-reloads don't leak worker threads.
+    appArchiveWorkerThreadId :: Maybe ThreadId,
     -- | i18n translation function
     appTranslate :: I18nLang -> I18nKey -> Text,
     -- | Route to the i18n json data
@@ -49,7 +59,9 @@ data App = App
     -- | In-memory cache for public tag cloud responses (30s TTL, 1000-entry cap).
     appPublicTagCloudCache :: PublicTagCloudCache,
     -- | Login-attempt counters used to throttle the login endpoint.
-    appLoginRateLimiter :: LoginRateLimiter
+    appLoginRateLimiter :: LoginRateLimiter,
+    -- | Serializes DB write transactions to avoid SQLite `SQLITE_BUSY`/snapshot conflicts under concurrent writers.
+    appDBWriteLock :: DBWriteLock
   }
 mkYesodData "App" $(parseRoutesFile "config/routes")
 
@@ -65,6 +77,22 @@ instance YesodPersist App where
 
 instance YesodPersistRunner App where
   getDBRunner = defaultGetDBRunner appConnPool
+
+-- | Like 'runDB', but holds 'appDBWriteLock' for the duration of the transaction.
+--
+-- (SQLite allows only one writer at a time; under concurrent writers, a read
+-- promoted to a write mid-transaction can hit a snapshot conflict that SQLite
+-- reports as `SQLITE_BUSY` without retrying (unlike ordinary lock contention))
+runDBWrite :: ReaderT SqlBackend Handler a -> Handler a
+runDBWrite action = do
+  App {appDBWriteLock, appSettings = AppSettings {appSqliteAppWriteLock}} <- getYesod
+  withDBWriteLock appSqliteAppWriteLock appDBWriteLock (runDB action)
+
+withDBWriteLock :: (MonadUnliftIO m) => Bool -> DBWriteLock -> m a -> m a
+withDBWriteLock writeLockEnabled (DBWriteLock writeLock) action =
+  if writeLockEnabled
+    then withMVar writeLock $ \_ -> action
+    else action
 
 session_timeout_minutes :: Int
 session_timeout_minutes = 10080 -- (7 days)
@@ -99,9 +127,10 @@ instance Yesod App where
           -- `maybeAuthId` checks for the validity of the Authorization
           -- header anyway, but it is still a good idea to limit this
           -- flexibility to designated routes.
-          -- For the time being, `AddR` is the only route that accepts an
+          -- For the time being, `AddR` and `AddBulkR` are the only routes that accept an
           -- authentication token.
           Just AddR -> isJust <$> lookupHeader "Authorization"
+          Just AddBulkR -> isJust <$> lookupHeader "Authorization"
           _ -> pure False
         (if dontCheckCsrf then id else defaultCsrfMiddleware) handler
 
@@ -144,9 +173,8 @@ instance Yesod App where
   errorHandler :: ErrorResponse -> HandlerFor App TypedContent
   errorHandler err = do
     app <- getYesod
-    session <- getSession
-    let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-        t = \key -> appTranslate app lang (I18nKey key)
+    lang <- getCurrentLang LangSourceSession
+    let t = \key -> appTranslate app lang (I18nKey key)
     case err of
       NotFound -> _notFoundErrorHandler (t "error.notFound")
       InternalError e -> _internalErrorHandler e (t "error.internalError")
@@ -213,10 +241,9 @@ instance Yesod App where
     mmsg <- getMessage
     musername <- maybeAuthUsername
     muser <- (fmap . fmap) snd maybeAuthPair
-    session <- getSession
+    lang <- getCurrentLang (LangSourceUserOrSession muser)
     let msourceCodeUri = appSourceCodeUri (appSettings app)
         frontendBundleName = appFrontendBundleName app
-        lang = fromMaybe (appLanguageDefault (appSettings app)) ((muser >>= userLanguage) <|> (toI18nLang . decodeUtf8 =<< lookup "_LANG" session))
         t = \key -> appTranslate app lang (I18nKey key)
         i18nR = appI18nR app
     pc <- widgetToPageContent do
@@ -232,12 +259,11 @@ popupLayout widget = do
   req <- getRequest
   app <- getYesod
   mmsg <- getMessage
-  session <- getSession
   muser <- fmap entityVal <$> maybeAuth
+  lang <- getCurrentLang (LangSourceUserOrSession muser)
   let musername = fmap userName muser
       msourceCodeUri = appSourceCodeUri (appSettings app)
       frontendBundleName = appFrontendBundleName app
-      lang = fromMaybe (appLanguageDefault (appSettings app)) ((muser >>= userLanguage) <|> (toI18nLang . decodeUtf8 =<< lookup "_LANG" session))
       t = \key -> appTranslate app lang (I18nKey key)
       i18nR = appI18nR app
   pc <- widgetToPageContent do
@@ -247,6 +273,27 @@ popupLayout widget = do
     addStylesheet (StaticR css_popup_css)
     $(widgetFile "popup-layout")
   withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+-- | Where 'getCurrentLang' may read a language from, besides the app default.
+data LangSource
+  = -- | anonymous/pre-auth pages: session cookie only
+    LangSourceSession
+  | -- | a (possibly absent) user's saved language, ignoring the session cookie
+    LangSourceUser (Maybe User)
+  | -- | a (possibly absent) user's saved language, falling back to the session cookie
+    LangSourceUserOrSession (Maybe User)
+
+getCurrentLang :: (MonadHandler m, HandlerSite m ~ App) => LangSource -> m I18nLang
+getCurrentLang source = do
+  app <- getYesod
+  let langDefault = appLanguageDefault (appSettings app)
+      fromSession session = toI18nLang . decodeUtf8 =<< lookup "_LANG" session
+  case source of
+    LangSourceSession -> fromMaybe langDefault . fromSession <$> getSession
+    LangSourceUser muser -> pure (fromMaybe langDefault (muser >>= userLanguage))
+    LangSourceUserOrSession muser -> do
+      session <- getSession
+      pure (fromMaybe langDefault ((muser >>= userLanguage) <|> fromSession session))
 
 -- * YesodAuth App
 
@@ -273,18 +320,16 @@ instance YesodAuth App where
                 | not (currentApproot `isPrefixOf` dest) -> deleteSession ultDestKey
               _ -> pure ()
             app <- getYesod
-            session <- getSession
-            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                t = \key -> appTranslate app lang (I18nKey key)
+            lang <- getCurrentLang LangSourceSession
+            let t = \key -> appTranslate app lang (I18nKey key)
             setTitle (toHtml ("Espial | " <> t "login.pageTitle"))
             $(widgetFile "login")
 
           dbPostLoginR :: (master ~ App) => AuthHandler master TypedContent
           dbPostLoginR = do
             app <- getYesod
-            session <- getSession
-            let lang = fromMaybe (appLanguageDefault (appSettings app)) (toI18nLang . decodeUtf8 =<< lookup "_LANG" session)
-                t = \key -> appTranslate app lang (I18nKey key)
+            lang <- getCurrentLang LangSourceSession
+            let t = \key -> appTranslate app lang (I18nKey key)
             mresult <-
               runInputPostResult
                 ( dbLoginCreds
@@ -337,7 +382,7 @@ instance YesodAuth App where
         muser <- case lookup "password" credsExtra of
           Just pwd | credsPlugin == dbAuthPluginName -> do
             rehashAlgo <- appPasswordHashConfig . appSettings <$> getYesod
-            liftHandler $ runDB $ authenticatePassword rehashAlgo credsIdent pwd
+            liftHandler $ runDBWrite $ authenticatePassword rehashAlgo credsIdent pwd
           _ -> pure Nothing
         case muser of
           Nothing -> pure (UserError InvalidUsernamePass)
@@ -348,8 +393,7 @@ instance YesodAuth App where
     maybeAuth >>= \case
       Nothing -> $(logWarn) "onLogin: could not find user"
       Just (Entity user uname) -> do
-        app <- getYesod
-        let lang = fromMaybe (appLanguageDefault (appSettings app)) (userLanguage uname)
+        lang <- getCurrentLang (LangSourceUser (Just uname))
         setSession userNameKey (userName uname)
         setLanguage (fromI18nLang lang)
   onLogout =

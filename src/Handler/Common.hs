@@ -2,10 +2,9 @@
 module Handler.Common where
 
 import Data.Aeson qualified as A
-import Data.ByteString.Char8 qualified as BS8
 import Data.FileEmbed (embedFile)
+import Data.Text qualified as T
 import Import
-import Network.Wai (requestHeaderHost)
 import Text.Read
 import Util (format8601z, parseTimeText)
 
@@ -30,7 +29,10 @@ lookupPagingParams :: Maybe Text -> Handler (Maybe Int64, Maybe Int64)
 lookupPagingParams prefix =
   (,)
     <$> getsetUrlSessionParam "count" (fromMaybe "" prefix)
-    <*> getUrlParam (fromMaybe "" prefix <> "page")
+    <*> getUrlParam (pagingPageParam prefix)
+
+pagingPageParam :: Maybe Text -> Text
+pagingPageParam prefix = fromMaybe "" prefix <> "page"
 
 pagingCursorBeforeParam :: Text
 pagingCursorBeforeParam = "before"
@@ -38,14 +40,41 @@ pagingCursorBeforeParam = "before"
 pagingCursorAfterParam :: Text
 pagingCursorAfterParam = "after"
 
-formatEntityPagingCursorTimeBm :: Entity Bookmark -> Text
-formatEntityPagingCursorTimeBm = format8601z . bookmarkTime . entityVal
+sortParam :: Text
+sortParam = "sort"
 
-formatEntityPagingCursorTimeNt :: Entity Note -> Text
-formatEntityPagingCursorTimeNt = format8601z . noteCreated . entityVal
+orderParam :: Text
+orderParam = "order"
 
-parsePagingCursorTime :: Text -> Maybe UTCTime
-parsePagingCursorTime = parseTimeText
+-- | "~" is unreserved in URL queries and cannot occur in the ISO8601 time
+pagingCursorSeparator :: Text
+pagingCursorSeparator = "~"
+
+formatEntityPagingCursorBm :: Entity Bookmark -> Text
+formatEntityPagingCursorBm (Entity bid bm) =
+  format8601z (bookmarkTime bm) <> pagingCursorSeparator <> tshow (fromSqlKey bid)
+
+parsePagingCursorBm :: Text -> Maybe BookmarkCursor
+parsePagingCursorBm t = case T.splitOn pagingCursorSeparator t of
+  [timeText] -> flip BookmarkCursor Nothing <$> parseTimeText timeText
+  [timeText, idText] ->
+    BookmarkCursor
+      <$> parseTimeText timeText
+      <*> (Just <$> parsePagingCursorKey idText)
+  _ -> Nothing
+
+formatEntityPagingCursorNt :: Entity Note -> Text
+formatEntityPagingCursorNt (Entity nid nt) =
+  format8601z (noteCreated nt) <> pagingCursorSeparator <> tshow (fromSqlKey nid)
+
+parsePagingCursorNt :: Text -> Maybe NoteCursor
+parsePagingCursorNt t = case T.splitOn pagingCursorSeparator t of
+  [timeText] -> flip NoteCursor Nothing <$> parseTimeText timeText
+  [timeText, idText] ->
+    NoteCursor
+      <$> parseTimeText timeText
+      <*> (Just <$> parsePagingCursorKey idText)
+  _ -> Nothing
 
 formatEntityPagingCursorKey :: (ToBackendKey SqlBackend record) => Entity record -> Text
 formatEntityPagingCursorKey = tshow . fromSqlKey . entityKey
@@ -63,10 +92,8 @@ parsePagingCursorParams ::
 parsePagingCursorParams mkBefore mkAfter mbefore mafter =
   (mkBefore =<< mbefore) <|> (mkAfter =<< mafter)
 
-espialUserAgent :: Handler UserAgent
-espialUserAgent = do
-  mHost <- requestHeaderHost . reqWaiRequest <$> getRequest
-  pure $ UserAgent $ pack $ "espial-" <> maybe "" (BS8.unpack . BS8.takeWhile (/= ':')) mHost
+espialUserAgent :: UserAgent
+espialUserAgent = UserAgent "espial"
 
 browserUserAgent :: UserAgent
 browserUserAgent =

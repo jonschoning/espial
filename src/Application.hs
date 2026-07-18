@@ -22,12 +22,12 @@ where
 -- Don't forget to add new modules to your cabal file!
 
 import Archiver.ArchiveBox07 (archiveBox07Backend)
-import Archiver.Backend (ArchiverBackend)
+import Archiver.Backend (ArchiveJob (..), ArchiveJobStore (..), ArchiverBackend, ArchiverDB (..), newArchiveQueue, runArchiveQueueWorker)
 import Archiver.Debug (debugArchiverBackend)
 import Archiver.WaybackMachine (waybackMachineBackend)
 import Control.Monad.Logger
 import Data.Aeson qualified as A
-import Database.Persist.Sqlite (ConnectionPool, createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, runSqlPool, sqlDatabase, sqlPoolSize)
+import Database.Persist.Sqlite (ConnectionPool, createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, runSqlPool, sqlDatabase, sqlPoolSize, extraPragmas)
 import Handler.AccountSettings
 import Handler.Add
 import Handler.Archive
@@ -51,7 +51,7 @@ import Network.Wai.Handler.Warp (Settings, defaultSettings, defaultShouldDisplay
 import Network.Wai.Handler.WarpTLS (TLSSettings (..), runTLS, tlsSettings)
 import Network.TLS (Credentials (..), ServerHooks (..))
 import Network.TLS qualified as TLS
-import Control.Concurrent (forkIO, threadDelay)
+import Control.Concurrent (forkIO, killThread, threadDelay)
 import Network.Wai.Middleware.AcceptOverride
 import Network.Wai.Middleware.Autohead
 import Network.Wai.Middleware.Gzip hiding (def)
@@ -76,10 +76,11 @@ makeFoundation appSettings@AppSettings {..} = do
   (appTranslationsHash, appTranslations) <- I18n.loadTranslations appStaticDir
   appPublicTagCloudCache <- newIORef mempty
   appLoginRateLimiter <- newIORef mempty
+  appDBWriteLock <- newDBWriteLock
   let appTranslate lang = I18n.translate appTranslations lang (I18nNs "translation")
       appI18nR = LocalesFileR appTranslationsHash []
-      mkFoundation appConnPool appArchiver = App {..}
-      appLogFunc = messageLoggerSource (mkFoundation (error "connPool forced in tempFoundation") Nothing) appLogger
+      mkFoundation appConnPool appArchiver appArchiveWorkerThreadId = App {..}
+      appLogFunc = messageLoggerSource (mkFoundation (error "connPool forced in tempFoundation") Nothing Nothing) appLogger
       startupLogFunc = if appEnableStartupLogging then appLogFunc else \_ _ _ _ -> pure ()
   flip runLoggingT startupLogFunc $ do 
     (logInfoNS "startup" Version.versionSpec)
@@ -88,11 +89,36 @@ makeFoundation appSettings@AppSettings {..} = do
      runSqlPool (runPersistentMigrations appEnableStartupLogging) migrationsPool
      runSqlPool (runAppMigrations appEnableStartupLogging) migrationsPool
   appPool <- mkPool appLogFunc True
-  appArchiver <- mkArchiverBackend appLogFunc appPool
-  flip runLoggingT startupLogFunc $ do 
+  let archiverDB =
+        ArchiverDB
+          { archiverRunDB = \action -> runSqlPool action appPool,
+            archiverRunDBWrite = \action -> withDBWriteLock appSqliteAppWriteLock appDBWriteLock (runSqlPool action appPool)
+          }
+  archiverBackend <- mkArchiverBackend appLogFunc archiverDB
+  let archiveJobStore =
+        ArchiveJobStore
+          { archiveJobStoreInsertMany = \jobs ->
+              archiverRunDBWrite archiverDB (insertArchiveJobRecords [(userId, bid, unUrl url) | (userId, bid, url) <- jobs]),
+            archiveJobStoreDelete = \jobId ->
+              archiverRunDBWrite archiverDB (deleteArchiveJobRecord jobId),
+            archiveJobStoreLoadAll =
+              archiverRunDB archiverDB getArchiveJobRecords <&> map toQueuedJob,
+            archiveJobStoreBookmarkExists = \bid ->
+              archiverRunDB archiverDB (get bid) <&> isJust
+          }
+      toQueuedJob (Entity jobId ArchiveJobRecord {..}) =
+        (jobId, ArchiveJob archiveJobRecordUserId archiveJobRecordBookmarkId (Url archiveJobRecordHref))
+  archiveWorker <- forM archiverBackend $ \archiver -> do
+    queue <- newArchiveQueue archiveJobStore appArchiveQueueCapacity
+    workerThreadId <- forkIO $ runArchiveQueueWorker archiver queue (appArchiveRateLimitMs * 1000) $ \e ->
+      flip runLoggingT appLogFunc ($(logError) $ "Archive worker: " <> tshow e)
+    pure (archiver, queue, workerThreadId)
+  let appArchiver = (\(archiver, queue, _) -> (archiver, queue)) <$> archiveWorker
+      appArchiveWorkerThreadId = (\(_, _, tid) -> tid) <$> archiveWorker
+  flip runLoggingT startupLogFunc $ do
     (logInfoNS "startup" $ "archive backend: " <> tshow appArchiveBackend)
     (logDebugNS "startup" ("language-default: " <> fromI18nLang' appLanguageDefault))
-  pure (mkFoundation appPool appArchiver)
+  pure (mkFoundation appPool appArchiver appArchiveWorkerThreadId)
   where
     mkPool :: _ -> Bool -> IO ConnectionPool
     mkPool logFunc isFkEnabled =
@@ -102,9 +128,10 @@ makeFoundation appSettings@AppSettings {..} = do
             connInfo =
               mkSqliteConnectionInfo dbPath
                 & set fkEnabled isFkEnabled
+                & set extraPragmas ["PRAGMA busy_timeout = " <> tshow appSqliteBusyTimeoutMs <> ";"]
         createSqlitePoolFromInfo connInfo poolSize
-    mkArchiverBackend :: _ -> ConnectionPool -> IO (Maybe ArchiverBackend)
-    mkArchiverBackend logFunc pool = do
+    mkArchiverBackend :: _ -> ArchiverDB -> IO (Maybe ArchiverBackend)
+    mkArchiverBackend logFunc archiverDB = do
       case appArchiveBackend of
         ArchiveBackendDisabled -> pure Nothing
         ArchiveBackendDebug -> pure (Just (debugArchiverBackend logFunc))
@@ -121,11 +148,11 @@ makeFoundation appSettings@AppSettings {..} = do
               archiveManager <- do
                 let mSocks = NC.SockSettingsSimple <$> fmap unpack appArchiveSocksProxyHost <*> fmap toEnum appArchiveSocksProxyPort
                 NHT.newTlsManagerWith (NHT.mkManagerSettings def mSocks)
-              pure $ Just $ waybackMachineBackend accessKey secretKey pool archiveManager logFunc
+              pure $ Just $ waybackMachineBackend accessKey secretKey archiverDB archiveManager espialUserAgent logFunc
             _ -> do
               flip runLoggingT logFunc ($(logWarn) ("Archive backend `wayback-machine` selected but access/secret key missing; archiving disabled"))
               pure Nothing
-        mkArchiveBox07Archiver = archiveBox07Backend appSettings pool logFunc
+        mkArchiveBox07Archiver = archiveBox07Backend appSettings archiverDB logFunc
 
 loadFrontendBundleName :: FilePath -> IO Text
 loadFrontendBundleName staticDir = do
@@ -261,7 +288,7 @@ getApplicationRepl = do
   pure (getPort wsettings, foundation, app1)
 
 shutdownApp :: App -> IO ()
-shutdownApp _ = pure ()
+shutdownApp App {appArchiveWorkerThreadId} = forM_ appArchiveWorkerThreadId killThread
 
 -- | Run a handler
 handler :: Handler a -> IO a

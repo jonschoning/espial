@@ -22,7 +22,7 @@ createNote uid title isMarkdown shared = do
 
 search :: Key User -> SharedP -> Maybe Text -> DB [Key Note]
 search uid sharedp mquery = do
-  (_, rows, _, _) <- getNoteList uid mquery Nothing sharedp 100 1
+  (_, rows, _, _) <- getNoteList uid mquery sharedp (mkNotePaging defaultNoteSort Nothing 1) 100
   return $ map entityKey rows
 
 spec :: Spec
@@ -47,6 +47,37 @@ spec = withApp $ do
         return (uid, nid1)
       nids <- runDB $ search uid SharedAll (Just "markdown:tutorial")
       liftIO $ nids `shouldBe` [nid1]
+
+    it "title= matches only when the entire title equals the term" $ do
+      (uid, nExact) <- runDB $ do
+        uid <- createTestUser
+        nExact <- createNote uid "haskell" False False
+        _ <- createNote uid "haskell tutorial" False False
+        return (uid, nExact)
+      nids <- runDB $ search uid SharedAll (Just "title=haskell")
+      liftIO $ nids `shouldBe` [nExact]
+
+    it "d= matches only when the entire text equals the term" $ do
+      (uid, nid) <- runDB $ do
+        uid <- createTestUser
+        nid <- createNote uid "a" False False
+        return (uid, nid)
+      nids <- runDB $ search uid SharedAll (Just "d=text")
+      liftIO $ nids `shouldBe` [nid]
+      nids' <- runDB $ search uid SharedAll (Just "d=tex")
+      liftIO $ nids' `shouldBe` []
+
+    it "supports parentheses grouping with OR and NOT" $ do
+      (uid, nApple, nBananaCherry, nBanana) <- runDB $ do
+        uid <- createTestUser
+        nApple <- createNote uid "apple pie" False False
+        nBananaCherry <- createNote uid "banana cherry smoothie" False False
+        nBanana <- createNote uid "banana bread" False False
+        return (uid, nApple, nBananaCherry, nBanana)
+      nids <- runDB $ search uid SharedAll (Just "apple|(banana cherry)")
+      liftIO $ sort nids `shouldBe` sort [nApple, nBananaCherry]
+      nids' <- runDB $ search uid SharedAll (Just "-(banana cherry)")
+      liftIO $ sort nids' `shouldBe` sort [nApple, nBanana]
 
     it "the shared filter restricts results" $ do
       (uid, nid1, nid2) <- runDB $ do

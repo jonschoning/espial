@@ -17,7 +17,12 @@
     "error": "hata: {{status}}",
     "errorWithMsg": "hata {{status}}: {{msg}}",
     "requestTimedOut": "istek zaman aşımına uğradı",
-    "networkError": "ağ hatası"
+    "networkError": "ağ hatası",
+    "upsertUnauthorized": "yetkisiz",
+    "upsertNotFound": "bulunamadı",
+    "upsertHrefUsedByOther": "bu url zaten başka bir yer imi tarafından kullanılıyor",
+    "upsertConflictWithNewer": "sunucudaki öğe daha yakın zamanda güncellendi; yeniden yükleyip tekrar deneyin",
+    "upsertInvalidInput": "geçersiz girdi"
   },
   "nav": {
     "privateProfileEnabled": "ozel profil etkin",
@@ -42,7 +47,8 @@
   "changePassword": {
     "oldPassword": "Eski sifre",
     "newPassword": "Yeni sifre",
-    "submit": "Degisiklikleri kaydet"
+    "submit": "Degisiklikleri kaydet",
+    "demoMode": "demo modu: sifre degisiklikleri devre disi"
   },
   "settings": {
     "serverDefault": "Sunucu varsayilani",
@@ -100,9 +106,19 @@
   "pagination": {
     "perPage": "sayfa basi:"
   },
+  "sort": {
+    "label": "sırala:",
+    "time": "zaman",
+    "url": "url",
+    "title": "başlık",
+    "tagcount": "etiket sayısı",
+    "created": "oluşturuldu"
+  },
   "pager": {
     "earlier": "« onceki",
-    "later": "sonraki »"
+    "later": "sonraki »",
+    "previous": "« önceki",
+    "next": "sonraki »"
   },
   "notes": {
     "count_one": "{{count}} not",
@@ -229,18 +245,24 @@
     "betweenQuery": "her arama sorgusunun arasina.",
     "excludeWords": "Aramadan kelime cikar",
     "inFrontWord": "haric tutmak istediginiz kelimenin onune koyun.",
-    "exactMatch": "Tam eslesme ara",
-    "putInQuotes": "Bir kelimeyi veya ifadeyi tirnak icine alin.",
+    "groupTerms": "Arama terimlerini gruplama",
+    "putInParens": "Terimleri tek bir birim olarak gruplamak icin parantez icine alin. Gruplar birlestirilebilir, olumsuzlanabilir ve ic ice kullanilabilir.",
+    "searchPhrase": "Bir ifade ara",
+    "putInQuotes": "Ifadeyi tirnak icine alin.",
     "specificField": "Belirli bir alanda ara",
     "inFrontTerm": "terimin onune koyun,",
     "where": "burada",
     "isOneOfOptions": "asagidaki seceneklerden biridir",
+    "fieldContainsDesc": "Alan aramasi bir icerme aramasidir: alanin terimi icermesi yeterlidir.",
+    "exactField": "Belirli bir alanda tam eslesme aramasi",
+    "exactFieldDesc": "terimin onune koyun; alanin tamami terime tam olarak esit olmalidir. Metin alanlari icin gecerlidir: url, title, description, tags.",
     "bookmarkSearch": "Yer imi aramasi",
     "noteSearch": "Not aramasi",
     "fieldHeader": "ALAN",
     "exampleHeader": "ORNEK",
     "complexExamples": "Daha karmasik ornekler",
     "complexExample1Desc": "url icinde \"youtube\", ve baslikta \"haskell\" veya baslikta \"python\" ve 31/12/2017 sonrasinda",
-    "complexExample2Desc": "baslikta \"hacker news\" yok, ve herhangi bir yerde \"news\", \"cnn\", \"npr\", veya aciklamada \"the guardian\""
+    "complexExample2Desc": "baslikta \"hacker news\" yok, ve herhangi bir yerde \"news\", \"cnn\", \"npr\", veya aciklamada \"the guardian\"",
+    "complexExample3Desc": "\"haskell\" ve \"youtube\" etiketlerinin ikisi de var, veya \"haskell\" ve \"vimeo\" etiketlerinin ikisi birden yok; ve \"surveys\" ile \"news\" etiketlerinin ikisi birden yok, ve 2018-12-31 sonrasinda"
   }
 }

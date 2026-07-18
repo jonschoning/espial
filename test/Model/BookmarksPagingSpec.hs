@@ -21,15 +21,26 @@ createBmAt uid href t = do
   slug <- liftIO mkBmSlug
   insert $ Bookmark uid slug href "desc" "" t False False False Nothing
 
-queryWithCursor :: Key User -> Maybe BookmarkPagingCursorTime -> DB [Key Bookmark]
-queryWithCursor uid mcursor = do
-  (_, rows, _, _) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor 100 1
-  return $ map (entityKey . fst) rows
+queryDir :: SortDirection -> Key User -> Maybe BookmarkPagingCursor -> Limit -> DB ([Key Bookmark], Bool, Bool)
+queryDir dir uid mcursor lim = do
+  (_, rows, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing (PageByCursor dir mcursor) lim
+  return (map (entityKey . fst) rows, hasEarlier, hasLater)
 
-queryFlags :: Key User -> Maybe BookmarkPagingCursorTime -> Limit -> DB (Bool, Bool)
+queryWithCursor :: Key User -> Maybe BookmarkPagingCursor -> DB [Key Bookmark]
+queryWithCursor uid mcursor = do
+  (bids, _, _) <- queryDir SortDesc uid mcursor 100
+  return bids
+
+queryFlags :: Key User -> Maybe BookmarkPagingCursor -> Limit -> DB (Bool, Bool)
 queryFlags uid mcursor lim = do
-  (_, _, hasEarlier, hasLater) <- bookmarksTagsQuery uid True SharedAll FilterAll [] Nothing mcursor lim 1
+  (_, hasEarlier, hasLater) <- queryDir SortDesc uid mcursor lim
   return (hasEarlier, hasLater)
+
+beforeT :: UTCTime -> Maybe BookmarkPagingCursor
+beforeT t = Just (PagingCursorBefore (BookmarkCursor t Nothing))
+
+afterT :: UTCTime -> Maybe BookmarkPagingCursor
+afterT t = Just (PagingCursorAfter (BookmarkCursor t Nothing))
 
 spec :: Spec
 spec = withApp $ do
@@ -43,7 +54,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" t0
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore t0))
+        bids <- runDB $ queryWithCursor uid (beforeT t0)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "includes a bookmark strictly before the cursor time" $ do
@@ -53,7 +64,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBefore
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldContain` [bid]
 
       it "excludes a bookmark strictly after the cursor time" $ do
@@ -62,7 +73,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tAfter
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore t0))
+        bids <- runDB $ queryWithCursor uid (beforeT t0)
         liftIO $ bids `shouldNotContain` [bid]
 
     -- ─── PagingCursorAfter (gt) ────────────────────────────────────────────
@@ -73,7 +84,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" t0
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter t0))
+        bids <- runDB $ queryWithCursor uid (afterT t0)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "includes a bookmark strictly after the cursor time" $ do
@@ -82,7 +93,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tAfter
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter t0))
+        bids <- runDB $ queryWithCursor uid (afterT t0)
         liftIO $ bids `shouldContain` [bid]
 
       it "excludes a bookmark strictly before the cursor time" $ do
@@ -92,7 +103,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBefore
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
     -- ─── Fractional second cursor vs whole-second bookmark ─────────────────
@@ -106,7 +117,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldContain` [bid]
 
       it "PagingCursorBefore: excludes bookmark at whole second above a fractional cursor" $ do
@@ -117,7 +128,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "PagingCursorAfter: includes bookmark at whole second above a fractional cursor" $ do
@@ -128,7 +139,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldContain` [bid]
 
       it "PagingCursorAfter: excludes bookmark at whole second below a fractional cursor" $ do
@@ -139,7 +150,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
     -- ─── Whole-second cursor vs fractional-second bookmark ─────────────────
@@ -153,7 +164,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "PagingCursorBefore: includes bookmark at fractional second just before a whole-second cursor" $ do
@@ -164,7 +175,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldContain` [bid]
 
       it "PagingCursorBefore: excludes bookmark at fractional second just after a whole-second cursor" $ do
@@ -175,7 +186,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore tCursor))
+        bids <- runDB $ queryWithCursor uid (beforeT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "PagingCursorAfter: excludes fractional-second bookmark at the cursor time" $ do
@@ -185,7 +196,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
       it "PagingCursorAfter: includes bookmark at fractional second just after a whole-second cursor" $ do
@@ -196,7 +207,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldContain` [bid]
 
       it "PagingCursorAfter: excludes bookmark at fractional second just before a whole-second cursor" $ do
@@ -207,7 +218,7 @@ spec = withApp $ do
           uid <- createTestUser
           bid <- createBmAt uid "https://a.com" tBm
           return (uid, bid)
-        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter tCursor))
+        bids <- runDB $ queryWithCursor uid (afterT tCursor)
         liftIO $ bids `shouldNotContain` [bid]
 
     -- ─── hasEarlier / hasLater navigation flags ────────────────────────────
@@ -240,7 +251,7 @@ spec = withApp $ do
           _ <- createBmAt uid "https://before.com" t0
           return uid
         let tCursor = addUTCTime 10 t0
-        (hasEarlier, hasLater) <- runDB $ queryFlags uid (Just (PagingCursorBefore tCursor)) 100
+        (hasEarlier, hasLater) <- runDB $ queryFlags uid (beforeT tCursor) 100
         liftIO $ hasEarlier `shouldBe` False
         liftIO $ hasLater `shouldBe` True
 
@@ -253,7 +264,7 @@ spec = withApp $ do
           return uid
         -- cursor is past all 3 bookmarks; fetch only 2 of the 3
         let tCursor = addUTCTime 10 t0
-        (hasEarlier, hasLater) <- runDB $ queryFlags uid (Just (PagingCursorBefore tCursor)) 2
+        (hasEarlier, hasLater) <- runDB $ queryFlags uid (beforeT tCursor) 2
         liftIO $ hasEarlier `shouldBe` True
         liftIO $ hasLater `shouldBe` True
 
@@ -262,7 +273,7 @@ spec = withApp $ do
           uid <- createTestUser
           _ <- createBmAt uid "https://after.com" (addUTCTime 10 t0)
           return uid
-        (hasEarlier, hasLater) <- runDB $ queryFlags uid (Just (PagingCursorAfter t0)) 100
+        (hasEarlier, hasLater) <- runDB $ queryFlags uid (afterT t0) 100
         liftIO $ hasEarlier `shouldBe` True
         liftIO $ hasLater `shouldBe` False
 
@@ -274,6 +285,120 @@ spec = withApp $ do
             [1 .. 3]
           return uid
         -- cursor is before all 3 bookmarks; fetch only 2 of the 3
-        (hasEarlier, hasLater) <- runDB $ queryFlags uid (Just (PagingCursorAfter (addUTCTime (-1) t0))) 2
+        (hasEarlier, hasLater) <- runDB $ queryFlags uid (afterT (addUTCTime (-1) t0)) 2
         liftIO $ hasEarlier `shouldBe` True
         liftIO $ hasLater `shouldBe` True
+
+    -- ─── Composite (time, id) keyset tie-breaking ──────────────────────────
+
+    describe "composite (time, id) cursor tie-breaking" $ do
+      it "PagingCursorBefore keeps only same-time rows with a smaller id" $ do
+        (uid, b1, b2, _) <- runDB $ do
+          uid <- createTestUser
+          b1 <- createBmAt uid "https://1.com" t0
+          b2 <- createBmAt uid "https://2.com" t0
+          b3 <- createBmAt uid "https://3.com" t0
+          return (uid, b1, b2, b3)
+        bids <- runDB $ queryWithCursor uid (Just (PagingCursorBefore (BookmarkCursor t0 (Just b2))))
+        liftIO $ bids `shouldBe` [b1]
+
+      it "PagingCursorAfter keeps only same-time rows with a larger id" $ do
+        (uid, b2, b3) <- runDB $ do
+          uid <- createTestUser
+          _ <- createBmAt uid "https://1.com" t0
+          b2 <- createBmAt uid "https://2.com" t0
+          b3 <- createBmAt uid "https://3.com" t0
+          return (uid, b2, b3)
+        bids <- runDB $ queryWithCursor uid (Just (PagingCursorAfter (BookmarkCursor t0 (Just b2))))
+        liftIO $ bids `shouldBe` [b3]
+
+      it "a time-only cursor still uses the pure time boundary" $ do
+        (uid, bOld) <- runDB $ do
+          uid <- createTestUser
+          bOld <- createBmAt uid "https://old.com" (addUTCTime (-1) t0)
+          _ <- createBmAt uid "https://tied.com" t0
+          return (uid, bOld)
+        bids <- runDB $ queryWithCursor uid (beforeT t0)
+        liftIO $ bids `shouldBe` [bOld]
+
+      it "pages through rows sharing one timestamp without skips or repeats" $ do
+        (uid, allBids) <- runDB $ do
+          uid <- createTestUser
+          bids <- mapM (\n -> createBmAt uid ("https://" <> tshow (n :: Int) <> ".com") t0) [1 .. 5]
+          return (uid, bids)
+        -- newest-first display of same-time rows falls back to id desc
+        let walk acc mcursor = do
+              (bids, _, _) <- runDB $ queryDir SortDesc uid mcursor 2
+              case lastMay bids of
+                Nothing -> pure acc
+                Just lastBid -> walk (acc <> bids) (Just (PagingCursorBefore (BookmarkCursor t0 (Just lastBid))))
+        collected <- walk [] Nothing
+        liftIO $ collected `shouldBe` reverse allBids
+
+    -- ─── Asc display direction (PageByCursor SortAsc) ──────────────────────
+
+    describe "asc display direction (PageByCursor SortAsc)" $ do
+      it "no cursor returns oldest first with hasEarlier=False, hasLater=True when rows exceed the limit" $ do
+        (uid, b1, b2, _) <- runDB $ do
+          uid <- createTestUser
+          b1 <- createBmAt uid "https://1.com" (addUTCTime 1 t0)
+          b2 <- createBmAt uid "https://2.com" (addUTCTime 2 t0)
+          b3 <- createBmAt uid "https://3.com" (addUTCTime 3 t0)
+          return (uid, b1, b2, b3)
+        (bids, hasEarlier, hasLater) <- runDB $ queryDir SortAsc uid Nothing 2
+        liftIO $ bids `shouldBe` [b1, b2]
+        liftIO $ hasEarlier `shouldBe` False
+        liftIO $ hasLater `shouldBe` True
+
+      it "PagingCursorAfter returns the adjacent newer rows in ascending order" $ do
+        (uid, b2, b3, _) <- runDB $ do
+          uid <- createTestUser
+          _ <- createBmAt uid "https://1.com" (addUTCTime 1 t0)
+          b2 <- createBmAt uid "https://2.com" (addUTCTime 2 t0)
+          b3 <- createBmAt uid "https://3.com" (addUTCTime 3 t0)
+          b4 <- createBmAt uid "https://4.com" (addUTCTime 4 t0)
+          return (uid, b2, b3, b4)
+        (bids, hasEarlier, hasLater) <- runDB $ queryDir SortAsc uid (afterT (addUTCTime 1 t0)) 2
+        liftIO $ bids `shouldBe` [b2, b3]
+        liftIO $ hasEarlier `shouldBe` True
+        liftIO $ hasLater `shouldBe` True
+
+      it "PagingCursorBefore returns the adjacent older rows in ascending order" $ do
+        -- three rows below the cursor with limit 2: the scan must take the
+        -- two adjacent to the cursor (b2, b3), displayed ascending
+        (uid, b2, b3) <- runDB $ do
+          uid <- createTestUser
+          _ <- createBmAt uid "https://1.com" (addUTCTime 1 t0)
+          b2 <- createBmAt uid "https://2.com" (addUTCTime 2 t0)
+          b3 <- createBmAt uid "https://3.com" (addUTCTime 3 t0)
+          _ <- createBmAt uid "https://4.com" (addUTCTime 4 t0)
+          return (uid, b2, b3)
+        (bids, hasEarlier, hasLater) <- runDB $ queryDir SortAsc uid (beforeT (addUTCTime 4 t0)) 2
+        liftIO $ bids `shouldBe` [b2, b3]
+        liftIO $ hasEarlier `shouldBe` True
+        liftIO $ hasLater `shouldBe` True
+
+      it "PagingCursorBefore with all older rows fitting: hasEarlier=False, hasLater=True" $ do
+        (uid, b1) <- runDB $ do
+          uid <- createTestUser
+          b1 <- createBmAt uid "https://1.com" (addUTCTime 1 t0)
+          _ <- createBmAt uid "https://2.com" (addUTCTime 2 t0)
+          return (uid, b1)
+        (bids, hasEarlier, hasLater) <- runDB $ queryDir SortAsc uid (beforeT (addUTCTime 2 t0)) 100
+        liftIO $ bids `shouldBe` [b1]
+        liftIO $ hasEarlier `shouldBe` False
+        liftIO $ hasLater `shouldBe` True
+
+      it "pages forward through rows sharing one timestamp without skips or repeats" $ do
+        (uid, allBids) <- runDB $ do
+          uid <- createTestUser
+          bids <- mapM (\n -> createBmAt uid ("https://" <> tshow (n :: Int) <> ".com") t0) [1 .. 5]
+          return (uid, bids)
+        -- oldest-first display of same-time rows falls back to id asc
+        let walk acc mcursor = do
+              (bids, _, _) <- runDB $ queryDir SortAsc uid mcursor 2
+              case lastMay bids of
+                Nothing -> pure acc
+                Just lastBid -> walk (acc <> bids) (Just (PagingCursorAfter (BookmarkCursor t0 (Just lastBid))))
+        collected <- walk [] Nothing
+        liftIO $ collected `shouldBe` allBids
