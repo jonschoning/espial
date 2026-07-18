@@ -2,6 +2,8 @@
 
 ## v0.0.41 (2026-07-XX)
 
+- added sorting on bookmarks (time,title,url,number of tags) and notes (created, title) (#88)
+- removed search box for anonymous users
 - search query updates
   - add search term grouping with parentheses `(`, `)`
   - add exact search on a specific field `field=`
@@ -14,10 +16,11 @@
   - archive requests to the archiveBacked are perfomred at a maximum rate of `archive-rate-limit-ms`
   - archive requests waiting in the queue are backed by persistent storage
   - archive requests exceeding queue capacity are dropped; best-effort only
+- made note updates safer: updated is rejected when server has newer copy
+- db indexes reworked for the new sort fields
 - add appSetting `sqlite-app-write-lock` and `sqlite-busy-timeout-ms` to avoid errors under concurrent db writers
 - add appSetting `demo-mode` (disables password changes)
-- note update is blocked when the server copy was updated more recently than the client's copy
-- db indexes reworked for the new sort fields: time/created indexes now match the (sort-field, id) cursor orderings, and title/url sorts (including shared-filtered views) are index-backed
+- security: guard against SSRF for private addresses
 - bug fix: fixed regression when rendering a bookmark whose extended text contains `</script>`
 
 ## v0.0.40 (2026-07-11)
