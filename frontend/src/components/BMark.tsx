@@ -211,7 +211,7 @@ export function BMark({
     }
   };
 
-  const archivingDisabled = archiving || archived || bm.private || bm.url !== editBm.url;
+  const archivingDisabled = archiving || archived || editBm.private || bm.url !== editBm.url;
 
   return (
     <div
