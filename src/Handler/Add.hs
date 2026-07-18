@@ -93,9 +93,7 @@ postAddR = do
             _ -> pure ()
           pure res
     _archive :: Key Bookmark -> Bookmark -> Handler ()
-    _archive kbid bm = whenM
-      (shouldArchiveBookmark bm)
-      (archiveBookmarkUrl kbid (Url (bookmarkHref bm)))
+    _archive = archiveBookmarkUrl
     translateFailedReason :: (Text -> Text) -> FailedReason -> Text
     translateFailedReason t reason = case reason of
       ReasonUnauthorized -> t "error.upsertUnauthorized"
@@ -130,18 +128,16 @@ postAddBulkR = do
           tagss = maybe [] normalizeTags <$> (fmap _tags validForms)
       bms <- liftIO $ traverse (bookmarkFormToBookmark userId) validForms
       validRess <- runDBWrite (upsertBookmarks userId mkbids bms tagss)
-      toArchive <- fmap catMaybes $ forM (zip3 validRess bms validForms) $ \(res, bm, bookmarkForm) ->
-        case res of
-          Created kbid | fromMaybe (userArchiveDefault user) (_archiveRequested bookmarkForm) -> _toArchive kbid bm
-          Updated kbid | isJust (_archiveRequested bookmarkForm) -> _toArchive kbid bm
-          _ -> pure Nothing
+      let toArchive =
+            catMaybes
+              [ case res of
+                  Created kbid | fromMaybe (userArchiveDefault user) (_archiveRequested bookmarkForm) -> Just (kbid, bm)
+                  Updated kbid | isJust (_archiveRequested bookmarkForm) -> Just (kbid, bm)
+                  _ -> Nothing
+                | (res, bm, bookmarkForm) <- zip3 validRess bms validForms
+              ]
       unless (null toArchive) (archiveBookmarkUrls toArchive)
       pure (mergeBulkAddResults marked validRess)
-
-    _toArchive :: Key Bookmark -> Bookmark -> HandlerFor App (Maybe (Key Bookmark, Url))
-    _toArchive kbid bm = do
-      should <- shouldArchiveBookmark bm
-      pure (if should then Just (kbid, Url (bookmarkHref bm)) else Nothing)
 
     -- | Re-interleaves per-item validation failures with the upsert results of the valid subset, restoring the original request order.
     mergeBulkAddResults :: [Either FailedReason BookmarkForm] -> [UpsertResult (Key Bookmark)] -> [UpsertResult (Key Bookmark)]
