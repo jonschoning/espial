@@ -5,8 +5,9 @@
         <div .dib.v-mid.f6.pr2>
             <a .link.rss
                href="@?{(NotesFeedR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-        <div .dib.v-mid>
-          ^{search}
+        $if isowner
+          <div .dib.v-mid>
+            ^{search}
       <div .di>
         <div .fl.pr3.dib.mb2>
           <b>
@@ -26,17 +27,18 @@
 
       <div .cf>
 
-      $maybe route <- mroute
-        <span .f6.dib.mb2 #sort-controls>
-          <span .silver.mr1.dib.mb1>#{t "sort.label"}
-          <a .link.dib.mb1 :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">#{t "sort.created"}</a>
-          ‧
-          <a .link.dib.mb1 :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
-          <span .silver.mr1.ml2.dib.mb1>
-          <span .nowrap.dib.mb1>
-            <a .link :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
+      $if isowner
+        $maybe route <- mroute
+          <span .f6.dib.mb2 #sort-controls>
+            <span .silver.mr1.dib.mb1>#{t "sort.label"}
+            <a .link.dib.mb1 :nsortField == NoteSortCreated:.nav-active #sort-created href="@?{(route, catMaybes [mqueryp, Just (sortp, "created"), morderp])}">#{t "sort.created"}</a>
             ‧
-            <a .link.ml1 :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
+            <a .link.dib.mb1 :nsortField == NoteSortTitle:.nav-active #sort-title href="@?{(route, catMaybes [mqueryp, Just (sortp, "title"), morderp])}">#{t "sort.title"}</a>
+            <span .silver.mr1.ml2.dib.mb1>
+            <span .nowrap.dib.mb1>
+              <a .link :nsortDir == SortAsc:.nav-active #order-asc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "asc")])}">▲</a>
+              ‧
+              <a .link.ml1 :nsortDir == SortDesc:.nav-active #order-desc href="@?{(route, catMaybes [mqueryp, msortp, Just (orderp, "desc")])}">▼</a>
 
       <div .flex.items-center>
         ^{pager}

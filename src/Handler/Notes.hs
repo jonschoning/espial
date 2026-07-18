@@ -29,14 +29,20 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
          in T.replace "{{count}}" (tshow n) (t (key <> suffix))
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams (Just "n")
-  let queryp = "query"
+  let isowner = Just uname == mauthuname
+      queryp = "query"
       beforep = pagingCursorBeforeParam
       afterp = pagingCursorAfterParam
       sortp = sortParam
       orderp = orderParam
-  mquery <- lookupGetParam queryp
-  msort <- lookupGetParam sortp
-  morder <- lookupGetParam orderp
+  -- non-owners get no search box and no query filtering, so their listing
+  -- stays on the plain shared/time-indexed path
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  -- non-owners always get the default created-time ordering; dropping the
+  -- sort params keeps their paging on the indexed time cursor and off the
+  -- offset path
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
   mcursor <-
     parsePagingCursorParams
       (fmap PagingCursorBefore . parsePagingCursorNt)
@@ -54,7 +60,6 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
       mqueryp = fmap (queryp,) mquery
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
-      isowner = Just uname == mauthuname
       sharedp = if isowner then sharedp' else SharedPublic
   (bcount, notes, hasPrevious, hasNext) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
@@ -308,9 +313,10 @@ getNotesFeedR :: UserNameP -> Handler RepRss
 getNotesFeedR unamep@(UserNameP uname) = do
   mauthuname <- maybeAuthUsername
   (limit', page') <- lookupPagingParams (Just "n")
-  mquery <- lookupGetParam "query"
-  msort <- lookupGetParam sortParam
-  morder <- lookupGetParam orderParam
+  let isowner = Just uname == mauthuname
+  mquery <- if isowner then lookupGetParam "query" else pure Nothing
+  msort <- if isowner then lookupGetParam sortParam else pure Nothing
+  morder <- if isowner then lookupGetParam orderParam else pure Nothing
   mbefore <- lookupGetParam pagingCursorBeforeParam
   mafter <- lookupGetParam pagingCursorAfterParam
   let mcursor =
@@ -323,7 +329,6 @@ getNotesFeedR unamep@(UserNameP uname) = do
       page = maybe 1 fromIntegral page'
       nsort = parseNoteSortParams msort morder
       paging = mkNotePaging nsort mcursor page
-      isowner = Just uname == mauthuname
       sharedp = if isowner then SharedAll else SharedPublic
   (_, notes, _, _) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)

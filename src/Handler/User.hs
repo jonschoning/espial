@@ -47,9 +47,13 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       afterp = pagingCursorAfterParam
       sortp = sortParam
       orderp = orderParam
-  mquery <- lookupGetParam queryp
-  msort <- lookupGetParam sortp
-  morder <- lookupGetParam orderp
+  -- non-owners get no search box and no query filtering, so their listing
+  -- stays on the plain shared/time-indexed path
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  -- non-owners always get the default time ordering; dropping the sort params
+  -- keeps their paging on the indexed time cursor and off the offset path
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
   mcursor <-
     parsePagingCursorParams
       (fmap PagingCursorBefore . parsePagingCursorBm)
@@ -293,9 +297,9 @@ _getUserFeed unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       afterp = pagingCursorAfterParam
       sortp = sortParam
       orderp = orderParam
-  mquery <- lookupGetParam queryp
-  msort <- lookupGetParam sortp
-  morder <- lookupGetParam orderp
+  mquery <- if isowner then lookupGetParam queryp else pure Nothing
+  msort <- if isowner then lookupGetParam sortp else pure Nothing
+  morder <- if isowner then lookupGetParam orderp else pure Nothing
   mcursor <-
     parsePagingCursorParams
       (fmap PagingCursorBefore . parsePagingCursorBm)
