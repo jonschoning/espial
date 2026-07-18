@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "pro Seite:"
   },
+  "sort": {
+    "label": "sortieren:",
+    "time": "Zeit",
+    "url": "URL",
+    "title": "Titel",
+    "numtags": "Anz. Tags",
+    "created": "erstellt"
+  },
   "pager": {
     "earlier": "« früher",
     "later": "später »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« vorherige",
+    "next": "nächste »"
   },
   "notes": {
     "count_one": "{{count}} Notiz",

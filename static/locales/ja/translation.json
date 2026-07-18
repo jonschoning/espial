@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "1ページあたり:"
   },
+  "sort": {
+    "label": "並び替え:",
+    "time": "時間",
+    "url": "URL",
+    "title": "タイトル",
+    "numtags": "タグ数",
+    "created": "作成日"
+  },
   "pager": {
     "earlier": "« 前へ",
     "later": "次へ »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« 前へ",
+    "next": "次へ »"
   },
   "notes": {
     "count_one": "{{count}}件のメモ",

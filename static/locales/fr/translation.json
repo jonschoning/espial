@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "par page :"
   },
+  "sort": {
+    "label": "trier :",
+    "time": "date",
+    "url": "url",
+    "title": "titre",
+    "numtags": "nb tags",
+    "created": "créé"
+  },
   "pager": {
     "earlier": "« précédent",
     "later": "suivant »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« précédent",
+    "next": "suivant »"
   },
   "notes": {
     "count_one": "{{count}} note",

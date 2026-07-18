@@ -106,6 +106,14 @@
   "pagination": {
     "perPage": "per page:"
   },
+  "sort": {
+    "label": "sort:",
+    "time": "time",
+    "url": "url",
+    "title": "title",
+    "numtags": "numtags",
+    "created": "created"
+  },
   "pager": {
     "earlier": "« earlier",
     "later": "later »",

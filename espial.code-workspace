@@ -5,10 +5,6 @@
       "path": ".",
     },
     {
-      "name": "espial-src",
-      "path": "./src",
-    },
-    {
       "name": "espial-migration-app",
       "path": "./app/migration",
     },

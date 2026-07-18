@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "на странице:"
   },
+  "sort": {
+    "label": "сортировать:",
+    "time": "время",
+    "url": "url",
+    "title": "заголовок",
+    "numtags": "кол-во тегов",
+    "created": "создано"
+  },
   "pager": {
     "earlier": "« ранее",
     "later": "позже »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« предыдущая",
+    "next": "следующая »"
   },
   "notes": {
     "count_one": "{{count}} заметка",

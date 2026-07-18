@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "sayfa basi:"
   },
+  "sort": {
+    "label": "sırala:",
+    "time": "zaman",
+    "url": "url",
+    "title": "başlık",
+    "numtags": "etiket sayısı",
+    "created": "oluşturuldu"
+  },
   "pager": {
     "earlier": "« onceki",
     "later": "sonraki »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« önceki",
+    "next": "sonraki »"
   },
   "notes": {
     "count_one": "{{count}} not",

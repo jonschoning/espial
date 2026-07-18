@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "每页:"
   },
+  "sort": {
+    "label": "排序:",
+    "time": "时间",
+    "url": "网址",
+    "title": "标题",
+    "numtags": "标签数",
+    "created": "创建时间"
+  },
   "pager": {
     "earlier": "« 更早",
     "later": "更晚 »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« 上一页",
+    "next": "下一页 »"
   },
   "notes": {
     "count_one": "{{count}} 条笔记",

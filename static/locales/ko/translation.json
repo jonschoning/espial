@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "페이지당:"
   },
+  "sort": {
+    "label": "정렬:",
+    "time": "시간",
+    "url": "URL",
+    "title": "제목",
+    "numtags": "태그 수",
+    "created": "생성일"
+  },
   "pager": {
     "earlier": "« 이전",
     "later": "다음 »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« 이전",
+    "next": "다음 »"
   },
   "notes": {
     "count_one": "노트 {{count}}개",

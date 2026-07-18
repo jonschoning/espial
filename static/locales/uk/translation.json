@@ -106,11 +106,19 @@
   "pagination": {
     "perPage": "на сторінці:"
   },
+  "sort": {
+    "label": "сортувати:",
+    "time": "час",
+    "url": "url",
+    "title": "заголовок",
+    "numtags": "кількість тегів",
+    "created": "створено"
+  },
   "pager": {
     "earlier": "« раніше",
     "later": "пізніше »",
-    "previous": "« previous",
-    "next": "next »"
+    "previous": "« попередня",
+    "next": "наступна »"
   },
   "notes": {
     "count_one": "{{count}} нотатка",
