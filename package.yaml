@@ -188,14 +188,19 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -Wall
-      - -Werror
     dependencies:
       - espial
     when:
+      - condition: flag(werror)
+        ghc-options:
+          - -Werror
       - condition: flag(library-only)
         buildable: false
   migration:
     when:
+      - condition: flag(werror)
+        ghc-options:
+          - -Werror
       - condition: flag(library-only)
         buildable: false
     main: Main.hs
@@ -206,7 +211,6 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -Wall
-      - -Werror
     dependencies:
       - espial
       - optparse-generic >= 1.2.3
@@ -235,5 +239,9 @@ flags:
     default: false
   usebuildinfo:
     description: read buildinfo from generated file buildinfo/BuildInfo.hs
+    default: false
+    manual: true
+  werror:
+    description: Treat warnings as errors in executables. Off by default so the package still builds against future GHC versions that add new warnings; enabled for development via stack.yaml.
     default: false
     manual: true

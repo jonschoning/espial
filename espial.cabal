@@ -144,6 +144,11 @@ flag usebuildinfo
   manual: True
   default: False
 
+flag werror
+  description: Treat warnings as errors in executables. Off by default so the package still builds against future GHC versions that add new warnings; enabled for development via stack.yaml.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Application
@@ -306,7 +311,7 @@ executable espial
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       aeson >=2.0
     , attoparsec
@@ -379,6 +384,8 @@ executable espial
   if !os(windows)
     build-depends:
         unix
+  if flag(werror)
+    ghc-options: -Werror
   if flag(library-only)
     buildable: False
 
@@ -401,7 +408,7 @@ executable migration
       TemplateHaskell
       TypeFamilies
       ViewPatterns
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       aeson >=2.0
     , attoparsec
@@ -476,6 +483,8 @@ executable migration
   if !os(windows)
     build-depends:
         unix
+  if flag(werror)
+    ghc-options: -Werror
   if flag(library-only)
     buildable: False
 

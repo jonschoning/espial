@@ -3,3 +3,6 @@ packages:
   - .
 extra-deps:
   - persistent-sqlite-2.13.3.0@sha256:04caa8dba2a310a4dcf06295fbb4be7eed2ca9c2da92076bac3dd1a66b946062,5155
+flags:
+  espial:
+    werror: true
