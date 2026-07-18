@@ -224,7 +224,7 @@ toSortDirection = inverseMap fromSortDirection
 data BookmarkSortField
   = BookmarkSortTime
   | BookmarkSortTitle
-  | BookmarkSortNumTags
+  | BookmarkSortTagCount
   | BookmarkSortUrl
   deriving (Eq, Show, Read, Bounded, Enum)
 
@@ -238,7 +238,7 @@ fromBookmarkSortField :: (IsString a) => BookmarkSortField -> a
 fromBookmarkSortField = \case
   BookmarkSortTime -> "time"
   BookmarkSortTitle -> "title"
-  BookmarkSortNumTags -> "numtags"
+  BookmarkSortTagCount -> "tagcount"
   BookmarkSortUrl -> "url"
 
 toBookmarkSortField :: (Ord s, IsString s) => s -> Maybe BookmarkSortField
@@ -578,10 +578,10 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
           [asc (lower_ (b ^. BookmarkDescription)), asc (b ^. BookmarkId)]
         BookmarkSort BookmarkSortTitle SortDesc ->
           [desc (lower_ (b ^. BookmarkDescription)), desc (b ^. BookmarkId)]
-        BookmarkSort BookmarkSortNumTags SortAsc ->
-          [asc (bookmarkNumTagsExpr isowner b), asc (b ^. BookmarkId)]
-        BookmarkSort BookmarkSortNumTags SortDesc ->
-          [desc (bookmarkNumTagsExpr isowner b), desc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTagCount SortAsc ->
+          [asc (bookmarkTagCountExpr isowner b), asc (b ^. BookmarkId)]
+        BookmarkSort BookmarkSortTagCount SortDesc ->
+          [desc (bookmarkTagCountExpr isowner b), desc (b ^. BookmarkId)]
         BookmarkSort BookmarkSortUrl SortAsc ->
           [asc (bookmarkHrefNoSchemeExpr b), asc (b ^. BookmarkId)]
         BookmarkSort BookmarkSortUrl SortDesc ->
@@ -611,8 +611,8 @@ bookmarksTagsQuery userId isowner sharedp filterp tags mquery paging limit' = do
 -- | Number of tags on a bookmark, for sorting by tag count. Excludes
 -- dot-prefixed (private) tags for non-owners, matching the tag list built
 -- alongside it in 'bookmarksTagsQuery'.
-bookmarkNumTagsExpr :: Bool -> SqlExpr (Entity Bookmark) -> SqlExpr (Value (Maybe Int))
-bookmarkNumTagsExpr isowner b =
+bookmarkTagCountExpr :: Bool -> SqlExpr (Entity Bookmark) -> SqlExpr (Value (Maybe Int))
+bookmarkTagCountExpr isowner b =
   subSelect $ from (table @BookmarkTag) >>= \t -> do
     where_ (t ^. BookmarkTagBookmarkId ==. b ^. BookmarkId)
     when

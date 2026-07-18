@@ -111,7 +111,7 @@
     "time": "zaman",
     "url": "url",
     "title": "başlık",
-    "numtags": "etiket sayısı",
+    "tagcount": "etiket sayısı",
     "created": "oluşturuldu"
   },
   "pager": {

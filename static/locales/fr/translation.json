@@ -111,7 +111,7 @@
     "time": "date",
     "url": "url",
     "title": "titre",
-    "numtags": "nb tags",
+    "tagcount": "nb tags",
     "created": "créé"
   },
   "pager": {

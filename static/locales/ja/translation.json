@@ -111,7 +111,7 @@
     "time": "時間",
     "url": "URL",
     "title": "タイトル",
-    "numtags": "タグ数",
+    "tagcount": "タグ数",
     "created": "作成日"
   },
   "pager": {

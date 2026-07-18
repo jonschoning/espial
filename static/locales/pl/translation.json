@@ -111,7 +111,7 @@
     "time": "czas",
     "url": "url",
     "title": "tytuł",
-    "numtags": "liczba tagów",
+    "tagcount": "liczba tagów",
     "created": "utworzono"
   },
   "pager": {

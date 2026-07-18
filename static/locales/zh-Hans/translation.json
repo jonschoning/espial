@@ -111,7 +111,7 @@
     "time": "时间",
     "url": "网址",
     "title": "标题",
-    "numtags": "标签数",
+    "tagcount": "标签数",
     "created": "创建时间"
   },
   "pager": {

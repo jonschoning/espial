@@ -111,7 +111,7 @@
     "time": "時間",
     "url": "網址",
     "title": "標題",
-    "numtags": "標籤數",
+    "tagcount": "標籤數",
     "created": "建立時間"
   },
   "pager": {

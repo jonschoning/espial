@@ -111,7 +111,7 @@
     "time": "time",
     "url": "url",
     "title": "title",
-    "numtags": "numtags",
+    "tagcount": "tagcount",
     "created": "created"
   },
   "pager": {

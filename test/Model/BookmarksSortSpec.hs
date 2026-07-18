@@ -81,9 +81,9 @@ spec = withApp $ do
         bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortTitle SortDesc)
         liftIO $ bids `shouldBe` [bZebra, bApple]
 
-    -- ─── BookmarkSortNumTags ─────────────────────────────────────────────
+    -- ─── BookmarkSortTagCount ─────────────────────────────────────────────
 
-    describe "BookmarkSortNumTags" $ do
+    describe "BookmarkSortTagCount" $ do
       it "SortAsc orders fewest tags first, including untagged bookmarks" $ do
         (uid, bNone, bOne, bTwo) <- runDB $ do
           uid <- createTestUser
@@ -94,7 +94,7 @@ spec = withApp $ do
           tagBm uid bTwo "b" 2
           tagBm uid bOne "a" 1
           return (uid, bNone, bOne, bTwo)
-        bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortNumTags SortAsc)
+        bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortTagCount SortAsc)
         liftIO $ bids `shouldBe` [bNone, bOne, bTwo]
 
       it "SortDesc orders most tags first" $ do
@@ -107,7 +107,7 @@ spec = withApp $ do
           tagBm uid bTwo "b" 2
           tagBm uid bOne "a" 1
           return (uid, bNone, bOne, bTwo)
-        bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortNumTags SortDesc)
+        bids <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortTagCount SortDesc)
         liftIO $ bids `shouldBe` [bTwo, bOne, bNone]
 
       it "excludes dot-prefixed tags from the count for non-owners" $ do
@@ -124,9 +124,9 @@ spec = withApp $ do
           tagBm uid bMany ".secret1" 2
           tagBm uid bMany ".secret2" 3
           return (uid, bFew, bMany)
-        ownerOrder <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortNumTags SortAsc)
+        ownerOrder <- runDB $ queryOrder uid True (BookmarkSort BookmarkSortTagCount SortAsc)
         liftIO $ ownerOrder `shouldBe` [bFew, bMany]
-        nonOwnerOrder <- runDB $ queryOrder uid False (BookmarkSort BookmarkSortNumTags SortAsc)
+        nonOwnerOrder <- runDB $ queryOrder uid False (BookmarkSort BookmarkSortTagCount SortAsc)
         liftIO $ nonOwnerOrder `shouldBe` [bMany, bFew]
 
     -- ─── BookmarkSortUrl ─────────────────────────────────────────────────
