@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.0.42 (2026-07-XX)
+
+- add fetchPageTitle workaround for reddit urls
+- bake ENV SQLITE_DATABASE into dockerfile
+
 ## v0.0.41 (2026-07-18)
 
 - add sorting ability on bookmarks (time,title,url,tagcount) and notes (created, title) (#88)
