@@ -91,5 +91,7 @@ COPY --from=builder /src/static ./static
 COPY --from=builder /opt/espial/bin/espial ./espial
 COPY --from=builder /opt/espial/bin/migration ./migration
 
+ENV SQLITE_DATABASE=/app/data/espial.sqlite3
+
 ENTRYPOINT []
 CMD ["./espial", "+RTS", "-T"]
