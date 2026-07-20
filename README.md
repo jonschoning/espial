@@ -6,21 +6,13 @@ It supports multiple user accounts and is primarily intended for self-hosted dep
 
 Bookmarks are stored in a SQLite database to keep setup and maintenance straightforward.
 
-Espial also includes [internationalization](#internationalization) support.
+Espial also includes internationalization support.
 
 ### Adding Bookmarks
 
 The easist way for logged-in users to add bookmarks, is with the "bookmarklet", found on the Settings page.
 
-Espial also supports file import options (see [CLI](#cli), or the settings -> Import / Export page in the web UI).
-
-#### Using the Bookmarklet
-
-1. Log in and go to the Settings page.
-2. Drag the "add url bookmarklet" link into your browser's bookmarks bar (or otherwise save the link as a bookmark in the browser)
-3. While viewing any page you want to save, click the bookmarklet in your bookmarks bar.
-4. A small popup opens with the URL, title, and any selected text (as the description) pre-filled — add tags or edit the fields, then save.
-5. Visit or re-fresh the Espial page to see the added bookmark
+Espial also supports file import options.
 
 ## Demo Server
 
@@ -48,31 +40,6 @@ Docker installation is the recommended approach for most deployments.
 See:
 
 https://github.com/jonschoning/espial-docker
-
-### Docker Quick Start: Single `docker run` Command (Named Volume)
-
-For a quick trial, or a minimal setup without cloning [espial-docker](https://github.com/jonschoning/espial-docker), run Espial directly with a single `docker run` command backed by a Docker-managed named volume for storage of the sqlite database:
-
-1. Create the container:
-
-```bash
-docker run --name espial \
-  -p 9090:3000 \
-  -v espial-data:/app/data \
-  -d jonschoning/espial:espial
-```
-
-- Maps host port `9090` to Espial's internal port `3000` — change `9090` to whatever port you prefer.
-- Creates a named volume called `espial-data` at `/app/data`; the sqlite database will be stored inside a docker Named Volume.
-- The database is created and migrated automatically on startup — no separate `createdb` step required.
-
-2. Create a user:
-
-```bash
-docker exec espial ./migration createuser --userName myusername --userPassword myuserpassword
-```
-
-3. Log in and create bookmarks from the bookmarklet (see [Using the Bookmarklet](#using-the-bookmarklet)), or import bookmarks from the settings -> Import / Export page
 
 ### Setup From Source
 
@@ -213,14 +180,12 @@ The response is `200 OK` with a JSON array of per-bookmark results, in the same 
 [
   { "status": "created", "id": 105831 },
   { "status": "updated", "id": 105832 },
-  {
-    "status": "failed",
-    "error": "Invalid URL: InvalidUrlException \"33333333\" \"Invalid URL\""
-  }
+  { "status": "failed", "error": "Invalid URL: InvalidUrlException \"33333333\" \"Invalid URL\"" }
 ]
 ```
 
 If the request array has more items than the `add-bulk-max-items` setting allows (default `200`), the response is `413 Payload Too Large` and no bookmarks are saved.
+
 
 ## Configuration
 
