@@ -4,18 +4,7 @@ $maybe route <- mroute
       <div .page-main-content>
         <div .fr.nt1.nowrap style="margin-bottom:.7rem">
           <div .dib.v-mid.f6.pr2>
-            $if sharedp == SharedPrivate
-              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-            $elseif sharedp == SharedPublic
-              <a .link.rss href="@?{(UserFeedSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-            $elseif filterp == FilterUnread
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-            $elseif filterp == FilterUntagged
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-            $elseif filterp == FilterStarred
-              <a .link.rss href="@?{(UserFeedFilterR unamep FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
-            $else
-              <a .link.rss href="@?{(UserFeedR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
+            <a .link.rss href="@?{(feedRouteFor unamep pathtags sharedp filterp, catMaybes [mqueryp, msortp, morderp])}">#{t "rss"}
           $if isowner
             <div .dib.v-mid>
               ^{search}
@@ -25,28 +14,28 @@ $maybe route <- mroute
               <a .link href="@{UserR unamep}">#{uname}
               $forall tag <- pathtags
                 \  + #
-                <a .link href="@{UserTagsR unamep (TagsP [tag])}">#{tag}
+                <a .link href="@?{(tagRouteFor unamep sharedp filterp tag, catMaybes [mqueryp, msortp, morderp])}">#{tag}
           <div .fl.pr3.dib.mb2>
             <span .f7.silver>#{bcount}</span>
           $if isowner
             <div .fl.pr2.dib.mb2>
               <a .dib.mb1.link.silver.hover-alt :isAll:.nav-active
-                 href="@?{(UserR unamep, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
+                 href="@?{(pageRouteFor unamep pathtags SharedAll FilterAll, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.all"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPrivate:.nav-active
-                 href="@?{(UserSharedR unamep SharedPrivate, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
+                 href="@?{(pageRouteFor unamep pathtags SharedPrivate FilterAll, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.private"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :sharedp == SharedPublic:.nav-active
-                 href="@?{(UserSharedR unamep SharedPublic, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
+                 href="@?{(pageRouteFor unamep pathtags SharedPublic FilterAll, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.public"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterUnread:.nav-active
-                 href="@?{(UserFilterR unamep FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.unread"}
+                 href="@?{(pageRouteFor unamep pathtags SharedAll FilterUnread, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.unread"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterUntagged:.nav-active
-                 href="@?{(UserFilterR unamep FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.untagged"}
+                 href="@?{(pageRouteFor unamep pathtags SharedAll FilterUntagged, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.untagged"}
               ‧
               <a .link.dib.mb1.silver.hover-alt :filterp == FilterStarred:.nav-active
-                 href="@?{(UserFilterR unamep FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.starred"}
+                 href="@?{(pageRouteFor unamep pathtags SharedAll FilterStarred, catMaybes [mqueryp, msortp, morderp])}">#{t "filter.starred"}
     
         <div .cf>
 

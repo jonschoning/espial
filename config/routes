@@ -23,11 +23,15 @@
 !/#UserNameP UserR GET
 !/#UserNameP/#SharedP UserSharedR GET
 !/#UserNameP/#FilterP UserFilterR GET
+!/#UserNameP/#SharedP/#TagsP UserSharedTagsR GET
+!/#UserNameP/#FilterP/#TagsP UserFilterTagsR GET
 !/#UserNameP/#TagsP UserTagsR GET
 
 !/#UserNameP/feed.xml UserFeedR GET
 !/#UserNameP/#SharedP/feed.xml UserFeedSharedR GET
 !/#UserNameP/#FilterP/feed.xml UserFeedFilterR GET
+!/#UserNameP/#SharedP/#TagsP/feed.xml UserFeedSharedTagsR GET
+!/#UserNameP/#FilterP/#TagsP/feed.xml UserFeedFilterTagsR GET
 !/#UserNameP/#TagsP/feed.xml UserFeedTagsR GET
 
 -- settings

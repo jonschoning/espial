@@ -2,6 +2,10 @@
 
 ## v0.0.42 (2026-07-XX)
 
+- preserve filter/search context when clicking on page & tag filters
+  - preserve page filters and search when filtering on a tag (`t:book`)
+  - preserve tags and search when selecting a page filter (`starred`)
+  - example generated route: `u:demo/starred/t:book?sort=title&query=title%3Aalgebra`
 - add fetchPageTitle workaround for reddit urls
 - bake ENV SQLITE_DATABASE into dockerfile
 
