@@ -215,6 +215,7 @@ executables:
       - espial
       - optparse-generic >= 1.2.3
       - optparse-applicative
+      - clientsession
 
 # Test suite
 tests:

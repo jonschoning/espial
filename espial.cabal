@@ -423,6 +423,7 @@ executable migration
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
+    , clientsession
     , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256
