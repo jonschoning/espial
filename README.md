@@ -501,6 +501,11 @@ All commands take an optional `--conn` parameter for the database location; if o
 | `printmigratedb`             | `stack exec migration -- printmigratedb`                                                                       |
 | `runmigratedb`               | `stack exec migration -- runmigratedb`                                                                         |
 | `showuser`                   | `stack exec migration -- showuser --userName myusername`                                                       |
+| `generatesessionkey`         | `stack exec migration -- generatesessionkey`                                                                   |
+
+### `generatesessionkey` Command Notes:
+
+Prints a base64-encoded client session key suitable for the `CLIENT_SESSION_KEY` environment variable. When set, it is used instead of `config/client_session_key.aes`, so sessions survive container recreation (avoiding forced re-login across updated docker images).
 
 ### `importbookmarks` Command Notes:
 

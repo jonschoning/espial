@@ -65,7 +65,16 @@
         <tr .docs-striped-item>
           <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
           <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
-  
+        <tr .docs-striped-item>
+          <td .pv2.ph3><span class="code fw9">private</span>, <span class="code fw9">pr
+          <td .pv2.ph3><span class="code fw9">private:true</span><br><span class="code fw9">private:false</span><br><span class="code fw9">pr:true</span><br><span class="code fw9">pr:false
+        <tr .docs-striped-item>
+          <td .pv2.ph3><span class="code fw9">starred</span>, <span class="code fw9">st
+          <td .pv2.ph3><span class="code fw9">starred:true</span><br><span class="code fw9">starred:false</span><br><span class="code fw9">st:true</span><br><span class="code fw9">st:false
+        <tr .docs-striped-item>
+          <td .pv2.ph3><span class="code fw9">unread</span>, <span class="code fw9">un
+          <td .pv2.ph3><span class="code fw9">unread:true</span><br><span class="code fw9">unread:false</span><br><span class="code fw9">un:true</span><br><span class="code fw9">un:false
+
     <div .f5.fw6.pv3.underline>#{t "docs.noteSearch"}
     <table .collapse.ba.br2.thm-border-doc-table.pv2.ph3>
       <tbody>
@@ -87,6 +96,9 @@
         <tr .docs-striped-item>
           <td .pv2.ph3><span class="code fw9">before</span>, <span class="code fw9">b
           <td .pv2.ph3><span class="code fw9">before:12/31/2019</span><br><span class="code fw9">before:2019-12-31</span><br><span class="code fw9">b:12/31/2019</span><br><span class="code fw9">b:2019-12-31
+        <tr .docs-striped-item>
+          <td .pv2.ph3><span class="code fw9">private</span>, <span class="code fw9">pr
+          <td .pv2.ph3><span class="code fw9">private:true</span><br><span class="code fw9">private:false</span><br><span class="code fw9">pr:true</span><br><span class="code fw9">pr:false
 
   <h3 .mb0>#{t "docs.complexExamples"}
   <div .ml3.pt3>

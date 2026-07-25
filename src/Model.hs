@@ -696,11 +696,23 @@ bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
         ||. toLikeB BookmarkDescription term
         ||. toLikeB BookmarkExtended term
         ||. tagsExpr sqliteLikeContains term
-    p_onefield = p_url <|> p_title <|> p_description <|> p_tags <|> p_after <|> p_before
+    p_onefield =
+      p_url
+        <|> p_title
+        <|> p_description
+        <|> p_tags
+        <|> p_after
+        <|> p_before
+        <|> p_private
+        <|> p_starred
+        <|> p_unread
       where
         p_url = p_textField ("url" <|> "u") BookmarkHref
         p_title = p_textField ("title" <|> "ti") BookmarkDescription
         p_description = p_textField ("description" <|> "d") BookmarkExtended
+        p_private = p_boolField ("private" <|> "pr") $ \v -> b ^. BookmarkShared ==. val (not v)
+        p_starred = p_boolField ("starred" <|> "st") $ \v -> b ^. BookmarkSelected ==. val v
+        p_unread = p_boolField ("unread" <|> "un") $ \v -> b ^. BookmarkToRead ==. val v
         p_tags =
           ("tags" <|> "t")
             *> ( P.char ':'
@@ -717,6 +729,9 @@ bookmarkLikeExpr b term = fromRight p_allFields (P.parseOnly p_onefield term)
                    <|> P.char '='
                    *> fmap (toExactB field) P.takeText
                )
+
+p_boolField :: P.Parser Text -> (Bool -> SqlExpr (Value Bool)) -> P.Parser (SqlExpr (Value Bool))
+p_boolField name toExpr = name *> P.char ':' *> fmap toExpr (parseBoolText =<< P.takeText)
 
 -- * BulkEdit types
 
@@ -1047,11 +1062,12 @@ noteWhereClause key sharedp mquery b = do
         toLikeN field s = sqliteLikeContains (b ^. field) s
         toExactN field s = sqliteLikeExact (b ^. field) s
         p_allFields = toLikeN NoteTitle term ||. toLikeN NoteText term
-        p_onefield = p_title <|> p_text <|> p_markdown <|> p_after <|> p_before
+        p_onefield = p_title <|> p_text <|> p_markdown <|> p_after <|> p_before <|> p_private
           where
             p_title = p_textField ("title" <|> "ti") NoteTitle
             p_text = p_textField ("description" <|> "d") NoteText
-            p_markdown = ("markdown:" <|> "m:") *> fmap ((b ^. NoteIsMarkdown ==.) . val) (parseBoolText =<< P.takeText)
+            p_markdown = p_boolField ("markdown" <|> "m") $ \v -> b ^. NoteIsMarkdown ==. val v
+            p_private = p_boolField ("private" <|> "pr") $ \v -> b ^. NoteShared ==. val (not v)
             p_after = ("after:" <|> "a:") *> fmap ((b ^. NoteCreated >=.) . val) (parseTimeText =<< P.takeText)
             p_before = ("before:" <|> "b:") *> fmap ((b ^. NoteCreated <=.) . val) (parseTimeText =<< P.takeText)
             p_textField name field =
