@@ -59,14 +59,11 @@ For a quick trial, or a minimal setup without cloning [espial-docker](https://gi
 MSYS_NO_PATHCONV=1 docker run --name espial \
   -p 9090:3000 \
   -v espial-data:/app/data \
-  -e SQLITE_DATABASE=/app/data/espial.sqlite3 \
   -d jonschoning/espial:espial
 ```
 
 - Maps host port `9090` to Espial's internal port `3000` — change `9090` to whatever port you prefer.
 - Creates a named volume called `espial-data` at `/app/data`; the sqlite database will be stored inside a docker Named Volume.
-- `SQLITE_DATABASE` sets the database filename inside the named volume at `/app/data`
-- The database is created and migrated automatically on startup — no separate `createdb` step required.
 
 2. Create a user:
 
