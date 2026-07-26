@@ -97,6 +97,14 @@ data AppSettings = AppSettings
     appArchiveBoxTag :: Text,
     -- | Optional comma-separated ArchiveBox-07 archive method override
     appArchiveBoxPlugins :: Maybe Text,
+    -- | Path to the @monolith@ executable (resolved via PATH when unqualified)
+    appMonolithPath :: Text,
+    -- | Directory holding archives written by the monolith backend
+    appMonolithDir :: FilePath,
+    -- | Seconds to wait for a single monolith invocation before killing it
+    appMonolithTimeoutSec :: Int,
+    -- | Extra whitespace-separated flags passed to monolith
+    appMonolithArgs :: Text,
     -- | Which archiver backend to use (or disabled)
     appArchiveBackend :: ArchiveBackend,
     -- | Minimum delay, in milliseconds, between successive calls to the archiver backend.
@@ -179,6 +187,11 @@ instance FromJSON AppSettings where
     appArchiveBoxTag <- (fmap toText <$> o .:? "archivebox-tag") .!= "espial"
     appArchiveBoxPlugins <- o .:? "archivebox-plugins"
 
+    appMonolithPath <- (fmap toText <$> o .:? "monolith-path") .!= "monolith"
+    appMonolithDir <- o .:? "monolith-dir" .!= "archives"
+    appMonolithTimeoutSec <- o .:? "monolith-timeout-sec" .!= 120
+    appMonolithArgs <- (fmap toText <$> o .:? "monolith-args") .!= "-I -q -e -v -a"
+
     appArchiveRateLimitMs <- o .:? "archive-rate-limit-ms" .!= 2000
     appArchiveQueueCapacity <- o .:? "archive-queue-capacity" .!= 500
 
@@ -228,7 +241,7 @@ appPasswordHashConfig AppSettings {..} =
     PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
 
 -- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07 | ArchiveBackendMonolith
   deriving (Show, Eq)
 
 instance FromJSON ArchiveBackend where
@@ -238,6 +251,7 @@ instance FromJSON ArchiveBackend where
     "archive-li" -> pure ArchiveBackendArchiveLi
     "wayback-machine" -> pure ArchiveBackendWaybackMachine
     "archivebox07" -> pure ArchiveBackendArchiveBox07
+    "monolith" -> pure ArchiveBackendMonolith
     _ -> fail "Unknown archive backend"
 
 -- | Settings for 'widgetFile', such as which template languages to support and

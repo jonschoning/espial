@@ -403,6 +403,29 @@ Set the backend with `archive-backend` in `config/settings.yml`:
     Create these by signing in to your Internet Archive account and generating S3-style API credentials at `https://archive.org/account/s3.php`. \
      If `wayback-machine` is selected but the access key or secret key is missing, archiving is disabled at runtime.
 
+- `monolith`: runs [monolith](https://github.com/Y2Z/monolith) locally to save the page as a single self-contained HTML file, served back by Espial itself. No external service required.
+
+  You must install `monolith` yourself (`cargo install monolith`, `brew install monolith`, your distro's package, or a [release binary](https://github.com/Y2Z/monolith/releases)). The Docker image ships it already.
+
+  Archives are written to `{monolith-dir}/{userId}/{bookmarkId}/latest.html`, one file per bookmark, overwritten on each re-archive. The bookmark's `archiveHref` column is the only index — there is no separate archive database. The bookmark links to `/archive/bm/{bookmarkId}`, which serves the file to the bookmark's owner only, with a `Content-Security-Policy: sandbox` header so archived third-party HTML runs in an opaque origin with scripts disabled and cannot reach your Espial session.
+
+  Settings:
+  - `monolith-path` (default `monolith`)
+
+    Path to the executable; resolved via `PATH` when unqualified. If it can't be run at startup, archiving is disabled and a warning is logged.
+
+  - `monolith-dir` (default `archives`)
+
+    Directory archives are written to. Under Docker this defaults to `/app/data/archives`, inside the mounted data volume.
+
+  - `monolith-timeout-sec` (default `120`)
+
+    A monolith invocation running longer than this is killed. The archive queue is single-threaded, so one hung fetch would otherwise stall all archiving.
+
+  - `monolith-args` (default `-I -q -e -v -a`)
+
+    Extra whitespace-separated flags. `-I` isolates the saved page from the network, `-q` is quiet, `-e` keeps going when an individual asset fails to fetch, and `-v`/`-a` drop video and audio sources (embedded media dominates archive size). Add `-i` to drop images too if archives are still too large. Flag names are monolith's own, so check `monolith --help` for your installed version.
+
 - `archivebox07`: queues the URL in a local ArchiveBox 0.7 instance and stores an ArchiveBox link on the bookmark.
 
   **IMPORTANT - ArchiveBox stores all archive data in a single global index space, so this arcive-backend is best suited to single-user Espial instances.**

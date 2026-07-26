@@ -24,6 +24,7 @@ TAGS
 \#*
 \.#*
 archivebox-data
+archives
 bookmarks-*.json
 cabal-dev/
 cabal.sandbox.config

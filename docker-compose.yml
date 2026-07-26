@@ -29,3 +29,7 @@ services:
       # ARCHIVE_BACKEND: wayback-machine
       # WAYBACK_MACHINE_ACCESS_KEY: ACCESS_KEY
       # WAYBACK_MACHINE_SECRET_KEY: SECRET_KEY
+
+      # ARCHIVE_BACKEND: monolith  # self-contained single-file archives written under /app/data/archives
+      # MONOLITH_TIMEOUT_SEC: 120
+      # MONOLITH_ARGS: "-I -q -e -v -a"

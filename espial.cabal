@@ -157,6 +157,7 @@ library
       Archiver.ArchiveBox07
       Archiver.Backend
       Archiver.Debug
+      Archiver.Monolith
       Archiver.WaybackMachine
       Foundation
       Generic
@@ -251,6 +252,7 @@ library
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
+    , process
     , safe
     , shakespeare >=2.0 && <2.3
     , stm
@@ -359,6 +361,7 @@ executable espial
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
+    , process
     , safe
     , shakespeare >=2.0 && <2.3
     , stm
@@ -459,6 +462,7 @@ executable migration
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
+    , process
     , safe
     , shakespeare >=2.0 && <2.3
     , stm
@@ -577,6 +581,7 @@ test-suite test
     , persistent >=2.14 && <2.19
     , persistent-sqlite ==2.13.3.0
     , persistent-template ==2.12.*
+    , process
     , safe
     , shakespeare >=2.0 && <2.3
     , stm

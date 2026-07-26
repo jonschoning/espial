@@ -4,6 +4,7 @@ module Handler.Edit where
 
 import Data.Text qualified as T
 import Database.Persist.Sql
+import Handler.Archive (deleteBookmarkArchiveFiles)
 import Import
 
 -- routes
@@ -26,10 +27,11 @@ patchReadR bid = do
 deleteDeleteR :: Int64 -> Handler Html
 deleteDeleteR bid = do
   userId <- requireAuthId
+  let k_bid = toSqlKey bid
   runDBWrite do
-    let k_bid = toSqlKey bid
     _ <- _requireResource userId k_bid
     delete k_bid
+  deleteBookmarkArchiveFiles userId k_bid
   pure ""
 
 postBmBulkEditR :: Handler ()

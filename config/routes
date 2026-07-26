@@ -72,6 +72,7 @@
 /api/bm/#Int64/star StarR PATCH
 /api/bm/#Int64/unstar UnstarR PATCH
 /api/bm/#Int64/archive ArchiveBookmarkR POST
+/archive/bm/#Int64 ArchiveFileR GET
 /!api/bm/bulkEdit BmBulkEditR POST
 
 -- doc

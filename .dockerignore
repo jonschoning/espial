@@ -26,6 +26,7 @@ TAGS
 \#*
 \.#*
 archivebox-data
+archives
 bookmarks-*.json
 caddy
 cabal-dev/

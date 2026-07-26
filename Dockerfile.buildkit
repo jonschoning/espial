@@ -72,6 +72,16 @@ RUN make allnoconfig \
   && ln -sf busybox /opt/runtime-bin/mkdir \
   && ln -sf busybox /opt/runtime-bin/rm
 
+FROM debian:bookworm-slim AS monolith
+
+ARG MONOLITH_VERSION=v2.10.1
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates wget \
+  && wget -O /usr/local/bin/monolith "https://github.com/Y2Z/monolith/releases/download/${MONOLITH_VERSION}/monolith-gnu-linux-x86_64" \
+  && chmod +x /usr/local/bin/monolith \
+  && rm -rf /var/lib/apt/lists/*
+
 FROM gcr.io/distroless/base-debian12 AS runtime
 
 ARG VERSION=dev
@@ -99,8 +109,11 @@ COPY --from=builder /src/config ./config
 COPY --from=builder /src/static ./static
 COPY --from=builder /opt/espial/bin/espial ./espial
 COPY --from=builder /opt/espial/bin/migration ./migration
+COPY --from=monolith /usr/local/bin/monolith /usr/local/bin/monolith
 
 ENV SQLITE_DATABASE=/app/data/espial.sqlite3
+ENV MONOLITH_PATH=/usr/local/bin/monolith
+ENV MONOLITH_DIR=/app/data/archives
 
 ENTRYPOINT []
 CMD ["./espial", "+RTS", "-T"]

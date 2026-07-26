@@ -52,6 +52,7 @@ copyright: Insert copyright statement here
 archive-backend: "_env:ARCHIVE_BACKEND:disabled"
 # archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 # archive-backend: "_env:ARCHIVE_BACKEND:archivebox07"
+# archive-backend: "_env:ARCHIVE_BACKEND:monolith"
 
 archive-rate-limit-ms: "_env:ARCHIVE_RATE_LIMIT_MS:2000" # minimum delay between successive archive requests.
 archive-queue-capacity: "_env:ARCHIVE_QUEUE_CAPACITY:500" # max pending archive jobs held in memory; excess are dropped.
@@ -68,6 +69,11 @@ archivebox-username: "_env:ARCHIVEBOX_USERNAME" # ArchiveBox admin username used
 archivebox-password: "_env:ARCHIVEBOX_PASSWORD" # ArchiveBox admin password used when archive-backend is set to archivebox.
 archivebox-tag: "_env:ARCHIVEBOX_TAG:espial"
 archivebox-plugins: "_env:ARCHIVEBOX_PLUGINS:title,favicon,singlefile,screenshot" # Comma-separated list of ArchiveBox plugins to run when espial adds a URL to ArchiveBox.
+
+monolith-path: "_env:MONOLITH_PATH:monolith" # path to the monolith executable; resolved via PATH when unqualified.
+monolith-dir: "_env:MONOLITH_DIR:archives" # directory where monolith archives are written, one latest.html per bookmark.
+monolith-timeout-sec: "_env:MONOLITH_TIMEOUT_SEC:120" # kill a monolith invocation that runs longer than this.
+monolith-args: "_env:MONOLITH_ARGS:-I -q -e -v -a" # extra flags passed to monolith (-I isolates the saved page from the network, -q quiet, -e keep going on network errors, -v/-a drop video/audio sources).
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 
