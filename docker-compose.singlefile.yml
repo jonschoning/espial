@@ -1,0 +1,31 @@
+# Espial with ARCHIVE_BACKEND=singlefile: pages are rendered in a headless chromium by
+# single-file-cli and saved as one self-contained HTML file per bookmark, served by espial
+# itself at /archive/bm/{bookmarkId}. This uses the `runtime-singlefile` image variant,
+# which ships chromium and single-file-cli; the default image does not.
+services:
+  espial:
+    image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial-singlefile}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
+      target: runtime-singlefile
+    ports:
+      - "3000:3000"
+    volumes:
+      - '${DATA:-.}:/app/data'
+    # chromium needs more than docker's default 64MB /dev/shm
+    shm_size: '1gb'
+    environment:
+      PORT: 3000
+      SQLITE_DATABASE: /app/data/espial.sqlite3
+      IP_FROM_HEADER: false
+      CLIENT_SESSION_KEY: ${CLIENT_SESSION_KEY}
+      SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
+
+      ARCHIVE_BACKEND: singlefile
+      SINGLEFILE_DIR: /app/data/archives
+      # SINGLEFILE_TIMEOUT_SEC: 120
+      # SINGLEFILE_ARGS: ""
+      # SINGLEFILE_PATH and SINGLEFILE_BROWSER_PATH are baked into the image.
+      # SINGLEFILE_BROWSER_ARGS: '["--headless=new","--no-sandbox","--no-zygote","--disable-dev-shm-usage","--disable-software-rasterizer","--run-all-compositor-stages-before-draw","--hide-scrollbars","--window-size=1440,2000","--autoplay-policy=no-user-gesture-required","--no-first-run","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream","--disable-sync"]'

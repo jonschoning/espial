@@ -66,7 +66,17 @@ docker-compose-build: build
 		--build-arg DESCRIPTION="$(DESCRIPTION)" \
 		--build-arg LICENSES="$(LICENSES)"
 docker-compose-build-buildx: build
-	@$(_DOCKER) buildx build -f Dockerfile.buildkit -t localhost/espial:espial --load \
+	@$(_DOCKER) buildx build -f Dockerfile.buildkit --target runtime -t localhost/espial:espial --load \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg GIT_SHA=$(GIT_SHA) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg SOURCE_URL="$(SOURCE_URL)" \
+		--build-arg TITLE="$(TITLE)" \
+		--build-arg DESCRIPTION="$(DESCRIPTION)" \
+		--build-arg LICENSES="$(LICENSES)" \
+		.
+docker-compose-build-buildx-singlefile: build
+	@$(_DOCKER) buildx build -f Dockerfile.buildkit --target runtime-singlefile -t localhost/espial:espial-singlefile --load \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GIT_SHA=$(GIT_SHA) \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \

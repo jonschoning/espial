@@ -1,7 +1,7 @@
 module Handler.Archive where
 
 import Archiver.Backend (ArchiveJob (..), ArchiverBackend (..), enqueueArchiveJobs)
-import Archiver.Monolith (monolithArchiveDir, monolithArchiveFile)
+import Archiver.LocalArchive (localArchiveDir, localArchiveFile)
 import Handler.Locales (isWithinDir)
 import Import
 import Network.PrivateAddress (isDisallowedFetchUrl)
@@ -15,7 +15,7 @@ postArchiveBookmarkR bid = do
     Just bm | (bookmarkUserId bm == userId) -> archiveBookmarkUrl kbid bm
     _ -> notFound
 
--- | Serves a monolith archive. Owner-only, matching the fact that `archiveHref` is
+-- | Serves an on-disk archive. Owner-only, matching the fact that `archiveHref` is
 -- stripped from bookmarks shown to anyone else (see `Model.Form`).
 getArchiveFileR :: Int64 -> Handler ()
 getArchiveFileR bid = do
@@ -23,8 +23,8 @@ getArchiveFileR bid = do
   (userId, _) <- requireAuthPair
   runDB (get kbid) >>= \case
     Just bm | bookmarkUserId bm == userId -> do
-      baseDir <- appMonolithDir . appSettings <$> getYesod
-      let path = monolithArchiveFile baseDir userId kbid
+      baseDir <- maybe notFound pure . localArchiveBaseDir . appSettings =<< getYesod
+      let path = localArchiveFile baseDir userId kbid
       unlessM (liftIO (isWithinDir baseDir path)) notFound
       -- opaque origin + no scripts: archived third-party HTML must not reach espial's session
       addHeader "Content-Security-Policy" archiveContentSecurityPolicy
@@ -34,14 +34,17 @@ getArchiveFileR bid = do
     _ -> notFound
 
 -- | Best-effort removal of a bookmark's on-disk archive; the DB row is the index, so a
--- leftover directory would never be reachable again.
-deleteBookmarkArchiveFiles :: Key User -> Key Bookmark -> Handler ()
-deleteBookmarkArchiveFiles userId kbid = do
-  baseDir <- appMonolithDir . appSettings <$> getYesod
-  let dir = monolithArchiveDir baseDir userId kbid
-  liftIO (tryAny (whenM (doesDirectoryExist dir) (removeDirectoryRecursive dir))) >>= \case
-    Left e -> $(logWarn) $ "Failed to remove archive dir " <> pack dir <> ": " <> tshow e
-    Right () -> pure ()
+-- leftover directory would never be reachable again. No-op unless a backend that writes
+-- local archives (monolith, singlefile) is active, or when
+-- @archive-delete-local-files-on-delete@ is off.
+deleteLocalBookmarkArchiveFiles :: Key User -> Key Bookmark -> Handler ()
+deleteLocalBookmarkArchiveFiles userId kbid = do
+  settings <- appSettings <$> getYesod
+  when (appArchiveDeleteLocalFilesOnDelete settings) $ forM_ (localArchiveBaseDir settings) $ \baseDir -> do
+    let dir = localArchiveDir baseDir userId kbid
+    liftIO (tryAny (whenM (doesDirectoryExist dir) (removeDirectoryRecursive dir))) >>= \case
+      Left e -> $(logWarn) $ "Failed to remove archive dir " <> pack dir <> ": " <> tshow e
+      Right () -> pure ()
 
 archiveContentSecurityPolicy :: Text
 archiveContentSecurityPolicy =

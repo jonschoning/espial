@@ -426,6 +426,37 @@ Set the backend with `archive-backend` in `config/settings.yml`:
 
     Extra whitespace-separated flags. `-I` isolates the saved page from the network, `-q` is quiet, `-e` keeps going when an individual asset fails to fetch, and `-v`/`-a` drop video and audio sources (embedded media dominates archive size). Add `-i` to drop images too if archives are still too large. Flag names are monolith's own, so check `monolith --help` for your installed version.
 
+- `singlefile`: runs [single-file-cli](https://github.com/gildas-lormeau/single-file-cli) locally, driving a headless Chromium to save the page as a single self-contained HTML file, served back by Espial itself. Unlike `monolith` the page is rendered by a real browser first, so JavaScript-built pages archive correctly, at the cost of needing Chromium installed.
+
+  You must install `single-file-cli` and Chromium yourself (`npm install -g single-file-cli`, plus your distro's `chromium` package). Under Docker use [docker-compose.singlefile.yml](docker-compose.singlefile.yml), which builds the `runtime-singlefile` image variant with both already installed — the default distroless image cannot host a browser.
+
+  Archives are written and served exactly as with `monolith` (see above): `{singlefile-dir}/{userId}/{bookmarkId}/latest.html`, linked as `/archive/bm/{bookmarkId}`, owner-only and sandboxed.
+
+  Settings:
+  - `singlefile-path` (default `single-file`)
+
+    Path to the executable; resolved via `PATH` when unqualified. If it can't be run at startup, archiving is disabled and a warning is logged. On Windows point this at the full path of the npm shim, e.g. `%APPDATA%\npm\single-file.cmd`, since a bare `single-file` is not directly executable.
+
+  - `singlefile-dir` (default `archives`)
+
+    Directory archives are written to.
+
+  - `singlefile-timeout-sec` (default `120`)
+
+    A single-file invocation running longer than this is killed. The archive queue is single-threaded, so one hung fetch would otherwise stall all archiving.
+
+  - `singlefile-browser-path` (default `chromium-browser`)
+
+    Chromium executable single-file drives, passed as `--browser-executable-path`.
+
+  - `singlefile-browser-args` (default: headless container-friendly flag set)
+
+    JSON array of Chromium flags, passed as `--browser-args`. The default is `["--headless=new","--no-sandbox","--no-zygote","--disable-dev-shm-usage","--disable-software-rasterizer","--run-all-compositor-stages-before-draw","--hide-scrollbars","--window-size=1440,2000","--autoplay-policy=no-user-gesture-required","--no-first-run","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream","--disable-sync"]`.
+
+  - `singlefile-args` (default empty)
+
+    Extra whitespace-separated flags passed to single-file, e.g. `--block-videos=true`. See `single-file --help`.
+
 - `archivebox07`: queues the URL in a local ArchiveBox 0.7 instance and stores an ArchiveBox link on the bookmark.
 
   **IMPORTANT - ArchiveBox stores all archive data in a single global index space, so this arcive-backend is best suited to single-user Espial instances.**

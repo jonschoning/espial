@@ -73,6 +73,52 @@ RUN apt-get update \
   && chmod +x /usr/local/bin/monolith \
   && rm -rf /var/lib/apt/lists/*
 
+# Variant image for ARCHIVE_BACKEND=singlefile, which needs a real chromium and node
+# alongside espial; distroless can't host either. Build with `--target runtime-singlefile`.
+FROM debian:bookworm-slim AS runtime-singlefile
+
+ARG VERSION=dev
+ARG GIT_SHA=UNKNOWN
+ARG BUILD_DATE
+ARG SOURCE_URL=https://github.com/jonschoning/espial
+ARG TITLE=espial
+ARG DESCRIPTION="Espial is an open-source, web-based bookmarking server"
+ARG LICENSES=AGPL-3.0-or-later
+LABEL org.opencontainers.image.title=$TITLE
+LABEL org.opencontainers.image.description=$DESCRIPTION
+LABEL org.opencontainers.image.licenses=$LICENSES
+LABEL org.opencontainers.image.source=$SOURCE_URL
+LABEL org.opencontainers.image.version=$VERSION
+LABEL org.opencontainers.image.revision=$GIT_SHA
+LABEL org.opencontainers.image.created=$BUILD_DATE
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation libgmp10 nodejs npm zlib1g \
+  && npm install -g single-file-cli \
+  && npm cache clean --force \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /src/config ./config
+COPY --from=builder /src/static ./static
+COPY --from=builder /opt/espial/bin/espial ./espial
+COPY --from=builder /opt/espial/bin/migration ./migration
+COPY --from=monolith /usr/local/bin/monolith /usr/local/bin/monolith
+
+ENV SQLITE_DATABASE=/app/data/espial.sqlite3
+ENV MONOLITH_PATH=/usr/local/bin/monolith
+ENV MONOLITH_DIR=/app/data/archives
+# node 18 resolves localhost to ::1 first, but chromium's debugging port is 127.0.0.1-only
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
+ENV SINGLEFILE_PATH=/usr/local/bin/single-file
+ENV SINGLEFILE_BROWSER_PATH=/usr/bin/chromium
+ENV SINGLEFILE_DIR=/app/data/archives
+
+ENTRYPOINT []
+CMD ["./espial", "+RTS", "-T"]
+
+# Default image; last stage so a build with no --target produces it.
 FROM gcr.io/distroless/base-debian12 AS runtime
 
 ARG VERSION=dev

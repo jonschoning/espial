@@ -4,7 +4,7 @@ module Handler.Edit where
 
 import Data.Text qualified as T
 import Database.Persist.Sql
-import Handler.Archive (deleteBookmarkArchiveFiles)
+import Handler.Archive (deleteLocalBookmarkArchiveFiles)
 import Import
 
 -- routes
@@ -31,7 +31,7 @@ deleteDeleteR bid = do
   runDBWrite do
     _ <- _requireResource userId k_bid
     delete k_bid
-  deleteBookmarkArchiveFiles userId k_bid
+  deleteLocalBookmarkArchiveFiles userId k_bid
   pure ""
 
 postBmBulkEditR :: Handler ()

@@ -53,9 +53,11 @@ archive-backend: "_env:ARCHIVE_BACKEND:disabled"
 # archive-backend: "_env:ARCHIVE_BACKEND:wayback-machine"
 # archive-backend: "_env:ARCHIVE_BACKEND:archivebox07"
 # archive-backend: "_env:ARCHIVE_BACKEND:monolith"
+# archive-backend: "_env:ARCHIVE_BACKEND:singlefile"
 
 archive-rate-limit-ms: "_env:ARCHIVE_RATE_LIMIT_MS:2000" # minimum delay between successive archive requests.
 archive-queue-capacity: "_env:ARCHIVE_QUEUE_CAPACITY:500" # max pending archive jobs held in memory; excess are dropped.
+archive-delete-local-files-on-delete: "_env:ARCHIVE_DELETE_LOCAL_FILES_ON_DELETE:true" # when true, deleting a bookmark also removes its on-disk archive (monolith, singlefile).
 
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
@@ -74,6 +76,13 @@ monolith-path: "_env:MONOLITH_PATH:monolith" # path to the monolith executable; 
 monolith-dir: "_env:MONOLITH_DIR:archives" # directory where monolith archives are written, one latest.html per bookmark.
 monolith-timeout-sec: "_env:MONOLITH_TIMEOUT_SEC:120" # kill a monolith invocation that runs longer than this.
 monolith-args: "_env:MONOLITH_ARGS:-I -q -e -v -a" # extra flags passed to monolith (-I isolates the saved page from the network, -q quiet, -e keep going on network errors, -v/-a drop video/audio sources).
+
+singlefile-path: "_env:SINGLEFILE_PATH:single-file" # path to the single-file-cli executable; resolved via PATH when unqualified.
+singlefile-dir: "_env:SINGLEFILE_DIR:archives" # directory where single-file archives are written, one latest.html per bookmark.
+singlefile-timeout-sec: "_env:SINGLEFILE_TIMEOUT_SEC:120" # kill a single-file invocation that runs longer than this.
+singlefile-browser-path: "_env:SINGLEFILE_BROWSER_PATH:chromium-browser" # chromium executable single-file drives.
+# singlefile-browser-args: '_env:SINGLEFILE_BROWSER_ARGS:["--headless=new","--no-sandbox",...]' # JSON array of chromium flags; see README for the default.
+singlefile-args: "_env:SINGLEFILE_ARGS:" # extra whitespace-separated flags passed to single-file.
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 

@@ -33,3 +33,5 @@ services:
       # ARCHIVE_BACKEND: monolith  # self-contained single-file archives written under /app/data/archives
       # MONOLITH_TIMEOUT_SEC: 120
       # MONOLITH_ARGS: "-I -q -e -v -a"
+
+      ## use docker-compose.singlefile.yml for ARCHIVE_BACKEND: singlefile

@@ -105,12 +105,26 @@ data AppSettings = AppSettings
     appMonolithTimeoutSec :: Int,
     -- | Extra whitespace-separated flags passed to monolith
     appMonolithArgs :: Text,
+    -- | Path to the @single-file@ executable (resolved via PATH when unqualified)
+    appSingleFilePath :: Text,
+    -- | Directory holding archives written by the singlefile backend
+    appSingleFileDir :: FilePath,
+    -- | Seconds to wait for a single single-file invocation before killing it
+    appSingleFileTimeoutSec :: Int,
+    -- | Path to the chromium executable single-file drives
+    appSingleFileBrowserPath :: Text,
+    -- | JSON array of flags single-file passes on to chromium
+    appSingleFileBrowserArgs :: Text,
+    -- | Extra whitespace-separated flags passed to single-file
+    appSingleFileArgs :: Text,
     -- | Which archiver backend to use (or disabled)
     appArchiveBackend :: ArchiveBackend,
     -- | Minimum delay, in milliseconds, between successive calls to the archiver backend.
     appArchiveRateLimitMs :: Int,
     -- | Maximum number of pending archive jobs held in memory; excess jobs are dropped.
     appArchiveQueueCapacity :: Int,
+    -- | Whether deleting a bookmark also removes its on-disk archive (monolith, singlefile).
+    appArchiveDeleteLocalFilesOnDelete :: Bool,
     -- | Uri to app source code
     appSourceCodeUri :: Maybe Text,
     -- | Whether to only allow SSL connections (i.e. disable non-https cookies and redirects)
@@ -192,8 +206,16 @@ instance FromJSON AppSettings where
     appMonolithTimeoutSec <- o .:? "monolith-timeout-sec" .!= 120
     appMonolithArgs <- (fmap toText <$> o .:? "monolith-args") .!= "-I -q -e -v -a"
 
+    appSingleFilePath <- (fmap toText <$> o .:? "singlefile-path") .!= "single-file"
+    appSingleFileDir <- o .:? "singlefile-dir" .!= "archives"
+    appSingleFileTimeoutSec <- o .:? "singlefile-timeout-sec" .!= 120
+    appSingleFileBrowserPath <- (fmap toText <$> o .:? "singlefile-browser-path") .!= "chromium-browser"
+    appSingleFileBrowserArgs <- (fmap toText <$> o .:? "singlefile-browser-args") .!= defaultSingleFileBrowserArgs
+    appSingleFileArgs <- (fmap toText <$> o .:? "singlefile-args") .!= ""
+
     appArchiveRateLimitMs <- o .:? "archive-rate-limit-ms" .!= 2000
     appArchiveQueueCapacity <- o .:? "archive-queue-capacity" .!= 500
+    appArchiveDeleteLocalFilesOnDelete <- o .:? "archive-delete-local-files-on-delete" .!= True
 
     appSourceCodeUri <- o .:? "source-code-uri"
 
@@ -224,6 +246,19 @@ instance FromJSON AppSettings where
       toText (String t) = t
       toText other = (decodeUtf8 . toStrict . encode) other
 
+-- | Chromium flags single-file launches the browser with; a headless, sandbox-free
+-- set suited to running inside a container.
+defaultSingleFileBrowserArgs :: Text
+defaultSingleFileBrowserArgs =
+  "[\"--headless=new\",\"--no-sandbox\",\"--no-zygote\",\"--disable-dev-shm-usage\",\"--disable-software-rasterizer\",\"--run-all-compositor-stages-before-draw\",\"--hide-scrollbars\",\"--window-size=1440,2000\",\"--autoplay-policy=no-user-gesture-required\",\"--no-first-run\",\"--use-fake-ui-for-media-stream\",\"--use-fake-device-for-media-stream\",\"--disable-sync\"]"
+
+-- | Base directory holding on-disk archives, for the backends that write them.
+localArchiveBaseDir :: AppSettings -> Maybe FilePath
+localArchiveBaseDir AppSettings {..} = case appArchiveBackend of
+  ArchiveBackendSingleFile -> Just appSingleFileDir
+  ArchiveBackendMonolith -> Just appMonolithDir
+  _ -> Nothing
+
 -- | Top-level password hashing algorithm selection.
 data PasswordHashAlgo = PasswordHashAlgoBCrypt
   deriving (Show, Eq)
@@ -241,7 +276,7 @@ appPasswordHashConfig AppSettings {..} =
     PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
 
 -- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07 | ArchiveBackendMonolith
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07 | ArchiveBackendMonolith | ArchiveBackendSingleFile
   deriving (Show, Eq)
 
 instance FromJSON ArchiveBackend where
@@ -252,6 +287,7 @@ instance FromJSON ArchiveBackend where
     "wayback-machine" -> pure ArchiveBackendWaybackMachine
     "archivebox07" -> pure ArchiveBackendArchiveBox07
     "monolith" -> pure ArchiveBackendMonolith
+    "singlefile" -> pure ArchiveBackendSingleFile
     _ -> fail "Unknown archive backend"
 
 -- | Settings for 'widgetFile', such as which template languages to support and

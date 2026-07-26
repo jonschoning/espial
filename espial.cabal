@@ -157,7 +157,9 @@ library
       Archiver.ArchiveBox07
       Archiver.Backend
       Archiver.Debug
+      Archiver.LocalArchive
       Archiver.Monolith
+      Archiver.SingleFile
       Archiver.WaybackMachine
       Foundation
       Generic

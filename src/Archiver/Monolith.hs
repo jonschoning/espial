@@ -1,28 +1,18 @@
 module Archiver.Monolith
   ( monolithBackend,
-    monolithArchiveDir,
-    monolithArchiveFile,
-    monolithArchiveHref,
   )
 where
 
 import Archiver.Backend
+import Archiver.LocalArchive
 import ClassyPrelude
 import Control.Monad.Logger (LoggingT, logDebug, logWarn, runLoggingT)
 import Data.Text qualified as T
-import Database.Persist.Sql (Key, fromSqlKey)
+import Database.Persist.Sql (Key)
 import Model (Bookmark, Url (..), User, updateBookmarkArchiveUrl)
 import Settings (AppSettings (..))
 import System.Directory (createDirectoryIfMissing, doesFileExist, getFileSize, removeFile, renamePath)
 import System.Exit (ExitCode (..))
-import System.Process
-  ( CreateProcess (..),
-    StdStream (Inherit, NoStream),
-    proc,
-    readProcessWithExitCode,
-    waitForProcess,
-    withCreateProcess,
-  )
 import Yesod.Default.Main (LogFunc)
 
 data MonolithContext = MonolithContext
@@ -45,7 +35,7 @@ monolithBackend AppSettings {..} archiverDB logFunc = flip runLoggingT logFunc $
             monolithDB = archiverDB
           }
   dirOk <- liftIO $ tryAny (createDirectoryIfMissing True appMonolithDir)
-  exeOk <- liftIO $ tryAny (probeExe exe)
+  exeOk <- liftIO $ tryAny (probeExe exe ["--version"])
   case (dirOk, exeOk) of
     (Left e, _) -> do
       $(logWarn) $ "Archive backend `monolith` selected but output dir " <> pack appMonolithDir <> " is not writable (" <> tshow e <> "); archiving disabled"
@@ -71,11 +61,10 @@ monolithBackend AppSettings {..} archiverDB logFunc = flip runLoggingT logFunc $
 
 _monolithRun :: MonolithContext -> Key User -> Key Bookmark -> Url -> LoggingT IO ()
 _monolithRun MonolithContext {..} userId bookmarkId url = do
-  let dir = monolithArchiveDir monolithDir userId bookmarkId
-      out = dir </> archiveFileName
+  let out = localArchiveFile monolithDir userId bookmarkId
       tmp = out <> ".tmp"
   $(logDebug) $ "Archiving URL with monolith: " <> unUrl url
-  liftIO $ createDirectoryIfMissing True dir
+  liftIO $ createDirectoryIfMissing True (localArchiveDir monolithDir userId bookmarkId)
   result <-
     liftIO $
       tryAny (runProcessQuiet monolithExe (monolithExtraArgs <> ["-o", tmp, unpack (unUrl url)]) monolithTimeoutMicros)
@@ -88,7 +77,7 @@ _monolithRun MonolithContext {..} userId bookmarkId url = do
       case size of
         Right n | n > 0 -> do
           liftIO $ renamePath tmp out
-          let href = monolithArchiveHref bookmarkId
+          let href = localArchiveHref bookmarkId
           $(logDebug) $ "storing archive link: " <> href
           liftIO $ archiverRunDBWrite monolithDB (updateBookmarkArchiveUrl userId bookmarkId (Just href))
         _ -> discardTmp tmp $ "monolith produced no output for " <> unUrl url
@@ -96,34 +85,3 @@ _monolithRun MonolithContext {..} userId bookmarkId url = do
     discardTmp tmp warning = do
       $(logWarn) warning
       liftIO $ void $ tryAny $ whenM (doesFileExist tmp) (removeFile tmp)
-
--- | Startup liveness check. Captures rather than inherits the streams so monolith's
--- banner doesn't land in the server log.
-probeExe :: FilePath -> IO (Maybe ExitCode)
-probeExe exe =
-  timeout 10000000 $ do
-    (code, _, _) <- readProcessWithExitCode exe ["--version"] ""
-    pure code
-
--- | Runs a command with no stdin, killing it if it outlives the timeout.
--- Streams are inherited rather than piped so a chatty child can't deadlock on a full pipe.
-runProcessQuiet :: FilePath -> [String] -> Int -> IO (Maybe ExitCode)
-runProcessQuiet exe args timeoutMicros =
-  timeout timeoutMicros $
-    withCreateProcess
-      (proc exe args) {std_in = NoStream, std_out = Inherit, std_err = Inherit}
-      (\_ _ _ ph -> waitForProcess ph)
-
-monolithArchiveDir :: FilePath -> Key User -> Key Bookmark -> FilePath
-monolithArchiveDir baseDir userId bookmarkId =
-  baseDir </> show (fromSqlKey userId) </> show (fromSqlKey bookmarkId)
-
-monolithArchiveFile :: FilePath -> Key User -> Key Bookmark -> FilePath
-monolithArchiveFile baseDir userId bookmarkId =
-  monolithArchiveDir baseDir userId bookmarkId </> archiveFileName
-
-monolithArchiveHref :: Key Bookmark -> Text
-monolithArchiveHref bookmarkId = "/archive/bm/" <> tshow (fromSqlKey bookmarkId)
-
-archiveFileName :: FilePath
-archiveFileName = "latest.html"

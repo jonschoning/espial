@@ -25,6 +25,7 @@ import Archiver.ArchiveBox07 (archiveBox07Backend)
 import Archiver.Backend (ArchiveJob (..), ArchiveJobStore (..), ArchiverBackend, ArchiverDB (..), newArchiveQueue, runArchiveQueueWorker)
 import Archiver.Debug (debugArchiverBackend)
 import Archiver.Monolith (monolithBackend)
+import Archiver.SingleFile (singleFileBackend)
 import Archiver.WaybackMachine (waybackMachineBackend)
 import Control.Monad.Logger
 import Data.Aeson qualified as A
@@ -140,6 +141,7 @@ makeFoundation appSettings@AppSettings {..} = do
         ArchiveBackendWaybackMachine -> mkWaybackArchiver
         ArchiveBackendArchiveBox07 -> mkArchiveBox07Archiver
         ArchiveBackendMonolith -> monolithBackend appSettings archiverDB logFunc
+        ArchiveBackendSingleFile -> singleFileBackend appSettings archiverDB logFunc
       where
         mkArchiveLiArchiver = do
           flip runLoggingT logFunc ($(logWarn) ("Archive backend `archive-li` selected but functionality has been removed; archiving disabled"))

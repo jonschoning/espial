@@ -38,3 +38,4 @@ tags
 test-project.cabal
 tmp
 yesod-devel/
+run-singlefile.sh
