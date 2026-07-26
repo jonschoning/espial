@@ -6,7 +6,8 @@ import { archiveBookmark, destroy, editBookmark, lookupTitle, markRead, toggleSt
 import { app, setFocus, shdatetime, toLocaleDateString } from '../globals';
 import { useTagSuggestions } from '../hooks/useTagSuggestions';
 import type { Bookmark } from '../types';
-import { apiErrorMsg, encodeTag, fromNullableStr, normalizeTags } from '../util';
+import { buildTagUrl } from '../urlBuild';
+import { apiErrorMsg, fromNullableStr, normalizeTags } from '../util';
 import { Markdown } from './Markdown';
 import { TagSuggestionsDropdown } from './TagSuggestionsDropdown';
 
@@ -70,7 +71,7 @@ export function BMark({
   const tagInputId = `${bm.bid.toString()}_tags`;
 
   const linkToFilterSingle = `${fromNullableStr(a.userR)}/b:${bm.slug}`;
-  const linkToFilterTag = (tag: string) => `${fromNullableStr(a.userR)}/t:${encodeTag(tag)}`;
+  const linkToFilterTag = (tag: string) => buildTagUrl(a, [tag]);
   const viewInContextTime = (time: Date) => {
     const t = new Date(time);
     const t2 = new Date(t.getTime() + 2);

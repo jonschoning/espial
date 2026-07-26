@@ -16,6 +16,7 @@ import Options.Applicative qualified as OA
 import Options.Generic
 import Settings (AppSettings (..), appPasswordHashConfig)
 import Types
+import Web.ClientSession qualified as CS
 import Yesod.Default.Config2 (configSettingsYml, loadYamlSettings, useEnv)
 
 data MigrationOpts
@@ -97,6 +98,7 @@ data MigrationOpts
       { conn :: Maybe Text,
         silent :: Maybe Bool
       }
+  | GenerateSessionKey
   deriving (Generic, Show)
 
 instance ParseRecord MigrationOpts
@@ -296,6 +298,7 @@ main = do
         case muser of
           Just (P.Entity uid _) -> exportNetscapeBookmarks uid bookmarkFile
           Nothing -> liftIO (print (userName ++ "not found"))
+    GenerateSessionKey -> void $ CS.randomKeyEnv "CLIENT_SESSION_KEY"
   where
     getConnText :: Maybe Text -> IO Text
     getConnText mconn =

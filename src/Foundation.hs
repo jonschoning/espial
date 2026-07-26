@@ -7,7 +7,9 @@ import ClassyPrelude.Yesod qualified as CP (Lang)
 import Control.Concurrent (ThreadId)
 import Data.ByteString.Char8 qualified as BS8
 import Data.CaseInsensitive qualified as CI
+import Data.Char (isSpace)
 import Data.IP (fromSockAddr)
+import Data.List (dropWhileEnd)
 import Data.Map.Strict qualified as Map
 import Data.Text.Encoding qualified as TE
 import Data.Text.Encoding.Error qualified as TEE
@@ -17,6 +19,7 @@ import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Import.NoFoundation
 import Network.Wai qualified as Wai
 import PathPiece ()
+import System.Environment (lookupEnv)
 import Text.Hamlet (hamletFile)
 import Yesod.Auth.Message
 import Yesod.Core.Types
@@ -63,6 +66,7 @@ data App = App
     -- | Serializes DB write transactions to avoid SQLite `SQLITE_BUSY`/snapshot conflicts under concurrent writers.
     appDBWriteLock :: DBWriteLock
   }
+
 mkYesodData "App" $(parseRoutesFile "config/routes")
 
 deriving instance Generic (Route App)
@@ -107,12 +111,17 @@ instance Yesod App where
 
   makeSessionBackend :: App -> IO (Maybe SessionBackend)
   makeSessionBackend App {appSettings} = do
-    backend <-
-      defaultClientSessionBackend
-        session_timeout_minutes
-        "config/client_session_key.aes"
+    envKey <- lookupEnv "CLIENT_SESSION_KEY"
+    backend <- case envKey of
+      Just key | not (null (stripString key)) -> envClientSessionBackend session_timeout_minutes "CLIENT_SESSION_KEY"
+      _ ->
+        defaultClientSessionBackend
+          session_timeout_minutes
+          "config/client_session_key.aes"
     maybeSSLOnly $ pure (Just backend)
     where
+      stripString :: String -> String
+      stripString = dropWhile isSpace . dropWhileEnd isSpace
       maybeSSLOnly =
         if appSSLOnly appSettings
           then sslOnlySessions

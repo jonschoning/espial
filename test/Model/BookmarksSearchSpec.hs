@@ -9,6 +9,9 @@
 --   BookmarkExtended    notes   description:/d:
 --   BookmarkTag         tags    tags:/t:
 --   BookmarkTime        time    after:/a:  before:/b:
+--   BookmarkShared      private private:/pr:   (inverted: private:true => shared False)
+--   BookmarkSelected    starred starred:/st:
+--   BookmarkToRead      unread  unread:/un:
 --
 -- field: is a contains search; field= (url/title/description/tags) matches the entire field.
 
@@ -30,9 +33,13 @@ createTestUser = do
 
 -- href=url, description=title, extended=notes
 createBm :: Key User -> Text -> Text -> Text -> UTCTime -> DB (Key Bookmark)
-createBm uid href title notes time = do
+createBm uid href title notes time = createBmFlags uid href title notes time False False False
+
+-- shared/toRead/selected
+createBmFlags :: Key User -> Text -> Text -> Text -> UTCTime -> Bool -> Bool -> Bool -> DB (Key Bookmark)
+createBmFlags uid href title notes time shared toRead selected = do
   slug <- liftIO mkBmSlug
-  insert $ Bookmark uid slug href title notes time False False False Nothing
+  insert $ Bookmark uid slug href title notes time shared toRead selected Nothing
 
 tagBm :: Key User -> Key Bookmark -> Text -> Int -> DB ()
 tagBm uid bid tag seq' = insert_ $ BookmarkTag uid tag bid seq'
@@ -345,6 +352,155 @@ spec = withApp $ do
         return (uid, bid)
       bids <- runDB $ search uid "b:2019-06-15"
       liftIO $ bids `shouldContain` [bid]
+
+  -- ─── private: / pr: ──────────────────────────────────────────────────────
+
+  describe "private: boolean filter" $ do
+    it "private:true matches only private bookmarks" $ do
+      (uid, bPrivate, bPublic) <- runDB $ do
+        uid <- createTestUser
+        bPrivate <- createBmFlags uid "https://a.com" "" "" t2019 False False False
+        bPublic <- createBmFlags uid "https://b.com" "" "" t2019 True False False
+        return (uid, bPrivate, bPublic)
+      bids <- runDB $ search uid "private:true"
+      liftIO $ bids `shouldContain` [bPrivate]
+      liftIO $ bids `shouldNotContain` [bPublic]
+
+    it "private:false matches only public bookmarks" $ do
+      (uid, bPrivate, bPublic) <- runDB $ do
+        uid <- createTestUser
+        bPrivate <- createBmFlags uid "https://a.com" "" "" t2019 False False False
+        bPublic <- createBmFlags uid "https://b.com" "" "" t2019 True False False
+        return (uid, bPrivate, bPublic)
+      bids <- runDB $ search uid "private:false"
+      liftIO $ bids `shouldContain` [bPublic]
+      liftIO $ bids `shouldNotContain` [bPrivate]
+
+    it "pr: is an alias for private:" $ do
+      (uid, bPrivate, bPublic) <- runDB $ do
+        uid <- createTestUser
+        bPrivate <- createBmFlags uid "https://a.com" "" "" t2019 False False False
+        bPublic <- createBmFlags uid "https://b.com" "" "" t2019 True False False
+        return (uid, bPrivate, bPublic)
+      bids <- runDB $ search uid "pr:true"
+      liftIO $ bids `shouldContain` [bPrivate]
+      liftIO $ bids `shouldNotContain` [bPublic]
+
+  -- ─── starred: / st: ──────────────────────────────────────────────────────
+
+  describe "starred: boolean filter" $ do
+    it "starred:true matches only starred bookmarks" $ do
+      (uid, bStarred, bPlain) <- runDB $ do
+        uid <- createTestUser
+        bStarred <- createBmFlags uid "https://a.com" "" "" t2019 False False True
+        bPlain <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bStarred, bPlain)
+      bids <- runDB $ search uid "starred:true"
+      liftIO $ bids `shouldContain` [bStarred]
+      liftIO $ bids `shouldNotContain` [bPlain]
+
+    it "starred:false matches only unstarred bookmarks" $ do
+      (uid, bStarred, bPlain) <- runDB $ do
+        uid <- createTestUser
+        bStarred <- createBmFlags uid "https://a.com" "" "" t2019 False False True
+        bPlain <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bStarred, bPlain)
+      bids <- runDB $ search uid "starred:false"
+      liftIO $ bids `shouldContain` [bPlain]
+      liftIO $ bids `shouldNotContain` [bStarred]
+
+    it "st: is an alias for starred:" $ do
+      (uid, bStarred, bPlain) <- runDB $ do
+        uid <- createTestUser
+        bStarred <- createBmFlags uid "https://a.com" "" "" t2019 False False True
+        bPlain <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bStarred, bPlain)
+      bids <- runDB $ search uid "st:true"
+      liftIO $ bids `shouldContain` [bStarred]
+      liftIO $ bids `shouldNotContain` [bPlain]
+
+  -- ─── unread: / un: ───────────────────────────────────────────────────────
+
+  describe "unread: boolean filter" $ do
+    it "unread:true matches only unread bookmarks" $ do
+      (uid, bUnread, bRead) <- runDB $ do
+        uid <- createTestUser
+        bUnread <- createBmFlags uid "https://a.com" "" "" t2019 False True False
+        bRead <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bUnread, bRead)
+      bids <- runDB $ search uid "unread:true"
+      liftIO $ bids `shouldContain` [bUnread]
+      liftIO $ bids `shouldNotContain` [bRead]
+
+    it "unread:false matches only read bookmarks" $ do
+      (uid, bUnread, bRead) <- runDB $ do
+        uid <- createTestUser
+        bUnread <- createBmFlags uid "https://a.com" "" "" t2019 False True False
+        bRead <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bUnread, bRead)
+      bids <- runDB $ search uid "unread:false"
+      liftIO $ bids `shouldContain` [bRead]
+      liftIO $ bids `shouldNotContain` [bUnread]
+
+    it "un: is an alias for unread:" $ do
+      (uid, bUnread, bRead) <- runDB $ do
+        uid <- createTestUser
+        bUnread <- createBmFlags uid "https://a.com" "" "" t2019 False True False
+        bRead <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bUnread, bRead)
+      bids <- runDB $ search uid "un:true"
+      liftIO $ bids `shouldContain` [bUnread]
+      liftIO $ bids `shouldNotContain` [bRead]
+
+  -- ─── boolean operator interaction ────────────────────────────────────────
+
+  describe "boolean operators combined with other syntax" $ do
+    it "falls back to all-field search for a non-boolean value" $ do
+      (uid, bMatch, bOther) <- runDB $ do
+        uid <- createTestUser
+        bMatch <- createBm uid "https://a.com" "unread:someday" "" t2019
+        bOther <- createBmFlags uid "https://b.com" "" "" t2019 False True False
+        return (uid, bMatch, bOther)
+      bids <- runDB $ search uid "unread:someday"
+      liftIO $ bids `shouldContain` [bMatch]
+      liftIO $ bids `shouldNotContain` [bOther]
+
+    it "-starred:true excludes starred bookmarks" $ do
+      (uid, bStarred, bPlain) <- runDB $ do
+        uid <- createTestUser
+        bStarred <- createBmFlags uid "https://a.com" "" "" t2019 False False True
+        bPlain <- createBmFlags uid "https://b.com" "" "" t2019 False False False
+        return (uid, bStarred, bPlain)
+      bids <- runDB $ search uid "-starred:true"
+      liftIO $ bids `shouldContain` [bPlain]
+      liftIO $ bids `shouldNotContain` [bStarred]
+
+    it "unread:true|starred:true matches either flag" $ do
+      (uid, bUnread, bStarred, bPlain) <- runDB $ do
+        uid <- createTestUser
+        bUnread <- createBmFlags uid "https://a.com" "" "" t2019 False True False
+        bStarred <- createBmFlags uid "https://b.com" "" "" t2019 False False True
+        bPlain <- createBmFlags uid "https://c.com" "" "" t2019 False False False
+        return (uid, bUnread, bStarred, bPlain)
+      bids <- runDB $ search uid "unread:true|starred:true"
+      liftIO $ bids `shouldContain` [bUnread]
+      liftIO $ bids `shouldContain` [bStarred]
+      liftIO $ bids `shouldNotContain` [bPlain]
+
+    it "combines with field prefixes and tags" $ do
+      (uid, bMatch, bWrongTag, bPublic) <- runDB $ do
+        uid <- createTestUser
+        bMatch <- createBmFlags uid "https://a.com" "Haskell intro" "" t2019 False True False
+        tagBm uid bMatch "haskell" 1
+        bWrongTag <- createBmFlags uid "https://b.com" "Haskell intro" "" t2019 False True False
+        tagBm uid bWrongTag "python" 1
+        bPublic <- createBmFlags uid "https://c.com" "Haskell intro" "" t2019 True True False
+        tagBm uid bPublic "haskell" 1
+        return (uid, bMatch, bWrongTag, bPublic)
+      bids <- runDB $ search uid "t:haskell ti:haskell unread:true private:true"
+      liftIO $ bids `shouldContain` [bMatch]
+      liftIO $ bids `shouldNotContain` [bWrongTag]
+      liftIO $ bids `shouldNotContain` [bPublic]
 
   -- ─── AND (space separator) ────────────────────────────────────────────────
 

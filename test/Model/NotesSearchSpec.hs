@@ -79,6 +79,47 @@ spec = withApp $ do
       nids' <- runDB $ search uid SharedAll (Just "-(banana cherry)")
       liftIO $ sort nids' `shouldBe` sort [nApple, nBanana]
 
+    it "private:true matches only private notes" $ do
+      (uid, nPublic, nPrivate) <- runDB $ do
+        uid <- createTestUser
+        nPublic <- createNote uid "a" False True
+        nPrivate <- createNote uid "b" False False
+        return (uid, nPublic, nPrivate)
+      nids <- runDB $ search uid SharedAll (Just "private:true")
+      liftIO $ nids `shouldBe` [nPrivate]
+      nids' <- runDB $ search uid SharedAll (Just "private:false")
+      liftIO $ nids' `shouldBe` [nPublic]
+
+    it "pr: is an alias for private:" $ do
+      (uid, nPublic, nPrivate) <- runDB $ do
+        uid <- createTestUser
+        nPublic <- createNote uid "a" False True
+        nPrivate <- createNote uid "b" False False
+        return (uid, nPublic, nPrivate)
+      nids <- runDB $ search uid SharedAll (Just "pr:true")
+      liftIO $ nids `shouldBe` [nPrivate]
+      nids' <- runDB $ search uid SharedAll (Just "pr:false")
+      liftIO $ nids' `shouldBe` [nPublic]
+
+    it "private: combines with NOT and other operators" $ do
+      (uid, nid) <- runDB $ do
+        uid <- createTestUser
+        nid <- createNote uid "haskell" True False
+        _ <- createNote uid "haskell" True True
+        _ <- createNote uid "python" True False
+        return (uid, nid)
+      nids <- runDB $ search uid SharedAll (Just "ti:haskell -private:false m:true")
+      liftIO $ nids `shouldBe` [nid]
+
+    it "falls back to all-field search for a non-boolean private value" $ do
+      (uid, nid) <- runDB $ do
+        uid <- createTestUser
+        nid <- createNote uid "private:notes" False True
+        _ <- createNote uid "other" False False
+        return (uid, nid)
+      nids <- runDB $ search uid SharedAll (Just "private:notes")
+      liftIO $ nids `shouldBe` [nid]
+
     it "the shared filter restricts results" $ do
       (uid, nid1, nid2) <- runDB $ do
         uid <- createTestUser

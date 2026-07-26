@@ -23,8 +23,46 @@ getUserFilterR :: UserNameP -> FilterP -> Handler Html
 getUserFilterR uname filterp =
   _getUser uname SharedAll filterp (TagsP [])
 
+getUserSharedTagsR :: UserNameP -> SharedP -> TagsP -> Handler Html
+getUserSharedTagsR uname sharedp = _getUser uname sharedp FilterAll
+
+getUserFilterTagsR :: UserNameP -> FilterP -> TagsP -> Handler Html
+getUserFilterTagsR uname filterp = _getUser uname SharedAll filterp
+
 getUserTagsR :: UserNameP -> TagsP -> Handler Html
 getUserTagsR uname = _getUser uname SharedAll FilterAll
+
+-- | The page route for the given filter/shared axis, keeping any active path
+-- tags. sharedp takes precedence over filterp: pills only ever drive one
+-- axis at a time, so this is unreachable via the UI, but the case must
+-- still resolve to something.
+pageRouteFor :: UserNameP -> [Text] -> SharedP -> FilterP -> Route App
+pageRouteFor unamep pathtags sharedp' filterp' = case (null pathtags, sharedp', filterp') of
+  (True, SharedAll, FilterAll) -> UserR unamep
+  (True, SharedAll, f) -> UserFilterR unamep f
+  (True, s, _) -> UserSharedR unamep s
+  (False, SharedAll, FilterAll) -> UserTagsR unamep (TagsP pathtags)
+  (False, SharedAll, f) -> UserFilterTagsR unamep f (TagsP pathtags)
+  (False, s, _) -> UserSharedTagsR unamep s (TagsP pathtags)
+
+-- | Same shape as 'pageRouteFor', for the RSS/Atom feed link.
+feedRouteFor :: UserNameP -> [Text] -> SharedP -> FilterP -> Route App
+feedRouteFor unamep pathtags sharedp' filterp' = case (null pathtags, sharedp', filterp') of
+  (True, SharedAll, FilterAll) -> UserFeedR unamep
+  (True, SharedAll, f) -> UserFeedFilterR unamep f
+  (True, s, _) -> UserFeedSharedR unamep s
+  (False, SharedAll, FilterAll) -> UserFeedTagsR unamep (TagsP pathtags)
+  (False, SharedAll, f) -> UserFeedFilterTagsR unamep f (TagsP pathtags)
+  (False, s, _) -> UserFeedSharedTagsR unamep s (TagsP pathtags)
+
+-- | The route for clicking a single breadcrumb tag, keeping the current
+-- filter/shared axis. Unlike 'pageRouteFor', this always targets exactly
+-- one tag rather than accumulating with other active path tags.
+tagRouteFor :: UserNameP -> SharedP -> FilterP -> Text -> Route App
+tagRouteFor unamep sharedp' filterp' tag
+  | sharedp' /= SharedAll = UserSharedTagsR unamep sharedp' (TagsP [tag])
+  | filterp' /= FilterAll = UserFilterTagsR unamep filterp' (TagsP [tag])
+  | otherwise = UserTagsR unamep (TagsP [tag])
 
 _getUser :: UserNameP -> SharedP -> FilterP -> TagsP -> Handler Html
 _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
@@ -276,6 +314,12 @@ getUserFeedSharedR uname sharedp =
 getUserFeedFilterR :: UserNameP -> FilterP -> Handler RepRss
 getUserFeedFilterR uname filterp =
   _getUserFeed uname SharedAll filterp (TagsP [])
+
+getUserFeedSharedTagsR :: UserNameP -> SharedP -> TagsP -> Handler RepRss
+getUserFeedSharedTagsR uname sharedp = _getUserFeed uname sharedp FilterAll
+
+getUserFeedFilterTagsR :: UserNameP -> FilterP -> TagsP -> Handler RepRss
+getUserFeedFilterTagsR uname filterp = _getUserFeed uname SharedAll filterp
 
 getUserFeedTagsR :: UserNameP -> TagsP -> Handler RepRss
 getUserFeedTagsR uname = _getUserFeed uname SharedAll FilterAll

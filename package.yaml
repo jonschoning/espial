@@ -1,6 +1,6 @@
 name: espial
 synopsis: Espial is an open-source, web-based bookmarking server.
-version: "0.0.41"
+version: "0.0.42"
 description: ! "
   Espial is an open-source, web-based bookmarking server.
 
@@ -215,6 +215,7 @@ executables:
       - espial
       - optparse-generic >= 1.2.3
       - optparse-applicative
+      - clientsession
 
 # Test suite
 tests:

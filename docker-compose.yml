@@ -13,6 +13,7 @@ services:
       PORT: 3000
       SQLITE_DATABASE: /app/data/espial.sqlite3
       IP_FROM_HEADER: false
+      CLIENT_SESSION_KEY: ${CLIENT_SESSION_KEY}
       # SSL_ONLY: false
       # Optional: enable in-process TLS (reverse proxy is recommended; see README § TLS / Reverse Proxy)
       # TLS_CERT_FILE: /app/data/tls/cert.pem

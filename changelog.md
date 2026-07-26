@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.42 (2026-07-25)
+
+- preserve filter/search context when clicking on page & tag filters
+  - preserve page filters and search when filtering on a tag (`t:book`)
+  - preserve tags and search when selecting a page filter (`starred`)
+  - example generated route: `u:demo/starred/t:book?sort=title&query=title%3Aalgebra`
+- add boolean search operators
+  - bookmarks: `private:`/`pr:`, `starred:`/`st:`, `unread:`/`un:`
+  - notes: `private:`/`pr:`
+- extend `migration` command with `generatesessionkey`, for use with pinning
+  the client session cookie key via env var `CLIENT_SESSION_KEY` (useful to avoid forced re-login across updated docker
+  images, see `espial-docker`'s readme for more info)
+- improve fetchPageTitle implementation for reddit, youtube, tiktok, spotify
+- bake ENV SQLITE_DATABASE into dockerfile
+
 ## v0.0.41 (2026-07-18)
 
 - add sorting ability on bookmarks (time,title,url,tagcount) and notes (created, title) (#88)

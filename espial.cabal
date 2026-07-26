@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           espial
-version:        0.0.41
+version:        0.0.42
 synopsis:       Espial is an open-source, web-based bookmarking server.
 description:     Espial is an open-source, web-based bookmarking server.
                 - Yesod + TypeScript + sqlite3
@@ -70,6 +70,7 @@ extra-source-files:
     frontend/src/stores/bookmarksStore.ts
     frontend/src/stores/tagCloudStore.ts
     frontend/src/types.ts
+    frontend/src/urlBuild.ts
     frontend/src/util.ts
     frontend/tsconfig.json
     hie.yaml
@@ -86,10 +87,10 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.ttf
     static/fonts/glyphicons-halflings-regular.woff
     static/images/bluepin.gif
-    static/js/app-LILLUWFD.min.js
-    static/js/app-LILLUWFD.min.js.gz
-    static/js/app-LILLUWFD.min.js.map
-    static/js/app-LILLUWFD.min.js.map.gz
+    static/js/app-OXLWASYB.min.js
+    static/js/app-OXLWASYB.min.js.gz
+    static/js/app-OXLWASYB.min.js.map
+    static/js/app-OXLWASYB.min.js.map.gz
     static/js/js.cookie-2.2.0.min.js
     static/js/js.cookie-2.2.0.min.js.gz
     static/js/manifest.json
@@ -422,6 +423,7 @@ executable migration
     , classy-prelude >=1.4 && <1.6
     , classy-prelude-conduit >=1.4 && <1.6
     , classy-prelude-yesod >=1.4 && <1.6
+    , clientsession
     , conduit >=1.0 && <2
     , containers
     , cryptohash-sha256

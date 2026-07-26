@@ -12,7 +12,7 @@ import {
   tagCloudModeFromF,
   type TagCloudModeRelated,
 } from '../types';
-import { encodeTag, fromNullableStr } from '../util';
+import { buildTagUrl } from '../urlBuild';
 
 /** Binds click handlers on the server-rendered tag cloud header (mode/filter controls) to the tag cloud store. */
 export function bindTagCloudHeader(renderElSelector: string) {
@@ -171,8 +171,7 @@ function renderLinks(curtags: string[], tagcloud: TagCloud) {
   const a = app();
   const cur = curtags.map((tag) => tag.toLowerCase());
 
-  const linkToFilterTag = (rest: string) =>
-    `${fromNullableStr(a.userR)}${rest === '' ? '' : `/t:${rest}`}`;
+  const linkToFilterTag = (tags: string[]) => buildTagUrl(a, tags);
 
   const tagCounts = Object.values(tagcloud);
   const cMin = tagCounts.length ? Math.min(...tagCounts) : 1;
@@ -188,20 +187,12 @@ function renderLinks(curtags: string[], tagcloud: TagCloud) {
 
       const includeExcludeLink =
         cur.length === 0 ? null : !cur.includes(kLower) ? (
-          <a
-            href={linkToFilterTag(cur.concat([kLower]).map(encodeTag).join('+'))}
-            className="link mr2 tag-include"
-          >
+          <a href={linkToFilterTag(cur.concat([kLower]))} className="link mr2 tag-include">
             ⊕
           </a>
         ) : (
           <a
-            href={linkToFilterTag(
-              cur
-                .filter((t) => t !== kLower)
-                .map(encodeTag)
-                .join('+'),
-            )}
+            href={linkToFilterTag(cur.filter((t) => t !== kLower))}
             className="link mr2 tag-exclude"
           >
             ⊖
@@ -210,7 +201,7 @@ function renderLinks(curtags: string[], tagcloud: TagCloud) {
 
       return (
         <React.Fragment key={tag}>
-          <a href={linkToFilterTag(encodeTag(tag))} className="link tag mr1" style={style}>
+          <a href={linkToFilterTag([tag])} className="link tag mr1" style={style}>
             {tag}
           </a>
           {includeExcludeLink}
