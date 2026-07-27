@@ -14,7 +14,7 @@ t0 = UTCTime (fromGregorian 2024 1 1) 0
 createTestUser :: Text -> DB (Key User)
 createTestUser name = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User name pwHash Nothing False False True True False False True Nothing
+  insert $ User name pwHash Nothing False False True True False False True True Nothing
 
 createBm :: Key User -> Text -> Maybe Text -> DB (Key Bookmark)
 createBm uid href marchive = do

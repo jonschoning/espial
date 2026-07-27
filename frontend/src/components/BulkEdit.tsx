@@ -18,9 +18,7 @@ interface Props {
 }
 
 type BulkValidationKey =
-  | 'bulkEdit.pleaseAddSelection'
-  | 'bulkEdit.pleaseChooseAction'
-  | 'bulkEdit.tooManyTags';
+  'bulkEdit.pleaseAddSelection' | 'bulkEdit.pleaseChooseAction' | 'bulkEdit.tooManyTags';
 
 function disabledReason(
   selection: BulkSelection | null,

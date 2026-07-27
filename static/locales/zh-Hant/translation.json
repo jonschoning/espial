@@ -65,6 +65,7 @@
     "privacyLock": "隱私鎖定（私人帳戶）",
     "publicTagCloud": "公開標籤雲（訪客可見）",
     "previewNotes": "在筆記列表中顯示預覽",
+    "markdownSyntaxHighlight": "對 Markdown 程式碼區塊套用語法強調",
     "archivingDisabled": "封存功能已停用",
     "language": "語言",
     "tabAccount": "帳戶設定",

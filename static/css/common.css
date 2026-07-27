@@ -370,3 +370,68 @@ a.unread {
 .login-bg {
   background-color: light-dark(#f4f4f4, #1f1f1f);
 }
+
+/* highlight.js tokens (github-light / one-dark palettes) */
+.hljs {
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: light-dark(#8a8f98, #7f848e);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-formula {
+  color: light-dark(#a626a4, #c678dd);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: light-dark(#3f8f3f, #98c379);
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-template-variable,
+.hljs-variable,
+.hljs-attr,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: light-dark(#986801, #d19a66);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: light-dark(#4078f2, #61afef);
+}
+
+.hljs-built_in,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta {
+  color: light-dark(#0184bb, #56b6c2);
+}
+
+.hljs-deletion {
+  color: light-dark(#c00, #e06c75);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}

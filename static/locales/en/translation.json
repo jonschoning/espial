@@ -65,6 +65,7 @@
     "privacyLock": "Privacy Lock (Private Account)",
     "publicTagCloud": "Public Tag Cloud (visible to visitors)",
     "previewNotes": "Show note previews in the note list",
+    "markdownSyntaxHighlight": "Apply syntax highlighting to code blocks in Markdown",
     "archivingDisabled": "Archiving Disabled",
     "language": "Language",
     "tabAccount": "Account Settings",

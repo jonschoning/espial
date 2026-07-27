@@ -255,6 +255,7 @@ instance Yesod App where
         frontendBundleName = appFrontendBundleName app
         t = \key -> appTranslate app lang (I18nKey key)
         i18nR = appI18nR app
+        markdownSyntaxHighlightJs = boolJs (maybe True userMarkdownSyntaxHighlight muser)
     pc <- widgetToPageContent do
       setTitle "Espial"
       addStylesheet (StaticR css_tachyons_min_css)
@@ -275,6 +276,7 @@ popupLayout widget = do
       frontendBundleName = appFrontendBundleName app
       t = \key -> appTranslate app lang (I18nKey key)
       i18nR = appI18nR app
+      markdownSyntaxHighlightJs = boolJs (maybe True userMarkdownSyntaxHighlight muser)
   pc <- widgetToPageContent do
     setTitle "Espial"
     addStylesheet (StaticR css_tachyons_min_css)
@@ -282,6 +284,9 @@ popupLayout widget = do
     addStylesheet (StaticR css_popup_css)
     $(widgetFile "popup-layout")
   withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+boolJs :: Bool -> Text
+boolJs b = if b then "true" else "false"
 
 -- | Where 'getCurrentLang' may read a language from, besides the app default.
 data LangSource

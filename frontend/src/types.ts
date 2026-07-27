@@ -79,6 +79,8 @@ export type AccountSettings = {
   publicTagCloud: boolean;
   /** Whether note listings show a text preview, or just the title. */
   previewNotes: boolean;
+  /** Whether Markdown code blocks are syntax highlighted. */
+  markdownSyntaxHighlight: boolean;
   /** Whether the archive backend is enabled. */
   archiveBackendEnabled: boolean;
   /** Whether the user currently has an API key set. */

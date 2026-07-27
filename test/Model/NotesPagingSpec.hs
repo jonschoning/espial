@@ -14,7 +14,7 @@ t0 = UTCTime (fromGregorian 2024 1 1) 0
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User "testuser" pwHash Nothing False False True True False False True Nothing
+  insert $ User "testuser" pwHash Nothing False False True True False False True True Nothing
 
 createNoteAt :: Key User -> Text -> UTCTime -> DB (Key Note)
 createNoteAt uid title t = do

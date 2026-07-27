@@ -65,6 +65,7 @@
     "privacyLock": "隐私锁定（私密账户）",
     "publicTagCloud": "公开标签云（访客可见）",
     "previewNotes": "在笔记列表中显示预览",
+    "markdownSyntaxHighlight": "对 Markdown 代码块应用语法高亮",
     "archivingDisabled": "归档已禁用",
     "language": "语言",
     "tabAccount": "账户设置",

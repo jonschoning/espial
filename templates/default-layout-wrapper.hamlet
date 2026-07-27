@@ -43,7 +43,7 @@ $newline never
         , authRlogoutR: "@{ AuthR LogoutR }"
         , i18nR: "@{ i18nR }"
         , lang: "#{lang}"
-        , dat: {bmarks : [], bmark: {}, isowner: false, notes: []}
+        , dat: {bmarks : [], bmark: {}, isowner: false, notes: [], markdownSyntaxHighlight: #{markdownSyntaxHighlightJs}}
         };
   <body .f6.thm-text-primary.helvetica>
     ^{pageBody pc}

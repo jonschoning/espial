@@ -303,7 +303,7 @@ note3Json =
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User "testuser" pwHash Nothing False False True True False False True Nothing
+  insert $ User "testuser" pwHash Nothing False False True True False False True True Nothing
 
 -- Decode ByteString or abort the test with an informative message.
 decodeOrFail :: (A.FromJSON a) => ByteString -> IO a

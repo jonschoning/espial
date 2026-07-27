@@ -18,6 +18,7 @@ data AccountSettingsForm = AccountSettingsForm
     _privacyLock :: Bool,
     _publicTagCloud :: Bool,
     _previewNotes :: Bool,
+    _markdownSyntaxHighlight :: Bool,
     _archiveBackendEnabled :: Bool,
     _hasApiKey :: Bool,
     _language :: Maybe I18nLang
@@ -38,6 +39,7 @@ toAccountSettingsForm archiveBackendEnabled User {..} =
       _privacyLock = userPrivacyLock,
       _publicTagCloud = userPublicTagCloud,
       _previewNotes = userPreviewNotes,
+      _markdownSyntaxHighlight = userMarkdownSyntaxHighlight,
       _archiveBackendEnabled = archiveBackendEnabled,
       _hasApiKey = isJust userApiToken,
       _language = userLanguage
@@ -54,6 +56,7 @@ updateUserFromAccountSettingsForm userId AccountSettingsForm {..} =
       UserPrivacyLock CP.=. _privacyLock,
       UserPublicTagCloud CP.=. _publicTagCloud,
       UserPreviewNotes CP.=. _previewNotes,
+      UserMarkdownSyntaxHighlight CP.=. _markdownSyntaxHighlight,
       UserLanguage CP.=. _language
     ]
 

@@ -65,6 +65,7 @@
     "privacyLock": "개인정보 잠금(비공개 계정)",
     "publicTagCloud": "공개 태그 클라우드(방문자에게 표시됨)",
     "previewNotes": "노트 목록에 미리보기 표시",
+    "markdownSyntaxHighlight": "Markdown 코드 블록에 구문 강조 적용",
     "archivingDisabled": "아카이브 비활성화됨",
     "language": "언어",
     "tabAccount": "계정 설정",

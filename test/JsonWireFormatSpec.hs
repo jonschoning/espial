@@ -70,11 +70,12 @@ spec = describe "JSON wire format" $ do
         _privacyLock = False,
         _publicTagCloud = True,
         _previewNotes = True,
+        _markdownSyntaxHighlight = True,
         _archiveBackendEnabled = False,
         _hasApiKey = True,
         _language = Just I18nLangDe
       }
-    `shouldEncodeTo` "{\"privateDefault\":true,\"archiveDefault\":false,\"suggestTags\":true,\"suggestTagsUseReturnKey\":false,\"privacyLock\":false,\"publicTagCloud\":true,\"previewNotes\":true,\"archiveBackendEnabled\":false,\"hasApiKey\":true,\"language\":\"de\"}"
+    `shouldEncodeTo` "{\"privateDefault\":true,\"archiveDefault\":false,\"suggestTags\":true,\"suggestTagsUseReturnKey\":false,\"privacyLock\":false,\"publicTagCloud\":true,\"previewNotes\":true,\"markdownSyntaxHighlight\":true,\"archiveBackendEnabled\":false,\"hasApiKey\":true,\"language\":\"de\"}"
 
   describe "SharedP (app.dat.sharedp)"
     $ it "encodes as bare lowercase strings"
@@ -179,4 +180,4 @@ noteFixture =
       }
 
 testUser :: User
-testUser = User "u" (PasswordHash "h") Nothing False False True True False False True Nothing
+testUser = User "u" (PasswordHash "h") Nothing False False True True False False True True Nothing

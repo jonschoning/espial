@@ -175,7 +175,7 @@ function SettingsView({ initial }: { initial: AccountSettings }) {
         </label>
       </div>
 
-      <div className="flex items-center mb3">
+      <div className="flex items-center mb2">
         <input
           type="checkbox"
           className="pointer mr2"
@@ -186,6 +186,20 @@ function SettingsView({ initial }: { initial: AccountSettings }) {
         />
         <label htmlFor="previewNotes" className="lh-copy">
           {t('settings.previewNotes')}
+        </label>
+      </div>
+
+      <div className="flex items-center mb3">
+        <input
+          type="checkbox"
+          className="pointer mr2"
+          id="markdownSyntaxHighlight"
+          name="markdownSyntaxHighlight"
+          checked={us.markdownSyntaxHighlight}
+          onChange={(e) => void update({ ...us, markdownSyntaxHighlight: e.target.checked })}
+        />
+        <label htmlFor="markdownSyntaxHighlight" className="lh-copy">
+          {t('settings.markdownSyntaxHighlight')}
         </label>
       </div>
 

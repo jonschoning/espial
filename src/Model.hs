@@ -61,6 +61,7 @@ User json
   privacyLock Bool
   publicTagCloud Bool default=False
   previewNotes Bool default=True
+  markdownSyntaxHighlight Bool default=True
   language I18nLang Maybe
   UniqueUserName name
   deriving Show Eq Ord

@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.0.43 (unreleased)
+
+- add syntax highlighting for code blocks in rendered markdown (bookmark descriptions
+  and markdown notes), via highlight.js
+  - languages: bash (`sh`, `curl`), c# (`cs`), css, diff, go, haskell, javascript,
+    json, plaintext (`txt`, `text`), powershell (`ps`), python, rust, sql,
+    typescript, xml/html, yaml
+  - unlabelled blocks, and blocks tagged with an unregistered language, render
+    unhighlighted
+  - add user setting `markdownSyntaxHighlight` (default on) to toggle it
+
+- add `monolith` archive backend (`ARCHIVE_BACKEND=monolith`), archiving to a local
+  single-file html per bookmark
+  - appSettings `monolith-path`, `monolith-dir`, `monolith-timeout-sec`, `monolith-args`
+- add `singlefile` archive backend (`ARCHIVE_BACKEND=singlefile`), archiving via
+  single-file-cli driving a headless chromium
+  - appSettings `singlefile-path`, `singlefile-dir`, `singlefile-timeout-sec`,
+    `singlefile-browser-path`, `singlefile-browser-args`, `singlefile-args`
+- add appSetting `archive-delete-local-files-on-delete` (default `true`); deleting a
+  bookmark also removes its local archive files (`monolith`, `singlefile` only)
+
 ## v0.0.42 (2026-07-25)
 
 - preserve filter/search context when clicking on page & tag filters

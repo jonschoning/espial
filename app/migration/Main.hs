@@ -35,6 +35,7 @@ data MigrationOpts
         privacyLock :: Maybe Bool,
         publicTagCloud :: Maybe Bool,
         previewNotes :: Maybe Bool,
+        markdownSyntaxHighlight :: Maybe Bool,
         userLanguage :: Maybe Language
       }
   | CreateApiKey
@@ -158,11 +159,12 @@ main = do
             privacyLockVal = fromMaybe False privacyLock
             publicTagCloudVal = fromMaybe False publicTagCloud
             previewNotesVal = fromMaybe True previewNotes
+            markdownSyntaxHighlightVal = fromMaybe True markdownSyntaxHighlight
             userLanguageVal = unLanguage <$> userLanguage
         void $
           P.upsertBy
             (UniqueUserName userName)
-            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal suggestTagsUseReturnKeyVal privacyLockVal publicTagCloudVal previewNotesVal userLanguageVal)
+            (User userName hash' Nothing privateDefaultVal archiveDefaultVal suggestTagsVal suggestTagsUseReturnKeyVal privacyLockVal publicTagCloudVal previewNotesVal markdownSyntaxHighlightVal userLanguageVal)
             [ UserPasswordHash P.=. hash',
               UserPrivateDefault P.=. privateDefaultVal,
               UserArchiveDefault P.=. archiveDefaultVal,
@@ -171,6 +173,7 @@ main = do
               UserPrivacyLock P.=. privacyLockVal,
               UserPublicTagCloud P.=. publicTagCloudVal,
               UserPreviewNotes P.=. previewNotesVal,
+              UserMarkdownSyntaxHighlight P.=. markdownSyntaxHighlightVal,
               UserLanguage P.=. userLanguageVal
             ]
         pure () :: DB ()
@@ -319,6 +322,7 @@ main = do
           "privacyLock: " <> tshow userPrivacyLock,
           "publicTagCloud: " <> tshow userPublicTagCloud,
           "previewNotes: " <> tshow userPreviewNotes,
+          "markdownSyntaxHighlight: " <> tshow userMarkdownSyntaxHighlight,
           "hasApiKey: " <> tshow (isJust userApiToken)
         ]
 

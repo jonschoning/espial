@@ -65,6 +65,7 @@
     "privacyLock": "プライバシーロック（非公開アカウント）",
     "publicTagCloud": "公開タグクラウド（訪問者に表示されます）",
     "previewNotes": "ノート一覧にプレビューを表示",
+    "markdownSyntaxHighlight": "Markdown のコードブロックにシンタックスハイライトを適用",
     "archivingDisabled": "アーカイブ無効",
     "language": "言語",
     "tabAccount": "アカウント設定",

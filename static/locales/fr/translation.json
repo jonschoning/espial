@@ -65,6 +65,7 @@
     "privacyLock": "Verrouillage de confidentialité (compte privé)",
     "publicTagCloud": "Nuage de tags public (visible par les visiteurs)",
     "previewNotes": "Afficher l'aperçu des notes dans la liste",
+    "markdownSyntaxHighlight": "Appliquer la coloration syntaxique aux blocs de code en Markdown",
     "archivingDisabled": "Archivage désactivé",
     "language": "Langue",
     "tabAccount": "Paramètres du compte",

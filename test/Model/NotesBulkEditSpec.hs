@@ -14,7 +14,7 @@ t0 = UTCTime (fromGregorian 2024 1 1) 0
 createTestUser :: DB (Key User)
 createTestUser = do
   pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-  insert $ User "testuser" pwHash Nothing False False True True False False True Nothing
+  insert $ User "testuser" pwHash Nothing False False True True False False True True Nothing
 
 createNote :: Key User -> Text -> Bool -> DB (Key Note)
 createNote uid title = createNoteIsMarkdown uid title False
@@ -116,7 +116,7 @@ spec = withApp $ do
         (uid1, nid2) <- runDB $ do
           uid1 <- createTestUser
           pwHash <- liftIO $ hashPasswordBCryptWithPolicy bcryptTestPolicy "pass"
-          uid2 <- insert $ User "otheruser" pwHash Nothing False False True True False False True Nothing
+          uid2 <- insert $ User "otheruser" pwHash Nothing False False True True False False True True Nothing
           nid2 <- createNote uid2 "other" True
           return (uid1, nid2)
         let form = mkNoteBulkEditForm 1 Nothing NoteBulkActionPrivate [nid2]

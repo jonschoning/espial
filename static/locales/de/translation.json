@@ -65,6 +65,7 @@
     "privacyLock": "Datenschutzsperre (privates Konto)",
     "publicTagCloud": "Öffentliche Tag-Cloud (für Besucher sichtbar)",
     "previewNotes": "Notizvorschauen in der Liste anzeigen",
+    "markdownSyntaxHighlight": "Syntaxhervorhebung für Codeblöcke in Markdown anwenden",
     "archivingDisabled": "Archivierung deaktiviert",
     "language": "Sprache",
     "tabAccount": "Kontoeinstellungen",
