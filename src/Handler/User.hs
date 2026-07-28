@@ -147,6 +147,12 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
 
   defaultLayout do
     let pager = $(widgetFile "pager")
+        -- searching from a single-bookmark page must not re-apply the b:
+        -- filter, or a query that doesn't match that one bookmark's text
+        -- drops bcount to 0 and 404s (see FilterSingle case above)
+        searchMroute = case filterp of
+          FilterSingle _ -> Just (pageRouteFor unamep pathtags sharedp FilterAll)
+          _ -> mroute
         search = $(widgetFile "search")
     rssLink (UserFeedR unamep) "feed"
     $(widgetFile "user")

@@ -88,6 +88,7 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
   defaultLayout do
     rssLink (NotesFeedR unamep) "feed"
     let pager = $(widgetFile "pager")
+        searchMroute = mroute
         search = $(widgetFile "search")
         renderEl = "notes" :: Text
     $(widgetFile "notes")

@@ -1,4 +1,4 @@
-$maybe route <- mroute
+$maybe route <- searchMroute
     <form method="get" action="@{route}" onsubmit="this.classList.add('submitting')">
       $maybe s <- msort
         <input type="hidden" name="sort" value="#{s}">
