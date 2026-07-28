@@ -26,15 +26,18 @@ data SingleFileContext = SingleFileContext
 singleFileBackend :: AppSettings -> ArchiverDB -> LogFunc -> IO (Maybe ArchiverBackend)
 singleFileBackend AppSettings {..} archiverDB logFunc = flip runLoggingT logFunc $ do
   let exe = unpack (T.strip appSingleFilePath)
+      browserServer = T.strip appSingleFileBrowserServer
+      browserArgs
+        | T.null browserServer =
+            [ "--browser-executable-path=" <> unpack (T.strip appSingleFileBrowserPath),
+              "--browser-args=" <> unpack (T.strip appSingleFileBrowserArgs)
+            ]
+        | otherwise = ["--browser-server=" <> unpack browserServer]
       ctx =
         SingleFileContext
           { singleFileExe = exe,
             singleFileDir = appSingleFileDir,
-            singleFileArgs =
-              [ "--browser-executable-path=" <> unpack (T.strip appSingleFileBrowserPath),
-                "--browser-args=" <> unpack (T.strip appSingleFileBrowserArgs)
-              ]
-                <> map unpack (words appSingleFileArgs),
+            singleFileArgs = browserArgs <> map unpack (words appSingleFileArgs),
             singleFileTimeoutMicros = appSingleFileTimeoutSec * 1000000,
             singleFileDB = archiverDB
           }

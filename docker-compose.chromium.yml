@@ -1,0 +1,55 @@
+# Espial with ARCHIVE_BACKEND=chromium: pages are rendered by a headless chromium running in
+# a separate `browser` container, reached over the Chrome DevTools Protocol. Espial captures
+# the JS-rendered DOM and pipes it through `monolith` (already bundled in the default image)
+# to inline it into one self-contained HTML file, served back by Espial itself at
+# /archive/bm/{bookmarkId}. No node/single-file-cli/chromium is ever bundled with Espial --
+# this uses the default image unmodified. The browser container has no published port and
+# only CDP traffic from `espial` reaches it; CDP has no auth, so never expose its port.
+services:
+  espial:
+    image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial}'
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
+    depends_on:
+      - browser
+    ports:
+      - "3000:3000"
+    volumes:
+      - '${DATA:-.}:/app/data'
+    environment:
+      PORT: 3000
+      SQLITE_DATABASE: /app/data/espial.sqlite3
+      IP_FROM_HEADER: false
+      CLIENT_SESSION_KEY: ${CLIENT_SESSION_KEY}
+      SHOULD_LOG_ALL: ${SHOULD_LOG_ALL:-false}
+
+      ARCHIVE_BACKEND: chromium
+      CHROMIUM_DIR: /app/data/archives
+      CHROMIUM_CDP_URL: http://browser:9222
+      # CHROMIUM_TIMEOUT_SEC: 60
+      # CHROMIUM_WAIT_MS: 3000
+      CHROMIUM_MONOLITH_ARGS: "-I -q -e -v -a -j"  # flags used to inline the rendered page; see README.
+
+  browser:
+    image: '${CHROMIUM_BROWSER_IMAGE:-chromedp/headless-shell:stable}'
+    restart: unless-stopped
+    # chromium needs more than docker's default 64MB /dev/shm
+    shm_size: '1gb'
+    # no `ports:` here -- CDP has no auth, keep it reachable only from `espial` on the compose network
+    # this browser is a long-running sidecar rather than a process spawned per archive job (as
+    # singlefile's chromium is), so its flags -- the same container-friendly set singlefile
+    # defaults to -- are baked in here at container start instead of passed per-request.
+    command:
+      - --no-sandbox
+      - --no-zygote
+      - --disable-dev-shm-usage
+      - --disable-software-rasterizer
+      - --run-all-compositor-stages-before-draw
+      - --hide-scrollbars
+      - --window-size=1440,2000
+      - --autoplay-policy=no-user-gesture-required
+      - --use-fake-ui-for-media-stream
+      - --use-fake-device-for-media-stream
+      - --disable-sync

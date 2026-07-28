@@ -389,134 +389,98 @@ kill -HUP <espial-pid>
 
 ## Archive Backends
 
-Espial supports configurable archive backends for saving bookmark snapshots.
+Espial can save a snapshot of each bookmarked page. Choose a backend with `archive-backend` in `config/settings.yml` (or the `ARCHIVE_BACKEND` env var):
 
-Set the backend with `archive-backend` in `config/settings.yml`:
+- `disabled` — archiving off (default).
+- `wayback-machine` — submits the page to the Internet Archive's Wayback Machine.
+- `monolith` — saves the page as a single self-contained HTML file using the local `monolith` tool. No external service.
+- `singlefile` — like `monolith`, but renders the page in headless Chromium first, so JavaScript-built pages archive correctly.
+- `chromium` — same JS-rendering benefit as `singlefile`, but Espial drives a remote Chromium over CDP directly and inlines the result with `monolith`. Works with the default Docker image; only the browser needs its own container.
+- `archivebox07` — submits the URL to a local ArchiveBox 0.7 instance and links to it from the bookmark.
 
-- `disabled`: archiving is turned off (default).
-- `wayback-machine`: enables submission to the Internet Archive Wayback Machine.
+Except for `wayback-machine` and `archivebox07`, archives are written to `{backend-dir}/{userId}/{bookmarkId}/latest.html` and served at `/archive/bm/{bookmarkId}`, to the bookmark's owner only, sandboxed so archived HTML can't run scripts or reach your Espial session.
 
-  Wayback Machine support requires the following settings:
-  - `wayback-machine-access-key`
-  - `wayback-machine-secret-key`
+### wayback-machine
 
-    Create these by signing in to your Internet Archive account and generating S3-style API credentials at `https://archive.org/account/s3.php`. \
-     If `wayback-machine` is selected but the access key or secret key is missing, archiving is disabled at runtime.
+- `wayback-machine-access-key` (required)
+- `wayback-machine-secret-key` (required)
 
-- `monolith`: runs [monolith](https://github.com/Y2Z/monolith) locally to save the page as a single self-contained HTML file, served back by Espial itself. No external service required.
+Generate these as S3-style API credentials at `https://archive.org/account/s3.php` after signing in to your Internet Archive account. If either is missing, archiving is disabled at runtime.
 
-  You must install `monolith` yourself (`cargo install monolith`, `brew install monolith`, your distro's package, or a [release binary](https://github.com/Y2Z/monolith/releases)). The Docker image ships it already.
+Archives are stored by the Internet Archive itself; Espial keeps nothing locally, only the returned Wayback Machine URL on the bookmark.
 
-  Archives are written to `{monolith-dir}/{userId}/{bookmarkId}/latest.html`, one file per bookmark, overwritten on each re-archive. The bookmark's `archiveHref` column is the only index — there is no separate archive database. The bookmark links to `/archive/bm/{bookmarkId}`, which serves the file to the bookmark's owner only, with a `Content-Security-Policy: sandbox` header so archived third-party HTML runs in an opaque origin with scripts disabled and cannot reach your Espial session.
+### monolith
 
-  Settings:
-  - `monolith-path` (default `monolith`)
+The simplest option — a single local binary, no browser required. Fetches raw HTML/CSS/JS rather than executing it, so pages that render their content via JavaScript archive blank or incomplete.
 
-    Path to the executable; resolved via `PATH` when unqualified. If it can't be run at startup, archiving is disabled and a warning is logged.
+Install [monolith](https://github.com/Y2Z/monolith) yourself (`cargo install monolith`, `brew install monolith`, distro package, or a [release binary](https://github.com/Y2Z/monolith/releases)) — the Docker image already includes it.
 
-  - `monolith-dir` (default `archives`)
+- `monolith-path` (default `monolith`) — path to the executable.
+- `monolith-dir` (default `archives`) — where archives are written.
+- `monolith-timeout-sec` (default `120`) — kills a hung invocation.
+- `monolith-args` (default `-I -q -e -v -a`) — see `monolith --help`; add `-i` to also drop images if archives are too large.
 
-    Directory archives are written to. Under Docker this defaults to `/app/data/archives`, inside the mounted data volume.
+Archives are written locally to `{monolith-dir}/{userId}/{bookmarkId}/latest.html` and served at `/archive/bm/{bookmarkId}`.
 
-  - `monolith-timeout-sec` (default `120`)
+### singlefile
 
-    A monolith invocation running longer than this is killed. The archive queue is single-threaded, so one hung fetch would otherwise stall all archiving.
+Renders the page in a real (headless) Chromium first, so JavaScript-built pages archive correctly, unlike `monolith`. Can run without Docker — any machine with Node and a local Chromium works, since single-file-cli launches its own browser process per archive job.
 
-  - `monolith-args` (default `-I -q -e -v -a`)
+[single-file-cli](https://github.com/gildas-lormeau/single-file-cli) is a command-line tool that drives Chromium to load a page, then saves it as a single HTML file with all CSS, images, and fonts inlined — the same engine behind the popular "SingleFile" browser extension.
 
-    Extra whitespace-separated flags. `-I` isolates the saved page from the network, `-q` is quiet, `-e` keeps going when an individual asset fails to fetch, and `-v`/`-a` drop video and audio sources (embedded media dominates archive size). Add `-i` to drop images too if archives are still too large. Flag names are monolith's own, so check `monolith --help` for your installed version.
+Install it (`npm install -g single-file-cli`), plus either a local Chromium or a remote one reachable over CDP. Under Docker, use [docker-compose.singlefile.yml](docker-compose.singlefile.yml), which pairs a `single-file-cli`-only Espial image with a separate headless-Chromium `browser` container over CDP.
 
-- `singlefile`: runs [single-file-cli](https://github.com/gildas-lormeau/single-file-cli) locally, driving a headless Chromium to save the page as a single self-contained HTML file, served back by Espial itself. Unlike `monolith` the page is rendered by a real browser first, so JavaScript-built pages archive correctly, at the cost of needing Chromium installed.
+- `singlefile-path` (default `single-file`) — path to the executable. On Windows point this at the npm shim, e.g. `%APPDATA%\npm\single-file.cmd`.
+- `singlefile-dir` (default `archives`)
+- `singlefile-timeout-sec` (default `120`)
+- `singlefile-browser-path` (default `chromium-browser`) — local Chromium executable to drive. Ignored if `singlefile-browser-server` is set.
+- `singlefile-browser-args` (default: headless container-friendly flags) — JSON array of Chromium flags. Also ignored if `singlefile-browser-server` is set.
+- `singlefile-browser-server` (default empty) — CDP endpoint of an already-running remote Chromium, e.g. `http://172.28.0.10:9222`. Must be a literal IP, not a hostname (Chrome rejects non-IP `Host` headers). CDP has no auth, so only expose this on a trusted network — never publish the port.
+- `singlefile-args` (default empty) — extra flags, e.g. `--block-videos=true`.
 
-  You must install `single-file-cli` and Chromium yourself (`npm install -g single-file-cli`, plus your distro's `chromium` package). Under Docker use [docker-compose.singlefile.yml](docker-compose.singlefile.yml), which builds the `runtime-singlefile` image variant with both already installed — the default distroless image cannot host a browser.
+Archives are written locally to `{singlefile-dir}/{userId}/{bookmarkId}/latest.html` and served at `/archive/bm/{bookmarkId}`.
 
-  Archives are written and served exactly as with `monolith` (see above): `{singlefile-dir}/{userId}/{bookmarkId}/latest.html`, linked as `/archive/bm/{bookmarkId}`, owner-only and sandboxed.
+### chromium
 
-  Settings:
-  - `singlefile-path` (default `single-file`)
+Same JS-rendering benefit as `singlefile`, but with no Node/single-file-cli dependency — Espial talks CDP directly and only needs `monolith` locally to inline the result, so it works with the default Docker image unmodified. The tradeoff: it always needs a separate, already-running Chromium (typically a Docker sidecar), since there's no "launch a local browser" mode like `singlefile` has.
 
-    Path to the executable; resolved via `PATH` when unqualified. If it can't be run at startup, archiving is disabled and a warning is logged. On Windows point this at the full path of the npm shim, e.g. `%APPDATA%\npm\single-file.cmd`, since a bare `single-file` is not directly executable.
+Requires `monolith` (see above) to be installed, since Espial fetches the rendered DOM over CDP itself but still shells out to `monolith` to inline it into one self-contained file.
 
-  - `singlefile-dir` (default `archives`)
+Use [docker-compose.chromium.yml](docker-compose.chromium.yml), which adds a headless-Chromium `browser` sidecar. CDP has no auth, so its port must never be published — only `espial` should reach it. Unlike `singlefile`'s browser, this one runs long-lived; change its launch flags by editing the sidecar's `command:` in the compose file.
 
-    Directory archives are written to.
+- `chromium-cdp-url` (required, e.g. `http://browser:9222`) — CDP endpoint. Espial resolves hostnames to an IP itself, so a hostname is fine here (unlike `singlefile-browser-server`).
+- `chromium-dir` (default `archives`)
+- `chromium-timeout-sec` (default `60`) — total budget for loading the page, capturing the DOM, and inlining with `monolith`.
+- `chromium-wait-ms` (default `3000`) — extra delay after page load before snapshotting, to let JS-driven rendering settle.
 
-  - `singlefile-timeout-sec` (default `120`)
+Inlining reuses the `monolith-path`/`monolith-args` settings from the `monolith` backend above.
 
-    A single-file invocation running longer than this is killed. The archive queue is single-threaded, so one hung fetch would otherwise stall all archiving.
+Archives are written locally to `{chromium-dir}/{userId}/{bookmarkId}/latest.html` and served at `/archive/bm/{bookmarkId}`.
 
-  - `singlefile-browser-path` (default `chromium-browser`)
+### archivebox07
 
-    Chromium executable single-file drives, passed as `--browser-executable-path`.
+**Best suited to single-user instances** — ArchiveBox keeps all archive data in one global index shared by everyone.
 
-  - `singlefile-browser-args` (default: headless container-friendly flag set)
+Recommended: run ArchiveBox via Docker Compose, e.g. [docker-compose.archivebox07.yml](docker-compose.archivebox07.yml) (change `ARCHIVEBOX_PASSWORD` from its default), or see [espial-docker](https://github.com/jonschoning/espial-docker) for deployment examples. Makefile helpers: `docker-compose-up-archivebox07`, `docker-compose-up-d-archivebox07`, `docker-compose-exec-archivebox07`.
 
-    JSON array of Chromium flags, passed as `--browser-args`. The default is `["--headless=new","--no-sandbox","--no-zygote","--disable-dev-shm-usage","--disable-software-rasterizer","--run-all-compositor-stages-before-draw","--hide-scrollbars","--window-size=1440,2000","--autoplay-policy=no-user-gesture-required","--no-first-run","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream","--disable-sync"]`.
+- `archivebox-url` (required) — URL Espial uses to sign in and submit URLs, e.g. `http://archivebox:8000` in Compose.
+- `archivebox-public-url` (optional) — public URL stored on bookmarks instead.
+- `archivebox-username` + `archivebox-password` (required) — sign-in credentials.
+- `archivebox-tag` (optional) — tag added to submissions, e.g. `espial`.
+- `archivebox-plugins` (optional) — comma-separated ArchiveBox methods to request, e.g. `title,favicon,singlefile,screenshot`.
 
-  - `singlefile-args` (default empty)
+Set the ArchiveBox container's own admin credentials via `ARCHIVEBOX_USERNAME` / `ARCHIVEBOX_PASSWORD`, and restrict which methods it runs via `ARCHIVE_METHODS` (comma-separated; unset means all):
 
-    Extra whitespace-separated flags passed to single-file, e.g. `--block-videos=true`. See `single-file --help`.
+```yaml
+environment:
+  - ARCHIVE_METHODS=title,favicon,singlefile,screenshot
+```
 
-- `archivebox07`: queues the URL in a local ArchiveBox 0.7 instance and stores an ArchiveBox link on the bookmark.
+Available plugins: `archive_org`, `dom`, `favicon`, `git`, `headers`, `htmltotext`, `media`, `mercury`, `pdf`, `readability`, `screenshot`, `singlefile`, `title`, `wget`. See the [ArchiveBox repository](https://github.com/ArchiveBox/ArchiveBox) for details.
 
-  **IMPORTANT - ArchiveBox stores all archive data in a single global index space, so this arcive-backend is best suited to single-user Espial instances.**
+Archives are stored inside the ArchiveBox instance's own data directory, not by Espial; the bookmark just links out to `archivebox-url` (or `archivebox-public-url`).
 
-  **Recommended setup is to use Docker Compose to run the ArchiveBox instance**
-  - Simple example, running on localhost: [docker-compose.archivebox07.yml](docker-compose.archivebox07.yml)
-  - See https://github.com/jonschoning/espial-docker for more examples intended for deployment
-  - In all examples, you must change the `ARCHIVEBOX_PASSWORD` from it's default value.
-
-  ArchiveBox support requires the following settings:
-  - `archivebox-url`
-
-    `archivebox-url` is the URL espial uses to sign in to ArchiveBox and submit URLs through the web UI. In Docker Compose this is typically `http://archivebox:8000`.
-
-  - `archivebox-public-url` (optional)
-
-    Public ArchiveBox URL stored on bookmarks.
-
-  - `archivebox-username` plus `archivebox-password`
-
-    Espial signs in to the ArchiveBox web UI with these credentials before submitting URLs.
-
-  - `archivebox-tag` (optional)
-
-    A tag Espial adds to submissions (example: `espial`).
-
-  - `archivebox-plugins` (optional)
-
-    Comma-separated list of ArchiveBox methods (plugins) to request when submitting URLs, e.g. `title,favicon,singlefile,screenshot`.
-
-  Set the ArchiveBox admin credentials in the override path by supplying:
-  - `ARCHIVEBOX_USERNAME=...`
-  - `ARCHIVEBOX_PASSWORD=...`
-
-  The `Makefile` includes the following helpers:
-  - `docker-compose-up-archivebox07`
-  - `docker-compose-up-d-archivebox07`
-  - `docker-compose-exec-archivebox07`
-
-  Or start the instance manually via docker compose, example:
-
-  ```bash
-  docker compose -f docker-compose.archivebox07.yml up
-  ```
-
-  Configure the enrivonment variable `ARCHIVE_METHODS` to control which archive methods ArchiveBox uses:
-
-  ```yaml
-  environment:
-    - ARCHIVE_METHODS=title,favicon,singlefile,screenshot
-  ```
-
-  Available ARCHIVE_METHODS plugins:
-  - `archive_org`, `dom`, `favicon`, `git`, `headers`, `htmltotext`, `media`, `mercury`, `pdf`, `readability`, `screenshot`, `singlefile`, `title`, `wget`
-
-  If `ARCHIVE_METHODS` is unset/not-present, ArchiveBox will uses all plugins.
-
-  For additional information and configuration, refer to the [ArchiveBox repository](https://github.com/ArchiveBox/ArchiveBox)
-
-Optional proxy settings for archive requests:
+### Proxy (optional, all backends)
 
 - `archive-socks-proxy-host`
 - `archive-socks-proxy-port`

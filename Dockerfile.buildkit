@@ -82,8 +82,10 @@ RUN apt-get update \
   && chmod +x /usr/local/bin/monolith \
   && rm -rf /var/lib/apt/lists/*
 
-# Variant image for ARCHIVE_BACKEND=singlefile, which needs a real chromium and node
-# alongside espial; distroless can't host either. Build with `--target runtime-singlefile`.
+# Variant image for ARCHIVE_BACKEND=singlefile, which needs node alongside espial for
+# single-file-cli; distroless can't host it. Connects to a chromium CDP endpoint running in a
+# separate container (SINGLEFILE_BROWSER_SERVER) -- no chromium is bundled in this image.
+# Build with `--target runtime-singlefile`.
 FROM debian:bookworm-slim AS runtime-singlefile
 
 ARG VERSION=dev
@@ -102,7 +104,7 @@ LABEL org.opencontainers.image.revision=$GIT_SHA
 LABEL org.opencontainers.image.created=$BUILD_DATE
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates chromium fonts-liberation libgmp10 nodejs npm zlib1g \
+  && apt-get install -y --no-install-recommends ca-certificates libgmp10 nodejs npm zlib1g \
   && npm install -g single-file-cli \
   && npm cache clean --force \
   && rm -rf /var/lib/apt/lists/*
@@ -118,10 +120,7 @@ COPY --from=monolith /usr/local/bin/monolith /usr/local/bin/monolith
 ENV SQLITE_DATABASE=/app/data/espial.sqlite3
 ENV MONOLITH_PATH=/usr/local/bin/monolith
 ENV MONOLITH_DIR=/app/data/archives
-# node 18 resolves localhost to ::1 first, but chromium's debugging port is 127.0.0.1-only
-ENV NODE_OPTIONS=--dns-result-order=ipv4first
 ENV SINGLEFILE_PATH=/usr/local/bin/single-file
-ENV SINGLEFILE_BROWSER_PATH=/usr/bin/chromium
 ENV SINGLEFILE_DIR=/app/data/archives
 
 ENTRYPOINT []

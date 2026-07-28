@@ -117,13 +117,27 @@ data AppSettings = AppSettings
     appSingleFileBrowserArgs :: Text,
     -- | Extra whitespace-separated flags passed to single-file
     appSingleFileArgs :: Text,
+    -- | CDP endpoint (e.g. http://host:9222) of an already-running remote browser; when set, single-file
+    -- connects to it via --browser-server instead of launching a local chromium.
+    appSingleFileBrowserServer :: Text,
+    -- | CDP endpoint (e.g. http://host:9222) of a remote chromium for the @chromium@ archive backend
+    appChromiumCdpUrl :: Text,
+    -- | Directory holding archives written by the chromium backend
+    appChromiumDir :: FilePath,
+    -- | Seconds to wait for a page to load and its snapshot to be captured over CDP
+    appChromiumTimeoutSec :: Int,
+    -- | Extra delay, in ms, after the page's load event before snapshotting it
+    appChromiumWaitMs :: Int,
+    -- | Extra whitespace-separated flags passed to monolith when inlining a chromium-captured
+    -- page. Defaults to stripping JS (-j): the DOM is already fully rendered by chromium.
+    appChromiumMonolithArgs :: Text,
     -- | Which archiver backend to use (or disabled)
     appArchiveBackend :: ArchiveBackend,
     -- | Minimum delay, in milliseconds, between successive calls to the archiver backend.
     appArchiveRateLimitMs :: Int,
     -- | Maximum number of pending archive jobs held in memory; excess jobs are dropped.
     appArchiveQueueCapacity :: Int,
-    -- | Whether deleting a bookmark also removes its on-disk archive (monolith, singlefile).
+    -- | Whether deleting a bookmark also removes its on-disk archive (monolith, singlefile, chromium).
     appArchiveDeleteLocalFilesOnDelete :: Bool,
     -- | Uri to app source code
     appSourceCodeUri :: Maybe Text,
@@ -212,6 +226,13 @@ instance FromJSON AppSettings where
     appSingleFileBrowserPath <- (fmap toText <$> o .:? "singlefile-browser-path") .!= "chromium-browser"
     appSingleFileBrowserArgs <- (fmap toText <$> o .:? "singlefile-browser-args") .!= defaultSingleFileBrowserArgs
     appSingleFileArgs <- (fmap toText <$> o .:? "singlefile-args") .!= ""
+    appSingleFileBrowserServer <- (fmap toText <$> o .:? "singlefile-browser-server") .!= ""
+
+    appChromiumCdpUrl <- (fmap toText <$> o .:? "chromium-cdp-url") .!= ""
+    appChromiumDir <- o .:? "chromium-dir" .!= "archives"
+    appChromiumTimeoutSec <- o .:? "chromium-timeout-sec" .!= 60
+    appChromiumWaitMs <- o .:? "chromium-wait-ms" .!= 3000
+    appChromiumMonolithArgs <- (fmap toText <$> o .:? "chromium-monolith-args") .!= "-I -q -e -v -a -j"
 
     appArchiveRateLimitMs <- o .:? "archive-rate-limit-ms" .!= 2000
     appArchiveQueueCapacity <- o .:? "archive-queue-capacity" .!= 500
@@ -257,6 +278,7 @@ localArchiveBaseDir :: AppSettings -> Maybe FilePath
 localArchiveBaseDir AppSettings {..} = case appArchiveBackend of
   ArchiveBackendSingleFile -> Just appSingleFileDir
   ArchiveBackendMonolith -> Just appMonolithDir
+  ArchiveBackendChromium -> Just appChromiumDir
   _ -> Nothing
 
 -- | Top-level password hashing algorithm selection.
@@ -276,7 +298,7 @@ appPasswordHashConfig AppSettings {..} =
     PasswordHashAlgoBCrypt -> HashAlgoBCrypt bcryptPolicy
 
 -- | Selects which archive backend is active.
-data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07 | ArchiveBackendMonolith | ArchiveBackendSingleFile
+data ArchiveBackend = ArchiveBackendDisabled | ArchiveBackendDebug | ArchiveBackendArchiveLi | ArchiveBackendWaybackMachine | ArchiveBackendArchiveBox07 | ArchiveBackendMonolith | ArchiveBackendSingleFile | ArchiveBackendChromium
   deriving (Show, Eq)
 
 instance FromJSON ArchiveBackend where
@@ -288,6 +310,7 @@ instance FromJSON ArchiveBackend where
     "archivebox07" -> pure ArchiveBackendArchiveBox07
     "monolith" -> pure ArchiveBackendMonolith
     "singlefile" -> pure ArchiveBackendSingleFile
+    "chromium" -> pure ArchiveBackendChromium
     _ -> fail "Unknown archive backend"
 
 -- | Settings for 'widgetFile', such as which template languages to support and

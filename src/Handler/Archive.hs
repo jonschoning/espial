@@ -35,7 +35,7 @@ getArchiveFileR bid = do
 
 -- | Best-effort removal of a bookmark's on-disk archive; the DB row is the index, so a
 -- leftover directory would never be reachable again. No-op unless a backend that writes
--- local archives (monolith, singlefile) is active, or when
+-- local archives (monolith, singlefile, chromium) is active, or when
 -- @archive-delete-local-files-on-delete@ is off.
 deleteLocalBookmarkArchiveFiles :: Key User -> Key Bookmark -> Handler ()
 deleteLocalBookmarkArchiveFiles userId kbid = do

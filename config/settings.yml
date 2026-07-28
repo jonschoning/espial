@@ -57,7 +57,7 @@ archive-backend: "_env:ARCHIVE_BACKEND:disabled"
 
 archive-rate-limit-ms: "_env:ARCHIVE_RATE_LIMIT_MS:2000" # minimum delay between successive archive requests.
 archive-queue-capacity: "_env:ARCHIVE_QUEUE_CAPACITY:500" # max pending archive jobs held in memory; excess are dropped.
-archive-delete-local-files-on-delete: "_env:ARCHIVE_DELETE_LOCAL_FILES_ON_DELETE:true" # when true, deleting a bookmark also removes its on-disk archive (monolith, singlefile).
+archive-delete-local-files-on-delete: "_env:ARCHIVE_DELETE_LOCAL_FILES_ON_DELETE:true" # when true, deleting a bookmark also removes its on-disk archive (monolith, singlefile, chromium).
 
 archive-socks-proxy-host: "_env:ARCHIVE_SOCKS_PROXY_HOST"
 archive-socks-proxy-port: "_env:ARCHIVE_SOCKS_PROXY_PORT"
@@ -83,6 +83,13 @@ singlefile-timeout-sec: "_env:SINGLEFILE_TIMEOUT_SEC:120" # kill a single-file i
 singlefile-browser-path: "_env:SINGLEFILE_BROWSER_PATH:chromium-browser" # chromium executable single-file drives.
 # singlefile-browser-args: '_env:SINGLEFILE_BROWSER_ARGS:["--headless=new","--no-sandbox",...]' # JSON array of chromium flags; see README for the default.
 singlefile-args: "_env:SINGLEFILE_ARGS:" # extra whitespace-separated flags passed to single-file.
+singlefile-browser-server: "_env:SINGLEFILE_BROWSER_SERVER:" # CDP endpoint (e.g. http://chromium:9222) of an already-running remote browser; when set, single-file connects to it instead of launching singlefile-browser-path locally.
+
+chromium-cdp-url: "_env:CHROMIUM_CDP_URL:" # CDP endpoint (e.g. http://browser:9222) of a remote chromium; required for the `chromium` archive backend.
+chromium-dir: "_env:CHROMIUM_DIR:archives" # directory where chromium archives are written, one latest.html per bookmark.
+chromium-timeout-sec: "_env:CHROMIUM_TIMEOUT_SEC:60" # kill a chromium page capture (load + snapshot) that runs longer than this; the subsequent monolith inlining pass uses monolith-timeout-sec instead.
+chromium-wait-ms: "_env:CHROMIUM_WAIT_MS:3000" # extra delay after the page's load event before snapshotting it, to let late JS-driven rendering settle; some JS-heavy SPAs need several seconds here or they get captured mid-render.
+chromium-monolith-args: "_env:CHROMIUM_MONOLITH_ARGS:-I -q -e -v -a -j" # flags used to inline the chromium-captured page; -j (strip JS) is the default here since the DOM is already fully rendered, and re-embedding a page's JS as inline <script> content can trip monolith into emitting an unescaped </script> mid-bundle, corrupting the rest of the page.
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 

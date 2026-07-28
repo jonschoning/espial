@@ -1,7 +1,15 @@
-# Espial with ARCHIVE_BACKEND=singlefile: pages are rendered in a headless chromium by
-# single-file-cli and saved as one self-contained HTML file per bookmark, served by espial
-# itself at /archive/bm/{bookmarkId}. This uses the `runtime-singlefile` image variant,
-# which ships chromium and single-file-cli; the default image does not.
+# Espial with ARCHIVE_BACKEND=singlefile: pages are rendered by single-file-cli and saved as
+# one self-contained HTML file per bookmark, served by espial itself at
+# /archive/bm/{bookmarkId}. single-file-cli runs in the `runtime-singlefile` image variant
+# alongside espial, but it drives a headless chromium in a separate `browser` container over
+# the Chrome DevTools Protocol (SINGLEFILE_BROWSER_SERVER) -- no chromium is bundled with
+# espial itself. The browser container has no published port and only CDP traffic from
+# `espial` reaches it; CDP has no auth, so never expose the `browser` service's port.
+#
+# Chrome rejects CDP requests whose Host header isn't "localhost" or a literal IP (anti
+# DNS-rebinding protection), so single-file-cli's SINGLEFILE_BROWSER_SERVER can't be pointed
+# at the `browser` service's hostname -- it must be a real IP, which is why `browser` is
+# pinned to a static address on a dedicated network below.
 services:
   espial:
     image: '${HUB_REPO:-localhost}/${APPIMAGE:-espial:espial-singlefile}'
@@ -10,12 +18,14 @@ services:
       context: .
       dockerfile: ${ESPIAL_DOCKERFILE:-./Dockerfile}
       target: runtime-singlefile
+    depends_on:
+      - browser
     ports:
       - "3000:3000"
     volumes:
       - '${DATA:-.}:/app/data'
-    # chromium needs more than docker's default 64MB /dev/shm
-    shm_size: '1gb'
+    networks:
+      chromium_net:
     environment:
       PORT: 3000
       SQLITE_DATABASE: /app/data/espial.sqlite3
@@ -25,7 +35,40 @@ services:
 
       ARCHIVE_BACKEND: singlefile
       SINGLEFILE_DIR: /app/data/archives
+      SINGLEFILE_BROWSER_SERVER: http://172.28.0.10:9222
       # SINGLEFILE_TIMEOUT_SEC: 120
       # SINGLEFILE_ARGS: ""
-      # SINGLEFILE_PATH and SINGLEFILE_BROWSER_PATH are baked into the image.
-      # SINGLEFILE_BROWSER_ARGS: '["--headless=new","--no-sandbox","--no-zygote","--disable-dev-shm-usage","--disable-software-rasterizer","--run-all-compositor-stages-before-draw","--hide-scrollbars","--window-size=1440,2000","--autoplay-policy=no-user-gesture-required","--no-first-run","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream","--disable-sync"]'
+      # SINGLEFILE_PATH is baked into the image.
+
+  browser:
+    image: '${SINGLEFILE_BROWSER_IMAGE:-chromedp/headless-shell:stable}'
+    restart: unless-stopped
+    # chromium needs more than docker's default 64MB /dev/shm
+    shm_size: '1gb'
+    # no `ports:` here -- CDP has no auth, keep it reachable only from `espial` on the compose network
+    networks:
+      chromium_net:
+        ipv4_address: 172.28.0.10
+    # SINGLEFILE_BROWSER_ARGS is only applied when single-file-cli launches chromium itself,
+    # which it doesn't do in --browser-server mode -- so the flags it would otherwise pass
+    # (singlefile-browser-args' container-friendly default set) are baked in here instead,
+    # same as docker-compose.chromium.yml's browser sidecar.
+    command:
+      - --no-sandbox
+      - --no-zygote
+      - --disable-dev-shm-usage
+      - --disable-software-rasterizer
+      - --run-all-compositor-stages-before-draw
+      - --hide-scrollbars
+      - --window-size=1440,2000
+      - --autoplay-policy=no-user-gesture-required
+      - --no-first-run
+      - --use-fake-ui-for-media-stream
+      - --use-fake-device-for-media-stream
+      - --disable-sync
+
+networks:
+  chromium_net:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

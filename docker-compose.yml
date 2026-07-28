@@ -35,3 +35,4 @@ services:
       # MONOLITH_ARGS: "-I -q -e -v -a"
 
       ## use docker-compose.singlefile.yml for ARCHIVE_BACKEND: singlefile
+      ## use docker-compose.chromium.yml for ARCHIVE_BACKEND: chromium

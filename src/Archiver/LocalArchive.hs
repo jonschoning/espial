@@ -6,16 +6,18 @@ module Archiver.LocalArchive
     localArchiveHref,
     probeExe,
     runProcessQuiet,
+    runProcessWithStdin,
   )
 where
 
 import ClassyPrelude
+import Data.ByteString.Lazy qualified as BSL
 import Database.Persist.Sql (Key, fromSqlKey)
 import Model (Bookmark, User)
 import System.Exit (ExitCode (..))
 import System.Process
   ( CreateProcess (..),
-    StdStream (Inherit, NoStream),
+    StdStream (CreatePipe, Inherit, NoStream),
     proc,
     readProcessWithExitCode,
     waitForProcess,
@@ -52,3 +54,14 @@ runProcessQuiet exe args timeoutMicros =
     withCreateProcess
       (proc exe args) {std_in = NoStream, std_out = Inherit, std_err = Inherit}
       (\_ _ _ ph -> waitForProcess ph)
+
+-- | Like 'runProcessQuiet', but writes @input@ to the child's stdin before waiting on it.
+runProcessWithStdin :: FilePath -> [String] -> LByteString -> Int -> IO (Maybe ExitCode)
+runProcessWithStdin exe args input timeoutMicros =
+  timeout timeoutMicros $
+    withCreateProcess
+      (proc exe args) {std_in = CreatePipe, std_out = Inherit, std_err = Inherit}
+      ( \mstdin _ _ ph -> do
+          forM_ mstdin $ \h -> BSL.hPut h input >> hClose h
+          waitForProcess ph
+      )

@@ -36,6 +36,8 @@ extra-source-files:
   - config/settings.yml
   - config/test-settings.yml
   - docker-compose.archivebox07.yml
+  - docker-compose.chromium.yml
+  - docker-compose.singlefile.yml
   - docker-compose.yml
   - frontend/.gitignore
   - frontend/.prettierignore
@@ -142,6 +144,7 @@ dependencies:
   - persistent-sqlite == 2.13.3.0 # do not upgrade to 2.13.3.1 due to UTCTime behavior in that version (see https://github.com/yesodweb/persistent/issues/1628)
   - transformers >= 0.2.2
   - stm
+  - websockets
 
 when:
   - condition: "!os(windows)"
