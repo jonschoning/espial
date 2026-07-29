@@ -114,6 +114,10 @@ export function closeWindow(win: Window): void {
   win.close();
 }
 
+export function navigateTo(win: Window, url: string): void {
+  win.location.href = url;
+}
+
 export type RawHTML = string;
 
 export function setFocus(elemId: string): void {

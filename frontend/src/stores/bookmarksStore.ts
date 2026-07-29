@@ -4,6 +4,7 @@ import type { Bookmark } from '../types';
 
 export type BookmarksState = {
   bmarks: Bookmark[];
+  hydrated: boolean;
   setAll: (bmarks: Bookmark[]) => void;
   removeById: (bid: number) => void;
   upsert: (bm: Bookmark) => void;
@@ -11,8 +12,9 @@ export type BookmarksState = {
 
 export const useBookmarksStore = create<BookmarksState>((set) => ({
   bmarks: [],
+  hydrated: false,
   setAll: (bmarks) => {
-    set({ bmarks });
+    set({ bmarks, hydrated: true });
   },
   removeById: (bid) => {
     set((s) => ({ bmarks: s.bmarks.filter((b) => b.bid !== bid) }));

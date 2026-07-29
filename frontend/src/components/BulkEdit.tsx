@@ -156,12 +156,12 @@ export function BulkEdit({ bcount }: Props) {
     el.classList.toggle('silver', !visible);
   }, [visible]);
 
-  useEffect(() => {
+  const resetConfirmAndValidation = useCallback(() => {
     setConfirmDelete(false);
     setConfirmPublic(false);
     setValidationMsg(null);
     setErrorFadingOut(false);
-  }, [action, selection]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -257,6 +257,12 @@ export function BulkEdit({ bcount }: Props) {
       setAddTags('');
       setRemoveTags('');
     }
+    resetConfirmAndValidation();
+  };
+
+  const selectSelection = (v: BulkSelection) => {
+    setSelection(v);
+    resetConfirmAndValidation();
   };
 
   return (
@@ -278,9 +284,9 @@ export function BulkEdit({ bcount }: Props) {
           )}
         </div>
         <div>
-          {navLink(selection, 'page', t('bulkEdit.thisPage'), setSelection)}
+          {navLink(selection, 'page', t('bulkEdit.thisPage'), selectSelection)}
           {' ‧ '}
-          {navLink(selection, 'all', t('bulkEdit.allPages'), setSelection)}
+          {navLink(selection, 'all', t('bulkEdit.allPages'), selectSelection)}
         </div>
       </div>
 

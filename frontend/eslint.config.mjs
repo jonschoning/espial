@@ -33,8 +33,7 @@ export default tseslint.config(
       'import/core-modules': [],
     },
     rules: {
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      ...reactHooks.configs['recommended-latest'].rules,
       'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

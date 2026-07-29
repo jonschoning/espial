@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { destroyNote, editNote } from '../api';
-import { app, closeWindow, fromNow, setFocus, shdatetime } from '../globals';
+import { app, closeWindow, fromNow, navigateTo, setFocus, shdatetime } from '../globals';
 import type { Note } from '../types';
 import { apiErrorMsg, curQuerystring, fromNullableStr, lookupQueryStringValue } from '../util';
 import { Markdown } from './Markdown';
@@ -75,10 +75,9 @@ export function NNote({ initial }: { initial: Note }) {
 
         if (next === 'closeWindow') closeWindow(window);
         else if (next === 'back') {
-          if (ref.startsWith(org)) window.location.href = ref;
-          else window.location.href = org;
+          navigateTo(window, ref.startsWith(org) ? ref : org);
         } else if (editNoteState.id === 0) {
-          window.location.href = fromNullableStr(a.noteR);
+          navigateTo(window, fromNullableStr(a.noteR));
         } else if (res.note) {
           setNote(res.note);
           setEditNoteState(res.note);

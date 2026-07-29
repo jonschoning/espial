@@ -106,12 +106,12 @@ export function NoteBulkEdit({ ncount }: Props) {
     el.classList.toggle('silver', !visible);
   }, [visible]);
 
-  useEffect(() => {
+  const resetConfirmAndValidation = useCallback(() => {
     setConfirmDelete(false);
     setConfirmPublic(false);
     setValidationMsg(null);
     setErrorFadingOut(false);
-  }, [action, selection]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -195,6 +195,12 @@ export function NoteBulkEdit({ ncount }: Props) {
 
   const toggleAction = (v: NoteBulkAction) => {
     setAction((cur) => (cur === v ? null : v));
+    resetConfirmAndValidation();
+  };
+
+  const selectSelection = (v: BulkSelection) => {
+    setSelection(v);
+    resetConfirmAndValidation();
   };
 
   return (
@@ -216,9 +222,9 @@ export function NoteBulkEdit({ ncount }: Props) {
           )}
         </div>
         <div>
-          {navLink(selection, 'page', t('bulkEdit.thisPage'), setSelection)}
+          {navLink(selection, 'page', t('bulkEdit.thisPage'), selectSelection)}
           {' ‧ '}
-          {navLink(selection, 'all', t('bulkEdit.allPages'), setSelection)}
+          {navLink(selection, 'all', t('bulkEdit.allPages'), selectSelection)}
         </div>
       </div>
 

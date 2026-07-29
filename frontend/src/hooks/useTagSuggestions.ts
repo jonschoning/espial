@@ -57,8 +57,10 @@ export function useTagSuggestions({
   }, [cancelPendingSuggestions]);
 
   React.useEffect(() => {
-    if (!enabled) closeSuggestions();
-  }, [enabled, closeSuggestions]);
+    if (!enabled) cancelPendingSuggestions();
+  }, [enabled, cancelPendingSuggestions]);
+
+  const effectiveSuggestionState = enabled ? suggestionState : null;
 
   const onTagsChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,7 +244,7 @@ export function useTagSuggestions({
 
   return {
     tagInputRef,
-    suggestionState,
+    suggestionState: effectiveSuggestionState,
     closeSuggestions,
     onTagsChange,
     onTagsKeyDown,
