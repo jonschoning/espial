@@ -1,5 +1,5 @@
 import { TimeoutError } from 'ky';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { apiErrorMsg } from '@/util';
@@ -64,7 +64,7 @@ export function NoteBulkEdit({ ncount }: Props) {
   const reason = disabledReason(selection, action);
   const isVisuallyDisabled = submitting || reason !== null || confirmDelete || confirmPublic;
 
-  const clearValidationTimers = () => {
+  const clearValidationTimers = useCallback(() => {
     if (validationTimer.current !== null) {
       window.clearTimeout(validationTimer.current);
       validationTimer.current = null;
@@ -73,9 +73,9 @@ export function NoteBulkEdit({ ncount }: Props) {
       window.clearTimeout(fadeTimer.current);
       fadeTimer.current = null;
     }
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setSelection(null);
     setAction(null);
     setConfirmDelete(false);
@@ -83,7 +83,7 @@ export function NoteBulkEdit({ ncount }: Props) {
     setValidationMsg(null);
     setErrorFadingOut(false);
     clearValidationTimers();
-  };
+  }, [clearValidationTimers]);
 
   useEffect(() => {
     const el = document.getElementById('bulk-edit-toggle');
@@ -97,7 +97,7 @@ export function NoteBulkEdit({ ncount }: Props) {
     return () => {
       el.removeEventListener('click', handler);
     };
-  }, []);
+  }, [resetForm]);
 
   useEffect(() => {
     const el = document.getElementById('bulk-edit-toggle');
@@ -117,7 +117,7 @@ export function NoteBulkEdit({ ncount }: Props) {
     return () => {
       clearValidationTimers();
     };
-  }, []);
+  }, [clearValidationTimers]);
 
   const showValidationMsg = (msg: string) => {
     clearValidationTimers();

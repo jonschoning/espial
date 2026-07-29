@@ -30,10 +30,7 @@ export function NList({ initial }: { initial: Note[] }) {
   return (
     <div>
       {initial.map((note) => {
-        const fromNowVal = React.useMemo(
-          () => fromNow(a.lang, note.created),
-          [a.lang, note.created],
-        );
+        const fromNowVal = fromNow(a.lang, note.created);
         return (
           <div
             key={note.id}

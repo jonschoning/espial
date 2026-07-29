@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import checkFile from 'eslint-plugin-check-file';
 import importPlugin from 'eslint-plugin-import';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import tseslint from 'typescript-eslint';
 
@@ -26,11 +27,14 @@ export default tseslint.config(
       'check-file': checkFile,
       import: importPlugin,
       'simple-import-sort': simpleImportSort,
+      'react-hooks': reactHooks,
     },
     settings: {
       'import/core-modules': [],
     },
     rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

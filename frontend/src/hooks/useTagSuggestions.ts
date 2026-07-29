@@ -138,7 +138,7 @@ export function useTagSuggestions({
         })();
       }, TAG_SUGGESTION_DEBOUNCE_MS);
     },
-    [cancelPendingSuggestions, closeSuggestions, enabled, maxSuggestions, onTagsUpdate],
+    [cancelPendingSuggestions, closeSuggestions, enabled, maxSuggestions, onTagsUpdate, tags],
   );
 
   const applySuggestion = React.useCallback(

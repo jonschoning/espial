@@ -149,7 +149,7 @@ export function TagCloudBody({ initialMode }: { initialMode: TagCloudModeF }) {
 
   React.useEffect(() => {
     setMode(initialMode);
-  }, [initialMode]);
+  }, [initialMode, setMode]);
 
   React.useEffect(() => {
     async function fetchTagCloud(m: TagCloudModeF) {
