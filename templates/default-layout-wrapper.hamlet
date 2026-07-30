@@ -40,6 +40,8 @@ $newline never
         , csrfCookieName: "#{ TE.decodeUtf8 defaultCsrfCookieName }"
         , csrfToken: Cookies.get("#{ TE.decodeUtf8 defaultCsrfCookieName }")
         , homeR: "@{ HomeR }"
+        , addUrlR: "@{ AddViewR }"
+        , accountSettingsR: "@{ AccountSettingsR }"
         , authRlogoutR: "@{ AuthR LogoutR }"
         , i18nR: "@{ i18nR }"
         , lang: "#{lang}"

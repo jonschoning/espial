@@ -42,6 +42,10 @@ export type App = {
   csrfToken: string;
   /** URL for the home route. */
   homeR: string;
+  /** URL for the add-bookmark form. */
+  addUrlR: string;
+  /** URL for the account settings page (bookmarklet, import). */
+  accountSettingsR: string;
   /** URL for the logout route. */
   authRlogoutR: string;
   /** URL for the current user's profile, or null if not logged in. */

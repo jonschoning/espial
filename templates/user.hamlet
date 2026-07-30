@@ -95,6 +95,26 @@ $maybe route <- mroute
                     #{t "tagCloud.show"}
               <div ##{tagCloudBodyEl} .tag_cloud_body>
 
+        $if bcount == 0
+          $if not isowner
+            <div .mv4.thm-text-secondary>
+              No bookmarks found.
+          $elseif isFiltered
+            <div .mv4.thm-text-secondary>
+              No bookmarks match the current search and filter criteria.
+          $else
+            <div .mw6.center.tc.pa4.mt4.thm-bg-secondary>
+              <div .f4.mb2>No bookmarks found
+              <div .thm-text-secondary>
+                Bookmarks you save will show up here.
+                <br>
+                You can get started by adding bookmarks via the
+                <a .link href="@{AccountSettingsR}">bookmarklet</a>,
+                <a .link href="@?{(AddViewR, [("next","back")])}">add url</a>
+                form, or
+                <a .link href="@{AccountSettingsR}/importexport">importing</a>
+                your existing bookmarks.
+
         <div ##{renderEl} .mt3>
     
         <div .cf>

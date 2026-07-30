@@ -61,6 +61,7 @@ _getNotes unamep@(UserNameP uname) sharedp' = do
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
       sharedp = if isowner then sharedp' else SharedPublic
+      isFiltered = isJust mquery || sharedp /= SharedAll
   (bcount, notes, hasPrevious, hasNext) <- runDB do
     Entity userId user <- getBy404 (UniqueUserName uname)
     when

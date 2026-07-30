@@ -137,6 +137,7 @@ _getUser unamep@(UserNameP uname) sharedp' filterp' (TagsP pathtags) = do
       msortp = fmap (sortp,) msort
       morderp = fmap (orderp,) morder
       renderEl = "bookmarks" :: Text
+      isFiltered = not isAll || isJust mquery
       showTagCloud = isowner || publicTagCloud
       tagCloudUrl :: Text
       tagCloudUrl
