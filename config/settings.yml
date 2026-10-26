@@ -89,7 +89,7 @@ chromium-cdp-url: "_env:CHROMIUM_CDP_URL:" # CDP endpoint (e.g. http://browser:9
 chromium-dir: "_env:CHROMIUM_DIR:archives" # directory where chromium archives are written, one latest.html per bookmark.
 chromium-timeout-sec: "_env:CHROMIUM_TIMEOUT_SEC:60" # kill a chromium page capture (load + snapshot) that runs longer than this; the subsequent monolith inlining pass uses monolith-timeout-sec instead.
 chromium-wait-ms: "_env:CHROMIUM_WAIT_MS:3000" # extra delay after the page's load event before snapshotting it, to let late JS-driven rendering settle; some JS-heavy SPAs need several seconds here or they get captured mid-render.
-chromium-monolith-args: "_env:CHROMIUM_MONOLITH_ARGS:-I -q -e -v -a -j" # flags used to inline the chromium-captured page; -j (strip JS) is the default here since the DOM is already fully rendered, and re-embedding a page's JS as inline <script> content can trip monolith into emitting an unescaped </script> mid-bundle, corrupting the rest of the page.
+chromium-monolith-args: "_env:CHROMIUM_MONOLITH_ARGS:-I -q -e -v -a -j" # flags used to inline the chromium-captured page.
 
 source-code-uri: "_env:SOURCE_CODE_URI:https://github.com/jonschoning/espial"
 

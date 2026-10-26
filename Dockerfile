@@ -65,11 +65,11 @@ RUN make allnoconfig \
 
 FROM debian:bookworm-slim AS monolith
 
-ARG MONOLITH_VERSION=v2.10.1
+ARG MONOLITH_VERSION=v2.11.6
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates wget \
-  && wget -O /usr/local/bin/monolith "https://github.com/Y2Z/monolith/releases/download/${MONOLITH_VERSION}/monolith-gnu-linux-x86_64" \
+  && wget -O /usr/local/bin/monolith "https://github.com/Y2Z/monolith/releases/download/${MONOLITH_VERSION}/monolith-cli-linux-x86_64" \
   && chmod +x /usr/local/bin/monolith \
   && rm -rf /var/lib/apt/lists/*
 
