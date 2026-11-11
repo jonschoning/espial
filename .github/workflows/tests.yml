@@ -46,7 +46,7 @@ jobs:
         name: Cache ~/.stack (global package store)
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-stack-global-lts-24.46
+          key: ${{ runner.os }}-stack-global-lts-24.66
           restore-keys: |
             ${{ runner.os }}-stack-global-
 

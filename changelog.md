@@ -13,6 +13,7 @@
   - `singlefile` — same idea, using a node cli tool that drives a headless browser to capture pages that need JavaScript to render
   - `chromium` — similar to `singlefile` using a headless browser, but avoids the node cli requirement by piping the browser-rendered dom through monolith.
   - deleting a bookmark deletes its local archive file for these 3 backends when `archive-delete-local-files-on-delete` is true (default true)
+- update stack package set lts-24.46 -> lts-24.66
 
 ## v0.0.42 (2026-07-25)
 
