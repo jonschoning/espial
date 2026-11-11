@@ -62,12 +62,6 @@ export type App = {
   dat: AppData;
 };
 
-declare global {
-  // Provided by the server in a <script> tag.
-
-  var app: App;
-}
-
 export function app(): App {
   return globalThis.app;
 }

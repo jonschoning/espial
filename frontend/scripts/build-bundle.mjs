@@ -1,5 +1,6 @@
+import { transformAsync } from "@babel/core";
 import * as esbuild from "esbuild";
-import babel from "esbuild-plugin-babel";
+import fs from "node:fs/promises";
 
 await esbuild.build({
   entryPoints: ["./src/index.tsx"],
@@ -23,3 +24,20 @@ await esbuild.build({
     }),
   ],
 });
+
+function babel({ filter, config }) {
+  return {
+    name: "babel",
+    setup(build) {
+      build.onLoad({ filter }, async (args) => {
+        const source = await fs.readFile(args.path, "utf8");
+        const result = await transformAsync(source, {
+          ...config,
+          filename: args.path,
+          caller: { name: "esbuild", supportsStaticESM: true },
+        });
+        return { contents: result.code, loader: "js" };
+      });
+    },
+  };
+}
